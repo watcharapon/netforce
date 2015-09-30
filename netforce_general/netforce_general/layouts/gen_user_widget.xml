@@ -1,0 +1,5 @@
+<list model="base.user" priority="20">
+    <field name="name"/>
+    <field name="email"/>
+    <field name="lastlog"/>
+</list>

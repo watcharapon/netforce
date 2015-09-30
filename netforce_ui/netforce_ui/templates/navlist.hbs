@@ -1,0 +1,22 @@
+<ul class="nav nav-list{{#if pull}} pull-{{pull}}{{/if}}">
+    {{#each items}}
+        {{#if is_header}}
+            <li class="nav-header">
+                {{#if icon}}
+                    <i class="icon-{{icon}} icon-white"></i>
+                {{/if}}
+                {{string}}
+            </li>
+        {{/if}}
+        {{#if is_link}}
+            <li{{#if active}} class="active"{{/if}}>
+                <a href="{{action}}">
+                    {{#if icon}}
+                        <i class="icon-{{icon}} icon-white"></i>
+                    {{/if}}
+                    {{string}}
+                </a>
+            </li>
+        {{/if}}
+    {{/each}}
+</ul>

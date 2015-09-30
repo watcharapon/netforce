@@ -1,0 +1,11 @@
+<form model="ship.method">
+    <field name="name"/>
+    <field name="code"/>
+    <field name="sequence"/>
+    <field name="exclude_ship_methods"/>
+    <field name="ship_product_id"/>
+    <related>
+        <field name="rates"/>
+        <field name="comments"/>
+    </related>
+</form>

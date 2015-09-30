@@ -1,0 +1,76 @@
+<center>
+    <h2>
+        Unpaid Sales Report
+    </h2>
+    <h3>
+        {{company_name}}
+        <br/>
+        From {{fmt_date date_from}} to {{fmt_date date_to}}
+    </h3>
+</center>
+<table class="table">
+    <thead class="scroll-header">
+        <tr>
+            <th>
+                Order Number
+            </th>
+            <th>
+                Cart Number
+            </th>
+            <th>
+                Order Date
+            </th>
+            <th>
+                Customer Name
+            </th>
+            <th>
+                Telephone
+            </th>
+            <th>
+                Payment Method
+            </th>
+            <th style="text-align:right">
+                Order Amount
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each lines context=context}}
+            <tr>
+                <td>
+                    {{#view "link" action="sale" action_options="mode=form" active_id=id context=context}}
+                        {{../number}}
+                    {{/view}}
+                </td>
+                <td>
+                    {{#view "link" action="ecom_cart" action_options="mode=form" active_id=related_id context=context}}
+                        {{../related_number}}
+                    {{/view}}
+                </td>
+                <td>
+                    {{fmt_date date}}
+                </td>
+                <td>
+                    {{customer_name}}
+                </td>
+                <td>
+                    {{phone}}
+                </td>
+                <td>
+                    {{pay_method}}
+                </td>
+                <td style="text-align:right">
+                    {{currency amount}}
+                </td>
+            </tr>
+        {{/each}}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="5">Total</th>
+            <th style="text-align:right">
+                {{currency total}}
+            </th>
+        </tr>
+    </tfoot>
+</table>

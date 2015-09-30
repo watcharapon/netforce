@@ -1,0 +1,259 @@
+<center>
+    <h2>
+        Stock Summary
+    </h2>
+    <h3>
+        {{company_name}}
+    </h3>
+    <h4>
+        From {{date_from}} to {{date_to}}
+        {{#if product_id}}
+            <br/>
+            Product: {{product_id.1.}}
+        {{/if}}
+        {{#if lot_num}}
+            <br/>
+            Lot / Serial Number: {{lot_num}}
+        {{/if}}
+        {{#if location_id}}
+            <br/>
+            Location: {{location_id.1.}}
+        {{/if}}
+        {{#if container_id}}
+            <br/>
+            Location: {{container_id.1.}}
+        {{/if}}
+    </h4>
+</center>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th></th>
+            <th></th>
+            {{#if show_lot}}
+                <th></th>
+            {{/if}}
+            <th></th>
+            {{#if show_container}}
+                <th></th>
+            {{/if}}
+            <th></th>
+            {{#unless only_closing}}
+                <th colspan="{{#if show_qty2}}3{{else}}2{{/if}}" style="text-align: center">
+                    Opening
+                </th>
+                <th colspan="{{#if show_qty2}}3{{else}}2{{/if}}" style="text-align: center">
+                    Incoming
+                </th>
+                <th colspan="{{#if show_qty2}}3{{else}}2{{/if}}" style="text-align: center">
+                    Outgoing
+                </th>
+            {{/unless}}
+            <th colspan="{{#if show_qty2}}3{{else}}2{{/if}}" style="text-align: center">
+                Closing
+            </th>
+        </tr>
+        <tr>
+            <th>
+                Product Code
+            </th>
+            <th>
+                Product Name
+            </th>
+            {{#if show_lot}}
+                <th>
+                    Lot / Serial Number
+                </th>
+            {{/if}}
+            <th>
+                Location
+            </th>
+            {{#if show_container}}
+                <th>
+                    Container
+                </th>
+            {{/if}}
+            <th>
+                UoM
+            </th>
+            {{#unless only_closing}}
+                <th>
+                    Qty 
+                </th>
+                <th>
+                    Amount
+                </th>
+                {{#if show_qty2}}
+                    <th>
+                        Secondary Qty
+                    </th>
+                {{/if}}
+                <th>
+                    Qty 
+                </th>
+                <th>
+                    Amount
+                </th>
+                {{#if show_qty2}}
+                    <th>
+                        Secondary Qty
+                    </th>
+                {{/if}}
+                <th>
+                    Qty 
+                </th>
+                <th>
+                    Amount
+                </th>
+                {{#if show_qty2}}
+                    <th>
+                        Secondary Qty
+                    </th>
+                {{/if}}
+            {{/unless}}
+            <th>
+                Qty 
+            </th>
+            <th>
+                Amount
+            </th>
+            {{#if show_qty2}}
+                <th>
+                    Secondary Qty
+                </th>
+            {{/if}}
+        </tr>
+    </thead>
+    <tbody>
+        {{#each lines context=context}}
+            <tr>
+                <td>
+                    {{prod_code}}
+                </td>
+                <td>
+                    {{prod_name}}
+                </td>
+                {{#if ../show_lot}}
+                    <td>
+                        {{view "link" string=lot_num action="stock_lot" action_options="mode=form" active_id=lot_id context=context}}
+                    </td>
+                {{/if}}
+                <td>
+                    {{loc_name}}
+                </td>
+                {{#if ../show_container}}
+                    <td>
+                        {{cont_name}}
+                    </td>
+                {{/if}}
+                <td>
+                    {{uom_name}}
+                </td>
+                {{#unless ../only_closing}}
+                    <td>
+                        {{currency open_qty}}
+                    </td>
+                    <td>
+                        {{currency open_amt}}
+                    </td>
+                    {{#if ../../show_qty2}}
+                        <td>
+                            {{currency open_qty2}}
+                        </td>
+                    {{/if}}
+                    <td>
+                        {{currency period_in_qty}}
+                    </td>
+                    <td>
+                        {{currency period_in_amt}}
+                    </td>
+                    {{#if ../../show_qty2}}
+                        <td>
+                            {{currency period_in_qty2}}
+                        </td>
+                    {{/if}}
+                    <td>
+                        {{currency period_out_qty}}
+                    </td>
+                    <td>
+                        {{currency period_out_amt}}
+                    </td>
+                    {{#if ../../show_qty2}}
+                        <td>
+                            {{currency period_out_qty2}}
+                        </td>
+                    {{/if}}
+                {{/unless}}
+                <td>
+                    <a href="/ui#name=report_stock_card&defaults.product_id={{prod_id}}&defaults.location_id={{loc_id}}&defaults.date_from={{../date_from}}&defaults.date_to={{../date_to}}&defaults.lot_id={{lot_id}}">
+                        {{currency close_qty}}
+                    </a>
+                </td>
+                <td>
+                    <a href="/ui#name=report_stock_card&defaults.product_id={{prod_id}}&defaults.location_id={{loc_id}}&defaults.date_from={{../date_from}}&defaults.date_to={{../date_to}}&defaults.lot_id={{lot_id}}">
+                        {{currency close_amt}}
+                    </a>
+                </td>
+                {{#if ../show_qty2}}
+                    <td>
+                        {{currency close_qty2}}
+                    </td>
+                {{/if}}
+            </tr>
+        {{/each}}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td></td>
+            <td></td>
+            {{#if show_lot}}
+                <td></td>
+            {{/if}}
+            <td></td>
+            {{#if show_container}}
+                <td></td>
+            {{/if}}
+            <td></td>
+            {{#unless only_closing}}
+                <td></td>
+                <th>
+                    {{currency total_open_amt}}
+                </th>
+                {{#if show_qty2}}
+                    <th>
+                        {{currency total_open_qty2}}
+                    </th>
+                {{/if}}
+                <td></td>
+                <th>
+                    {{currency total_period_in_amt}}
+                </th>
+                {{#if show_qty2}}
+                    <th>
+                        {{currency total_period_in_qty2}}
+                    </th>
+                {{/if}}
+                <td></td>
+                <th>
+                    {{currency total_period_out_amt}}
+                </th>
+                {{#if show_qty2}}
+                    <th>
+                        {{currency total_period_out_qty2}}
+                    </th>
+                {{/if}}
+            {{/unless}}
+            <th>
+                {{currency total_close_qty}}
+            </th>
+            <th>
+                {{currency total_close_amt}}
+            </th>
+            {{#if show_qty2}}
+                <th>
+                    {{currency total_close_qty2}}
+                </th>
+            {{/if}}
+        </tr>
+    </tfoot>
+</table>

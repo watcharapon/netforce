@@ -1,0 +1,7 @@
+<form model="sms.message">
+    <field name="account_id"/>
+    <field name="date"/>
+    <field name="phone"/>
+    <field name="state"/>
+    <field name="body" height="300"/>
+</form>

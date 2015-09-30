@@ -1,0 +1,38 @@
+<form model="hr.payroll.settings" title="Payroll Settings">
+    <tabs>
+        <tab string="Personal Income Tax">
+            <separator string="Tax Allowances"/>
+            <field name="child_alw_limit"/>
+            <separator string="Tax Rate Table"/>
+            <field name="tax_rates" nolabel="1">
+                <list>
+                    <field name="min_income"/>
+                    <field name="max_income"/>
+                    <field name="rate"/>
+                </list>
+            </field>
+        </tab>
+        <tab string="Social Security">
+            <field name="social_rate"/>
+            <field name="social_number"/>
+            <newline/>
+            <field name="social_min_wage" help="No need to pay SSO, if Wage or Salary is less than Min Wage."/>
+            <field name="social_max_wage" help="Get the maximux on base this wage, if your salary is more than this."/>
+            <newline/>
+            <field name="sso_comp_support"/>
+        </tab>
+        <tab string="Provident Fund">
+            <field name="prov_name"/>
+        </tab>
+        <tab string="Accounting">
+            <separator string="Main Menu -> Accounting -> Settings -> Journal"/>
+            <field name="journal_id"/>
+            <field name="bank_account_id"/>
+            <field name="sso_account_id"/>
+            <field name="intg_acc"/>
+        </tab>
+    </tabs>
+    <related>
+        <field name="comments"/>
+    </related>
+</form>

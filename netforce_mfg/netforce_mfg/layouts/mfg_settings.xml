@@ -1,0 +1,4 @@
+<form model="settings" title="Manufacturing Settings">
+    <separator string="Manufacturing Workflow"/>
+    <field name="production_waiting_suborder"/>
+</form>

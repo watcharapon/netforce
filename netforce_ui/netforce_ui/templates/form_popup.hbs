@@ -1,0 +1,17 @@
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <a class="close" data-dismiss="modal">×</a>
+            <h4>{{popup_title}}</h4>
+        </div>
+        <div class="modal-body">
+            {{view "flash" context=context}}
+            {{#view "form" context=context}}
+                {{{call ../render_form_body context}}}
+            {{/view}}
+        </div>      
+        <div class="modal-footer">
+            {{{call render_form_foot context}}}
+        </div>
+    </div>
+</div>

@@ -1,0 +1,21 @@
+<list model="production.order" colors='{"#ccc":[["state","=","done"]],"#fc9":[["state","=","waiting_confirm"]],"#dbe":[["state","=","waiting_suborder"]],"#ff9":[["state","=","waiting_material"]],"#9f9":[["state","=","ready"]],"#99f":[["state","=","in_progress"]],"#999":[["state","=","split"]],"due_date,#f00":[["overdue","=",true]]}'>
+    <head>
+        <button string="Print" icon="print" action="report_production_form"/>
+    </head>
+    <field name="number"/>
+    <field name="due_date"/>
+    <field name="product_id"/>
+    <field name="customer_id"/>
+    <field name="supplier_id"/>
+    <field name="sale_id"/>
+    <field name="qty_planned"/>
+    <field name="qty_received"/>
+    <field name="production_location_id"/>
+    <field name="next_production_location_id"/>
+    <field name="team_id"/>
+    <field name="total_qty_issued" sum="1"/>
+    <field name="total_qty_received" sum="1"/>
+    <field name="duration"/>
+    <field name="state"/>
+    <field name="overdue" invisible="1"/>
+</list>

@@ -1,0 +1,8 @@
+<action>
+    <field name="string">Work Time Analysis</field>
+    <field name="view_cls">report_view</field>
+    <field name="model">work.time</field>
+    <field name="group_select">employee_id,service_type_id,product_id</field>
+    <field name="sum_fields">duration</field>
+    <field name="menu">service_menu</field>
+</action>

@@ -1,0 +1,22 @@
+{{#if options.dropdown}}
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+        {{#if options.icon}}
+            <i class="icon-{{options.icon}} icon-white"></i>
+        {{/if}}
+        {{t options.string}}
+        <b class="caret"></b>
+    </a>
+    <ul class="dropdown-menu">
+        {{{content}}}
+    </ul>
+{{else}}
+    <a href="ui#name={{options.action}}" style="white-space:nowrap"> {{! IE8 }}
+        {{#if options.icon}}
+            <i class="icon-{{options.icon}} icon-white"></i>
+        {{/if}}
+        {{#if options.image}}
+            <img src="/static/img/{{options.image}}"/>
+        {{/if}}
+        {{t options.string}}
+    </a>
+{{/if}}

@@ -1,0 +1,42 @@
+<form model="task">
+    <head>
+        <field name="state"/>
+    </head>
+    <field name="project_id"/>
+    <field name="job_id" condition='[["project_id","=",project_id]]'/>
+    <field name="name"/>
+    <field name="priority"/>
+    <field name="resource_id"/>
+    <field name="planned_duration"/>
+    <field name="description"/>
+    <field name="requested_by_id"/>
+    <newline/>
+    <field name="deadline"/>
+    <field name="date_created"/>
+    <field name="est_date_completed"/>
+    <field name="date_started"/>
+    <field name="date_completed"/>
+    <field name="actual_duration"/>
+    <field name="state"/>
+    <related>
+        <field name="documents">
+            <list>
+                <field name="contact_id"/>
+                <field name="file" target="_blank"/>
+                <field name="categ_id"/>
+                <field name="description"/>
+                <field name="date"/>
+                <field name="expiry_date"/>
+            </list>
+            <form>
+                <field name="contact_id"/>
+                <field name="categ_id"/>
+                <field name="file" target="_blank" onchange="onchange_file"/>
+                <field name="date"/>
+                <field name="description"/>
+                <field name="expiry_date"/>
+            </form>
+        </field>
+        <field name="comments"/>
+    </related>
+</form>

@@ -1,0 +1,252 @@
+{{#if context.collection}}
+    {{#ifeq view_type "list"}}
+        <table class="table table-striped table-condensed">
+            <thead>
+                <tr>
+                    <th></th>
+                    {{#each cols context=context}}
+                        <th>
+                            {{field_label name context=context}}
+                        </th>
+                    {{/each}}
+                </tr>
+            </thead>
+            <tbody>
+                {{#if group_field}}
+                    {{#each groups context=context}}
+                        {{set context "model" model}}
+                        <tr>
+                            <td style="background-color: #ddf; padding-top:0">
+                                <input type="checkbox" data-group-id={{model.cid}} />
+                            </td>
+                            <td style="background-color: #ddf" colspan="20">
+                                <b>{{field_label ../group_field context=context}}</b>: {{field_value ../group_field context=context}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #ddf"></td>
+                            {{#each ../cols context=context}}
+                                <td style="background-color: #ddf">
+                                    {{field_value name context=context}}
+                                </td>
+                            {{/each}}
+                        </tr>
+                        {{#if ../subgroup_field}}
+                            {{#each subgroups context=context}}
+                                {{set context "model" model}}
+                                <tr>
+                                    <td style="background-color: #eef; padding-top:0">
+                                        <input type="checkbox" data-group-id={{model.cid}} />
+                                    </td>
+                                    <td style="background-color: #eef" colspan="20">
+                                        <b>{{field_label ../../../subgroup_field context=context}}</b>: {{field_value ../../../subgroup_field context=context}}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="background-color: #eef"></td>
+                                    {{#each ../../../cols context=context}}
+                                        <td style="background-color: #eef">
+                                            {{field_value name context=context}}
+                                        </td>
+                                    {{/each}}
+                                </tr>
+                                {{#each records context=context}}
+                                    {{set context "model" model}}
+                                    <tr>
+                                        <td></td>
+                                        {{#each ../../../../cols context=context}}
+                                            <td>
+                                                {{field_value name context=context}}
+                                            </td>
+                                        {{/each}}
+                                    </tr>
+                                {{/each}}
+                            {{/each}}
+                        {{else}}
+                            {{#each records context=context}}
+                                {{set context "model" model}}
+                                <tr>
+                                    <td></td>
+                                    {{#each ../../../cols context=context}}
+                                        <td>
+                                            {{field_value name context=context}}
+                                        </td>
+                                    {{/each}}
+                                </tr>
+                            {{/each}}
+                        {{/if}}
+                    {{/each}}
+                {{else}}
+                    {{#each records context=context}}
+                        {{set context "model" model}}
+                        <tr>
+                            <td></td>
+                            {{#each ../cols context=context}}
+                                <td>
+                                    {{field_value name context=context}}
+                                </td>
+                            {{/each}}
+                        </tr>
+                    {{/each}}
+                {{/if}}
+            </tbody>
+        </table>
+    {{/ifeq}}
+    {{#ifeq view_type "crosstab"}}
+        <table class="table table-condensed table-bordered">
+            <thead>
+                <tr>
+                    <th colspan="3" style="background-color:#dff"></th>
+                    <th colspan="{{length all_subgroups}}" style="text-align:center;background-color:#dff">
+                        {{field_label subgroup_field context=context}}
+                    </th>
+                    <th rowspan="2" style="background-color:#999;color:#fff">
+                        Grand Total
+                    </th>
+                    {{#unless hide_details}}
+                        <th colspan="20">
+                        </th>
+                    {{/unless}}
+                </tr>
+                <tr>
+                    <th style="background-color:#dff"></th>
+                    <th style="background-color:#cef">
+                        {{field_label group_field context=context}}
+                    </th>
+                    <th style="background-color:#cef"></th>
+                    {{#each all_subgroups context=context}}
+                        {{set context "model" model}}
+                        <th style="background-color:#dff">
+                            {{field_value ../subgroup_field context=context}}
+                        </th>
+                    {{/each}}
+                    {{#unless hide_details}}
+                        {{#each cols context=context}}
+                            <th>{{field_label name context=context}}</th>
+                        {{/each}}
+                    {{/unless}}
+                </tr>
+            </thead>
+            <tbody>
+                {{#each groups context=context}}
+                    {{set context "model" model}}
+                    <tr>
+                        <td style="background:#ddf">
+                            <input type="checkbox"/>
+                        </td>
+                        <td style="background:#ddf;font-weight:bold">
+                            {{field_value ../group_field context=context}}
+                        </td>
+                        <td>
+                            {{#each ../agg_fields context=context}}
+                                <div>
+                                    {{field_label name context=context}}
+                                </div>
+                            {{/each}}
+                        </td>
+                        {{#each subgroups context=context}}
+                            {{set context "model" model}}
+                            <td>
+                                {{#each ../../agg_fields context=context}}
+                                    <div>
+                                        {{field_value name context=context}}
+                                    </div>
+                                {{/each}}
+                            </td>
+                        {{/each}}
+                        {{set context "model" model}}
+                        <td style="background-color:#999;color:#fff;font-weight:bold">
+                            {{#each ../agg_fields context=context}}
+                                <div>
+                                    {{field_value name context=context}}
+                                </div>
+                            {{/each}}
+                        </td>
+                        {{#unless ../hide_details}}
+                            {{#each ../cols context=context}}
+                                <td>
+                                </td>
+                            {{/each}}
+                        {{/unless}}
+                    </tr>
+                    {{#each records context=context}}
+                        <tr style="background-color:#eef">
+                            {{set context "model" model}}
+                            <td></td>
+                            <td></td>
+                            <td>
+                                {{#each ../../agg_fields context=context}}
+                                    <div>
+                                        {{field_label name context=context}}
+                                    </div>
+                                {{/each}}
+                            </td>
+                            {{#each ../../all_subgroups context=context}}
+                                <td>
+                                    {{#ifeq subgroup_val ../subgroup_val}}
+                                        {{#each ../../../../agg_fields context=context}}
+                                            <div>
+                                                {{field_value name context=context}}
+                                            </div>
+                                        {{/each}}
+                                    {{/ifeq}}
+                                </td>
+                            {{/each}}
+                            <td></td>
+                            {{#each ../../cols context=context}}
+                                <td>
+                                    {{field_value name context=context}}
+                                </td>
+                            {{/each}}
+                        </tr>
+                    {{/each}}
+                {{/each}}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td style="background-color:#999;color:#fff"></td>
+                    <td style="background-color:#999;color:#fff;font-weight:bold">
+                        Grand Total
+                    </td>
+                    <td style="background-color:#999;color:#fff">
+                        {{#each agg_fields context=context}}
+                            <div>
+                                {{field_label name context=context}}
+                            </div>
+                        {{/each}}
+                    </td>
+                    {{#each all_subgroups context=context}}
+                        {{set context "model" model}}
+                        <td style="background-color:#999;color:#fff">
+                            {{#each ../agg_fields context=context}}
+                                <div>
+                                    {{field_value name context=context}}
+                                </div>
+                            {{/each}}
+                        </td>
+                    {{/each}}
+                    <td style="background-color:#999;color:#fff;font-weight:bold">
+                        {{set context "model" totals}}
+                        {{#each agg_fields context=context}}
+                            <div>
+                                {{field_value name context=context}}
+                            </div>
+                        {{/each}}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    {{/ifeq}}
+    {{#if group_field}}
+        <div>
+            Check rows to filter, then drill down.
+            <div style="display:inline;position:relative;top:-3px;margin-left:10px">
+                {{view "button" string="Drill Down" class="drill-down" context=context}}
+            </div>
+        </div>
+    {{/if}}
+{{else}}
+    <div>
+        {{t "There are no items to display."}}
+    </div>
+{{/if}}

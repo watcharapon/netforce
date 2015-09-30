@@ -1,0 +1,5 @@
+<action>
+    <field name="view">board</field>
+    <field name="view_xml">gen_board</field>
+    <field name="menu">gen_menu</field>
+</action>

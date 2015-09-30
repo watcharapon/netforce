@@ -1,0 +1,15 @@
+{{#unless nolabel}}
+    <label class="control-label" {{#if bold}}style="font-weight:bold"{{/if}}>
+        {{string}}
+    </label>
+{{/unless}}
+<div class="controls">
+{{#if readonly}}
+    <span {{#if input}}class="uneditable-input {{#if size}}input-{{size}}{{/if}}"{{/if}}>
+        {{value}}
+    </span>
+{{/if}}
+<input {{#if password}}type="password"{{else}}type="text"{{/if}} name="form_data.{{path}}" value="{{value}}" class="{{#if span}}span{{span}}{{/if}} {{#if size}}input-{{size}}{{/if}}"{{#if readonly}} style="display:none"{{/if}}/>
+<input type="hidden" name="form_orig_data.{{path}}" value="{{orig_value}}"/>
+<input type="hidden" name="form_fields" value="{{path}}"/>
+</div>

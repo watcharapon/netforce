@@ -1,0 +1,13 @@
+<v:page title="Goods Transfer">
+    <v:toolbar>
+        <v:button string="New Goods Transfer" icon="plus-sign" action="pick_internal_edit"/>
+        <v:button string="Import" action="pick_internal_import" icon="download"/>
+    </v:toolbar>
+    <v:tabs>
+        <v:tab_item string="All" action="pick_internal_all"/>
+        <v:tab_item string="Draft" action="pick_internal_draft"/>
+        <v:tab_item string="Pending" action="pick_internal_pending"/>
+        <v:tab_item string="Completed" action="pick_internal_done"/>
+    </v:tabs>
+    {{{context.content}}}
+</v:page>

@@ -1,0 +1,8 @@
+<action>
+    <field name="string">Reconciliation Report</field>
+    <field name="view_cls">report</field>
+    <field name="model">report.reconcile</field>
+    <field name="report_template">report_reconcile</field>
+    <field name="report_template_xls">reconcile</field>
+    <field name="menu">account_menu</field>
+</action>

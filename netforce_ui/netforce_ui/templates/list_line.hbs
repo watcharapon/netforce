@@ -1,0 +1,31 @@
+{{#if select_model}}
+    <td class="list-line-select">
+        <input type="checkbox"/>
+    </td>
+{{/if}}
+{{#if select_group}}
+    <td class="list-line-select">
+    </td>
+{{/if}}
+{{#each cols context=context}}
+    {{#if_perm perm}}
+        {{#if perms.perm_read}}
+            {{#if view}}
+                <td>
+                    {{view view name=name context=context}}
+                </td>
+            {{else}}
+                {{#ifeq col_type "field"}}
+                    <td style='{{#ifeq align "right"}}text-align:right;{{/ifeq}}{{#if color}}color:{{color}};font-weight:bold;{{/if}}'>
+                        {{field_value name context=context link=link target=target preview=preview}}
+                    </td>
+                {{/ifeq}}
+                {{#ifeq col_type "button"}}
+                    <td style="width:1%">
+                        {{view "button" string=string type=type size="small" icon=icon action=action method=method context=context}}
+                    </td>
+                {{/ifeq}}
+            {{/if}}
+        {{/if}}
+    {{/if_perm}}
+{{/each}}

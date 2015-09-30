@@ -1,0 +1,4 @@
+<list model="role">
+    <field name="name"/>
+    <field name="parent_id"/>
+</list>

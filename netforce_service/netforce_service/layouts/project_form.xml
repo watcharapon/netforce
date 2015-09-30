@@ -1,0 +1,52 @@
+<form model="project">
+    <head>
+        <field name="state"/>
+    </head>
+    <tabs string="General">
+        <tab string="General">
+            <field name="name"/>
+            <field name="contact_id"/>
+            <field name="start_date"/>
+            <field name="end_date"/>
+            <field name="state"/>
+            <field name="description"/>
+        </tab>
+        <tab string="Costing">
+            <field name="track_id"/>
+            <field name="track_entries" nolabel="1" readonly="1">
+                <list>
+                    <field name="date"/>
+                    <field name="related_id"/>
+                    <field name="product_id"/>
+                    <field name="qty"/>
+                    <field name="uom_id"/>
+                    <field name="amount"/>
+                </list>
+            </field>
+        </tab>
+    </tabs>
+    <related>
+        <field name="jobs"/>
+        <field name="tasks"/>
+        <field name="work_time"/>
+        <field name="documents">
+            <list>
+                <field name="file" target="_blank"/>
+                <field name="categ_id"/>
+                <field name="description"/>
+                <field name="date"/>
+                <field name="expiry_date"/>
+            </list>
+            <form>
+                <field name="categ_id"/>
+                <field name="file" target="_blank" onchange="onchange_file"/>
+                <field name="date"/>
+                <field name="description"/>
+                <field name="expiry_date"/>
+            </form>
+        </field>
+        <field name="claims"/>
+        <field name="borrows"/>
+        <field name="comments"/>
+    </related>
+</form>

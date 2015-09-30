@@ -1,0 +1,21 @@
+{{#if options.dropdown}}
+    <a class="btn btn-default dropdown-toggle {{#if btn_size}}btn-{{btn_size}}{{/if}}" data-toggle="dropdown" href="#">
+        {{#if options.icon}}
+            <i class="icon-{{options.icon}}{{#if options.icon_white}} icon-white{{/if}}"></i>
+        {{/if}}
+        {{t options.string}}
+        <span class="caret"></span>
+    </a>
+    <ul class="dropdown-menu">
+        {{{content}}}
+    </ul>
+{{/if}}
+{{#if options.split}}
+    <button class="main-btn btn {{#if btn_size}}btn-{{btn_size}}{{/if}} btn-{{btn_type}}">{{options.string}}</button>
+    <button class="btn dropdown-toggle {{#if btn_size}}btn-{{btn_size}}{{/if}} btn-{{btn_type}}" data-toggle="dropdown">
+        <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+        {{{content}}}
+    </ul>
+{{/if}}

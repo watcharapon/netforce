@@ -1,0 +1,6 @@
+<action>
+    <field name="string">Print</field>
+    <field name="view">form_popup</field>
+    <field name="model">print.wizard</field>
+    <field name="target">_popup</field>
+</action>

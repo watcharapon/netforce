@@ -1,0 +1,13 @@
+<v:widget title="Products Below Min Stock">
+    <v:flash/>
+    <v:button string="New Purchase Order" method="make_po" icon="plus-sign"/>
+    <v:list action="warehouse_products">
+        <action_options>warehouse_id={{context.data.location_id.0.}}</action_options>
+        <color>#f00</color>
+        <field name="location_id"/>
+        <field name="product_id"/>
+        <field name="qty_phys"/>
+        <field name="qty_virt"/>
+        <field name="min_qty"/>
+    </v:list>
+</v:widget>

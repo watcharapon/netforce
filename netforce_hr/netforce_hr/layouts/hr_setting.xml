@@ -1,0 +1,16 @@
+<form model="settings" title="HR Setting">
+    <separator string="Legal Report Address"/>
+    <field name="addr_building"/>
+    <field name="addr_room_no"/>
+    <field name="addr_floor"/>
+    <field name="addr_village"/>
+    <field name="addr_no"/>
+    <field name="addr_moo"/>
+    <field name="addr_soi"/>
+    <field name="addr_street"/>
+    <field name="addr_sub_district"/>
+    <field name="addr_district"/>
+    <field name="addr_province"/>
+    <field name="addr_zipcode"/>
+    <field name="addr_tel"/>
+</form>

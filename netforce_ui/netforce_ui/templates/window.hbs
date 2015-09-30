@@ -1,0 +1,6 @@
+{{#ifeq mode "list"}}
+    {{view "list_view" window=window context=context}}
+{{/ifeq}}
+{{#ifeq mode "form"}}
+    {{view "form_view" window=window context=context}}
+{{/ifeq}}

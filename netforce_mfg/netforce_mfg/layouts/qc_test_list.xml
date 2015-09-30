@@ -1,0 +1,6 @@
+<list model="qc.test">
+    <field name="name"/>
+    <field name="description"/>
+    <field name="min_value"/>
+    <field name="max_value"/>
+</list>

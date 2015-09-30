@@ -1,0 +1,31 @@
+{{#unless options.raw}}
+    {{#unless options.nolabel}}
+        <label class="control-label {{#if horizontal}}col-sm-4{{/if}}">
+            {{t string}}
+        </label>
+    {{/unless}}
+{{/unless}}
+<div class="{{#if horizontal}}col-sm-8{{/if}}">
+    {{#if readonly}}
+        <span{{#if input}} class="uneditable-input {{#if options.size}}input-{{options.size}}{{/if}}"{{/if}}>
+            {{value_string}}
+        </span>
+    {{else}}
+        <select class="form-control {{#if options.span}}span{{options.span}}{{/if}} {{#if options.size}}input-{{options.size}}{{/if}}" {{#if disabled}}disabled{{/if}}>
+            <option value=""></option>
+            {{#if sel_groups}}
+                {{#each sel_groups}}
+                    <optgroup label="{{label}}">
+                        {{#each sel_options}}
+                            <option value="{{value}}"{{#if selected}} selected="selected"{{/if}}>{{t string}}</option>
+                        {{/each}}
+                    </optgroup>
+                {{/each}}
+            {{else}}
+                {{#each sel_options}}
+                    <option value="{{value}}"{{#if selected}} selected="selected"{{/if}}>{{t string}}</option>
+                {{/each}}
+            {{/if}}
+        </select>
+    {{/if}}
+</div>

@@ -1,0 +1,270 @@
+<center>
+    <h2>
+        Profit &amp; Loss
+    </h2>
+    <h3>
+        {{company_name}}
+        <br/>
+        {{fmt_date date_from}} to {{fmt_date date_to}}
+    </h3>
+</center>
+<table class="table table-condensed">
+    <thead class="scroll-header">
+        <tr>
+            <th>
+            </th>
+            <th style="text-align:right">
+                {{fmt_date col0}}
+            </th>
+            {{#if col1}}
+                <th style="text-align:right">
+                    {{fmt_date col1}}
+                </th>
+            {{/if}}
+            {{#if col2}}
+                <th style="text-align:right">
+                    {{fmt_date col2}}
+                </th>
+            {{/if}}
+            {{#if col3}}
+                <th style="text-align:right">
+                    {{fmt_date col3}}
+                </th>
+            {{/if}}
+            {{#if col4}}
+                <th style="text-align:right">
+                    {{fmt_date col4}}
+                </th>
+            {{/if}}
+            {{#if col5}}
+                <th style="text-align:right">
+                    {{fmt_date col5}}
+                </th>
+            {{/if}}
+            {{#if col6}}
+                <th style="text-align:right">
+                    {{fmt_date col6}}
+                </th>
+            {{/if}}
+            {{#if col7}}
+                <th style="text-align:right">
+                    {{fmt_date col7}}
+                </th>
+            {{/if}}
+            {{#if col8}}
+                <th style="text-align:right">
+                    {{fmt_date col8}}
+                </th>
+            {{/if}}
+            {{#if col9}}
+                <th style="text-align:right">
+                    {{fmt_date col9}}
+                </th>
+            {{/if}}
+            {{#if col10}}
+                <th style="text-align:right">
+                    {{fmt_date col10}}
+                </th>
+            {{/if}}
+            {{#if col11}}
+                <th style="text-align:right">
+                    {{fmt_date col11}}
+                </th>
+            {{/if}}
+            {{#if show_ytd}}
+                <th style="text-align:right">
+                    YTD
+                </th>
+            {{/if}}
+        </tr>
+    </thead>
+    <tbody>
+        {{#each lines context=context}}
+            {{#ifeq type "group_header"}}
+                <tr style="font-weight:bold">
+                    <td colspan="20" {{#if padding}}style="padding-left:{{padding}}px"{{/if}}>
+                        {{string}}
+                    </td>
+                </tr>
+            {{/ifeq}}
+            {{#ifeq type "account"}}
+                <tr>
+                    <td {{#if padding}}style="padding-left:{{padding}}px"{{/if}}>
+                        {{string}}
+                    </td>
+                    <td style="text-align:right">
+                        <a href="/ui#name=report_account_trans&defaults.account_id={{id}}&defaults.date_from={{../../date_from}}&defaults.date_to={{../../date_to}}&defaults.track_id={{../../track_id}}&defaults.track2_id={{../../track2_id}}">
+                            {{currency amount}}
+                        </a>
+                    </td>
+                    {{#if ../../col1}}
+                        <td style="text-align:right">
+                            <a href="/ui#name=report_account_trans&defaults.account_id={{id}}&defaults.date_from={{../../../date_from1}}&defaults.date_to={{../../../date_to1}}&defaults.track_id={{../../../track_id}}&defaults.track2_id={{../../../track2_id}}">
+                                {{currency amount1}}
+                            </a>
+                        </td>
+                    {{/if}}
+                    {{#if ../../col2}}
+                        <td style="text-align:right">
+                            <a href="/ui#name=report_account_trans&defaults.account_id={{id}}&defaults.date_from={{../../../date_from2}}&defaults.date_to={{../../../date_to2}}&defaults.track_id={{../../../track_id}}&defaults.track2_id={{../../../track2_id}}">
+                                {{currency amount2}}
+                            </a>
+                        </td>
+                    {{/if}}
+                    {{#if ../../col3}}
+                        <td style="text-align:right">
+                            <a href="/ui#name=report_account_trans&defaults.account_id={{id}}&defaults.date_from={{../../../date_from3}}&defaults.date_to={{../../../date_to3}}&defaults.track_id={{../../../track_id}}&defaults.track2_id={{../../../track2_id}}">
+                                {{currency amount3}}
+                            </a>
+                        </td>
+                    {{/if}}
+                    {{#if ../../col4}}
+                        <td style="text-align:right">
+                            <a href="/ui#name=report_account_trans&defaults.account_id={{id}}&defaults.date_from={{../../../date_from4}}&defaults.date_to={{../../../date_to4}}&defaults.track_id={{../../../track_id}}&defaults.track2_id={{../../../track2_id}}">
+                                {{currency amount4}}
+                            </a>
+                        </td>
+                    {{/if}}
+                    {{#if ../../col5}}
+                        <td style="text-align:right">
+                            <a href="/ui#name=report_account_trans&defaults.account_id={{id}}&defaults.date_from={{../../../date_from5}}&defaults.date_to={{../../../date_to5}}&defaults.track_id={{../../../track_id}}&defaults.track2_id={{../../../track2_id}}">
+                                {{currency amount5}}
+                            </a>
+                        </td>
+                    {{/if}}
+                    {{#if ../../col6}}
+                        <td style="text-align:right">
+                            <a href="/ui#name=report_account_trans&defaults.account_id={{id}}&defaults.date_from={{../../../date_from6}}&defaults.date_to={{../../../date_to6}}&defaults.track_id={{../../../track_id}}&defaults.track2_id={{../../../track2_id}}">
+                                {{currency amount6}}
+                            </a>
+                        </td>
+                    {{/if}}
+                    {{#if ../../col7}}
+                        <td style="text-align:right">
+                            <a href="/ui#name=report_account_trans&defaults.account_id={{id}}&defaults.date_from={{../../../date_from7}}&defaults.date_to={{../../../date_to7}}&defaults.track_id={{../../../track_id}}&defaults.track2_id={{../../../track2_id}}">
+                                {{currency amount7}}
+                            </a>
+                        </td>
+                    {{/if}}
+                    {{#if ../../col8}}
+                        <td style="text-align:right">
+                            <a href="/ui#name=report_account_trans&defaults.account_id={{id}}&defaults.date_from={{../../../date_from8}}&defaults.date_to={{../../../date_to8}}&defaults.track_id={{../../../track_id}}&defaults.track2_id={{../../../track2_id}}">
+                                {{currency amount8}}
+                            </a>
+                        </td>
+                    {{/if}}
+                    {{#if ../../col9}}
+                        <td style="text-align:right">
+                            <a href="/ui#name=report_account_trans&defaults.account_id={{id}}&defaults.date_from={{../../../date_from9}}&defaults.date_to={{../../../date_to9}}&defaults.track_id={{../../../track_id}}&defaults.track2_id={{../../../track2_id}}">
+                                {{currency amount9}}
+                            </a>
+                        </td>
+                    {{/if}}
+                    {{#if ../../col10}}
+                        <td style="text-align:right">
+                            <a href="/ui#name=report_account_trans&defaults.account_id={{id}}&defaults.date_from={{../../../date_from10}}&defaults.date_to={{../../../date_to10}}&defaults.track_id={{../../../track_id}}&defaults.track2_id={{../../../track2_id}}">
+                                {{currency amount10}}
+                            </a>
+                        </td>
+                    {{/if}}
+                    {{#if ../../col11}}
+                        <td style="text-align:right">
+                            <a href="/ui#name=report_account_trans&defaults.account_id={{id}}&defaults.date_from={{../../../date_from11}}&defaults.date_to={{../../../date_to11}}&defaults.track_id={{../../../track_id}}&defaults.track2_id={{../../../track2_id}}">
+                                {{currency amount11}}
+                            </a>
+                        </td>
+                    {{/if}}
+                    {{#if ../../show_ytd}}
+                        <td style="text-align:right">
+                            <a href="/ui#name=report_account_trans&defaults.account_id={{id}}&defaults.date_from={{../../../date_from_ytd}}&defaults.date_to={{../../../date_to}}&defaults.track_id={{../../../track_id}}&defaults.track2_id={{../../../track2_id}}">
+                                {{currency amount_ytd}}
+                            </a>
+                        </td>
+                    {{/if}}
+                </tr>
+            {{/ifeq}}
+            {{#ifeq type "group_footer"}}
+                <tr style="font-weight:bold">
+                    <td style="border-top: 1px solid #999;{{#if padding}}padding-left:{{padding}}px{{/if}}">
+                        {{string}}
+                    </td>
+                    <td style="border-top: 1px solid #999;text-align:right">
+                        {{currency amount}}
+                    </td>
+                    {{#if ../../col1}}
+                        <td style="border-top: 1px solid #999;text-align:right">
+                            {{currency amount1}}
+                        </td>
+                    {{/if}}
+                    {{#if ../../col2}}
+                        <td style="border-top: 1px solid #999;text-align:right">
+                            {{currency amount2}}
+                        </td>
+                    {{/if}}
+                    {{#if ../../col3}}
+                        <td style="border-top: 1px solid #999;text-align:right">
+                            {{currency amount3}}
+                        </td>
+                    {{/if}}
+                    {{#if ../../col4}}
+                        <td style="border-top: 1px solid #999;text-align:right">
+                            {{currency amount4}}
+                        </td>
+                    {{/if}}
+                    {{#if ../../col5}}
+                        <td style="border-top: 1px solid #999;text-align:right">
+                            {{currency amount5}}
+                        </td>
+                    {{/if}}
+                    {{#if ../../col6}}
+                        <td style="border-top: 1px solid #999;text-align:right">
+                            {{currency amount6}}
+                        </td>
+                    {{/if}}
+                    {{#if ../../col7}}
+                        <td style="border-top: 1px solid #999;text-align:right">
+                            {{currency amount7}}
+                        </td>
+                    {{/if}}
+                    {{#if ../../col8}}
+                        <td style="border-top: 1px solid #999;text-align:right">
+                            {{currency amount8}}
+                        </td>
+                    {{/if}}
+                    {{#if ../../col9}}
+                        <td style="border-top: 1px solid #999;text-align:right">
+                            {{currency amount9}}
+                        </td>
+                    {{/if}}
+                    {{#if ../../col10}}
+                        <td style="border-top: 1px solid #999;text-align:right">
+                            {{currency amount10}}
+                        </td>
+                    {{/if}}
+                    {{#if ../../col11}}
+                        <td style="border-top: 1px solid #999;text-align:right">
+                            {{currency amount11}}
+                        </td>
+                    {{/if}}
+                    {{#if ../../show_ytd}}
+                        <td style="border-top: 1px solid #999;text-align:right">
+                            {{currency amount_ytd}}
+                        </td>
+                    {{/if}}
+                </tr>
+                {{#ifeq separator "single"}}
+                <tr>
+                    <td style="border-top:1px solid #000" colspan="20">
+                    </td>
+                </tr>
+                {{/ifeq}}
+                {{#ifeq separator "double"}}
+                <tr>
+                    <td style="border-top:1px solid #000; border-bottom:1px solid #000; padding:0; height:1px" colspan="20">
+                    </td>
+                </tr>
+                {{/ifeq}}
+            {{/ifeq}}
+        {{/each}}
+    </tbody>
+</table>

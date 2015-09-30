@@ -1,0 +1,8 @@
+<action>
+    <field name="string">Expenses Report</field>
+    <field name="view_cls">report</field>
+    <field name="model">report.account.purchase</field>
+    <field name="report_template">report_account_purchase</field>
+    <field name="report_template_xls">account_purchase</field>
+    <field name="menu">account_menu</field>
+</action>

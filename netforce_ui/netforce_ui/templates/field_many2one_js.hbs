@@ -1,0 +1,21 @@
+{{#unless nolabel}}
+    <label class="control-label" {{#if bold}}style="font-weight:bold"{{/if}}>
+        {{string}}
+    </label>
+{{/unless}}
+
+<div class="controls">
+{{#if readonly}}
+    <span class="{{#if input}}uneditable-input {{#if size}}input-{{size}}{{/if}}{{/if}}">
+        {{value_name}}
+    </span>
+{{/if}}
+<div class="input-append"{{#if readonly}} style="display:none"{{/if}}>
+    <input type="text" name="form_data.{{path}}.1" value="{{value_name}}" class="select-input {{#if span}}span{{span}}{{/if}}" autocomplete="off"/><button type="button" class="btn" style="height:22px;padding:2px 5px">
+        <span class="caret"></span>
+    </button>
+</div>
+<input type="hidden" name="form_data.{{path}}.0" value="{{value_id}}"/>
+<input type="hidden" name="form_orig_data.{{path}}" value="{{orig_value_id}}"/>
+<input type="hidden" name="form_fields" value="{{path}}"/>
+</div>

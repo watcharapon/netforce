@@ -1,0 +1,45 @@
+<v:bread>
+    <v:bread_item string="Products" action="stock_product_list"/>
+</v:bread>
+<v:page title="{{context.title}}">
+    <v:flash/>
+    <v:form border="1">
+        <v:form_body background="1">
+            <v:field name="name"/>
+            <v:separator string="Optional details"/>
+            <v:field name="description"/>
+            <v:field name="uom_id"/>
+            <v:field name="tags" size="xlarge"/>
+            <v:row>
+                <v:field name="purchase_price" span="2"/>
+                <v:field name="purchase_account_id" span="2"/>
+                <v:field name="purchase_tax_id" span="2"/>
+            </v:row>
+            <v:row>
+                <v:field name="sale_price" span="2"/>
+                <v:field name="sale_account_id" span="2"/>
+                <v:field name="sale_tax_id" span="2"/>
+            </v:row>
+            <v:row>
+                <v:field name="cost_method" span="3"/>
+                <v:field name="cost_price" span="3"/>
+            </v:row>
+            <v:row>
+                <v:field name="stock_in_account_id" span="3"/>
+                <v:field name="stock_out_account_id" span="3"/>
+            </v:row>
+            <v:separator string="Storage Localisation"/>
+            <v:row>
+                <v:field name="loc_rack" span="2"/>
+                <v:field name="loc_row" span="2"/>
+                <v:field name="loc_case" span="2"/>
+            </v:row>
+            <v:field name="image"/>
+            <v:field name="uuid" invisible="!"/>
+        </v:form_body>
+        <v:form_foot>
+            <v:button string="Save" type="primary" size="large" method="_save" next="stock_product_list"/>
+        </v:form_foot>
+    </v:form>
+    <v:history uuid="{{context.data.uuid}}"/>
+</v:page>

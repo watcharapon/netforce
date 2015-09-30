@@ -1,0 +1,64 @@
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th style="background-color:#cef">{{group_field_string}}</th>
+            <th style="background-color:#cef">{{subgroup_field_string}}</th>
+            {{#each subgroups context=context}}
+                <th style="background-color:#dff">{{value}}</th>
+            {{/each}}
+            <td style="background-color:#999;color:#fff;font-weight:bold">Grand Total</td>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each groups context=context}}
+            <tr>
+                <td style="background-color:#ddf;font-weight:bold">{{value}}</td>
+                <td style="text-align:right">
+                    {{#each ../grand_total.sum_fields context=context}}
+                        <div style="white-space:nowrap">{{string}}</div>
+                    {{/each}}
+                    <div style="white-space:nowrap">Count</div>
+                </td>
+                {{#each totals context=context}}
+                    <td style="text-align:right">
+                        {{#each sum_fields context=context}}
+                            <div style="white-space:nowrap">{{currency value}}</div>
+                        {{/each}}
+                        <div style="white-space:nowrap">{{count}}</div>
+                    </td>
+                {{/each}}
+                <td style="background-color:#999;color:#fff;font-weight:bold;text-align:right">
+                    {{#each grand_total.sum_fields context=context}}
+                        <div style="white-space:nowrap">{{currency value}}</div>
+                    {{/each}}
+                    <div style="white-space:nowrap">{{grand_total.count}}</div>
+                </td>
+            </tr>
+        {{/each}}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td style="background-color:#999;color:#fff;font-weight:bold">Grand Total</td>
+            <td style="text-align:right;background-color:#999;color:#fff;font-weight:bold">
+                {{#each grand_total.sum_fields context=context}}
+                    <div style="white-space:nowrap">{{string}}</div>
+                {{/each}}
+                <div style="white-space:nowrap">Count</div>
+            </td>
+            {{#each subgroups context=context}}
+                <td style="background-color:#999;color:#fff;font-weight:bold;text-align:right">
+                    {{#each grand_total.sum_fields context=context}}
+                        <div style="white-space:nowrap">{{currency value}}</div>
+                    {{/each}}
+                    <div style="white-space:nowrap">{{grand_total.count}}</div>
+                </td>
+            {{/each}}
+            <td style="background-color:#999;color:#fff;font-weight:bold;text-align:right">
+                {{#each grand_total.sum_fields context=context}}
+                    <div style="white-space:nowrap">{{currency value}}</div>
+                {{/each}}
+                <div style="white-space:nowrap">{{grand_total.count}}</div>
+            </td>
+        </tr>
+    </tfoot>
+</table>

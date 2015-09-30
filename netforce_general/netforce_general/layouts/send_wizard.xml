@@ -1,0 +1,15 @@
+<form model="send.wizard">
+    <field name="print_model" invisible="1"/>
+    <field name="print_id" invisible="1"/>
+    <field name="template" invisible="1"/>
+    <field name="template_method" invisible="1"/>
+    <field name="template_format" invisible="1"/>
+    <field name="custom_template_type" invisible="1"/>
+    <field name="email_contact_field" invisible="1"/>
+    <field name="out_format" required="1"/>
+    <field name="custom_template_id" condition='[["type","=",custom_template_type]]'/>
+    <field name="email_template_id" required="1"/>
+    <foot>
+        <button string="Create Email" method="send" type="primary" icon="envelope"/>
+    </foot>
+</form>

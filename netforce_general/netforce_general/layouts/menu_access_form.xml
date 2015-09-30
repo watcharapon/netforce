@@ -1,0 +1,6 @@
+<form model="menu.access">
+    <field name="profile_id"/>
+    <field name="menu"/>
+    <field name="action"/>
+    <field name="access"/>
+</form>

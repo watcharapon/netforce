@@ -1,0 +1,6 @@
+<list model="stock.count">
+    <field name="number"/>
+    <field name="location_id"/>
+    <field name="date"/>
+    <field name="state"/>
+</list>

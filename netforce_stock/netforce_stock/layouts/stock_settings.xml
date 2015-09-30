@@ -1,0 +1,26 @@
+<form model="settings" title="Inventory Settings">
+    <separator string="Journals"/>
+    <field name="pick_in_journal_id"/>
+    <newline/>
+    <field name="pick_out_journal_id"/>
+    <newline/>
+    <field name="pick_internal_journal_id"/>
+    <newline/>
+    <field name="stock_count_journal_id"/>
+    <newline/>
+    <field name="transform_journal_id"/>
+    <newline/>
+    <field name="production_journal_id"/>
+    <newline/>
+    <field name="product_borrow_journal_id"/>
+    <newline/>
+    <field name="landed_cost_variance_account_id"/>
+    <newline/>
+    <field name="est_ship_account_id"/>
+    <newline/>
+    <field name="est_duty_account_id"/>
+    <newline/>
+    <field name="act_ship_account_id"/>
+    <newline/>
+    <field name="act_duty_account_id"/>
+</form>

@@ -1,0 +1,13 @@
+<div class="page-header nf-page-header">
+    <h1>{{page_title}}</h1>
+</div>
+{{view "flash" context=context}}
+{{#view "form" border="1" context=context}}
+    {{#view "form_body" background="1" context=context}}
+        {{{call ../../render_body context}}}
+    {{/view}}
+{{/view}}
+<div class="btn-toolbar" style="margin-top:-5px">
+{{{call render_foot context}}}
+</div>
+<div class="report-content"></div>

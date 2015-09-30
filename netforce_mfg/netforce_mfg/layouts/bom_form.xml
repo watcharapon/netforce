@@ -1,0 +1,46 @@
+<form model="bom">
+    <group form_layout="stacked">
+        <field name="number" span="2"/>
+        <field name="routing_id" span="2"/>
+    </group>
+    <group form_layout="stacked">
+        <field name="product_id" span="2"/>
+        <field name="qty" span="2"/>
+        <field name="uom_id" span="2"/>
+        <field name="location_id" span="2"/>
+        <field name="container" span="2"/>
+        <field name="lot" span="2"/>
+    </group>
+    <field name="lines" nolabel="1">
+        <list>
+            <field name="product_id"/>
+            <field name="qty"/>
+            <field name="uom_id"/>
+            <field name="location_id"/>
+            <field name="container"/>
+            <field name="lot"/>
+            <field name="issue_method"/>
+        </list>
+    </field>
+    <separator/>
+    <field name="qc_tests"/>
+    <field name="max_qty_loss"/>
+    <related>
+        <field name="documents">
+            <list>
+                <field name="file" target="_blank" preview="1"/>
+                <field name="categ_id"/>
+                <field name="description"/>
+                <field name="date"/>
+            </list>
+            <form>
+                <field name="categ_id"/>
+                <field name="file" target="_blank" onchange="onchange_file"/>
+                <field name="date"/>
+                <field name="description"/>
+                <field name="contact_id" invisible="1"/>
+            </form>
+        </field>
+        <field name="comments"/>
+    </related>
+</form>

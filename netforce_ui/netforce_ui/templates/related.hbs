@@ -1,0 +1,15 @@
+<div style="font-size:14px;color:#999;border-bottom: 2px solid #999;margin-bottom:10px;margin-top:18px">
+    <b>{{t string}}</b> {{#if count}}({{count}}){{/if}}
+</div>
+<div class="btn-toolbar">
+    {{#if model_perm_create}}
+        <button type="button" class="btn btn-sm btn-default nf-btn-add">Add</button>
+    {{/if}}
+    {{#if model_perm_delete}}
+        <button type="button" class="btn btn-sm btn-default nf-btn-delete">Delete</button>
+    {{/if}}
+    {{{call render_list_head context}}}
+</div>
+<div class="add-form">
+</div>
+{{view "list" cols=cols condensed=true nodata="" colors=colors context=context}}

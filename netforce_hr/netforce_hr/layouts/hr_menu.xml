@@ -1,0 +1,44 @@
+<menu string="HR">
+    <item string="Dashboard" action="hr_board"/>
+    <!--<item string="Employees">-->
+    <item string="Employees" action="employee" perm="hr_admin"/>
+    <!--<item string="Contracts" action="contract" perm="hr_admin"/>-->
+        <!--</item>-->
+    <item string="Leave">
+        <header string="Leave"/>
+        <item string="New Leave" action="leave" action_options="mode=form"/>
+        <item string="Leave Requests" action="leave"/>
+        <item string="Holidays" action="holiday"/>
+        <divider/>
+        <header string="Reports"/>
+        <item string="Leave Summary" action="report_leave"/>
+    </item>
+    <item string="Attendance">
+        <header string="Attendance"/>
+        <item string="Sign In/Out" action="attend"/>
+        <item string="Import Attendance" action="import_attend"/>
+        <item string="Machine Config" action="attend_config"/>
+    </item>
+    <item string="Expenses" perm="hr_expense">
+        <item string="Expense Claims" action="expense"/>
+    </item>
+    <item string="Payroll" perm="hr_admin">
+        <item string="Pay Runs" action="payrun"/>
+        <item string="Pay Slips" action="payslip"/>
+    </item>
+    <item string="Other">
+        <item string="Room Reservations" action="room_reserve"/>
+        <!--<item string="Payslip Tax" action="payslip_tax"/>-->
+    </item>
+    <item string="Settings" perm="hr_admin">
+        <item string="Departments" action="department"/>
+        <item string="Leave Types" action="leave_type"/>
+        <item string="Leave Periods" action="leave_period"/>
+        <item string="Notications" action="hr_notification"/>
+        <item string="Pay Items" action="payitem"/>
+        <item string="Pay Item Profiles" action="payitem_profile"/>
+        <item string="Payroll Settings" action="payroll_settings"/>
+        <item string="Rooms" action="room"/>
+        <item string="Working Schedules" action="hr_schedule"/>
+    </item>
+</menu>

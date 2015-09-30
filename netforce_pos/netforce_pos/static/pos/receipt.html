@@ -1,0 +1,183 @@
+<html>
+<title>Receipt</title>
+<head>
+<link rel="stylesheet" href="css/bootstrap.css"/>
+<script src="js/jquery-1.10.2.js"></script>
+<script src="js/bootstrap.js"></script>
+<script src="js/handlebars.js"></script>
+<script src="js/underscore.js"></script>
+<script src="js/jquery.formatCurrency-1.4.0.js"></script>
+<style>
+#content{
+    <!--width: 50%;-->
+    <!--margin: 0 auto;-->
+}
+.solid-bottom{
+    border-bottom: 1px solid black;
+}
+
+#print-area{
+    width: 270px;
+    font-family:"Courier New";
+    font-size:10px;
+    <!--border: 1px solid #dddddd;-->
+}
+tbody, #reciept-footer, #reciept-header{
+    font-weight:bold;
+}
+
+table{
+    width:100%;
+    font-size: 10px;
+}
+
+td,th{
+    padding-right: 5px;
+}
+
+</style>
+
+<script>
+    $(function(){
+        function printReceipt(){
+            var w=window.open('', '#Receipt', 'height=400,width=600');
+            var data=$("#print-area").html();
+            // FIXME css
+            w.document.write(data);
+            w.print();
+            w.close();
+        }
+        
+
+        function render(){
+            var source=$("#receipt-view-template").html();
+            var template=Handlebars.compile(source);
+
+            var company=localStorage.getItem("company");
+            company=JSON.parse(company); 
+
+            // get data from payment button in pos.js/OrderPayView/cash
+            var data=localStorage.getItem("data");
+            data=JSON.parse(data); 
+            var orders=data['orderLine'];
+            var tax=data['tax'];
+            var total=data['total'];
+            var subTotal=data['subTotal'];
+            var orderLine=data['orderLine'];
+            var paymentLine=data['paymentLine'];
+            var address=company['address'];
+            var companyName=company['name'];
+            var address_line1="street, zip, city, country";
+            var address_line2="phone";
+            var address_line3="email";
+            var data={
+                    invNumber: data['invNumber'],
+                    closeDate: data['closeDate'],
+                    shop: data['shop'],
+                    register: data['registerName'],
+                    orderLine: orderLine,
+                    paymentLine: paymentLine,
+                    subTotal: subTotal,
+                    tax: tax,
+                    total: total,
+                    toPay: total-(subTotal+tax),
+                    customer: data['customer'],
+                    company: companyName,
+                    address: address,
+                    address_line1: address_line1,
+                    address_line2: address_line2,
+                    address_line3: address_line3,
+                    note: data['note'],
+            }     
+            $("#content").empty(); $("#content").html(template(data)); $("#print-receipt").click(function(){
+                    printReceipt();
+            });
+            $(".currency").formatCurrency({symbol:"", colorize: true});
+        }
+
+        render();
+
+    });
+</script>
+
+</head>
+<body>
+    <div id="content"> Receipt</h1>
+    <script id="receipt-view-template" type="text/x-handlebars-template">
+        <div id="print-area">
+            <div id="reciept-header">
+                <center>
+                    <h3 style="font-weight: 12px">{{company}}</h3>
+                    -----------------------------------------
+                    <div style="width: 150px;">
+                        <i>{{address}}</i>
+                    </div>
+                </center>
+                <h4>Receipt / Tax Invoice</h4>
+                Customer: {{customer}} </br>
+                Date: {{closeDate}} </br>
+                Served by: A cashier on {{register}} </br></br>
+            </div>
+            <table>
+                <tbody>
+                    {{#each orderLine}}
+                        <tr>
+                            <td style="width: 20px">{{qty}}</td>
+                            <td>{{name}}</td>
+                            <td class="currency" style="text-align: right;">{{price}}</td>
+                            <td class="currency" style="text-align: right">{{total}}</td>
+                        </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+            <table>
+                <tbody>
+                    <tr>
+                        <th style="width: 20px"></th>
+                        <th></th>
+                        <th style="text-align: right;">Subtotal</th>
+                        <th class="currency" style="text-align: right;">{{subTotal}}</th>
+                    </tr>
+                    <tr>
+                        <th style="width: 20px"></th>
+                        <th></th>
+                        <th style="text-align: right; margin-right: 10px;">Tax (No Tax)</th>
+                        <th class="currency" style="text-align: right">{{tax}}</th>
+                    </tr>
+                    <tr>
+                        <th style="width: 20px"></th>
+                        <th></th>
+                        <th style="text-align: right">TOTAL</th>
+                        <th class="currency" style="text-align: right">{{total}}</th>
+                    </tr>
+                    {{#each paymentLine}}
+                        <tr>
+                            <td style="width: 20px"></td>
+                            <td></td>
+                            <td style="text-align: right;">{{name}}</td>
+                            <td class="currency" style="text-align: right">{{amt}}</td>
+                        </tr>
+                    {{/each}}
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th style="text-align: right">TO PAY</th>
+                        <th class="currency" style="text-align: right">{{toPay}}</th>
+                    </tr>
+                </tbody>
+            </table>
+            <div id="reciept-footer">
+                <i style="font-weight: 7px;">
+                    Note:  {{note}}
+                </i>
+                </br>
+                CUSTOMER COPY
+                </br>
+                Thanks for shopping
+                </br>   
+            </div>
+        </div>
+        <!--<button id="print-receipt" class="btn btn-info" style="positon: relative; float: right; width: 100px;" > Print </button>-->
+    </script>
+</body>
+</html>

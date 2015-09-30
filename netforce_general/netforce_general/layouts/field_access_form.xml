@@ -1,0 +1,6 @@
+<form model="field.access">
+    <field name="field_id"/>
+    <field name="profile_id"/>
+    <field name="perm_read"/>
+    <field name="perm_write"/>
+</form>

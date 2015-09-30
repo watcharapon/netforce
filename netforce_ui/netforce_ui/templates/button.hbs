@@ -1,0 +1,8 @@
+{{#if options.icon}}
+    <i class="icon-{{options.icon}}{{#if options.icon_white}} icon-white{{/if}}"></i>
+{{/if}}
+{{#if options.string}}
+    {{t options.string}}
+{{else}}
+    {{{content}}}
+{{/if}}

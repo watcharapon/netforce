@@ -1,0 +1,20 @@
+{{#unless options.no_title}}
+    <div class="page-header nf-page-header">
+        <h1>{{page_title}}</h1>
+    </div>
+{{/unless}}
+{{view "flash" context=context}}
+{{#if rows.0.items}}
+    {{#each rows context=context}}
+        <div class="row">
+            {{#each items context=context}}
+                <div class="col-sm-{{../../grid_item_span}}">
+                    {{view "grid_item" model=../../options.model grid_layout=../../grid_layout data=data next_action=../../options.next_action next_action_options=../../options.next_action_options context=context}}
+                </div>
+            {{/each}}
+        </div>
+    {{/each}}
+    {{view "pagination" context=context}}
+{{else}}
+    There are not items to display.
+{{/if}}

@@ -1,0 +1,60 @@
+<form model="landed.cost" attrs='{"readonly":[["state","in",["posted","reversed"]]]}'>
+    <head>
+        <field name="state"/>
+        <button string="Options" dropdown="1">
+            <item string="To Draft" method="to_draft" states="posted,reversed"/>
+            <item string="Copy To Actual Landed Costs" method="copy_to_actual"/>
+            <item string="Reverse Landed Cost" method="reverse" confirm="Are you sure?"/>
+            <divider/>
+            <item string="View Journal Entry" method="view_journal_entry" states="posted,reversed"/>
+            <item string="View Reverse Journal Entry" method="view_reverse_journal_entry" states="reversed"/>
+        </button>
+    </head>
+    <tabs>
+        <tab string="General">
+            <field name="number"/>
+            <field name="date"/>
+            <separator string="Allocated Costs"/>
+            <field name="cost_allocs" nolabel="1">
+                <list>
+                    <field name="move_id"/>
+                    <field name="picking_id"/>
+                    <field name="contact_id"/>
+                    <field name="date"/>
+                    <field name="product_id"/>
+                    <field name="qty"/>
+                    <field name="uom_id"/>
+                    <field name="location_from_id"/>
+                    <field name="location_to_id"/>
+                    <field name="track_id"/>
+                    <field name="qty_stock_gr"/>
+                    <field name="qty_stock_lc"/>
+                    <field name="base_price"/>
+                    <field name="est_ship"/>
+                    <field name="est_duty"/>
+                    <field name="act_ship"/>
+                    <field name="act_duty"/>
+                    <field name="amount"/>
+                    <field name="percent"/>
+                </list>
+            </field>
+            <separator string="Total Costs"/>
+            <field name="est_ship"/>
+            <field name="est_duty"/>
+            <field name="act_ship"/>
+            <field name="act_duty"/>
+        </tab>
+        <tab string="Allocate">
+            <field name="alloc_amount"/>
+            <newline/>
+            <field name="alloc_type"/>
+            <newline/>
+            <field name="alloc_cost_type"/>
+            <newline/>
+            <button string="Allocate Amount" method="alloc_amount"/>
+        </tab>
+    </tabs>
+    <foot>
+        <button string="Post" method="post" type="success" states="draft"/>
+    </foot>
+</form>

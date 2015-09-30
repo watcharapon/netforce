@@ -1,0 +1,7 @@
+<form model="hr.department">
+    <field name="name"/>
+    <field name="code"/>
+    <related>
+        <field name="comments"/>
+    </related>
+</form>

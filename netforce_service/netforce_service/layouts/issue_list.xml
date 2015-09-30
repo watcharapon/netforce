@@ -1,0 +1,11 @@
+<list model="issue">
+    <field name="contact_id"/>
+    <field name="project_id"/>
+    <field name="service_item_id"/>
+    <field name="date"/>
+    <field name="name"/>
+    <field name="report_by_id"/>
+    <field name="assigned_to_id"/>
+    <field name="priority"/>
+    <field name="state"/>
+</list>

@@ -1,0 +1,10 @@
+<ul class="nav nav-tabs">
+    {{#each tabs context=context}}
+        <li {{#if active}}class="active"{{/if}}>
+            <a href="#{{tab_id}}">{{string}}</a>
+        </li>
+    {{/each}}
+</ul>
+<div class="tab-content">
+    {{{call render_tab context}}}
+</div>

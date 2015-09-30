@@ -1,0 +1,32 @@
+<v:bread>
+    <v:bread_item string="Stock Periods" action="stock_period_all"/>
+</v:bread>
+<v:page title="{{#if context.data.id}}Edit{{else}}New{{/if}} Stock Period">
+    <v:flash/>
+    <v:form {{#ifeq context.data.state "posted"}}readonly="1"{{/ifeq}}>
+        <v:form_head>
+            <strong>{{field_value "state" context=context}}</strong>
+            {{#ifeq context.data.state "posted"}}
+                <div class="btn-toolbar" style="float:right;margin:0">
+                    <v:button_group string="Options" dropdown="1" align="right">
+                        <v:item string="To Draft" method="to_draft"/>
+                    </v:button_group>
+                </div>
+            {{/ifeq}}
+        </v:form_head>
+        <v:form_body background="1">
+            <v:field name="number"/>
+            <v:field name="date_from"/>
+            <v:field name="date_to"/>
+            <v:field name="state" invisible="1"/>
+            <v:field name="uuid" invisible="1"/>
+        </v:form_body>
+        {{#ifeq context.data.state "draft"}}
+            <v:form_foot>
+                    <v:button string="Save" method="_save" size="large" type="primary" next="stock_period_all"/>
+                    <v:button string="Post" method="post" size="large" type="success"/>
+            </v:form_foot>
+        {{/ifeq}}
+    </v:form>
+</v:page>
+<v:history uuid="{{context.data.uuid}}"/>

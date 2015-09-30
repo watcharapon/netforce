@@ -1,0 +1,8 @@
+<action>
+    <field name="string">Tax Audit Report</field>
+    <field name="view_cls">report</field>
+    <field name="model">report.tax.audit</field>
+    <field name="report_template">report_tax_audit</field>
+    <field name="report_template_xls">tax_audit</field>
+    <field name="menu">account_menu</field>
+</action>

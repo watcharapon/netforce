@@ -1,0 +1,40 @@
+<div class="page-header nf-page-header">
+    <h1>{{title}}</h1>
+</div>
+{{view "inline_help" action=options.name context=context}}
+{{view "flash" context=context}}
+{{#if alert_action}}
+    {{action name=alert_action context=context}}
+{{/if}}
+{{#if vpanels}}
+    <div class="row">
+        {{#each vpanels context=context}}
+            <div class="col-sm-6"> {{! XXX }}
+                {{#each widgets context=context}}
+                    <div class="nf-board-title">
+                        <h3>{{t string}}</h3>
+                    </div>
+                    <div style="margin-bottom:18px">
+                        {{action name=action context=context}}
+                    </div>
+                {{/each}}
+            </div>
+        {{/each}}
+    </div>
+{{/if}}
+{{#if hpanels}}
+    {{#each hpanels context=context}}
+        <div class="row">
+            {{#each widgets context=context}}
+                <div class="col-sm-{{span}}">
+                    <div class="nf-board-title">
+                        <h3>{{t string}}</h3>
+                    </div>
+                    <div style="margin-bottom:18px">
+                        {{action name=action context=context}}
+                    </div>
+                </div>
+            {{/each}}
+        </div>
+    {{/each}}
+{{/if}}

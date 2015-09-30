@@ -1,0 +1,8 @@
+<board>
+    <vpanel>
+        <widget string="Shops" action="shop_widget"/>
+    </vpanel>
+    <vpanel>
+        <widget string="Registers" action="register_widget"/>
+    </vpanel>
+</board>

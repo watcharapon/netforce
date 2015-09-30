@@ -1,0 +1,5 @@
+<list model="payment.method">
+    <field name="name"/>
+    <field name="code"/>
+    <field name="type"/>
+</list>

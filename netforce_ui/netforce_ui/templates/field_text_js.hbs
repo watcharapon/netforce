@@ -1,0 +1,12 @@
+{{#unless nolabel}}
+    <label class="control-label" {{#if bold}}style="font-weight:bold"{{/if}}>
+        {{string}}
+    </label>
+{{/unless}}
+
+{{#if readonly}}
+    <div class="value" style="white-space: pre-wrap; word-wrap: break-word">{{value}}</div>
+{{/if}}
+<textarea name="form_data.{{path}}" class="{{#if span}}span{{span}}{{/if}}" rows="{{#if rows}}{{rows}}{{else}}3{{/if}}"{{#if readonly}} style="display:none"{{/if}}>{{value}}</textarea>
+<input type="hidden" name="form_orig_data.{{path}}" value="{{orig_value}}"/>
+<input type="hidden" name="form_fields" value="{{path}}"/>

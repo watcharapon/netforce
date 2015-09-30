@@ -1,0 +1,8 @@
+<action>
+    <field name="string">Aged Receivables Summary</field>
+    <field name="view_cls">report</field>
+    <field name="model">report.aged.receivables</field>
+    <field name="report_template">report_aged_receivables</field>
+    <field name="report_template_xls">aged_receivables</field>
+    <field name="menu">account_menu</field>
+</action>

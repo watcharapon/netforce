@@ -1,0 +1,15 @@
+<list model="stock.move">
+    <field name="journal_id"/>
+    <field name="number"/>
+    <field name="date"/>
+    <field name="product_id"/>
+    <field name="lot_id"/>
+    <field name="location_from_id"/>
+    <field name="location_to_id"/>
+    <field name="qty"/>
+    <field name="uom_id"/>
+    <field name="unit_price"/>
+    <field name="state"/>
+    <field name="picking_id"/>
+    <field name="related_id"/>
+</list>

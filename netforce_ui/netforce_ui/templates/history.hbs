@@ -1,0 +1,55 @@
+{{#view "action" view_type="collection" model="message" condition='[["ref_uuid","=","{{options.uuid}}"]]' context=context}}
+    <div style="font-weight:bold;font-size:14px;color:#999;border-bottom: 2px solid #999;margin-bottom:10px">
+        {{t "History &amp; Notes"}}
+    </div>
+
+    <div style="margin-bottom:10px" class="add-btn">
+        <a href="#" class="btn btn-small hist-add">{{t "Add Note"}}</a>
+    </div>
+
+    <div id="add-note">
+    </div>
+
+    {{#if context.data}}
+        <table class="table table-condensed hist-table">
+            <thead>
+                <tr>
+                    <th style="width:150px">
+                        {{t "Date"}}
+                    </th>
+                    <th style="width:150px">
+                        {{t "User"}}
+                    </th>
+                    <th>
+                        {{t "Details"}}
+                    </th>
+                    <th style="width:20px">
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#loop context=context}}
+                    <tr data-id="{{context.data.id}}">
+                        <td>
+                            {{field_value "date" context=context}}
+                        </td>
+                        <td>
+                            {{field_value "from_id" context=context}}
+                        </td>
+                        <td>
+                            {{field_value "body" context=context}}
+                            {{#if context.data.attach}}
+                                <div style="margin-top:5px">
+                                    {{field_value "attach" context=context}}
+                                </div>
+                            {{/if}}
+                        </td>
+                        <td>
+                            <a href="#" class="del-note"><i class="icon-remove"></i></a>
+                        </td>
+                    </tr>
+                {{/loop}}
+            </tbody>
+        </table>
+    {{/if}}
+{{/view}}

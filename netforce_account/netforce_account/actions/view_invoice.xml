@@ -1,0 +1,5 @@
+<action>
+    <field name="type">method</field>
+    <field name="model">account.invoice</field>
+    <field name="method">view_invoice</field>
+</action>

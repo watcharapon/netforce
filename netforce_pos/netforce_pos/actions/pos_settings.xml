@@ -1,0 +1,7 @@
+<action>
+    <field name="string">POS Settings</field>
+    <field name="view_cls">form_view</field>
+    <field name="model">pos.settings</field>
+    <field name="active_id">1</field>
+    <field name="menu">pos_menu</field>
+</action>

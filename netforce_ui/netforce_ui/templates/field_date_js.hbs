@@ -1,0 +1,11 @@
+{{#unless nolabel}}
+    <label class="control-label" {{#if bold}}style="font-weight:bold"{{/if}}>
+        {{string}}
+    </label>
+{{/unless}}
+{{#if readonly}}
+    {{value}}
+{{/if}}
+<input type="text" name="form_data.{{path}}" value="{{value}}" class="{{#if span}}span{{span}}{{/if}}"{{#if readonly}} style="display:none"{{/if}}/>
+<input type="hidden" name="form_orig_data.{{path}}" value="{{orig_value}}"/>
+<input type="hidden" name="form_fields" value="{{path}}"/>

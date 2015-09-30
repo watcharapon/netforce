@@ -1,0 +1,136 @@
+<form model="hr.employee" show_company="1">
+    <head>
+        <field name="work_status"/>
+    </head>
+    <field name="code"/>
+    <field name="department_id"/>
+    <field name="first_name"/>
+    <field name="last_name"/>
+    <field name="title"/>
+    <field name="position"/>
+    <field name="work_status"/>
+    <field name="work_type"/>
+    <field name="hire_date"/>
+    <field name="resign_date"/>
+    <field name="user_id"/>
+    <field name="approver_id"/>
+    <tabs>
+        <tab string="General">
+            <group span="6" columns="1">
+                <field name="birth_date"/>
+                <field name="age"/>
+                <field name="gender"/>
+                <field name="marital_status"/>
+                <field name="id_no"/>
+                <field name="picture"/>
+                <field name="email"/>
+            </group>
+            <group span="6" columns="1">
+                <field name="phone"/>
+                <field name="drive_license_type"/>
+                <field name="drive_license_no"/>
+                <field name="country_id"/>
+                <field name="bank_account"/>
+                <field name="salary"/>
+                <field name="schedule_id"/>
+            </group>
+            <separator string="Address"/>
+            <field name="addresses" view="form_list"/>
+        </tab>
+        <tab string="Payroll">
+            <field name="profile_id"/>
+        </tab>
+        <tab string="Income Tax">
+            <field name="tax_no"/>
+            <separator string="Spouse Details"/>
+            <field name="spouse_first_name"/>
+            <field name="spouse_last_name"/>
+            <field name="spouse_title"/>
+            <field name="spouse_birth_date"/>
+            <field name="spouse_tax_no"/>
+            <field name="spouse_status"/>
+            <field name="spouse_filing_status"/>
+            <separator string="Tax Computation (A)"/>
+            <field name="education_donation"/>
+            <field name="other_donation"/>
+            <field name="wht_amount"/>
+            <separator string="Exempted Income (B)"/>
+            <field name="gov_pension_fund"/>
+            <field name="teacher_fund"/>
+            <field name="old_disabled"/>
+            <field name="old_disabled_spouse"/>
+            <field name="severance_pay"/>
+            <separator string="Allowances and Exemptions after Deduction of Expenses (C)"/>
+            <field name="num_child1" help="Non-study, study foreign" onchange="onchange_num_child"/>
+            <field name="num_child2" help="Study in Thailand" onchange="onchange_num_child"/>
+            <separator/>
+            <field name="father_id_no"/>
+            <field name="mother_id_no"/>
+            <field name="spouse_father_id_no"/>
+            <field name="spouse_mother_id_no"/>
+            <separator/>
+            <field name="disabled_support"/>
+            <field name="parent_health_insurance"/>
+            <field name="life_insurance"/>
+            <field name="retirement_mutual_fund"/>
+            <field name="long_term_equity_fund"/>
+            <field name="interest_residence"/>
+            <field name="other_deduct"/>
+        </tab>
+        <tab string="Social Security">
+            <field name="social_no"/>
+            <field name="social_register"/>
+        </tab>
+        <tab string="Provident Fund">
+            <field name="prov_fund_no"/>
+            <field name="prov_open_date"/>
+            <field name="prov_rate_employer"/>
+            <field name="prov_rate_employee"/>
+        </tab>
+        <tab string="Leaves">
+        <group>
+            <field name="leave_types" nolabel="1" span="11"/>
+        </group>
+        </tab>
+        <tab string="Attendance Config">
+            <field name="attendance_id"/>
+        </tab>
+    </tabs>
+    <field name="company_id" invisible="1"/>
+    <related>
+        <field name="documents">
+            <list>
+                <field name="file" target="_blank"/>
+                <field name="categ_id"/>
+                <field name="description"/>
+                <field name="date"/>
+                <field name="expiry_date"/>
+            </list>
+            <form>
+                <field name="categ_id"/>
+                <field name="file" target="_blank" onchange="onchange_file"/>
+                <field name="date"/>
+                <field name="expiry_date"/>
+                <field name="description"/>
+            </form>
+        </field>
+        <field name="payslips">
+            <list colors='{"#cfc":[["state","=","approved"]]}'>
+                <field name="run_id"/>
+                <field name="date"/>
+                <field name="amount_salary" sum="1"/>
+                <field name="amount_bonus" sum="1"/>
+                <field name="amount_overtime" sum="1"/>
+                <field name="amount_allow" sum="1"/>
+                <field name="amount_tax" sum="1"/>
+                <field name="amount_social" sum="1"/>
+                <field name="amount_provident" sum="1"/>
+                <field name="amount_other_expense" sum="1"/>
+                <field name="amount_net" sum="1"/>
+                <field name="state"/>
+            </list>
+        </field>
+        <field name="leaves"/>
+        <field name="comments"/>
+    </related>
+</form>

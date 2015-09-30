@@ -1,0 +1,48 @@
+<menu string="General">
+    <item string="Dashboard" action="gen_board"/>
+    <item string="Access Control">
+        <item string="Users" action="user"/>
+        <item string="Profiles" action="profile"/>
+        <item string="Roles" action="role"/>
+        <item string="Sharing Settings" action="share_settings"/>
+        <item string="Field Access" action="field_access"/>
+        <item string="Menu Access" action="menu_access"/>
+        <item string="Permissions" action="permission"/>
+        <item string="Groups" action="group"/>
+        <item string="Companies" action="company"/>
+        <item string="Audit Log" action="log"/>
+    </item>
+    <item string="Workflow">
+        <item string="Workflow Rules" action="wkf_rule"/>
+        <item string="Scheduled Jobs" action="cron_job"/>
+    </item>
+    <item string="Customize" packages="starter,business,enterprise" perm="customize" perm_check_admin="1">
+        <item string="Models" action="model"/>
+        <item string="View Layouts" action="view_layout"/>
+        <item string="Actions" action="action"/>
+        <item string="Scripts" action="script"/>
+        <item string="Modules" action="module"/>
+        <divider/>
+        <item string="Update Database" action="update_db"/>
+    </item>
+    <item string="Language">
+        <item string="Languages" action="lang"/>
+        <item string="Translations" action="translation"/>
+    </item>
+    <item string="General">
+        <item string="Organization Settings" action="org_settings"/>
+        <item string="Units Of Measure" action="uom"/>
+        <item string="Report Templates" action="report_template"/>
+        <item string="Sequences" action="sequence"/>
+        <item string="Countries" action="country"/>
+        <item string="Provinces" action="province"/>
+        <item string="Districts" action="district"/>
+        <item string="Subdistricts" action="subdistrict"/>
+        <item string="Postal Codes" action="postal_code"/>
+        <item string="Attachments" action="attach"/>
+        <item string="Company Types" action="company_type"/>
+        <item string="Banks" action="bank_name"/>
+        <item string="Reason Codes" action="reason_code"/>
+        <item string="Inline Help" action="inline_help"/>
+    </item>
+</menu>

@@ -1,0 +1,6 @@
+<action>
+    <field name="string">User Preferences</field>
+    <field name="view">form_popup</field>
+    <field name="model">user.pref</field>
+    <field name="target">_popup</field>
+</action>

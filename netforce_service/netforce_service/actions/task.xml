@@ -1,0 +1,8 @@
+<action>
+    <field name="string">Tasks</field>
+    <field name="view_cls">multi_view</field>
+    <field name="model">task</field>
+    <field name="tabs">[["All",[]],["In Progress",[["state","=","in_progress"]]],["Completed",[["state","=","done"]]]]</field>
+    <field name="modes">list,calendar,page,form</field>
+    <field name="menu">service_menu</field>
+</action>

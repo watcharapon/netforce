@@ -1,0 +1,9 @@
+<list model="cron.job" colors='{"#fcc":[["state","=","error"]]}'>
+    <field name="name"/>
+    <field name="date"/>
+    <field name="interval_num"/>
+    <field name="interval_type"/>
+    <field name="timeout"/>
+    <field name="state"/>
+    <field name="last_error_time"/>
+</list>

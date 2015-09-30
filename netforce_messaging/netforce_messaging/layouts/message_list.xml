@@ -1,0 +1,8 @@
+<list model="message">
+    <field name="date"/>
+    <field name="from_id"/>
+    <field name="to_id"/>
+    <field name="subject"/>
+    <field name="body"/>
+    <field name="state"/>
+</list>

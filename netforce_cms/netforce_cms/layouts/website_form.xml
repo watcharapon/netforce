@@ -1,0 +1,51 @@
+<form model="website">
+    <head>
+        <field name="state"/>
+    </head>
+    <separator string="General Settings"/>
+    <field name="name"/>
+    <field name="url"/>
+    <field name="theme_id"/>
+    <field name="sale_channel_id"/>
+    <field name="state"/>
+    <separator string="Products"/>
+    <field name="parent_categ_id"/>
+    <field name="parent_group_id"/>
+    <field name="preview_doc_categ_id"/>
+    <separator string="Contact"/>
+    <field name="contact_categ_id"/>
+    <field name="news_categ_id"/>
+    <field name="target_list_id"/>
+    <field name="auto_create_account"/>
+    <separator string="Users"/>
+    <field name="user_profile_id"/>
+    <separator string="Accounting"/>
+    <field name="sale_account_id"/>
+    <field name="sale_tax_id"/>
+    <field name="account_receivable_id"/>
+    <field name="invoice_flag"/>
+    <separator string="Report Templates"/>
+    <field name="invoice_template_id"/>
+    <field name="payment_slip_template_id"/>
+    <separator string="Google Analytic"/>
+    <field name="ga_script"/>
+    <separator string="Payment Methods"/>
+    <field name="bank_method_id"/>
+    <field name="paypal_method_id"/>
+    <field name="paysbuy_method_id"/>
+    <field name="scb_method_id"/>
+    <separator string="Shipping"/>
+    <field name="ship_product_id"/>
+    <related>
+        <field name="settings">
+            <list>
+                <field name="name"/>
+                <field name="value"/>
+            </list>
+            <form>
+                <field name="name"/>
+                <field name="value"/>
+            </form>
+        </field>
+    </related>
+</form>

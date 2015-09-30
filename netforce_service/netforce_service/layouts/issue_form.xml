@@ -1,0 +1,47 @@
+<form model="issue">
+    <head>
+        <field name="state"/>
+        <button string="Options" dropdown="1">
+            <item string="Copy issue to service order" method="copy_to_service_order"/>
+        </button>
+    </head>
+    <field name="contact_id" onchange="onchange_contact_id"/>
+    <field name="contact_person_id"/>
+    <field name="project_id"/>
+    <field name="job_id" condition='[["project_id","=",project_id]]'/>
+    <field name="service_item_id" condition='[["contact_id","=",contact_id]]'/>
+    <field name="name" size="xlarge"/>
+    <field name="date"/>
+    <field name="report_by_id"/>
+    <field name="assigned_to_id"/>
+    <field name="promised_date"/>
+    <field name="response_date"/>
+    <newline/>
+    <field name="details" width="800" height="150"/>
+    <newline/>
+    <field name="priority"/>
+    <field name="state"/>
+    <field name="service_type_id"/>
+    <related>
+        <field name="jobs" action="job"/>
+        <field name="quotations" action="quot"/>
+        <field name="activities"/>
+        <field name="documents">
+            <list>
+                <field name="file" target="_blank"/>
+                <field name="categ_id"/>
+                <field name="description"/>
+                <field name="date"/>
+                <field name="expiry_date"/>
+            </list>
+            <form>
+                <field name="categ_id"/>
+                <field name="file" target="_blank" onchange="onchange_file"/>
+                <field name="date"/>
+                <field name="description"/>
+                <field name="expiry_date"/>
+            </form>
+        </field>
+        <field name="comments"/>
+    </related>
+</form>

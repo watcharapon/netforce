@@ -1,0 +1,25 @@
+<div class="page-header">
+    <h3>{{options.string}}</h3>
+</div>
+<div class="search"></div>
+<div class="btn-toolbar search-btn">
+    <a class="btn btn-small pull-right"><i class="icon-search"></i> Search</a>
+</div>
+{{#if context.data}}
+    <table class="table table-hover table-striped">
+        <thead>
+            <tr>
+                {{#each cols context=context}}
+                    <th style="{{#if nowrap}}white-space:nowrap{{/if}}">{{string}}</th>
+                {{/each}}
+            </tr>
+        </thead>
+        <tbody>
+            {{#loop context=context}}
+                {{view "tree_item" tree_view=../tree_view context=context}}
+            {{/loop}}
+        </tbody>
+    </table>
+{{else}}
+    There are no items to display.
+{{/if}}

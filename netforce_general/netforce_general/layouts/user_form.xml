@@ -1,0 +1,16 @@
+<form model="base.user">
+    <field name="name"/>
+    <field name="login"/>
+    <field name="password" password="1"/>
+    <field name="email"/>
+    <field name="mobile"/>
+    <field name="profile_id"/>
+    <field name="role_id"/>
+    <field name="contact_id"/>
+    <field name="pin_code" password="1"/>
+    <field name="company_id"/>
+    <field name="company2_id"/>
+    <related>
+        <field name="comments"/>
+    </related>
+</form>

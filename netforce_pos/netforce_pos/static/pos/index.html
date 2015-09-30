@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<!--<html manifest="/static/pos/pos.appcache">-->
+<html>
+<head>
+    <meta name="viewport" content="width=1170,maximum-scale=1.0"/>
+    <title>Netforce POS</title>
+    <link rel="stylesheet" href="css/bootstrap.css"/>
+    <link rel="stylesheet" href="css/pos.css"/>
+    <script src="js/jquery-1.10.2.js"></script>
+    <script src="js/jquery.formatCurrency-1.4.0.js"></script>
+    <script src="js/underscore.js"></script>
+    <script src="js/backbone.js"></script>
+    <script src="js/backbone.localStorage.js"></script>
+    <script src="js/handlebars.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/pos.js"></script>
+</head>
+<body style="background-color:#b6b6b6">
+    <div class="navbar">
+      <div class="navbar-inner">
+       <a class="brand" href="#">Netforce POS</a>
+       <ul class="nav">
+          <li id="menu1"><a href="#current_sale">Current Sale</a></li>
+          <li id="menu2"><a href="#retrieve_sale">Retrieve Sale</a></li>
+          <li id="menu3"><a href="#close_register">Close Register</a></li>
+       </ul>
+
+       <ul class="nav pull-right">
+           <li><span class="badge online" style="margin-top: 10px;">online</span></li>
+       </ul>
+       <ul class="nav pull-right">
+           <li><a class="pos-shop-register" href="" style="text-decoration: underline">#</a></li>
+       </ul>
+
+       <ul class="nav pull-right">
+            <!-- Split button -->
+            <div class="btn-group" style="margin-right: 10px;">
+              <button type="button" class="btn dropdown-toggle" data-toggle="dropdown">
+                <span class="caret"></span>
+                <span class="sr-only" id="pos-shop" >Select Shop</span>
+              </button>
+              <ul class="dropdown-menu" id="pos-shop-menu" role="menu">
+              </ul>
+            </div>
+       </ul>
+
+      </div>
+    </div> 
+
+    <div id="content">
+        <p><h1>Welcome to POS :)</h1><p>
+    </div>
+
+    <script id="order-line-view-template" type="text/x-handlebars-template">
+        <td style="display:none">{{cid}}</td>
+        <td><span rel="popover" class="badge edit-qty">{{qty}}</span></td>
+        <td><a style="text-decoration:underline;" href="#" class="order-line-detail" data-product-id='{{productId}}'>{{name}}</a></td>
+        <td style="text-align:right"><span rel="popover" class="edit-price badge">@ {{price}}</span></td>
+        {{#if isPlus}}
+            <td class="order-line-total currency" style="text-align:right;">{{total}}</td>
+        {{else}}
+            <td class="order-line-total currency" style="text-align:right; color: red;">({{nTotal}})</td>
+        {{/if}}
+        <td></td>
+        <td><span class="badge" style="background-color:#c47775"><i class="icon-{{icon}} remove-order" style="cursor:pointer"></i></span></td>
+    </script>
+
+    <script id="order-view-template" type="text/x-handlebars-template">
+        <div id="order-search-product">
+            <input type="text" id="main-input" style="width: 350px;" name="product_name" placeholder="Search product..."/>
+            <button class="btn add-order"><i class="icon-plus"></i>Add</button>
+        </div>
+
+        <div id="order-container">
+            <table style="margin-top: -15px;" class="table table-order">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="order-lines">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- config in css -->
+        <div id="order-payment">
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <td>
+                            <input type="text" id="customer-input" style="width: 140px;" name="" placeholder="Search customer"/>
+                            <span class="badge" style="border: 1px solid #ccc; background-color: #f1f1f3;"><i class="icon-plus order-add-customer" style="cursor:pointer"></i></span>
+                            <p id="order-cus-msg"></p>
+                        </td>
+                        <td>
+                            <!-- Should be the same amount of qty-->
+                            <div id="order-summary">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th style="font-weight: normal">Subtotal</th>
+                                            <th style="font-weight: normal; text-align: right; width: 120px;"  class="currency" id="order-sub-total">0</th>
+                                        </tr>
+                                        <tr>
+                                            <th style="font-weight: normal;">Tax (No Tax)</th>
+                                            <th style="font-weight: normal; text-align: right; width: 120px;" class="currency" id="order-tax">0</th>
+                                        </tr>
+                                        <tr>
+                                            <th>TOTAL</th>
+                                            <th style="text-align: right; width: 120px;" class="currency" id="order-total">0</th>
+                                        </tr>
+                                    </thead>
+                                        <tbody id="order-payment-line">
+                                        </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th style="border-top: 1px solid black;">TO PAY</th>
+                                            <th style="text-align: right; border-top: 1px solid black; width: 120px;" class="currency" id="order-to-pay">0</th>
+                                        </tr>
+                                    </tfoot>
+                                </table> 
+                            </div>
+                        </td>
+                        <td>
+                            <div style="position: absolute; margin-left: -10px; margin-top: 43px;">
+                                <!--<span class="badge" style="border: 1px solid #ccc; background-color: #f1f1f3;"><i class="icon-remove" style="cursor:pointer"></i></span>-->
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot id="order-menu">
+                    <tr>
+                        <td>
+                            <button id="void-order" class="btn btn-inverse" style="font-weight:bold;width:80px; height: 40px;">Void</button>
+                            <button id="park-order" class="btn btn-inverse" style="font-weight:bold;width:80px; height: 40px;">Park</button>
+                            <button id="note-order" class="btn btn-inverse" style="font-weight:bold;width:80px; height: 40px;">Notes</button>
+                            <button id="discount-order" rel="popover" class="btn btn-inverse" style="font-weight:bold;width:80px; height: 40px;">Disc</button>
+                        </td>
+                        <td></td>
+                        <td style="text-align: right">
+                            <button id="pay-order" class="btn btn-success" style="width:80px; height: 40px;"><b>Pay</b></button>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div id="product-list">                                                                                                                       
+            <div id="list-title">                                                                                                                     
+                <p style="text-align:center" ><b>Defaults</b></p>                                                                                     
+            </div>                                                                                                                                    
+            <div style="width: 538px; height: 480px; margin-left: -10px; position: absolute; overflow: auto;">     
+                    <table border="0" cellpadding="0" cellspacing="0" style="width: 100%;">                                                                                                             
+                        <tbody id="list-product">                                                                                                     
+                        </tbody>                                                                                                                      
+                    </table>                                                                                                                          
+            </div>                                                                                                                                    
+            <div style="width: 520px; margin-top: 510px; position:absolute;">                                                                     
+                <ul class="pager">                                                                                                                
+                  <li class="previous"><a href="#">&larr; Prev</a></li>                                                                 
+                  <li><a href="#" style="border:none; color: #666666;"><b id="pageNumber"></b></a></li>
+                  <li class="next"><a href="#">Next &rarr;</a></li>                                                                              
+                </ul>                                                                                                                             
+            </div>                                                                                                                                
+        </div>  
+
+    </script>
+
+    <script id="order-park-popup-view-template" type="text/x-handlebars-template">
+            <div class="modal fade">
+                <div class="modal-header" style="background-color: #0480be;color: white; -webkit-border-top-right-radius: 5px; -webkit-border-top-left-radius: 5px; ">
+                    <b> Park Order </b>
+                </div>
+                <div class="modal-body">
+                <textarea id="order-park-note" class="form-control" rows="5" style="width: 510px;"></textarea>
+                    </br>
+                    <button id="order-park-back-to-sale" class="btn btn-large" class="close" data-dismiss="modal" >Back To Sale</button>
+                    <div style="position:relative; float:right;">
+                        <button id="order-park-skip" class="btn btn-large" style="width:100px" class="close" data-dismiss="modal" >Skip</button>
+                        <button id="order-park-save" class="btn btn-primary btn-large" style="width:100px; " class="close"  data-dismiss="modal" >Save</button>
+                    </div>
+                </div>
+            </div>
+    </script>
+
+    <script id="order-pay-popup-view-template" type="text/x-handlebars-template">
+            <div class="modal fade" style="background-color: #f6f6f6;">
+                <div class="modal-header" style="background-color: #0480be;color: white; -webkit-border-top-right-radius: 5px; -webkit-border-top-left-radius: 5px; ">
+                    <center><b>Payment</b></center>
+                </div>
+                <div class="modal-body">
+                    <center>
+                    <div id="to-pay-list" style="width: 230px; background-color: white;">
+                        xxxxx
+                    </div>
+                        <span><b id="order-pay-msg"></b></span>
+                        </br>
+                            <b>Amount tendered</b>
+                        </br>
+                        <input id="order-to-pay-amt2" type="text" style="height:30px; width:215px; text-align: right; background-color: #e7fad3" value="99.99"/>
+                        </br>
+                        <div style="position: relative; float: left;">
+                            <button id="btn-order-pay-cash" class="btn btn-inverse btn-pay">Cash</button>
+                            <button id="btn-order-pay-credit-card" class="btn btn-inverse btn-pay">Credit Card</button>
+                        </div>
+                    </center>
+                </div>
+                <div class="modal-footer">
+                    <div style="position: relative; float: left">
+                    <!--<button id="order-pay-on-account" class="btn btn-pay" data-dismiss="modal" >On Account</button>-->
+                    <!--<button id="order-pay-layby" class="btn btn-pay" data-dismiss="modal" >Layby</button>-->
+                    </div>
+                    <div style="position: relative; float: right; margin-right: 10px;">
+                        <button id="order-pay-back-to-sale" class="btn btn-pay" data-dismiss="modal" >Back To Sale</button>
+                    </div>
+                </div>
+            </div>
+    </script>
+
+    <iframe id="receipt-report" src="about:blank" style="display:none"></iframe>
+
+    <script id="order-note-popup-view-template" type="text/x-handlebars-template">
+            <div class="modal fade">
+                <div class="modal-header" style="background-color: #0480be;color: white; -webkit-border-top-right-radius: 5px; -webkit-border-top-left-radius: 5px; ">
+                    <center><b>Notes </b></center>
+                </div>
+                <div class="modal-body">
+                <textarea id="order-note-note" class="form-control" rows="5" style="width: 510px;"></textarea>
+                    </br>
+                    <button id="order-note-back-to-sale" class="btn btn-large" class="close" data-dismiss="modal" >Back To Sale</button>
+                    <div style="position:relative; float:right;">
+                        <button id="order-note-save" class="btn btn-primary btn-large" style="width:100px; " class="close"  data-dismiss="modal" >Save</button>
+                    </div>
+                </div>
+            </div>
+    </script>
+
+    <script id="park-sale-line-view-template" type="text/x-handlebars-template">
+        <th data-cid="{{cid}}" class="park-show-sub" style="cursor: pointer;text-decoration: underline; "><span style="margin-top: 7px;" class="caret"></span>{{created_date}}</th>
+        <td>{{customer}}</td>
+        <td>{{note}}<td>
+        <td style="text-align: right;" class="currency">{{orderTotal}}</td>
+        <td><i class="icon-remove park-sale-remove" style="cursor:pointer"></i></td>
+    </script>
+
+    <script id="park-sale-line-sub-view-template" type="text/x-handlebars-template">
+        <td colspan="6" style="padding: 0">
+            <div id="park-slide-{{cid}}" style="display: none;">
+                <p style="padding-left: 10px; background-color: pink;"><b>ORDER</b></p>
+                <table class="table">
+                   <thead>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                   </thead>
+                   <tbody>
+                    {{#each orders}}
+                    <tr>
+                        <td>{{qty}} x {{name}}</td>
+                        <td>@{{price}}</td>
+                        <td style="text-align: right; padding-right: 50px;" class="currency">{{total}}</td>
+                    </tr>
+                    {{/each}}
+                   </tbody>
+                   <tfoot>
+                     <tr>
+                        <th>Sub Total</th>
+                        <th></th>
+                        <th style="text-align: right; padding-right: 50px;" class="currency">{{orderTotal}}</th>
+                     </tr>
+                   </tfoot>
+                </table>
+                <div style="position:relative; float:right;">
+                    <button id="park-sale-line-sub-print" class="btn"><i class="icon-print"></i>Print</button>
+                </div>
+            </div>
+        </td>
+    </script>
+
+    <script id="park-collection-view-template" type="text/x-handlebars-template">
+        <ul class="nav nav-tabs">
+          <li class="active"><a href="#park-park-order" data-toggle="tab">Park Orders</a></li>
+          <li><a id="park-collection-sale-title" href="#park-complete-sale" data-toggle="tab">Complete Sale</a></li>
+        </ul>
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <div class="tab-pane active" id="park-park-order">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>DateTime</th>
+                        <th>Status</th>
+                        <th>User</th>
+                        <th>Notes</th>
+                        <th style="text-align: right">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="park-line">
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+          </div>
+
+          <div class="tab-pane" id="park-complete-sale">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>DateTime</th>
+                        <th>Customer</th>
+                        <th>Note</th>
+                        <th></th>
+                        <th style="text-align: right">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="park-sale-line">
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+          </div>
+        </div>
+    </script>
+
+    <script id="park-view-template" type="text/x-handlebars-template">
+        <td style="display:none">{{cid}}</td>
+        <td>{{date_time}}</td>
+        <td>{{state}}</td>
+        <td>{{user}}</td>
+        <td>{{note}}</td>
+        <td class="currency" style="text-align: right">{{total}}</td>
+        <td><a href="#" class="park-note">open</a></td>
+        <td><i class="icon-{{icon}} remove-park" style="cursor:pointer"></i></td>
+    </script>
+
+    <script id="calculator-view-template" type="text/x-handlebars-template">
+            <p>
+                <b id="cal-title" style="color:white">calculator</b>
+                <b><span style="color: red;" id="errMsg"></span></b>
+            </p>
+            <input id="cal-result" type="text" style="height:30px; width:215px"/>
+            <button class="btn btn-large btn-inc">+</button>
+            <button class="btn btn-large btn-desc">-</button>
+            </br>
+            <button class="btn btn-cal">1</button>
+            <button class="btn btn-cal">2</button>
+            <button class="btn btn-cal">3</button>
+            <button class="btn btn-cal btn-del">Del</button>
+            </br>
+            <button class="btn btn-cal">4</button>
+            <button class="btn btn-cal">5</button>
+            <button class="btn btn-cal">6</button>
+            <button class="btn btn-cal btn-abs">+/-</button>
+            </br>
+            <button class="btn btn-cal">7</button>
+            <button class="btn btn-cal">8</button>
+            <button class="btn btn-cal">9</button>
+            </br>
+            <button class="btn btn-cal">0</button>
+            <button class="btn btn-dblzero">00</button>
+            <button class="btn btn-dot">.</button>
+            <div>
+            <button class="btn btn-return"><center>Return</center></button>
+            <button class="btn btn-cal btn-percent" style="margin-top: -223px; margin-left: -103px; width: 98px;">%</button>
+    </script>
+
+    <script id="close-register-view-template" type="text/x-handlebars-template">
+        <h2>Closing totals to verify</h2>
+        <b>Register details</b></br></br>
+        <table class="table">
+            <tbody>
+                <tr>
+                    <td>Register:</td><td id="close-register-shop-register"></td>
+                    <td>Opened:</td><td id="close-open-date" >December 8, 2013 9:16 PM</td>
+                </tr>
+                <tr>
+                    <td>Shop:</td><td id="close-register-shop"></td>
+                    <td>Closed:</td><td id='close-closed-date' >December 18, 2013 10:32 PM</td>
+                </tr>
+            </tbody>
+        </table>
+        <h3>Sales</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Amount</th>
+                </tr>
+            <thead>
+            <tbody id="close-sale-line">
+            </tbody>
+            <tfoot>
+            </tfoot>
+        </table>
+        <h3>Payments</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Payment</th>
+                    <th>Amount</th>
+                    <!--<th>To Post</th>-->
+                </tr>
+            <thead>
+            <tbody>
+                <tr>
+                    <td>Cash</td>
+                    <td class="currency" id="close-cash-total">$0</td>
+                    <!--<td><input id='close-input-cash-total' class="currency" type="text"/></td>-->
+                <tr>
+                    <td>Credit Card</td>
+                    <td class="currency" id="close-credit-total">$0</td>
+                    <!--<td><input id='close-input-credit-total' class="currency" type="text"/></td>-->
+                </tr>
+            </tbody>
+            <tfoot>
+            </tfoot>
+        </table>
+        </br>
+        <div>
+            <center>
+                <div style="margin-top: -30px;">
+                    <button id="close-print" class="btn" style="width: 100px;">Print</button>
+                    <button class="btn btn-info btn-close-register">Close Register</button>
+                </div>
+            </center>
+        </div>
+        <iframe id="close-register-report" src="about:blank" style="display:none"></iframe>
+    </script>
+
+    <script id="receipt-view-template" type="text/x-handlebars-template">
+        <h1>Receipt/Tax Invoice</h1>
+            <p>
+                Invoice #: 21
+            </p>
+            <p>
+                Dec 19, 2013 15:49:08
+            </p>
+            <p>
+                Served by: A cashier on Main Register
+            </p>
+            <table id="reciept-order" class="table">
+                <tbody>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+            <table id="reciept-summary" class="table">
+                <tbody>
+                </tbody>
+            </table>
+
+            </br>
+            CUSTOMER COPY
+            </br>
+            Thanks for stopping
+            </br>
+    </script>
+
+    <script id="payment-view-template" type="text/x-handlebars-template">
+        <tr>
+            <td style="text-align: left; width: 100px">{{name}}</td>
+            <td style="text-align: right; width: 100px;">${{amt}}</td>
+        </tr>
+    </script>
+
+    <script id="payment-list-view-template" type="text/x-handlebars-template">
+        <table class="table" style="width: 100%">
+            <tbody id="payment-line">
+            </tbody>
+        </table>
+        <table style="margin-top: -20px; border-top:1px solid black; " class="table">
+            <thead>
+                <th style="text-align: left; width: 100px">TO PAY</th>
+                <th class="currency" id="total-payment" style="text-align: right; width: 100px;"></th>
+            </thead>
+        </table>
+    </script>
+
+    <script id="progressbar-view-template" type="text/x-handlebars-template">
+        <div class="modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                     <div class="modal-body">
+                        <!--<b> Loading Data... </b></br>-->
+                        <!--<img border="0" src="img/progress_bar.gif">            -->
+                        <div class="progress progress-striped active">
+                            <b><div class="bar" style="width: 100%;">Uploading order...</div></b>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        </div> 
+    </script>
+
+    <script id="product-view-template" type="text/x-handlebars-template">
+        <div class="modal fade" style="">
+            <div class="modal-header" style="background-color: #0480be;color: white; -webkit-border-top-right-radius: 5px; -webkit-border-top-left-radius: 5px; ">
+                <center><b> Details </b></center>
+            </div>
+            <div class="modal-body">
+                <p><span class="label label-primary" style="background-color: #5bc0de">General</span></p>
+                <p>Code: <span id="product-code"></span></p>
+                <p>Name: <span id="product-name"></span></p>
+                <p>Average Cost: <span id="product-price"></span> </p>
+                <h3 style="border-top: 1px dotted black">Inventory</h3>
+                <div>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Shop</th>
+                                <th>In Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Main Shop</td>
+                                <td>-1</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="position: relative; float: right; margin-right: 10px;">
+                    <button class="btn" class="close" data-dismiss="modal" >Back To Sale</button>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="customer-view-template" type="text/x-handlebars-template">
+        <div class="modal fade" style="width: 660px;">
+            <div class="modal-header" style="background-color: #0480be;color: white; -webkit-border-top-right-radius: 5px; -webkit-border-top-left-radius: 5px; ">
+                <center><b> Quick Add a New Customer </b></center>
+            </div>
+            <div class="modal-body">
+                <table class="table table-condensed">
+                    <thead>
+                        <tr>
+                            <th>
+                                Customer Details
+                            </th>
+                            <th></th>
+                            <th>
+                                Physical Address
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="customer-form">
+                        <tr>
+                            <td>
+                                <input id="cus-first" type="text"  value="{{first}}" style="background-color: #d2d2ff; width: 150px;" placeholder="First"/>
+                            </td>
+                            <td>
+                                <input id="cus-last" type="text" value="{{last}}" style="width: 150px;" placeholder="Last"/>
+                            </td>
+                            <td>
+                                <input id="cus-address1" type="text"  value="{{address1}}" style="width: 250px;" placeholder="Address"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input id="cus-company" type="text"  value="{{company}}" style="width: 150px;" placeholder="Company"/>
+                            </td>
+                            <td>
+                                <input id="cus-code" type="text"  value="{{code}}" style="width: 150px;" placeholder="Customer Code"/>
+                            </td>
+                            <td>
+                                <input id="cus-address2" type="text"  value="{{address2}}" style="width: 250px;" placeholder="Address"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <input id="cus-phone" type="text"  value="{{phone}}" style="width: 325px;" placeholder="Phone"/>
+                            </td>
+                            <td>
+                                <input id="cus-postal_code" maxlength="5" type="text"  value="{{postal_code}}" style="width: 250px;" placeholder="Zip"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <span id='cus-email-error' style="color: red"></span>
+                                <input id="cus-email" type="text"  value="{{email}}" style="width: 325px;" placeholder="Email"/>
+                            </td>
+                            <td>
+                                <span id='cus-city-error' style="color: red"></span>
+                                <input id="cus-city" type="text"  value="{{city}}" style="background-color: #d2d2ff; width: 250px;" placeholder="City"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <b>Birth day</b>
+                                <span style="margin-left: 50px;">
+                                    <input id="cus-birthday-dd" maxlength="2" value="{{birthDay_dd}}" type="text"  style="width: 50px;" placeholder="DD"/>
+                                    <input id="cus-birthday-mm" maxlength="2" value="{{birthDay_mm}}" type="text"  style="width: 50px;" placeholder="MM"/>
+                                    <input id="cus-birthday-yyyy" maxlength="4" value="{{birthDay_yyyy}}" type="text"  style="width: 70px;" placeholder="YYYY"/>
+                                </span>
+                            </td>
+                            <td>
+                                <input id="cus-state" type="text" value="{{state}}" style="width: 250px;" placeholder="State"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <b>Gender</b>
+                                <span style="margin-left: 60px;">
+                                    <input style="margin-top: -3px;" type="radio" value="F" id="cus-radio-female"> Female
+                                    <input style="margin-top: -3px;" type="radio" value="M" id="cus-radio-male"> Male 
+                                </span>
+                            </td>
+                            <td>
+                                <span id='cus-country-error' style="color: red"></span>
+                                <select id="cus-country" style="background-color: #d2d2ff; width: 250px;" class="form-control">
+                                    <!--<option value="one">One</option>-->
+                                </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <div style="position: relative; float: right; margin-right: 10px;">
+                    <button id="cus-btn-save" type="button" class="btn btn-info" style="width: 100px; height: 40px;">Save</button>
+                </div>
+                <div style="position: relative; float: right; margin-right: 10px;">
+                    <button id="cus-btn-cancel" type="button" class="btn" style="width: 100px; height: 40px;" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <script id="park-popup-view-template" type="text/x-handlebars-template">
+        <div class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-header" style="background-color: #0480be;color: white; -webkit-border-top-right-radius: 5px; -webkit-border-top-left-radius: 5px; ">
+                    <center><b> Loading a Saved Sale</b></center>
+                </div>
+                <div class="modal-content" style="height: 100px;">
+                     <div class="modal-body">
+                        You are loading a saved sale (<span id="park-popup-old-order">xxxx </span> items).
+                        What would you like to do with the current sale (<span id="park-popup-new-order"> yyy</span> items) ? </br>
+                     </div>
+                </div>
+                <div class="modal-footer">
+                    <div style="position: relative; float: left; margin-right: 10px;">
+                        <button type="button" class="btn" style="width: 130px; height: 40px;" data-dismiss="modal">Back To Sale</button>
+                    </div>
+                    <div style="position: relative; float: right; margin-right: 10px;">
+                        <button id="park-popup-void" type="button" class="btn" style="width: 100px; height: 40px;" data-dismiss="modal">Void</button>
+                        <button id="park-popup-park" type="button" class="btn btn-info" style="width: 100px; height: 40px;" data-dismiss="modal">Park</button>
+                    </div>
+                </div>
+            </div>
+        </div> 
+    </script>
+
+    <script id="shop-register-view-template" type="text/x-handlebars-template">
+        <div class="modal fade" >
+            <div class="modal-dialog">
+                <div class="modal-header" style="background-color: #0480be;color: white; -webkit-border-top-right-radius: 5px; -webkit-border-top-left-radius: 5px; ">
+                    <center><b>Register</b></center>
+                </div>
+                <div class="modal-content">
+                     <div class="modal-body">
+                        <table class="table table-hover">
+                            <thead style="background-color: #6e6e6e">
+                                <tr>
+                                    <th>Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#each line}}
+                                <tr class="register-item" data-id="{{id}}">
+                                    <td>{{name}}</td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                     </div>
+                </div>
+                <div class="modal-footer">
+                    <div style="position: relative; float: right; margin-right: 10px;">
+                        <button type="button" class="btn" style="width: 100px; height: 40px;" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div> 
+    </script>
+
+    <script id="shop-view-template" type="text/x-handlebars-template">
+        <div class="modal fade" >
+            <div class="modal-dialog">
+                <div class="modal-header" style="background-color: #0480be;color: white; -webkit-border-top-right-radius: 5px; -webkit-border-top-left-radius: 5px; ">
+                    <center><b>Shop</b></center>
+                </div>
+                <div class="modal-content">
+                     <div class="modal-body">
+                        <table class="table table-hover">
+                            <thead style="background-color: #6e6e6e">
+                                <tr>
+                                    <th>Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#each line}}
+                                <tr class="shop-item" data-id="{{id}}">
+                                    <td>{{name}}</td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                     </div>
+                </div>
+                <div class="modal-footer">
+                    <div style="position: relative; float: right; margin-right: 10px;">
+                        <button type="button" class="btn" style="width: 100px; height: 40px;" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div> 
+    </script>
+
+</body>
+</html>
+

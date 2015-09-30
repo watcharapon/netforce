@@ -1,0 +1,5 @@
+<form model="hr.payitem.profile">
+    <field name="name"/>
+    <newline/>
+    <field name="pay_items"/>
+</form>

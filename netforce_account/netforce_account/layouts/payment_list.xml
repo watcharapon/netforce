@@ -1,0 +1,11 @@
+<list model="account.payment">
+    <field name="number"/>
+    <field name="date"/>
+    <field name="contact_id"/>
+    <field name="type"/>
+    <field name="pay_type"/>
+    <field name="account_id"/>
+    <field name="ref"/>
+    <field name="amount_total"/>
+    <field name="state"/>
+</list>

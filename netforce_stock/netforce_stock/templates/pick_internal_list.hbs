@@ -1,0 +1,11 @@
+<v:flash/>
+{{include "pick_internal_search" context=context}}
+<v:button string="Delete" method="_delete" type="danger" size="small"/>
+<v:button string="Export" action="pick_internal_export" size="small" select="1"/>
+<v:button string="Search" action="_search" icon="search" size="small" pull="right"/>
+<v:list action="pick_internal_edit">
+    <field name="number"/>
+    <field name="ref"/>
+    <field name="date"/>
+    <field name="state"/>
+</v:list>

@@ -1,0 +1,5 @@
+<list model="contact.categ">
+    <field name="code"/>
+    <field name="full_name"/>
+    <field name="parent_id"/>
+</list>

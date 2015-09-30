@@ -1,0 +1,30 @@
+<project name="netforce_report" default="jar" basedir=".">
+
+<path id="libs">
+    <fileset dir="lib">
+        <include name="*.jar"/>
+    </fileset>
+</path>
+
+<target name="compile">
+    <mkdir dir="build/classes"/>
+    <javac srcdir="." destdir="build/classes">
+        <classpath refid="libs"/>
+    </javac>
+</target>
+
+<target name="jar" depends="compile">
+    <mkdir dir="build/jar"/>
+    <jar destfile="build/jar/netforce_report.jar" basedir="build/classes">
+        <manifest>
+            <attribute name="Main-Class" value="NFReportServer"/>
+        </manifest>
+        <zipgroupfileset dir="lib" includes="*.jar"/>
+    </jar>
+</target>
+
+<target name="run" depends="jar">
+    <java jar="build/jar/netforce_report.jar" fork="true"/>
+</target>
+
+</project>

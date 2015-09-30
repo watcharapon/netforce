@@ -1,0 +1,49 @@
+<div class="nf-table-container">
+    <table class="table table-bordered table-striped table-condensed">
+        <thead>
+            <tr>
+                <th>
+                    Resource
+                </th>
+                <th>
+                    This Week
+                </th>
+                <th>
+                    Last Week
+                </th>
+                <th>
+                    Week-2
+                </th>
+                <th>
+                    Week-3
+                </th>
+                <th>
+                    Week-4
+                </th>
+                <th>
+                    Week-5
+                </th>
+                <th>
+                    Week-6
+                </th>
+                <th>
+                    Week-7
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each context.data.lines context=context}}
+                <tr>
+                    <td>
+                        {{resource_name}}
+                    </td>
+                    {{#each weeks context=context}}
+                        <td>
+                            {{this}}
+                        </td>
+                    {{/each}}
+                </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>

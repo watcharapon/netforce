@@ -1,0 +1,48 @@
+<center>
+    <h2>
+        Account Summary
+    </h2>
+    <h3>
+        {{company_name}}
+        <br/>
+        {{account_name}}
+        <br/>
+        From {{fmt_date date_from}} to {{fmt_date date_to}}
+    </h3>
+</center>
+<table class="table">
+    <thead class="scroll-header">
+        <tr>
+            <th>
+                Month
+            </th>
+            <th style="text-align:right">
+                Balance
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each lines}}
+            <tr>
+                <td>
+                    {{month}}
+                </td>
+                <td style="text-align:right">
+                    <a href="/ui#name=report_account_trans&defaults.account_id={{account_id}}&defaults.date_from={{date_from}}&defaults.date_to={{date_to}}&defaults.partner_id={{../contact_id}}&defaults.track_id={{../track_id}}&defaults.track2_id={{../track2_id}}">
+                        {{currency balance}}
+                    </a>
+                </td>
+            </tr>
+        {{/each}}
+    </tbody>
+    <tfoot>
+        <tr style="font-weight:bold">
+            <td>
+                Total
+            </td>
+            <td style="text-align:right">
+                {{currency total}}
+            </td>
+        </tr>
+    </tfoot>
+</table>

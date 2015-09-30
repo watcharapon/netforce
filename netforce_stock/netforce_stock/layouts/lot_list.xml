@@ -1,0 +1,11 @@
+<list model="stock.lot">
+    <head>
+        <button string="Print Labels" icon="print" action="lot_label" action_options="convert=pdf"/>
+    </head>
+    <field name="number"/>
+    <field name="received_date"/>
+    <field name="expiry_date"/>
+    <field name="description"/>
+    <field name="product_id"/>
+    <field name="service_item_id"/>
+</list>

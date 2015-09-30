@@ -1,0 +1,12 @@
+<list model="document" colors='{"expiry_date,#f00":[["expired","=",true]]}'>
+    <field name="file" target="_blank"/>
+    <field name="categ_id"/>
+    <field name="description"/>
+    <field name="contact_id"/>
+    <field name="related_id"/>
+    <field name="date"/>
+    <field name="expiry_date"/>
+    <field name="description"/>
+    <field name="state"/>
+    <field name="expired" invisible="1"/>
+</list>

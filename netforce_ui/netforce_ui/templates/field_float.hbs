@@ -1,0 +1,23 @@
+{{#unless options.nolabel}}
+    <label class="control-label {{#if horizontal}}col-sm-4{{/if}}">
+        {{t string}}
+        {{#if options.help}}
+            <a href="#" class="help" data-toggle="toolip" data-placement="top" title data-original-title="{{options.help}}"><sup>?</sup></a>
+        {{/if}}
+    </label>
+{{/unless}}
+<div class="{{#if horizontal}}col-sm-8{{/if}}" {{#if readonly}}style="text-align:right"{{/if}}>
+    {{#if options.prepend}}
+        {{options.prepend}}
+    {{/if}}
+    {{#if readonly}}
+        <span {{#if input}} class="uneditable-input {{#if options.size}}input-{{options.size}}{{/if}}"{{/if}}{{#if options.strong}}style="font-weight:bold;font-size:18px"{{/if}}>
+            {{currency value}}
+        </span>
+    {{else}}
+        <input type="text" value="{{currency value}}" class="form-control {{#if options.span}}span{{options.span}}{{/if}} {{#if options.size}}input-{{options.size}}{{/if}}" style="text-align:right" {{#if disabled}}disabled{{/if}}/>
+    {{/if}}
+    {{#if options.append}}
+        {{options.append}}
+    {{/if}}
+</div>

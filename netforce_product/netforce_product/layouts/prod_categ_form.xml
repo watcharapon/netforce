@@ -1,0 +1,18 @@
+<form model="product.categ">
+    <head>
+        <button string="Options" dropdown="1">
+            <item string="Update Product List Prices" method="update_sale_prices"/>
+        </button>
+    </head>
+    <field name="name"/>
+    <field name="code"/>
+    <field name="parent_id"/>
+    <field name="description"/>
+    <field name="image"/>
+    <field name="gross_profit"/>
+    <related>
+        <field name="sub_categories"/>
+        <field name="products"/>
+        <field name="comments"/>
+    </related>
+</form>

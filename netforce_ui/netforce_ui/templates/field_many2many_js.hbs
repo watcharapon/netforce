@@ -1,0 +1,10 @@
+{{#unless nolabel}}
+    <label class="control-label">
+        {{string}}
+    </label>
+{{/unless}}
+
+<input type="hidden" class="select2-input {{#if size}}input-{{size}}{{/if}}" name="form_data.{{path}}"/>
+<input type="hidden" name="form_data.{{path}}.0" value="{{value_id}}"/>
+<input type="hidden" name="form_orig_data.{{path}}" value="{{orig_value}}"/>
+<input type="hidden" name="form_fields" value="{{path}}"/>

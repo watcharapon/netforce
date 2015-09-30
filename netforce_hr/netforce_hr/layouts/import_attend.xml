@@ -1,0 +1,17 @@
+<form model="hr.import.attendance" title="Import New Attendance">
+    <group attrs='{"invisible":[["import_type","=","auto"]]}' span="12" columns="1">
+        <separator string="Inside file should have colums: id and date respectively"/>
+    </group>
+    <field name="import_type"/>
+    <field name="file"/>
+    <field name="date_fmt"/>
+    <group span="6" columns="1"></group>
+    <group attrs='{"invisible":[["import_type","!=","auto"]]}' span="6" columns="1">
+        <field name="date"/>
+        <field name="machine_id"/>
+        <field name="encoding"/>
+    </group>
+    <foot replace="1">
+        <button string="Import" method="import_data" type="primary"/>
+    </foot>
+</form>

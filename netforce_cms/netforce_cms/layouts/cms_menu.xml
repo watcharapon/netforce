@@ -1,0 +1,16 @@
+<menu string="Website">
+    <item string="Dashboard" action="cms_board"/>
+    <item string="Content">
+        <item string="Pages" action="page"/>
+        <item string="Blogs" action="blog"/>
+        <item string="Blog Posts" action="blog_post"/>
+        <item string="Blocks" action="cms_block"/>
+        <item string="Navigation" action="linklist"/>
+        <item string="Customer Message" action="cms_customer_message"/>
+    </item>
+    <item string="Settings">
+        <item string="Websites" action="website"/>
+        <item string="Themes" action="theme"/>
+        <item string="Templates" action="template"/>
+    </item>
+</menu>

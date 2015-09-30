@@ -1,0 +1,4 @@
+<list model="country">
+    <field name="name"/>
+    <field name="code"/>
+</list>

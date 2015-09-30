@@ -1,0 +1,12 @@
+<v:page title="Stock Count">
+    <v:toolbar>
+        <v:button string="New Stock Count" icon="plus-sign" action="stock_count_edit"/>
+        <v:button string="Import" action="stock_count_import" icon="download"/>
+    </v:toolbar>
+    <v:tabs>
+        <v:tab_item string="All" action="stock_count_all"/>
+        <v:tab_item string="Draft" action="stock_count_draft"/>
+        <v:tab_item string="Validated" action="stock_count_done"/>
+    </v:tabs>
+    {{{context.content}}}
+</v:page>

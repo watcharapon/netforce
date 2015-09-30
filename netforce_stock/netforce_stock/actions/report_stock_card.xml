@@ -1,0 +1,8 @@
+<action>
+    <field name="string">Stock Card</field>
+    <field name="view_cls">report</field>
+    <field name="model">report.stock.card</field>
+    <field name="report_template">report_stock_card</field>
+    <field name="report_template_xls">stock_card</field>
+    <field name="menu">stock_menu</field>
+</action>

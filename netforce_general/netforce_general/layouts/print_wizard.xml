@@ -1,0 +1,14 @@
+<form model="print.wizard">
+    <field name="print_model" invisible="1"/>
+    <field name="print_ids" invisible="1"/>
+    <field name="template" invisible="1"/>
+    <field name="template_method" invisible="1"/>
+    <field name="template_format" invisible="1"/>
+    <field name="custom_template_type" invisible="1"/>
+    <field name="multi_page" invisible="1"/>
+    <field name="out_format"/>
+    <field name="custom_template_id" condition='[["type","=",custom_template_type]]'/>
+    <foot>
+        <button string="Print" method="print" type="primary" icon="print"/>
+    </foot>
+</form>

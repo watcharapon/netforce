@@ -1,0 +1,39 @@
+<div class="nf-board-title">
+<h3>{{t "Items By Status"}}</h3>
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th>{{t "Status"}}</th>
+            <th style="text-align:right">{{t "Total"}}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#with context.data}}
+            <tr>
+                <td>
+                    Draft ({{draft.count}})
+                </td>
+                <td style="text-align:right">
+                    {{currency draft.amount}}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Awaiting Approval ({{waiting_approval.count}})
+                </td>
+                <td style="text-align:right">
+                    {{currency waiting_approval.amount}}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Awaiting Payment ({{waiting_payment.count}})
+                </td>
+                <td style="text-align:right">
+                    {{currency waiting_payment.amount}}
+                </td>
+            </tr>
+        {{/with}}
+    </tbody>
+</table>

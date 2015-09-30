@@ -1,0 +1,33 @@
+{{#unless options.nolabel}}
+    <label class="control-label">
+        <span class="label-text">{{t string}}</span>
+        {{#if options.span}}
+            {{#if link_url}}
+                <a href="{{link_url}}" target="_blank" style="text-decoration:none;margin-left:5px" tabindex="-1"><i class="icon-arrow-right"></i></a>
+            {{/if}}
+        {{/if}}
+    </label>
+{{/unless}}
+<div class="controls">
+    {{#if readonly}}
+        <span{{#if input}} class="uneditable-input {{#if options.size}}input-{{options.size}}{{/if}}"{{/if}}>
+            {{value_name}}
+            {{#unless options.span}}
+                {{#if link_url}}
+                    <a href="{{link_url}}" target="_blank" style="text-decoration:none;margin-left:5px"><i class="icon-arrow-right"></i></a>
+                {{/if}}
+            {{/unless}}
+        </span>
+    {{else}}
+        <div class="input-append">
+            <input type="text" value="{{value_name}}" class="typeahead {{#if options.span}}span{{options.span}}{{/if}} {{#if options.size}}input-{{options.size}}{{/if}}" autocomplete="off"/><button type="button" class="btn typeahead-btn" style="height:22px;padding:2px 5px" tabindex="-1">
+                <span class="caret"></span>
+            </button>
+        </div>
+        {{#unless options.span}}
+            {{#if link_url}}
+                <a href="{{link_url}}" target="_blank" style="text-decoration:none;margin-left:5px" tabindex="-1"><i class="icon-arrow-right"></i></a>
+            {{/if}}
+        {{/unless}}
+    {{/if}}
+</div>

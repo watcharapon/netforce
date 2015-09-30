@@ -1,0 +1,9 @@
+<list model="stock.picking" action="view_picking">
+    <field name="journal_id"/>
+    <field name="number"/>
+    <field name="date"/>
+    <field name="contact_id"/>
+    <field name="ref"/>
+    <field name="related_id"/>
+    <field name="state"/>
+</list>

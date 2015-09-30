@@ -1,0 +1,22 @@
+<form model="delivery.route">
+    <head>
+        <field name="state"/>
+    </head>
+    <group form_layout="stacked">
+        <field name="number" span="2"/>
+        <field name="date" span="2"/>
+        <field name="carrier_id" span="2"/>
+    </group>
+    <field name="lines">
+        <list>
+            <field name="sequence"/>
+            <field name="contact_id"/>
+            <field name="phone"/>
+            <field name="address"/>
+            <field name="coordinates"/>
+            <field name="payment_type"/>
+            <field name="items_description"/>
+            <field name="state"/>
+        </list>
+    </field>
+</form>

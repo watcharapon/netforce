@@ -1,0 +1,14 @@
+<form model="hr.attendance.config">
+    <field name="name"/>
+    <field name="ip_address"/>
+    <field name="url_download"/>
+    <field name="user"/>
+    <field name="password" password="true"/>
+    <field name="port"/>
+    <foot>
+         <button string="Test" type="success" method="test"/>
+    </foot>
+    <related>
+        <field name="comments"/>
+    </related>
+</form>

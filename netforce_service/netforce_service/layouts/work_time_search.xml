@@ -1,0 +1,6 @@
+<search model="work.time">
+    <field name="resource_id"/>
+    <field name="project_id"/>
+    <field name="date"/>
+    <field name="service_type_id"/>
+</search>

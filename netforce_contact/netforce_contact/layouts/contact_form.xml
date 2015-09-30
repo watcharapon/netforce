@@ -1,0 +1,163 @@
+<form model="contact">
+    <tabs>
+        <tab string="General">
+            <separator string="Contact Information"/>
+            <field name="type"/>
+            <field name="user_id"/>
+            <group attrs='{"invisible": [["type","!=","org"]]}'>
+                <field name="name" attrs='{"required":[["type","=","org"]]}'/>
+                <field name="fax"/>
+                <field name="code"/>
+                <field name="website"/>
+                <field name="phone"/>
+                <field name="email"/>
+                <field name="branch"/>
+                <field name="picture"/>
+            </group>
+            <group attrs='{"invisible": [["type","!=","person"]]}'>
+                <field name="last_name" attrs='{"required":[["type","=","person"]]}'/>
+                <field name="mobile"/>
+                <field name="first_name"/>
+                <field name="email"/>
+                <field name="first_name2"/>
+                <field name="first_name3"/>
+                <field name="position"/>
+                <field name="title"/>
+                <field name="report_to_id"/>
+                <field name="phone"/>
+                <field name="code"/>
+                <field name="picture"/>
+            </group>
+            <separator string="Additional Information"/>
+            <group attrs='{"invisible": [["type","!=","org"]]}'>
+                <field name="categ_id"/>
+                <field name="groups"/>
+                <field name="industry_id"/>
+                <field name="country_id"/>
+                <field name="region_id"/>
+                <field name="revenue"/>
+                <field name="employees"/>
+                <field name="business_area_id"/>
+                <field name="fleet_size_id"/>
+                <field name="description"/>
+            </group>
+            <group attrs='{"invisible": [["type","!=","person"]]}'>
+                <field name="categ_id"/>
+                <field name="groups"/>
+                <field name="fax"/>
+                <field name="birth_date"/>
+                <field name="home_phone"/>
+                <field name="department"/>
+                <field name="other_phone"/>
+                <field name="assistant"/>
+                <field name="assistant_phone"/>
+                <field name="description"/>
+            </group>
+            <separator string="Business Relationship"/>
+            <field name="customer"/>
+            <field name="supplier"/>
+            <field name="lead_source"/>
+            <field name="inquiry_type"/>
+        </tab>
+        <tab string="Accounting">
+            <field name="currency_id"/>
+            <field name="tax_no"/>
+            <field name="tax_branch_no"/>
+            <field name="payment_terms"/>
+            <separator string="Accounts"/>
+            <field name="account_receivable_id"/>
+            <field name="tax_receivable_id"/>
+            <field name="account_payable_id"/>
+            <field name="tax_payable_id"/>
+            <separator string="Journals"/>
+            <field name="sale_journal_id"/>
+            <field name="purchase_journal_id"/>
+            <field name="pay_in_journal_id"/>
+            <field name="pay_out_journal_id"/>
+        </tab>
+        <tab string="Inventory">
+            <field name="pick_in_journal_id"/>
+            <field name="pick_out_journal_id"/>
+        </tab>
+        <tab string="Sales">
+            <field name="sale_price_list_id"/>
+            <newline/>
+            <field name="request_product_groups"/>
+            <field name="exclude_product_groups"/>
+        </tab>
+        <tab string="Purchasing">
+            <field name="purchase_price_list_id"/>
+            <newline/>
+            <field name="commission_po_percent"/>
+        </tab>
+        <tab string="Services">
+            <field name="assigned_to_id"/>
+            <!--<separator string="Services"/>
+            <field name="services" nolabel="1" span="12"/>-->
+            <separator string="Job Templates"/>
+            <field name="job_templates" nolabel="1" span="12"/>
+        </tab>
+        <tab string="Other">
+            <field name="companies"/>
+        </tab>
+    </tabs>
+    <related>
+        <field name="relations">
+            <list>
+                <field name="from_contact_id"/>
+                <field name="to_contact_id"/>
+                <field name="rel_type_id"/>
+                <field name="details"/>
+            </list>
+            <form>
+                <field name="from_contact_id"/>
+                <field name="to_contact_id"/>
+                <field name="rel_type_id"/>
+                <field name="details"/>
+            </form>
+        </field>
+        <field name="addresses"/>
+        <field name="bank_accounts">
+            <list>
+                <field name="bank_id"/>
+                <field name="branch"/>
+                <field name="number"/>
+                <field name="signatory"/>
+                <field name="online"/>
+            </list>
+            <form>
+                <field name="bank_id"/>
+                <field name="branch"/>
+                <field name="number"/>
+                <field name="signatory"/>
+                <field name="online"/>
+            </form>
+        </field>
+        <field name="sale_orders"/>
+        <field name="coupons"/>
+        <field name="documents">
+            <list>
+                <head>
+                    <button string="Archive" method="archive"/>
+                </head>
+                <field name="file" target="_blank"/>
+                <field name="categ_id"/>
+                <field name="description"/>
+                <field name="related_id"/>
+                <field name="date"/>
+                <field name="expiry_date"/>
+            </list>
+            <form>
+                <field name="categ_id"/>
+                <field name="file" onchange="onchange_file" target="_blank"/>
+                <field name="description"/>
+                <field name="related_id"/>
+                <field name="date" onchange="onchange_file"/>
+                <field name="expiry_date"/>
+                <field name="create_job"/>
+            </form>
+        </field>
+        <field name="emails"/>
+        <field name="comments"/>
+    </related>
+</form>

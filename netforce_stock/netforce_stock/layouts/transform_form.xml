@@ -1,0 +1,50 @@
+<form model="stock.transform" attrs='{"readonly":[["state","!=","draft"]]}'>
+    <head>
+        <field name="state"/>
+        <button string="Options" dropdown="1">
+            <item string="To Draft" method="to_draft" states="done,voided"/>
+            <item string="Void" method="void" states="done" confirm="Are you sure?"/>
+        </button>
+    </head>
+    <tabs>
+        <tab string="General">
+            <field name="date"/>
+            <field name="number"/>
+            <field name="location_id"/>
+            <field name="related_id"/>
+            <field name="container_id" onchange="onchange_container"/>
+            <separator string="Source Lines"/>
+            <field name="source_lines" nolabel="1">
+                <list>
+                    <field name="product_id" onchange="onchange_from_product"/>
+                    <field name="lot_id"/>
+                    <field name="qty"/>
+                    <field name="uom_id"/>
+                    <field name="qty2"/>
+                    <field name="container_id"/>
+                </list>
+            </field>
+            <separator string="Target Lines"/>
+            <field name="target_lines" nolabel="1">
+                <list>
+                    <field name="product_id" onchange="onchange_to_product"/>
+                    <field name="lot_id"/>
+                    <field name="qty"/>
+                    <field name="uom_id"/>
+                    <field name="qty2"/>
+                    <field name="container_id"/>
+                </list>
+            </field>
+        </tab>
+        <tab string="Other">
+            <field name="journal_id"/>
+        </tab>
+    </tabs>
+    <foot>
+        <button string="Validate" method="validate" states="draft" type="success"/>
+    </foot>
+    <related>
+        <field name="stock_moves"/>
+        <field name="comments"/>
+    </related>
+</form>

@@ -1,0 +1,11 @@
+<div class="navbar navbar-inverse navbar-fixed-top page-edit-navbar">
+    <div class="navbar-inner">
+        <ul class="nav">
+            {{#ifeq mode "edit"}}
+                <li><a href="#" class="cancel"><i class="icon-remove icon-white"/> Stop Editing</a></li>
+            {{else}}
+                <li><a href="#" class="edit"><i class="icon-pencil icon-white"/> Edit</a></li>
+            {{/ifeq}}
+        </ul>
+    </div>
+</div>

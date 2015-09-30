@@ -1,0 +1,10 @@
+{{#unless options.nolabel}}
+    <label class="control-label {{#if horizontal}}col-sm-4{{/if}}">
+        {{t string}}
+    </label>
+{{/unless}}
+<div class="{{#if horizontal}}col-sm-8{{/if}}">
+    <input type="text" class="form-control" style="display:inline-block" value="{{currency value.0.}}"/>
+    -
+    <input type="text" class="form-control" style="display:inline-block" value="{{currency value.1.}}"/>
+</div>

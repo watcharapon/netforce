@@ -1,0 +1,65 @@
+<page model="stock.location" title="View Warehouse">
+    <head>
+        <field name="name"/>
+        <button string="Manage Warehouse" dropdown="1">
+            <item string="Product Stock" action="warehouse" action_options='{"mode":"page","active_id":id,"related_tab":1}'/>
+            <item string="Stock Transactions" action="warehouse" action_options='{"mode":"page","active_id":id,"related_tab":2}'/>
+            <divider/>
+            <item string="Goods Receipt" action="pick_in" action_options='{"mode":"form"}'/>
+            <item string="Goods Transfer" action="pick_internal" action_options='{"mode":"form"}'/>
+            <item string="Goods Issue" action="pick_out" action_options='{"mode":"form"}'/>
+        </button>
+    </head>
+    <group form_layout="stacked">
+        <field name="balance" span="2" strong="1"/>
+    </group>
+    <related tabs="1">
+        <field name="products" string="Product Stock">
+            <list>
+                <head>
+                    <button string="New Purchase Order" method="make_po" icon="plus-sign"/>
+                    <button string="New Goods Transfer" method="make_transfer" icon="plus-sign"/>
+                    <button string="New Goods Issue" method="make_issue" icon="plus-sign"/>
+                </head>
+                <search>
+                    <field name="product_id"/>
+                    <field name="lot_id"/>
+                    <field name="container_id"/>
+                </search>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="container_id"/>
+                <field name="qty_phys"/>
+                <field name="qty_virt"/>
+                <field name="min_qty"/>
+                <field name="uom_id"/>
+                <field name="amount"/>
+                <field name="last_change"/>
+            </list>
+        </field>
+        <field name="stock_moves" string="Stock Transactions">
+            <list action="view_stock_transaction">
+                <search>
+                    <field name="product_id"/>
+                    <field name="lot_id"/>
+                    <field name="container_from_id"/>
+                    <field name="container_to_id"/>
+                    <field name="ref"/>
+                    <field name="state"/>
+                </search>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="date"/>
+                <field name="ref"/>
+                <field name="qty"/>
+                <field name="uom_id"/>
+                <field name="unit_price"/>
+                <field name="location_from_id"/>
+                <field name="container_from_id"/>
+                <field name="location_to_id"/>
+                <field name="container_to_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </related>
+</page>

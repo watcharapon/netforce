@@ -1,0 +1,7 @@
+<list model="delivery.route">
+    <field name="number"/>
+    <field name="date"/>
+    <field name="carrier_id"/>
+    <field name="num_lines"/>
+    <field name="state"/>
+</list>

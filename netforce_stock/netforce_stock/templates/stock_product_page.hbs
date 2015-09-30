@@ -1,0 +1,11 @@
+<v:page title="Products">
+    <v:toolbar>
+        <v:button string="Add Item" icon="plus-sign" action="stock_product_edit"/>
+        <v:button string="Import" action="product_import" icon="download"/>
+        <v:button string="Export" action="product_export" icon="upload"/>
+    </v:toolbar>
+    <v:tabs>
+        <v:tab_item string="All" action="stock_product_list"/>
+    </v:tabs>
+    {{{context.content}}}
+</v:page>

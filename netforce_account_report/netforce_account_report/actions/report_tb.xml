@@ -1,0 +1,8 @@
+<action>
+    <field name="string">Trial Balance</field>
+    <field name="view_cls">report</field>
+    <field name="model">report.tb</field>
+    <field name="report_template">report_tb</field>
+    <field name="report_template_xls">tb</field>
+    <field name="menu">account_menu</field>
+</action>

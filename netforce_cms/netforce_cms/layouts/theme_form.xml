@@ -1,0 +1,11 @@
+<form model="theme">
+    <field name="name"/>
+    <field name="description"/>
+    <field name="file"/>
+    <foot>
+        <button string="Update" icon="refresh" method="update" type="success"/>
+    </foot>
+    <related>
+        <field name="templates"/>
+    </related>
+</form>

@@ -1,0 +1,32 @@
+<form model="currency">
+    <group form_layout="stacked">
+        <field name="name"/>
+        <field name="code"/>
+        <field name="sign"/>
+        <separator/>
+        <field name="account_receivable_id"/>
+        <field name="account_payable_id"/>
+        <separator/>
+        <field name="sell_rate"/>
+        <field name="buy_rate"/>
+        <separator/>
+        <field name="product_id"/>
+    </group>
+    <related>
+        <field name="rates">
+            <list>
+                <field name="date"/>
+                <field name="sell_rate"/>
+                <field name="buy_rate"/>
+                <field name="company_id"/>
+            </list>
+            <form>
+                <field name="date"/>
+                <field name="company_id"/>
+                <field name="sell_rate"/>
+                <field name="buy_rate"/>
+            </form>
+        </field>
+        <field name="comments"/>
+    </related>
+</form>

@@ -1,0 +1,33 @@
+<ol class="breadcrumb nf-breadcrumb">
+    <li>
+        <a href="#">{{bread_string}}</a>
+    </li>
+</ol>
+<div class="page-header nf-page-header">
+    {{#if show_company}}
+        <div id="company" style="float:right;margin-top:20px;color:#666;font-weight:bold;font-size:14px">{{company_name}}</div>
+    {{/if}}
+    <h1>
+        {{title}}
+        {{#if subtitle}}
+            <small>{{subtitle}}</small>
+        {{/if}}
+    </h1>
+</div>
+{{view "inline_help" action=options.action_name context=context}}
+{{{content}}}
+{{view "flash" context=context}}
+{{#view "form" readonly="1" border="1" context=context}}
+    {{#view "form_head" context=context}}
+        {{{call ../../render_toolbar context}}}
+    {{/view}}
+    {{#view "form_body" context=context}}
+        {{{call ../../render_body context}}}
+    {{/view}}
+    {{#view "form_foot" nobackground=true context=context}}
+        {{{call ../../render_foot context}}}
+    {{/view}}
+{{/view}}
+<div class="related">
+    {{{call render_related context}}}
+</div>

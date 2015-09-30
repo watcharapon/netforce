@@ -1,0 +1,9 @@
+<form model="user.pref">
+    <field name="name"/>
+    <field name="password" password="1"/>
+    <field name="email"/>
+    <field name="mobile"/>
+    <foot>
+        <button string="Save" method="save_changes" type="primary"/>
+    </foot>
+</form>

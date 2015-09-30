@@ -1,0 +1,8 @@
+<list model="model">
+    <field name="name"/>
+    <field name="string"/>
+    <field name="description"/>
+    <field name="order"/>
+    <field name="offline"/>
+    <field name="module_id"/>
+</list>

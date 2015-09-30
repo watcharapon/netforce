@@ -1,0 +1,6 @@
+<action>
+    <field name="type">report_odt</field>
+    <field name="model">report.invoice</field>
+    <field name="method">get_data_form</field>
+     <field name="template_method">get_template_invoice_form</field>
+</action>

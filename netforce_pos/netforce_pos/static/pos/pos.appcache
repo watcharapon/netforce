@@ -1,0 +1,17 @@
+CACHE MANIFEST
+# v1.111.0
+/static/pos/js/jquery-1.10.2.js
+/static/pos/js/underscore.js
+/static/pos/js/backbone.js
+/static/pos/js/backbone.localStorage.js
+/static/pos/js/handlebars.js
+/static/pos/js/bootstrap.js
+/static/pos/js/utils.js
+/static/pos/js/jquery.formatCurrency-1.4.0.js
+/static/pos/js/pos.js
+/static/pos/css/bootstrap.css
+/static/pos/css/pos.css
+/static/pos/index.html
+/static/pos/receipt.html
+/static/pos/img/glyphicons-halflings.png
+/static/pos/img/background-stripe.png

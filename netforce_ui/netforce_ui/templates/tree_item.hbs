@@ -1,0 +1,18 @@
+{{#each cols context=context}}
+    <td style="{{#if first}}padding-left:{{../../padding}}px;{{/if}}{{#if nowrap}}white-space:nowrap{{/if}}">
+        {{#if first}}
+            {{#if ../../collapsed}}
+            <i class="icon-chevron-right" style="float:left;width:20px"></i>
+            {{/if}}
+            {{#if ../../expanded}}
+            <i class="icon-chevron-down" style="float:left;width:20px"></i>
+            {{/if}}
+        {{/if}}
+        {{#ifeq col_type "field"}}
+            {{field_value name context=context}}
+        {{/ifeq}}
+        {{#ifeq col_type "button"}}
+            {{view "button" string=button_string action=action action_options=action_options size="small" context=context}}
+        {{/ifeq}}
+    </td>
+{{/each}}

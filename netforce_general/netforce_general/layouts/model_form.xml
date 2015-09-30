@@ -1,0 +1,40 @@
+<form model="model">
+    <field name="name"/>
+    <field name="string"/>
+    <field name="description"/>
+    <field name="order"/>
+    <field name="offline"/>
+    <field name="module_id"/>
+    <related>
+        <field name="fields">
+            <list>
+                <field name="name"/>
+                <field name="string"/>
+                <field name="type"/>
+                <field name="relation_id"/>
+                <field name="required"/>
+                <field name="readonly"/>
+                <field name="stored"/>
+                <field name="function"/>
+                <field name="default"/>
+                <field name="search"/>
+            </list>
+            <form>
+                <field name="name"/>
+                <field name="string"/>
+                <field name="type"/>
+                <field name="relation_id"/>
+                <field name="relfield_id" condition='[["model_id","=",relation_id]]'/>
+                <field name="selection"/>
+                <field name="required"/>
+                <field name="readonly"/>
+                <field name="stored"/>
+                <field name="function"/>
+                <field name="default"/>
+                <field name="search"/>
+                <field name="condition"/>
+                <field name="description"/>
+            </form>
+        </field>
+    </related>
+</form>

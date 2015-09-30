@@ -1,0 +1,8 @@
+<action>
+    <field name="string">Bank Reconciliation Summary</field>
+    <field name="view_cls">report</field>
+    <field name="model">report.bank.rec</field>
+    <field name="report_template">report_bank_rec</field>
+    <field name="report_template_xls">bank_rec</field>
+    <field name="menu">account_menu</field>
+</action>

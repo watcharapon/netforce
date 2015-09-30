@@ -1,0 +1,17 @@
+<div class="page-header">
+    <h3>{{title}}</h3>
+</div>
+<div class="btn-toolbar">
+    <div class="btn-group">
+        <button class="btn btn-back"><i class="icon-chevron-left"></i></button>
+        <button class="btn btn-forward"><i class="icon-chevron-right"></i></button>
+    </div>
+    <button class="btn btn-mode {{#ifeq mode 'today'}} active {{/ifeq}}" data-mode="today">Today</button>
+    <div class="btn-group" data-toggle="buttons-radio">
+        <button class="btn btn-mode {{#ifeq mode 'month'}} active {{/ifeq}}" data-mode="month">Month</button>
+        <button class="btn btn-mode {{#ifeq mode 'week'}} active {{/ifeq}}" data-mode="week">Week</button>
+        <button class="btn btn-mode {{#ifeq mode 'day'}} active {{/ifeq}}" data-mode="day">Day</button>
+    </div>
+    <center><h2>{{sub_title}}</h2></center>
+</div>
+<svg></svg>

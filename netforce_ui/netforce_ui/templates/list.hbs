@@ -1,0 +1,100 @@
+{{#if context.data}}
+    <div class="nf-table-container">
+        <table class="table {{#unless options.nostripe}}table-striped{{/unless}} view-list table-hover{{#if options.condensed}} table-condensed{{/if}}" style="background-color:#fff">
+            <thead style="background-color:#f8f8f8" {{#if options.header_scroll}}class="scroll-header"{{/if}}>
+                <tr>
+                    {{#if select_model}}
+                        <th style="width:10px">
+                            <input type="checkbox" class="list-select-all"/>
+                        </th>
+                    {{/if}}
+                    {{#if select_group}}
+                        <th style="width:10px">
+                        </th>
+                    {{/if}}
+                    {{#each cols context=context}}
+                        {{#if_perm perm}}
+                            {{#if perms.perm_read}}
+                                <th {{#ifeq align "right"}}style="text-align:right"{{/ifeq}}>
+                                    {{#ifeq col_type "field"}}
+                                        {{#if can_sort}}
+                                            <a href="#" class="nf-list-header" data-name="{{name}}">
+                                                {{field_label name context=context}}
+                                            </a>
+                                        {{else}}
+                                            {{field_label name context=context}}
+                                        {{/if}}
+                                        {{#ifeq sort "asc"}}
+                                            <i class="icon-sort-up"></i>
+                                        {{/ifeq}}
+                                        {{#ifeq sort "desc"}}
+                                            <i class="icon-sort-down"></i>
+                                        {{/ifeq}}
+                                    {{/ifeq}}
+                                </th>
+                            {{/if}}
+                        {{/if_perm}}
+                    {{/each}}
+                </tr>
+            </thead>
+            <tbody>
+                {{#loop context=context}}
+                    {{#if context.data._group_string}}
+                        <tr>
+                            <td class="group-select" style="background-color:#ddf" data-model-id="{{context.data.id}}">
+                                <input type="checkbox"/>
+                            </td>
+                            <td colspan="20" style="background-color:#ddf">
+                                <b>{{context.data._group_string}}</b>: {{context.data._group_val}},
+                                <b>Count</b>: {{context.data._group_count}}{{#each context.data._group_sum context=context}}, <b>{{string}}</b>: {{currency value}}{{/each}}
+                            </td>
+                        </tr>
+                    {{/if}}
+                    {{#if context.data._subgroup_string}}
+                        <tr>
+                            <td style="background-color:#eef">
+                            </td>
+                            <td colspan="20" style="background-color:#eef">
+                                <b>{{context.data._subgroup_string}}</b> : {{context.data._subgroup_val}},
+                                <b>Count</b>: {{context.data._subgroup_count}}{{#each context.data._subgroup_sum}}, <b>{{string}}</b>: {{currency value}}{{/each}}
+                            </td>
+                        </tr>
+                    {{/if}}
+                    {{#unless ../options.hide_details}}
+                        {{view "list_line" list_view=../../list_view context=context}}
+                    {{/unless}}
+                {{/loop}}
+            </tbody>
+            {{#if show_sum}}
+                <tfoot>
+                    <tr>
+                        {{#if select_model}}
+                            <th>
+                            </th>
+                        {{/if}}
+                        {{#if select_group}}
+                            <th>
+                            </th>
+                        {{/if}}
+                        {{#each cols context=context}}
+                            {{#if_perm perm}}
+                                <th>
+                                    {{#if sum}}
+                                        {{currency sum}}
+                                    {{/if}}
+                                </th>
+                            {{/if_perm}}
+                        {{/each}}
+                    </tr>
+                </tfoot>
+            {{/if}}
+        </table>
+        {{#unless options.nopage}}
+            {{view "pagination" navigate=../options.navigate context=context}}
+        {{/unless}}
+    </div>
+{{else}}
+    <div style="margin-bottom:20px">
+        {{t nodata}}
+    </div>
+{{/if}}

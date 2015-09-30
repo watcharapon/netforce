@@ -1,0 +1,8 @@
+{{#unless options.nolabel}}
+    <label class="control-label {{#if horizontal}}col-sm-4{{/if}}">
+        {{t string}}
+    </label>
+{{/unless}}
+<div class="{{#if horizontal}}{{#if options.nolabel}}col-sm-12{{else}}col-sm-8{{/if}}{{/if}}">
+    <div class="code-edit">{{value}}</div>
+</div>

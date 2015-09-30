@@ -1,0 +1,15 @@
+{{#unless nolabel}}
+<field_label name="{{name}}"/>
+{{/unless}}
+
+{{#if value}}
+    <div class="thumbnails" style="margin-bottom:4px">
+        <div class="thumbnail" style="float:left;margin-left:20px">
+            <img src="/static/files/{{value}}"/>
+        </div>
+    </div>
+{{/if}}
+{{#unless readonly}}
+<input type="file" name="data_{{path}}" class="{{#if span}}span{{span}}{{/if}}"/>
+{{/unless}}
+

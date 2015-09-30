@@ -1,0 +1,6 @@
+<list model="service.resource">
+    <field name="name"/>
+    <field name="employee_id"/>
+    <field name="user_id"/>
+    <field name="skill_level_id"/>
+</list>

@@ -1,0 +1,15 @@
+{{#view "form" context=context}} <!-- XXX: remove this -->
+    {{#if ../show_head}}
+        <div class="grid-item-head" style="border: 1px solid #ccc;padding:8px;border-bottom:none">
+            <div style="float:right">
+                {{{call ../../render_head context}}}
+            </div>
+            <h4>
+                <a href="#" class="title-link">{{../../head_title}}</a>
+            </h4>
+        </div>
+    {{/if}}
+    <div class="grid-item-body form-body" style="border:1px solid #ccc;margin-bottom:18px;padding:8px">
+        {{{call ../render_body context}}}
+    </div>
+{{/view}}

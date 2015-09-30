@@ -1,0 +1,10 @@
+<list model="base.user">
+    <field name="name"/>
+    <field name="login"/>
+    <field name="profile_id"/>
+    <field name="role_id"/>
+    <field name="email"/>
+    <field name="mobile"/>
+    <field name="contact_id"/>
+    <field name="company_id"/>
+</list>

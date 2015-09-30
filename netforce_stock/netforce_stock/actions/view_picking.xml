@@ -1,0 +1,5 @@
+<action>
+    <field name="type">method</field>
+    <field name="model">stock.picking</field>
+    <field name="method">view_picking</field>
+</action>

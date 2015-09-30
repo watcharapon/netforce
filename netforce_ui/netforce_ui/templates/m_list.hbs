@@ -1,0 +1,12 @@
+{{#if content}}
+    <ul style="border: 1px solid #e5e5e5; border-radius:4px; list-style: none; margin:10px">
+        {{{content}}}
+    </ul>
+{{else}}
+<p>
+    There are no items to display.
+</p>
+{{/if}}
+{{#if action}}
+    <a href="#" class="btn btn-small add-line"><i class="icon-plus"></i> Add a new item</a>
+{{/if}}

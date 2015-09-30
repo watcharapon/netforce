@@ -1,0 +1,7 @@
+<list model="stock.transform">
+    <field name="date"/>
+    <field name="number"/>
+    <field name="related_id"/>
+    <field name="location_id"/>
+    <field name="state"/>
+</list>

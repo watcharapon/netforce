@@ -1,0 +1,5 @@
+{{view "flash" context=context}}
+<div class="btn-toolbar">
+    {{{call render_list_head context}}}
+</div>
+{{view "list" cols=cols group_fields=group_fields navigate=true colors=colors noselect=noselect context=context}}

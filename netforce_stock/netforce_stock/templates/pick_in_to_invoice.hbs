@@ -1,0 +1,17 @@
+<v:modal title="Copy to supplier invoice">
+    <div class="modal-body">
+        <v:flash/>
+        Select goods receipt:
+        <v:list>
+            <field name="number"/>
+            <field name="ref"/>
+            <field name="partner_id"/>
+            <field name="date"/>
+            <field name="state"/>
+        </v:list>
+    </div>
+    <div class="modal-footer btn-toolbar">
+        <v:button string="Select" method="copy_to_invoice" type="primary"/>
+        <v:button string="Cancel" action="_close"/>
+    </div>
+</v:modal>

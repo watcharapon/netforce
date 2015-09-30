@@ -1,0 +1,8 @@
+<action>
+    <field name="string">Receivable Transactions</field>
+    <field name="view_cls">report</field>
+    <field name="model">report.cust.invoice</field>
+    <field name="report_template">report_cust_invoice</field>
+    <field name="report_template_xls">cust_invoice</field>
+    <field name="menu">account_menu</field>
+</action>

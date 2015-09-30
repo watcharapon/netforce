@@ -1,0 +1,21 @@
+{{#if options.raw}}
+    {{{content}}}
+{{else}}
+    {{#if options.rlist}}
+        <div style="font-weight:bold;font-size:14px;color:#999;border-bottom: 2px solid #999;margin-bottom:10px;margin-top:18px">
+            {{t string}}
+        </div>
+        {{{content}}}
+    {{else}}
+        {{#if options.nolabel}}
+            {{{content}}}
+        {{else}}
+            <label class="control-label">
+                {{t string}}
+            </label>
+            <div class="controls">
+                {{{content}}}
+            </div>
+        {{/if}}
+    {{/if}}
+{{/if}}

@@ -1,0 +1,14 @@
+<ul class="nav nav-tabs nf-nav-tabs {{#unless options.nobackground}} nf-form-tabs{{/unless}}">
+    {{#each tabs context=context}}
+        <li {{#if active}}class="active"{{/if}}>
+            <a href="#{{tab_id}}">{{string}}</a>
+        </li>
+    {{/each}}
+</ul>
+<div class="tab-content">
+    {{#each tabs context=context}}
+        <div class="tab-pane{{#if active}} active{{/if}}" id="{{tab_id}}">
+            {{call ../render_form_body tab_layout context}}
+        </div>
+    {{/each}}
+</div>

@@ -1,0 +1,29 @@
+{{#if options.use_select}}
+    {{#unless options.nolabel}}
+        <label class="control-label">
+            {{t string}}
+        </label>
+    {{/unless}}
+    <div class="controls">
+        {{#if readonly}}
+            <span>{{value_string}}</span>
+        {{else}}
+            <select class="input-small">
+                <option value=""></option>
+                <option value="1"{{#ifeq value true}} selected="selected"{{/ifeq}}>Yes</option>
+                <option value="0"{{#ifeq value false}} selected="selected"{{/ifeq}}>No</option>
+            </select>
+        {{/if}}
+    </div>
+{{else}}
+    <div class="{{#if horizontal}}col-sm-offset-4 col-sm-8{{/if}}">
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" {{#if value}}checked="checked"{{/if}}/>
+                {{#unless options.nolabel}}
+                    {{t string}}
+                {{/unless}}
+            </label>
+        </div>
+    </div>
+{{/if}}

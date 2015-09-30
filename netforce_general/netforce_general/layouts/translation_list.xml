@@ -1,0 +1,5 @@
+<list model="translation">
+    <field name="lang_id"/>
+    <field name="original"/>
+    <field name="translation"/>
+</list>

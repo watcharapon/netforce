@@ -1,0 +1,7 @@
+<action>
+    <field name="string">Issue Analysis</field>
+    <field name="view_cls">report_view</field>
+    <field name="model">issue</field>
+    <field name="group_select">contact_id,project_id,service_item_id,assigned_to_id,report_by_id</field>
+    <field name="menu">service_menu</field>
+</action>

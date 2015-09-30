@@ -1,0 +1,11 @@
+<list model="delivery.route.line">
+    <field name="route_id"/>
+    <field name="sequence"/>
+    <field name="contact_id"/>
+    <field name="phone"/>
+    <field name="address"/>
+    <field name="coordinates"/>
+    <field name="payment_type"/>
+    <field name="items_description"/>
+    <field name="state"/>
+</list>

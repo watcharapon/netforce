@@ -1,0 +1,20 @@
+<form model="barcode.qc" title="Barcode QC Entry">
+    <group form_layout="stacked">
+        <field name="production_id" span="2" required="1"/>
+        <button string="Fill QC Tests" method="fill_qc_tests" icon="align-justify"/>
+    </group>
+    <separator string="Test Results"/>
+    <field name="lines" nolabel="1">
+        <list noadd="1" noremove="1">
+            <field name="test_id" onchange="onchange_qc_test"/>
+            <field name="sample_qty"/>
+            <field name="min_value"/>
+            <field name="max_value"/>
+            <field name="value" onchange="onchange_qc_value"/>
+            <field name="result" readonly="1"/>
+        </list>
+    </field>
+    <foot replace="1">
+        <button string="Validate" method="validate" type="success" icon="ok"/>
+    </foot>
+</form>

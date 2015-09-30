@@ -1,0 +1,8 @@
+<form model="stock.journal">
+    <field name="name"/>
+    <field name="code"/>
+    <field name="sequence_id"/>
+    <newline/>
+    <field name="location_from_id"/>
+    <field name="location_to_id"/>
+</form>

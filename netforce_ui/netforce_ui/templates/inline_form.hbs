@@ -1,0 +1,8 @@
+{{view "flash" context=context}}
+{{#view "form" context=context}}
+    {{{call ../render_form_body context}}}
+{{/view}}
+<div class="btn-toolbar">
+    <a href="#" class="btn btn-success btn-save">{{t "Save"}}</a>
+    <a href="#" class="btn btn-default btn-cancel">{{t "Cancel"}}</a>
+</div>

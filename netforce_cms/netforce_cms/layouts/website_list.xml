@@ -1,0 +1,7 @@
+<list model="website">
+    <field name="name"/>
+    <field name="url"/>
+    <field name="theme_id"/>
+    <field name="sale_channel_id"/>
+    <field name="state"/>
+</list>

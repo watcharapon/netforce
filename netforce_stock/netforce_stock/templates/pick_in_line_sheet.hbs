@@ -1,0 +1,7 @@
+<v:sheet>
+    <field name="product_id" onchange="onchange_product"/>
+    <field name="qty" onchange="update_amounts"/>
+    <field name="uom_id"/>
+    <field name="location_to_id" string="Warehouse" condition='[["type","=","internal"]]'/>
+    <field name="unit_price" onchange="update_amounts"/>
+</v:sheet>

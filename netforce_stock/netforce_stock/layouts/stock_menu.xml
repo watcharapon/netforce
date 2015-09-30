@@ -1,0 +1,57 @@
+<menu string="Inventory">
+    <item string="Dashboard" action="stock_board"/>
+    <item string="Inventory">
+        <item string="Warehouses" action="warehouse"/>
+        <item string="Stock Balance" action="stock_balance"/>
+        <item string="Stock Movements" action="stock_move"/>
+        <divider/>
+        <item string="Goods Receipt" action="pick_in"/>
+        <item string="Goods Transfer" action="pick_internal"/>
+        <item string="Goods Issue" action="pick_out"/>
+        <divider/>
+        <item string="Landed Costs" action="landed_cost"/>
+        <divider/>
+        <item string="Lot / Serial Numbers" action="stock_lot"/>
+        <item string="Containers" action="stock_container"/>
+        <divider/>
+        <item string="Product Transforms" action="transform"/>
+        <divider/>
+        <item string="Stock Count" action="stock_count"/>
+    </item>
+    <item string="Consignment">
+        <item string="Consignment Stocks" action="stock_consign"/>
+    </item>
+    <item string="Reports">
+        <item string="Stock Summary" action="report_stock_summary"/>
+        <item string="Stock Card" action="report_stock_card"/>
+        <item string="Stock Aging" action="report_stock_aging"/>
+        <item string="Stock Forecast" action="report_stock_forecast"/>
+        <item string="Shipping Cost" action="report_ship_cost"/>
+        <divider/>
+        <item string="Goods Receive Report" action="report_goods_receive"/>
+        <item string="Goods Transfer Report" action="report_goods_transfer"/>
+        <item string="Goods Issue Report" action="report_goods_issue"/>
+    </item>
+    <item string="Other">
+        <item string="Claim Bills" action="claim"/>
+        <item string="Borrow Requests" action="borrow"/>
+        <divider/>
+        <header string="Barcode"/>
+        <item string="Goods Receipt" action="barcode_receive"/>
+        <item string="Goods Transfer" action="barcode_transfer"/>
+        <item string="Goods Issue" action="barcode_issue"/>
+        <item string="Validate Picking" action="barcode_validate"/>
+    </item>
+    <item string="Settings">
+        <item string="Inventory Settings" action="stock_settings"/>
+        <item string="Stock Locations" action="location"/>
+        <item string="Stock Journals" action="stock_journal"/>
+        <item string="Minimum Stock Rules" action="orderpoint"/>
+        <item string="Shipping Methods" action="ship_method"/>
+        <item string="Shipping Rates" action="ship_rate"/>
+        <item string="Shipping Terms" action="ship_term"/>
+        <item string="Storage Types" action="store_type"/>
+        <item string="Packagings" action="packaging"/>
+        <item string="Messengers" action="messenger"/>
+    </item>
+</menu>

@@ -1,0 +1,26 @@
+{{#if flash}}
+    {{#ifeq flash.type "warning"}}
+        <div class="alert">
+            <a class="close" data-dismiss="alert" href="#">&times;</a>
+            {{{flash.message}}}
+        </div>
+    {{/ifeq}}
+    {{#ifeq flash.type "error"}}
+        <div class="alert alert-danger">
+            <a class="close" data-dismiss="alert" href="#">&times;</a>
+            {{{flash.message}}}
+        </div>
+    {{/ifeq}}
+    {{#ifeq flash.type "success"}}
+        <div class="alert alert-success">
+            <a class="close" data-dismiss="alert" href="#">&times;</a>
+            {{{flash.message}}}
+        </div>
+    {{/ifeq}}
+    {{#ifeq flash.type "info"}}
+        <div class="alert alert-info">
+            <a class="close" data-dismiss="alert" href="#">&times;</a>
+            {{{flash.message}}}
+        </div>
+    {{/ifeq}}
+{{/if}}

@@ -1,0 +1,12 @@
+<v:flash/>
+<v:form>
+    {{#if data}}
+        <v:button string="Delete" method="_delete" type="danger" size="small"/>
+    {{/if}}
+    <v:list action="stock_product_edit">
+        <field name="name"/>
+        <field name="description"/>
+        <field name="qty"/>
+        <field name="qty_virt"/>
+    </v:list>
+</v:form>

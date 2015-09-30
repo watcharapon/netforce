@@ -1,0 +1,9 @@
+<list model="hr.expense">
+    <field name="number"/>
+    <field name="date"/>
+    <field name="contact_id"/>
+    <field name="ref"/>
+    <field name="employee_id"/>
+    <field name="amount_total"/>
+    <field name="state"/>
+</list>

@@ -1,0 +1,11 @@
+<list model="log">
+    <top replace="1">
+    </top>
+    <head replace="1">
+    </head>
+    <field name="date"/>
+    <field name="user_id"/>
+    <field name="ip_addr"/>
+    <field name="country_id"/>
+    <field name="message"/>
+</list>

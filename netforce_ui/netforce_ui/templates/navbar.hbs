@@ -1,0 +1,11 @@
+<div class="navbar-inner nf-navbar">
+    {{#if options.title}}
+        <a class="brand" href="#" style="white-space:nowrap"> {{! IE8 }}
+            {{#if options.logo}}
+                <img src="/static/img/{{options.logo}}" style="margin-right:6px"/>
+            {{/if}}
+            {{t options.title}}
+        </a>
+    {{/if}}
+    {{{content}}}
+</div>

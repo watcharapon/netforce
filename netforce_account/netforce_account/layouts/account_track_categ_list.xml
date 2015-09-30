@@ -1,0 +1,6 @@
+<list model="account.track.categ">
+    <field name="full_name"/>
+    <field name="code"/>
+    <field name="type"/>
+    <field name="balance"/>
+</list>

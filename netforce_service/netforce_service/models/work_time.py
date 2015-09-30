@@ -1,0 +1,127 @@
+# Copyright (c) 2012-2015 Netforce Co. Ltd.
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+# OR OTHER DEALINGS IN THE SOFTWARE.
+
+from netforce.model import Model, fields, get_model
+import time
+from netforce.access import get_active_user
+import datetime
+
+
+class WorkTime(Model):
+    _name = "work.time"
+    _string = "Work Time"
+    _fields = {
+        "timesheet_id": fields.Many2One("time.sheet", "Time Sheet", on_delete="cascade"),  # XXX: deprecated
+        # XXX: deprecated
+        "employee_id": fields.Many2One("hr.employee", "Employee", function="_get_related", function_context={"path": "timesheet_id.employee_id"}, function_search="_search_related"),
+        "resource_id": fields.Many2One("service.resource", "Resource", required=True, search=True, on_delete="cascade"),
+        "project_id": fields.Many2One("project", "Project", search=True),
+        "job_id": fields.Many2One("job", "Service Order", search=True),
+        "service_item_id": fields.Many2One("service.item","Service Item"),
+        "service_type_id": fields.Many2One("service.type", "Service Type", function="_get_related", function_context={"path": "job_id.service_type_id"}, function_search="_search_related", search=True),
+        "date": fields.Date("Date", required=True, search=True),
+        "duration": fields.Decimal("Actual Hours", required=True),
+        "bill_hours": fields.Decimal("Billable Hours"),
+        "work_type_id": fields.Many2One("work.type", "Work Type"),
+        "description": fields.Text("Description"),
+        "week": fields.Date("Week", function="get_week", store=True),
+        "comments": fields.One2Many("message", "related_id", "Comments"),
+        "product_id": fields.Many2One("product", "Product", condition=[["type", "=", "service"]], search=True),
+        "unit_price": fields.Decimal("Cost Unit Price"),
+        "amount": fields.Decimal("Cost Amount", function="get_amount"),
+        "is_today": fields.Boolean("Today", store=False, function_search="search_today"),
+        "is_this_week": fields.Boolean("This Week", store=False, function_search="search_this_week"),
+        "is_last_week": fields.Boolean("Last Week", store=False, function_search="search_last_week"),
+        "state": fields.Selection([["waiting_approval", "Waiting Approval"], ["approved", "Approved"], ["rejected", "Rejected"]], "Status", required=True),
+    }
+    _order = "date desc,resource_id.name"
+
+    def get_resource(self, context={}):
+        user_id = get_active_user()
+        res = get_model("service.resource").search([["user_id", "=", user_id]])
+        if not res:
+            return None
+        return res[0]
+
+    _defaults = {
+        "date": lambda *a: time.strftime("%Y-%m-%d"),
+        "resource_id": get_resource,
+        "state": "waiting_approval",
+    }
+
+    def create(self, vals, **kw):
+        new_id = super().create(vals, **kw)
+        self.function_store([new_id])
+        return new_id
+
+    def write(self, ids, vals, **kw):
+        super().write(ids, vals, **kw)
+        self.function_store(ids)
+
+    def get_week(self, ids, context={}):
+        vals = {}
+        for obj in self.browse(ids):
+            d = datetime.datetime.strptime(obj.date, "%Y-%m-%d")
+            d -= datetime.timedelta(d.weekday())
+            vals[obj.id] = d.strftime("%Y-%m-%d")
+        return vals
+
+    def get_amount(self, ids, context={}):
+        vals = {}
+        for obj in self.browse(ids):
+            vals[obj.id] = (obj.duration or 0) * (obj.unit_price or 0)
+        return vals
+
+    def search_today(self, clause, context={}):
+        t = time.strftime("%Y-%m-%d")
+        return [["date", "=", t]]
+
+    def search_this_week(self, clause, context={}):
+        d = datetime.datetime.today()
+        d0 = d - datetime.timedelta(days=d.weekday())
+        d1 = d0 + datetime.timedelta(days=6)
+        return [["date", ">=", d0.strftime("%Y-%m-%d")], ["date", "<=", d1.strftime("%Y-%m-%d")]]
+
+    def search_last_week(self, clause, context={}):
+        d = datetime.datetime.today()
+        d0 = d - datetime.timedelta(days=d.weekday() + 7)
+        d1 = d0 + datetime.timedelta(days=6)
+        return [["date", ">=", d0.strftime("%Y-%m-%d")], ["date", "<=", d1.strftime("%Y-%m-%d")]]
+
+    def approve(self, ids, context={}):
+        for obj in self.browse(ids):
+            obj.write({"state": "approved"})
+
+    def reject(self, ids, context={}):
+        for obj in self.browse(ids):
+            obj.write({"state": "rejected"})
+
+    def waiting_approval(self, ids, context={}):
+        for obj in self.browse(ids):
+            obj.write({"state": "waiting_approval"})
+
+    def onchange_product(self, context={}):
+        data = context["data"]
+        prod_id = data["product_id"]
+        prod = get_model("product").browse(prod_id)
+        data["unit_price"] = prod.cost_price
+        return data
+
+WorkTime.register()

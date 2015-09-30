@@ -1,0 +1,8 @@
+<action>
+    <field name="string">Tax Summary</field>
+    <field name="view_cls">report</field>
+    <field name="model">report.tax.sum</field>
+    <field name="report_template">report_tax_sum</field>
+    <field name="report_template_xls">tax_sum</field>
+    <field name="menu">account_menu</field>
+</action>

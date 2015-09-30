@@ -1,0 +1,16 @@
+<list model="product">
+    <head>
+        <button string="Print Labels" icon="print" action="product_label" action_options="convert=pdf"/>
+        <button string="Approve" method="approve" icon="ok" perm="approve_product"/>
+        <button string="Draft" method="to_draft"/>
+    </head>
+    <field name="code"/>
+    <field name="name"/>
+    <field name="type"/>
+    <field name="uom_id"/>
+    <field name="categ_id"/>
+    <field name="brand_id"/>
+    <field name="sale_price"/>
+    <field name="purchase_price"/>
+    <field name="state"/>
+</list>

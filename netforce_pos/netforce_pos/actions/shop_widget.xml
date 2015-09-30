@@ -1,0 +1,5 @@
+<action>
+    <field name="view_cls">list_view</field>
+    <field name="model">pos.shop</field>
+    <field name="view_xml">shop_widget</field>
+</action>

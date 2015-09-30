@@ -1,0 +1,43 @@
+<div class="page-header nf-page-header">
+    <h1>Export {{model_string}}</h1>
+</div>
+<div style="border: 1px solid rgb(204, 204, 204); box-shadow: rgb(102, 102, 102) 0px 5px 10px -5px;">
+    <div style="background-color: #e8f1ff; padding: 10px">
+        <p>
+            Select fields to export:
+        </p>
+        <table class="table table-condensed">
+            <thead style="background-color:#f8f8f8">
+                <th style="width:20px"><input type="checkbox" class="select-all"/></th>
+                <th>Field Label</th>
+                <th>Field Code</th>
+                <th>Model</th>
+            </thead>
+            <tbody style="background-color:#fff">
+                {{#each fields}}
+                    <tr class="field-row" data-field="{{name}}" data-model="{{../model_name}}" data-depth="0" data-row-id="{{row_id}}" data-state="collapsed" data-path="{{name}}">
+                        <td><input type="checkbox"/></td>
+                        <td>{{#if can_expand}}<i class="icon-chevron-right" style="margin-right:5px"></i>{{/if}}{{string}}</td>
+                        <td>{{name}}</td>
+                        <td>{{../model_string}}</td>
+                    </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        <!--
+        <div class="control-group">
+            <label class="control-label">Load fields</label>
+            <div class="controls">
+                <select>
+                    <option value="x">XXX</option>
+                </select>
+            </div>
+        </div>
+        -->
+    </div>
+    <div style="background-color: #d7e7ff; padding: 10px 10px 5px; margin-top: 0; margin-bottom:0; padding-bottom: 10px">
+        <button class="btn btn-primary btn-large do-export">Export</button>
+    </div>
+</div>
+<div style="height:40px">
+</div>

@@ -1,0 +1,8 @@
+<div class="controls">
+<label class="checkbox">
+    <input type="checkbox" name="form_data.{{path}}" value="1"{{#if value}} checked="checked"{{/if}} class="{{#if span}}span{{span}}{{/if}}"{{#if readonly}} style="display:none"{{/if}}/>
+    {{string}}
+</label>
+</div>
+<input type="hidden" name="form_orig_data.{{path}}" value="{{orig_value}}"/>
+<input type="hidden" name="form_fields" value="{{path}}"/>

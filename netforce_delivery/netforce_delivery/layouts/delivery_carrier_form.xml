@@ -1,0 +1,4 @@
+<form model="delivery.carrier">
+    <field name="code"/>
+    <field name="name"/>
+</form>

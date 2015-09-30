@@ -1,0 +1,4 @@
+<list model="language">
+    <field name="name"/>
+    <field name="num_translations"/>
+</list>

@@ -1,0 +1,8 @@
+<list model="bom">
+    <field name="number"/>
+    <field name="product_id"/>
+    <field name="qty"/>
+    <field name="uom_id"/>
+    <field name="location_id"/>
+    <field name="routing_id"/>
+</list>

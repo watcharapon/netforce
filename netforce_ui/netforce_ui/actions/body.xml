@@ -1,0 +1,4 @@
+<record model="action">
+    <field name="type">view</field>
+    <field name="template">body</field>
+</record>

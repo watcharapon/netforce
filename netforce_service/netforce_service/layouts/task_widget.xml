@@ -1,0 +1,6 @@
+<list model="task">
+    <field name="job_id"/>
+    <field name="name"/>
+    <field name="user_id"/>
+    <field name="deadline"/>
+</list>

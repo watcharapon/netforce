@@ -1,0 +1,12 @@
+<div class="nf-search">
+    <button type="button" class="close">&times;</button>
+    <div class="row">
+        {{#each fields context=context}}
+            {{view "field" name=name span="2" perm=perm context=context}}
+        {{/each}}
+        <div class="col-sm-3" style="position:relative;top:10px;margin-bottom:18px">
+            <button class="btn btn-primary search-go">Search</button>
+            <button class="btn search-clear">Clear</button>
+        </div>
+    </div>
+</div>

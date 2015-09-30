@@ -1,0 +1,11 @@
+<list model="contact">
+    <field name="name"/>
+    <field name="code"/>
+    <field name="type"/>
+    <field name="categ_id"/>
+    <field name="industry_id"/>
+    <field name="country_id"/>
+    <field name="region_id"/>
+    <field name="business_area_id"/>
+    <field name="fleet_size_id"/>
+</list>

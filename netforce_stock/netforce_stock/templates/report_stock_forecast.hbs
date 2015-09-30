@@ -1,0 +1,54 @@
+<center>
+    <h2>
+        Stock Forecast
+    </h2>
+    <h3>
+        {{company_name}}
+    </h3>
+    <h4>
+        {{#if product_name}}
+            Product: {{product_name}}
+            <br/>
+        {{/if}}
+        {{#if location_name}}
+            Location: {{location_name}}
+            <br/>
+        {{/if}}
+        As at {{fmt_date date}}
+    </h4>
+</center>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th colspan="3"></td>
+            <th colspan="20" style="text-align:center">Forecast Qty</th>
+        </tr>
+        <tr>
+            <th>Product Code</th>
+            <th>Product</th>
+            <th>Location</th>
+            {{#each periods}}
+                <th>{{period_name}}</th>
+            {{/each}}
+        </tr>
+    <tbody>
+        {{#each lines context=context}}
+            <tr>
+                <td>
+                    {{code}}
+                </td>
+                <td>
+                    {{product_name}}
+                </td>
+                <td>
+                    {{location_name}}
+                </td>
+                {{#each periods}}
+                    <td align="right">
+                        <a href="/ui#name=report_stock_card&defaults.product_id={{../product_id}}&defaults.location_id={{../location_id}}&defaults.date_from={{date_from}}&defaults.date_to={{date_to}}&defaults.show_pending=1" {{#if warning}}style="color:red;font-weight:bold"{{/if}}>{{currency qty}}</a>
+                    </td>
+                {{/each}}
+            </tr>
+        {{/each}}
+    </tbody>
+</table>

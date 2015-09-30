@@ -1,0 +1,4 @@
+<list model="contact.group">
+    <field name="name"/>
+    <field name="code"/>
+</list>

@@ -1,0 +1,8 @@
+<action>
+    <field name="string">PP30 Report</field>
+    <field name="view_cls">report</field>
+    <field name="model">report.pp30</field>
+    <field name="report_template">report_tax_audit</field>
+    <field name="report_template_pdf">vat</field>
+    <field name="menu">account_menu</field>
+</action>
