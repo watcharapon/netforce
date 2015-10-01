@@ -1,6 +1,6 @@
 # Netforce
 
-A business application platform.
+A simple business application platform.
 
 ## FAQ
 
