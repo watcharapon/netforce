@@ -1,7 +1,6 @@
 <list model="task" colors='{"#f99":[["overdue","=",true]],"#9f9":[["state","=","done"]]}'>
-    <field name="project_id"/>
-    <field name="job_id"/>
     <field name="name"/>
+    <field name="related_id"/>
     <field name="priority"/>
     <field name="resource_id"/>
     <field name="planned_duration"/>

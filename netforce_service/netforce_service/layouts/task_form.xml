@@ -2,9 +2,8 @@
     <head>
         <field name="state"/>
     </head>
-    <field name="project_id"/>
-    <field name="job_id" condition='[["project_id","=",project_id]]'/>
     <field name="name"/>
+    <field name="related_id"/>
     <field name="priority"/>
     <field name="resource_id"/>
     <field name="planned_duration"/>

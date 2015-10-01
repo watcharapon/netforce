@@ -29,8 +29,9 @@ class Task(Model):
     _name = "task"
     _string = "Task"
     _fields = {
-        "project_id": fields.Many2One("project", "Project", search=True),
-        "job_id": fields.Many2One("job", "Service Order", search=True),
+        "project_id": fields.Many2One("project", "Project", search=True), # XXX: deprecated
+        "job_id": fields.Many2One("job", "Service Order", search=True), # XXX: deprecated
+        "related_id": fields.Reference([["project","Project"],["job","Job"],["rental.order","Rental Order"]],"Related To"),
         "name": fields.Char("Task Name", required=True, search=True),
         "deadline": fields.Date("Deadline", search=True),
         "description": fields.Text("Description"),
