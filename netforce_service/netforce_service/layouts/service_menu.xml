@@ -5,7 +5,6 @@
         <item string="Service Items" action="service_item"/>
         <item string="Service Orders" action="job"/>
         <item string="Tasks" action="task"/>
-        <item string="Service Contracts" action="service_contract"/>
     </item>
     <item string="Planning">
         <item string="Resources" action="service_resource"/>
