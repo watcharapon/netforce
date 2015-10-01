@@ -27,22 +27,6 @@ from pprint import pprint
 from netforce.access import get_active_company, set_active_user, set_active_company
 from netforce.utils import get_file_path
 
-OL_MAX_INVOICES = {
-    "demo": None,
-    "free": None,
-    "starter": None,
-    "business": None,
-    "enterprise": None,
-}
-
-DL_MAX_INVOICES = {
-    "demo": 50,
-    "free": 50,
-    "starter": None,
-    "business": None,
-    "enterprise": None,
-}
-
 
 class Invoice(Model):
     _name = "account.invoice"
@@ -200,7 +184,6 @@ class Invoice(Model):
     def create(self, vals, context={}):
         id = super(Invoice, self).create(vals, context=context)
         self.function_store([id])
-        self.check_max_invoices(vals['type'])
         return id
 
     def write(self, ids, vals, **kw):
@@ -891,28 +874,6 @@ class Invoice(Model):
                 "active_id": obj.move_id.id,
             }
         }
-
-    def get_max_invoices(self):
-        settings = get_model("settings").browse(1)
-        if settings.package == None:
-            package = "demo"
-        else:
-            package = settings.package
-        if config.get("sub_server"):
-            max_invoices = OL_MAX_INVOICES[package]
-        else:
-            max_invoices = DL_MAX_INVOICES[package]
-        return max_invoices
-
-    def check_max_invoices(self, inv_type):
-        max_invoices = self.get_max_invoices()
-        if max_invoices is None:
-            return
-        dbget_string = "SELECT count(*) FROM account_invoice WHERE type = '%s'" % (inv_type)
-        db = database.get_connection()
-        num_invoices = db.get(dbget_string).count
-        if num_invoices > max_invoices:
-            raise Exception("Maximum number of invoices exceeded in free version")
 
     def gen_tax_no(self, exclude=None, context={}):
         company_id = get_active_company()  # XXX: improve this?

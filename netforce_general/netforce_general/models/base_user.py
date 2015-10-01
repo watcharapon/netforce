@@ -25,22 +25,6 @@ from netforce import database
 from netforce import utils
 from pprint import pprint
 
-OL_MAX_USERS = {
-    "demo": 2,
-    "free": 1,
-    "starter": 5,
-    "business": 15,
-    "enterprise": None,
-}
-
-DL_MAX_USERS = {
-    "demo": 2,
-    "free": 1,
-    "starter": 10,
-    "business": 30,
-    "enterprise": None,
-}
-
 
 class User(Model):
     _name = "base.user"
@@ -82,27 +66,6 @@ class User(Model):
             vals.append([obj.id, name])
         return vals
 
-    def get_max_users(self):
-        settings = get_model("settings").browse(1)
-        if settings.package == None:
-            package = "demo"
-        else:
-            package = settings.package
-        if config.get("sub_server"):
-            max_users = OL_MAX_USERS[package]
-        else:
-            max_users = DL_MAX_USERS[package]
-        return max_users
-
-    def check_max_users(self):
-        max_users = self.get_max_users()
-        if max_users is None:
-            return
-        db = database.get_connection()
-        num_users = db.get("SELECT COUNT(*) FROM base_user WHERE active").count
-        if num_users > max_users:
-            raise Exception("Maximum number of users exceeded. Please upgrade your package.")
-
     def disable_users(self, context={}):
         max_users = self.get_max_users()
         if max_users is None:
@@ -114,17 +77,6 @@ class User(Model):
         res = db.get("SELECT id FROM base_user WHERE active ORDER BY id OFFSET %d LIMIT 1" % max_users)
         user_id = res.id
         db.execute("UPDATE base_user SET active=false WHERE id>=%d" % user_id)
-
-    def create(self, vals, **kw):
-        res = super().create(vals, **kw)
-        db = database.get_connection()
-        self.check_max_users()
-        return res
-
-    def write(self, ids, vals, **kw):
-        super().write(ids, vals, **kw)
-        if vals.get("active"):
-            self.check_max_users()
 
     def delete(self, ids, **kw):
         if 1 in ids:

@@ -23,22 +23,6 @@ from netforce import config
 from netforce import database
 from netforce import access
 
-OL_MAX_COMPANIES = {
-    "demo": 2,
-    "free": 1,
-    "starter": 5,
-    "business": 6,
-    "enterprise": None,
-}
-
-DL_MAX_COMPANIES = {
-    "demo": 2,
-    "free": 1,
-    "starter": 5,
-    "business": 6,
-    "enterprise": None,
-}
-
 
 class Company(Model):
     _name = "company"
@@ -53,33 +37,5 @@ class Company(Model):
         "contact_id": fields.Many2One("contact","Contact"),
     }
     _order = "name"
-
-    def get_max_companies(self):
-        settings = get_model("settings").browse(1)
-        if settings.package == None:
-            package = "demo"
-        else:
-            package = settings.package
-        if config.get("sub_server"):
-            max_companies = OL_MAX_COMPANIES[package]
-        else:
-            max_companies = DL_MAX_COMPANIES[package]
-        return max_companies
-
-    def check_max_companies(self):
-        max_companies = self.get_max_companies()
-        if max_companies is None:
-            return
-        db = database.get_connection()
-        #num_company=db.get("SELECT COUNT(*) FROM company WHERE active").count
-        num_companies = db.get("SELECT COUNT(*) FROM company").count
-        if num_companies > max_companies:
-            raise Exception("Maximum number of companies exceeded. Please upgrade your package.")
-
-    def create(self, vals, **kw):
-        res = super().create(vals, **kw)
-        db = database.get_connection()
-        self.check_max_companies()
-        return res
 
 Company.register()
