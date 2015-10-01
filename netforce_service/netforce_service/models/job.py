@@ -414,5 +414,8 @@ class Job(Model):
                 rel_ids=op[1]
                 rel_vals=op[2]
                 get_model("account.track.entry").write(rel_ids,rel_vals,context=context)
+            elif op[0]=="delete":
+                rel_ids=op[1]
+                get_model("account.track.entry").delete(rel_ids,context=context)
 
 Job.register()
