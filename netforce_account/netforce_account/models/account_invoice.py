@@ -48,7 +48,7 @@ class Invoice(Model):
         "due_date": fields.Date("Due Date", search=True),
         "currency_id": fields.Many2One("currency", "Currency", required=True, search=True),
         "tax_type": fields.Selection([["tax_ex", "Tax Exclusive"], ["tax_in", "Tax Inclusive"], ["no_tax", "No Tax"]], "Tax Type", required=True),
-        "state": fields.Selection([("draft", "Draft"), ("waiting_approval", "Waiting Approval"), ("waiting_payment", "Waiting Payment"), ("paid", "Paid"), ("voided", "Voided")], "Status", function="get_state", store=True, function_order=20),
+        "state": fields.Selection([("draft", "Draft"), ("waiting_approval", "Waiting Approval"), ("waiting_payment", "Waiting Payment"), ("paid", "Paid"), ("voided", "Voided")], "Status", function="get_state", store=True, function_order=20,search =True),
         "lines": fields.One2Many("account.invoice.line", "invoice_id", "Lines"),
         "amount_subtotal": fields.Decimal("Subtotal", function="get_amount", function_multi=True, store=True),
         "amount_tax": fields.Decimal("Tax Amount", function="get_amount", function_multi=True, store=True),
