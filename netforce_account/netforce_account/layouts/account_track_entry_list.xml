@@ -1,6 +1,6 @@
 <list model="account.track.entry">
-    <field name="track_id"/>
     <field name="date"/>
+    <field name="track_id"/>
     <field name="related_id"/>
     <field name="product_id"/>
     <field name="description"/>

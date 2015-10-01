@@ -108,7 +108,7 @@ class Job(Model):
         "week": fields.Char("Week", sql_function=["week", "due_date"]),
         "activities": fields.One2Many("activity","related_id","Activities"),
         "track_id": fields.Many2One("account.track.categ","Tracking Code"),
-        "track_entries": fields.One2Many("account.track.entry",None,"Tracking Entries",function="get_track_entries",readonly=True),
+        "track_entries": fields.One2Many("account.track.entry",None,"Tracking Entries",function="get_track_entries",function_write="write_track_entries"),
         "track_balance": fields.Decimal("Tracking Balance",function="_get_related",function_context={"path":"track_id.balance"}),
     }
     _order = "number"
@@ -400,5 +400,19 @@ class Job(Model):
             res=get_model("account.track.entry").search([["track_id","child_of",obj.track_id.id]])
             vals[obj.id]=res
         return vals
+
+    def write_track_entries(self,ids,field,val,context={}):
+        for op in val:
+            if op[0]=="create":
+                rel_vals=op[1]
+                for obj in self.browse(ids):
+                    if not obj.track_id:
+                        continue
+                    rel_vals["track_id"]=obj.track_id.id
+                    get_model("account.track.entry").create(rel_vals,context=context)
+            elif op[0]=="write":
+                rel_ids=op[1]
+                rel_vals=op[2]
+                get_model("account.track.entry").write(rel_ids,rel_vals,context=context)
 
 Job.register()

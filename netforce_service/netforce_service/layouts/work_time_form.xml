@@ -4,16 +4,12 @@
     </head>
     <field name="date"/>
     <field name="resource_id"/>
-    <field name="duration"/>
-    <field name="bill_hours"/>
+    <separator/>
     <field name="description"/>
-    <field name="project_id"/>
-    <field name="job_id"/>
-    <field name="service_item_id"/>
-    <separator string="Costing"/>
-    <field name="product_id" onchange="onchange_product"/>
-    <field name="unit_price"/>
-    <field name="amount"/>
+    <field name="related_id"/>
+    <separator/>
+    <field name="actual_hours"/>
+    <field name="bill_hours"/>
     <foot>
         <button string="Approve" type="success" method="approve" states="waiting_approval" icon="ok" perm="approve_timesheet"/>
         <button string="Reject" type="danger" method="reject" states="waiting_approval" icon="remove" perm="approve_timesheet"/>

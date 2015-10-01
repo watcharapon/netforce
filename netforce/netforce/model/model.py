@@ -724,6 +724,8 @@ class Model(object):
                                company_id, self._name, n, rec_id, val)
         for n in vals:
             f = self._fields[n]
+            if f.function_write:
+                continue
             if isinstance(f, fields.One2Many):
                 mr = get_model(f.relation)
                 rf = mr.get_field(f.relfield)
@@ -782,6 +784,12 @@ class Model(object):
                             for id2 in ids_:
                                 db.execute("INSERT INTO %s (%s,%s) VALUES (%%s,%%s)" %
                                            (f.reltable, f.relfield, f.relfield_other), id1, id2)
+        for n in vals:
+            f = self._fields[n]
+            if not f.function_write:
+                continue
+            func = getattr(self, f.function_write)
+            func(ids, n, vals[n], context=context)
         self._check_key(ids)
         self._check_constraints(ids)
         self._changed(ids, vals.keys())
@@ -2402,8 +2410,6 @@ def model_to_json(m, custom=False):
             f_data["search"] = True
         if f.store:
             f_data["store"] = True
-        if f.pkg:
-            f_data["pkg"] = f.pkg
         data["fields"][n] = f_data
     return data
 

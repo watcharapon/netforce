@@ -113,7 +113,7 @@
             <separator string="Actual Costs"/>
             <field name="track_id"/>
             <field name="track_balance"/>
-            <field name="track_entries" nolabel="1" readonly="1">
+            <field name="track_entries" nolabel="1">
                 <list>
                     <field name="date"/>
                     <field name="related_id"/>

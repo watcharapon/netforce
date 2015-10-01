@@ -86,7 +86,7 @@ class ProductionOrder(Model):
         "invoices": fields.One2Many("account.invoice", "related_id", "Invoices"),
         "emails": fields.One2Many("email.message", "related_id", "Emails"),
         "track_id": fields.Many2One("account.track.categ","Tracking Code"),
-        "track_entries": fields.One2Many("account.track.entry",None,"Tracking Entries",function="get_track_entries",readonly=True),
+        "track_entries": fields.One2Many("account.track.entry",None,"Tracking Entries",function="get_track_entries",function_write="write_track_entries"),
         "track_balance": fields.Decimal("Tracking Balance",function="_get_related",function_context={"path":"track_id.balance"}),
         "total_cost": fields.Float("Total Cost",function="get_total_cost",function_multi=True),
         "unit_cost": fields.Float("Unit Cost",function="get_total_cost",function_multi=True),
@@ -1136,6 +1136,20 @@ class ProductionOrder(Model):
             res=get_model("account.track.entry").search([["track_id","child_of",obj.track_id.id]])
             vals[obj.id]=res
         return vals
+
+    def write_track_entries(self,ids,field,val,context={}):
+        for op in val:
+            if op[0]=="create":
+                rel_vals=op[1]
+                for obj in self.browse(ids):
+                    if not obj.track_id:
+                        continue
+                    rel_vals["track_id"]=obj.track_id.id
+                    get_model("account.track.entry").create(rel_vals,context=context)
+            elif op[0]=="write":
+                rel_ids=op[1]
+                rel_vals=op[2]
+                get_model("account.track.entry").write(rel_ids,rel_vals,context=context)
 
     def get_total_cost(self,ids,context={}):
         vals={}

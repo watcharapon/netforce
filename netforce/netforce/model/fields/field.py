@@ -25,7 +25,7 @@ from netforce.locale import _
 
 class Field(object):
 
-    def __init__(self, string=None, required=None, function=None, function_multi=False, function_context=None, function_order=None, store=None, on_change=None, on_write=None, translate=False, readonly=False, function_search=None, search=False, index=False, multi_company=False, agg_function=None, sql_function=None, pkg=None):
+    def __init__(self, string=None, required=None, function=None, function_multi=False, function_context=None, function_order=None, store=None, on_change=None, on_write=None, translate=False, readonly=False, function_search=None, search=False, index=False, multi_company=False, agg_function=None, sql_function=None, function_write=None):
         self.name = None
         self.model = None
         self.string = string
@@ -44,7 +44,8 @@ class Field(object):
         self.function_context = function_context or {}
         self.function_order = function_order or 10
         self.translate = translate
-        if self.function:
+        self.function_write = function_write
+        if self.function and not self.function_write:
             self.readonly = True
         else:
             self.readonly = readonly
@@ -53,7 +54,6 @@ class Field(object):
         self.index = index
         self.multi_company = multi_company
         self.custom = False
-        self.pkg = pkg
 
     def register(self, model, name):
         self.model = model

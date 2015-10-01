@@ -28,24 +28,19 @@ class WorkTime(Model):
     _name = "work.time"
     _string = "Work Time"
     _fields = {
-        "timesheet_id": fields.Many2One("time.sheet", "Time Sheet", on_delete="cascade"),  # XXX: deprecated
-        # XXX: deprecated
-        "employee_id": fields.Many2One("hr.employee", "Employee", function="_get_related", function_context={"path": "timesheet_id.employee_id"}, function_search="_search_related"),
+        "related_id": fields.Reference([["project","Project"],["job","Service Order"],["sale.order","Sales Order"],["rental.order","Rental Order"]],"Related To"),
         "resource_id": fields.Many2One("service.resource", "Resource", required=True, search=True, on_delete="cascade"),
-        "project_id": fields.Many2One("project", "Project", search=True),
-        "job_id": fields.Many2One("job", "Service Order", search=True),
-        "service_item_id": fields.Many2One("service.item","Service Item"),
+        "project_id": fields.Many2One("project", "Project", search=True), # XXX: deprecated
+        "job_id": fields.Many2One("job", "Service Order", search=True), # XXX: deprecated
+        "service_item_id": fields.Many2One("service.item","Service Item"), # XXX: deprecated
         "service_type_id": fields.Many2One("service.type", "Service Type", function="_get_related", function_context={"path": "job_id.service_type_id"}, function_search="_search_related", search=True),
         "date": fields.Date("Date", required=True, search=True),
-        "duration": fields.Decimal("Actual Hours", required=True),
+        "actual_hours": fields.Decimal("Actual Hours", required=True),
         "bill_hours": fields.Decimal("Billable Hours"),
         "work_type_id": fields.Many2One("work.type", "Work Type"),
         "description": fields.Text("Description"),
         "week": fields.Date("Week", function="get_week", store=True),
         "comments": fields.One2Many("message", "related_id", "Comments"),
-        "product_id": fields.Many2One("product", "Product", condition=[["type", "=", "service"]], search=True),
-        "unit_price": fields.Decimal("Cost Unit Price"),
-        "amount": fields.Decimal("Cost Amount", function="get_amount"),
         "is_today": fields.Boolean("Today", store=False, function_search="search_today"),
         "is_this_week": fields.Boolean("This Week", store=False, function_search="search_this_week"),
         "is_last_week": fields.Boolean("Last Week", store=False, function_search="search_last_week"),
