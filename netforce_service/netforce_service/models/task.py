@@ -41,7 +41,7 @@ class Task(Model):
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "overdue": fields.Boolean("Overdue", function="get_overdue", function_search="search_overdue"),
         "days_late": fields.Integer("Days Late", function="get_days_late"),
-        "planned_duration": fields.Decimal("Planned Duration (Hours)"),
+        "planned_hours": fields.Decimal("Planned Hours"),
         "resource_id": fields.Many2One("service.resource", "Assigned To",search=True),
         "documents": fields.One2Many("document", "related_id", "Documents"),
         "priority": fields.Integer("Priority",search=True),
@@ -49,7 +49,7 @@ class Task(Model):
         "date_started": fields.Date("Date Started"),
         "date_completed": fields.Date("Date Completed"),
         "est_date_completed": fields.Date("Est. Completion Date"),
-        "actual_duration": fields.Decimal("Actual Duration (Hours)"),
+        "actual_hours": fields.Decimal("Actual Hours"),
         "requested_by_id": fields.Many2One("contact","Requested By"),
     }
     _order = "priority,id"

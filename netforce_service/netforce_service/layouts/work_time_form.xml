@@ -5,8 +5,9 @@
     <field name="date"/>
     <field name="resource_id"/>
     <separator/>
-    <field name="description"/>
+    <field name="project_id"/>
     <field name="related_id"/>
+    <field name="description"/>
     <separator/>
     <field name="actual_hours"/>
     <field name="bill_hours"/>

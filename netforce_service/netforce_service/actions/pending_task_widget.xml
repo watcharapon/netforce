@@ -1,8 +1,0 @@
-<action>
-    <field name="name">pending_task_widget</field>
-    <field name="view_cls">list_view</field>
-    <field name="model">task</field>
-    <field name="condition">[["state","!=","done"]]</field>
-    <field name="order">deadline</field>
-    <field name="view_xml">pending_task_widget</field>
-</action>

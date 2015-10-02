@@ -1,8 +1,0 @@
-<action>
-    <field name="view_cls">list_view</field>
-    <field name="model">time.sheet</field>
-    <field name="condition">[["state","in",["draft","waiting_approval"]]]</field>
-    <field name="order">date</field>
-    <field name="view_xml">timesheet_widget</field>
-    <field name="noselect">1</field>
-</action>

@@ -37,12 +37,12 @@ class ReportServiceTime(Model):
                 "weeks": {},
             }
         res = db.query(
-            "SELECT project_id,week,SUM(duration) AS total_duration FROM work_time WHERE state='approved' GROUP BY project_id,week")
+            "SELECT project_id,week,SUM(actual_hours) AS total_hours FROM work_time WHERE state='approved' GROUP BY project_id,week")
         for r in res:
             proj = projects.get(r.project_id)
             if not proj:
                 continue
-            proj["weeks"][r.week] = r.total_duration
+            proj["weeks"][r.week] = r.total_hours
         weeks = []
         d = datetime.today()
         d -= timedelta(d.weekday())
@@ -84,12 +84,12 @@ class ReportServiceTime(Model):
                 "weeks": {},
             }
         res = db.query(
-            "SELECT resource_id,week,SUM(duration) AS total_duration FROM work_time WHERE state='approved' GROUP BY resource_id,week")
+            "SELECT resource_id,week,SUM(actual_hours) AS total_hours FROM work_time WHERE state='approved' GROUP BY resource_id,week")
         for r in res:
             resource = resources.get(r.resource_id)
             if not resource:
                 continue
-            resource["weeks"][r.week] = r.total_duration
+            resource["weeks"][r.week] = r.total_hours
         weeks = []
         d = datetime.today()
         d -= timedelta(d.weekday())

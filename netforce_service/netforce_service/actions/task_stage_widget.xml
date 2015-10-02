@@ -1,7 +1,0 @@
-<action>
-    <field name="name">task_stage_widget</field>
-    <field name="view_cls">chart_view</field>
-    <field name="model">report.project</field>
-    <field name="method">tasks_per_stage</field>
-    <field name="chart_type">bar</field>
-</action>

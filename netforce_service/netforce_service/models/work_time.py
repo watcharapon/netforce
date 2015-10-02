@@ -28,9 +28,9 @@ class WorkTime(Model):
     _name = "work.time"
     _string = "Work Time"
     _fields = {
-        "related_id": fields.Reference([["project","Project"],["job","Service Order"],["sale.order","Sales Order"],["rental.order","Rental Order"]],"Related To"),
         "resource_id": fields.Many2One("service.resource", "Resource", required=True, search=True, on_delete="cascade"),
-        "project_id": fields.Many2One("project", "Project", search=True), # XXX: deprecated
+        "project_id": fields.Many2One("project", "Project", search=True, required=True),
+        "related_id": fields.Reference([["job","Service Order"],["sale.order","Sales Order"],["rental.order","Rental Order"]],"Related To"),
         "job_id": fields.Many2One("job", "Service Order", search=True), # XXX: deprecated
         "service_item_id": fields.Many2One("service.item","Service Item"), # XXX: deprecated
         "service_type_id": fields.Many2One("service.type", "Service Type", function="_get_related", function_context={"path": "job_id.service_type_id"}, function_search="_search_related", search=True),
@@ -76,12 +76,6 @@ class WorkTime(Model):
             d = datetime.datetime.strptime(obj.date, "%Y-%m-%d")
             d -= datetime.timedelta(d.weekday())
             vals[obj.id] = d.strftime("%Y-%m-%d")
-        return vals
-
-    def get_amount(self, ids, context={}):
-        vals = {}
-        for obj in self.browse(ids):
-            vals[obj.id] = (obj.duration or 0) * (obj.unit_price or 0)
         return vals
 
     def search_today(self, clause, context={}):
