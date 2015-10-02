@@ -51,7 +51,7 @@ class ReportReceivable(Model):
         company_ids = get_model("company").search([["id", "child_of", company_id]])
         db = get_connection()
         res = db.query(
-            "SELECT to_char(COALESCE(l.due_date,l.move_date),'YYYY-MM') AS month,SUM(l.debit-l.credit) as amount FROM account_move_line l JOIN account_account a ON a.id=l.account_id LEFT JOIN account_reconcile r ON r.id=l.reconcile_id WHERE l.move_state='posted' AND a.type='receivable' AND (l.reconcile_id IS NULL OR r.balance!=0) AND a.company_id IN %s GROUP BY month", tuple(company_ids))
+            "SELECT to_char(COALESCE(l.due_date,l.move_date),'YYYY-MM') AS month,SUM(l.debit-l.credit) as amount FROM account_move_line l JOIN account_account a ON a.id=l.account_id LEFT JOIN account_reconcile r ON r.id=l.reconcile_id WHERE l.move_state='posted' AND a.type='receivable' AND l.reconcile_id IS NULL AND a.company_id IN %s GROUP BY month", tuple(company_ids))
         amounts = {}
         for r in res:
             amounts[r.month] = r.amount

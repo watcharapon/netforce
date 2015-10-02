@@ -38,7 +38,7 @@ class ReportPayable(Model):
         company_ids = get_model("company").search([["id", "child_of", company_id]])
         db = get_connection()
         res = db.query(
-            "SELECT COALESCE(l.due_date,l.move_date) AS due_date,SUM(l.credit-l.debit) as amount FROM account_move_line l JOIN account_account a ON a.id=l.account_id LEFT JOIN account_reconcile r ON r.id=l.reconcile_id WHERE l.move_state='posted' AND a.type='payable' AND (l.reconcile_id IS NULL OR r.balance!=0) AND a.company_id IN %s GROUP BY COALESCE(l.due_date,l.move_date)", tuple(company_ids))
+            "SELECT COALESCE(l.due_date,l.move_date) AS due_date,SUM(l.credit-l.debit) as amount FROM account_move_line l JOIN account_account a ON a.id=l.account_id LEFT JOIN account_reconcile r ON r.id=l.reconcile_id WHERE l.move_state='posted' AND a.type='payable' AND l.reconcile_id IS NULL AND a.company_id IN %s GROUP BY COALESCE(l.due_date,l.move_date)", tuple(company_ids))
         amounts = {}
         for r in res:
             amounts[r.due_date] = r.amount
