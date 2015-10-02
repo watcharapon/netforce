@@ -342,11 +342,11 @@ def compare_version(v1, v2):
 def get_db_version():
     db = database.get_connection()
     res = db.get("SELECT * FROM pg_class WHERE relname='settings'")
-    if res:
-        res = db.get("SELECT * FROM settings WHERE id=1")
-        if res:
-            return res.version
-    res = db.get("SELECT * FROM company WHERE id=1")
+    if not res:
+        return none
+    res = db.get("SELECT * FROM settings WHERE id=1")
+    if not res:
+        return None
     return res.version
 
 
@@ -358,6 +358,7 @@ def set_db_version(version):
         if res:
             db.execute("UPDATE settings SET version=%s WHERE id=1", version)
     db.execute("UPDATE company SET version=%s WHERE id=1", version)
+
 
 _pack_int = Struct('>I').pack
 

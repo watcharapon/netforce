@@ -2247,7 +2247,7 @@ def update_db(force=False, custom=False):
     access.set_active_user(1)
     if not custom:
         try:
-            db_version = utils.get_db_version()
+            db_version = utils.get_db_version() or "0"
             mod_version = netforce.get_module_version()
             if utils.compare_version(db_version, mod_version) == 0:
                 print("Database is already at version %s" % mod_version)
