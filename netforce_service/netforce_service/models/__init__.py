@@ -27,7 +27,6 @@ from . import job_cost
 from . import task
 from . import job_template
 from . import task_template
-from . import report_project
 from . import issue
 from . import work_time
 from . import work_type
