@@ -54,8 +54,7 @@ class DeleteDB(Model):
         print("deleting db...")
         db = database.connect("template1")
         db._db.set_isolation_level(0)
-        # FIXME: procpid->pid in 9.2
-        db.execute("SELECT pg_terminate_backend(procpid) FROM pg_stat_activity WHERE datname=%s", dbname)
+        db.execute("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname=%s", dbname)
         db.execute("DROP DATABASE %s" % dbname)
         db.close()
         return {

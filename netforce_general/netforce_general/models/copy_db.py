@@ -59,9 +59,6 @@ class CopyDB(Model):
         # database.close_connections(dbname);
         db = database.connect("template1")
         db._db.set_isolation_level(0)
-        # db.execute("SELECT pg_terminate_backend(procpid) FROM pg_stat_activity
-        # WHERE datname=%s",dbname) # FIXME: procpid->pid in 9.2
-        # FIXME: procpid->pid in 9.2
         db.execute("SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname=%s", dbname)
         db.execute("CREATE DATABASE %s WITH TEMPLATE %s" % (new_dbname, dbname))
         db.close()
