@@ -2246,27 +2246,19 @@ def update_db(force=False, custom=False):
     print("update_db custom=%s" % custom)
     access.set_active_user(1)
     if not custom:
-        try:
-            db_version = utils.get_db_version() or "0"
-            mod_version = netforce.get_module_version()
-            if utils.compare_version(db_version, mod_version) == 0:
-                print("Database is already at version %s" % mod_version)
-                if not force:
-                    return
-                print("Upgrading anyway...")
-            if utils.compare_version(db_version, mod_version) > 0:
-                print("Database is at a newer version (%s)" % db_version)
-                if not force:
-                    return
-                print("Upgrading anyway...")
-            print("Upgrading database from version %s to %s" % (db_version, mod_version))
-        except:
-            print("Failed to get database version")
-            db = database.get_connection()
-            db.rollback()  # XXX
+        db_version = utils.get_db_version() or "0"
+        mod_version = netforce.get_module_version()
+        if utils.compare_version(db_version, mod_version) == 0:
+            print("Database is already at version %s" % mod_version)
             if not force:
                 return
             print("Upgrading anyway...")
+        if utils.compare_version(db_version, mod_version) > 0:
+            print("Database is at a newer version (%s)" % db_version)
+            if not force:
+                return
+            print("Upgrading anyway...")
+        print("Upgrading database from version %s to %s" % (db_version, mod_version))
     if custom:
         dbname = database.get_active_db()
         if not dbname:
