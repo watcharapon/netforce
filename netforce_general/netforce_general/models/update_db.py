@@ -19,18 +19,10 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
-from netforce.model import update_db, load_db_models
+from netforce.model import update_db
 from netforce import ipc
 from netforce import static
 import os
-
-
-def _reload_db_models():
-    pid = os.getpid()
-    print("reload_db_models pid=%s" % pid)
-    load_db_models()
-
-ipc.set_signal_handler("reload_db_models", _reload_db_models)
 
 
 class UpdateDB(Model):
@@ -39,9 +31,7 @@ class UpdateDB(Model):
 
     def do_update(self, ids, context={}):
         print("update_db")
-        load_db_models()
         update_db(custom=True)
-        ipc.send_signal("reload_db_models")
         static.make_ui_params_db()
         return {
             "next": {

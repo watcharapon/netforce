@@ -37,18 +37,11 @@ from netforce import utils
 
 models = {}
 browse_cache = {}
-db_models = {}
 
 
 def get_model(name):
     dbname = database.get_active_db()
-    if dbname:
-        if dbname not in db_models:
-            load_db_models()
-        cur_models = db_models[dbname]
-    else:
-        cur_models = models
-    m = cur_models.get(name)
+    m = models.get(name)
     if not m:
         raise Exception("Model not found: %s" % name)
     return m
@@ -86,7 +79,6 @@ class Model(object):
     _audit_log = False
     _indexes = []
     _multi_company = False
-    _custom = False
     _offline = False
 
     @classmethod
@@ -2242,72 +2234,60 @@ class BrowseRecord(object):
         return self.id != None
 
 
-def update_db(force=False, custom=False):
-    print("update_db custom=%s" % custom)
+def update_db(force=False):
+    print("update_db")
     access.set_active_user(1)
-    if not custom:
-        db_version = utils.get_db_version() or "0"
-        mod_version = netforce.get_module_version()
-        if utils.compare_version(db_version, mod_version) == 0:
-            print("Database is already at version %s" % mod_version)
-            if not force:
-                return
-            print("Upgrading anyway...")
-        if utils.compare_version(db_version, mod_version) > 0:
-            print("Database is at a newer version (%s)" % db_version)
-            if not force:
-                return
-            print("Upgrading anyway...")
-        print("Upgrading database from version %s to %s" % (db_version, mod_version))
-    if custom:
-        dbname = database.get_active_db()
-        if not dbname:
-            return {}
-        if dbname not in db_models:
-            load_db_models()
-        cur_models = db_models[dbname]
-    else:
-        cur_models = models
-    for model in sorted(cur_models):
-        m = cur_models[model]
+    db_version = utils.get_db_version() or "0"
+    mod_version = netforce.get_module_version()
+    if utils.compare_version(db_version, mod_version) == 0:
+        print("Database is already at version %s" % mod_version)
+        if not force:
+            return
+        print("Upgrading anyway...")
+    if utils.compare_version(db_version, mod_version) > 0:
+        print("Database is at a newer version (%s)" % db_version)
+        if not force:
+            return
+        print("Upgrading anyway...")
+    print("Upgrading database from version %s to %s" % (db_version, mod_version))
+    for model in sorted(models):
+        m = models[model]
         if not m._store:
             continue
-        if m._custom == custom:
-            m.update_db()
-    for model in sorted(cur_models):
+        m.update_db()
+    for model in sorted(models):
         try:
-            m = cur_models[model]
+            m = models[model]
             if not m._store:
                 continue
             for field in sorted(m._fields):
                 f = m._fields[field]
-                if f.custom == custom:
-                    f.update_db()
+                f.update_db()
         except Exception as e:
             print("Failed to update fields of %s" % model)
             raise e
-    for model in sorted(cur_models):
+    for model in sorted(models):
         try:
-            m = cur_models[model]
+            m = models[model]
             if not m._store:
                 continue
-            if m._custom == custom:
-                m.update_db_constraints()  # XXX
+            m.update_db_constraints()
         except Exception as e:
             print("Failed to update constraints of %s" % model)
             raise e
-    for model in sorted(cur_models):
+    for model in sorted(models):
         try:
-            m = cur_models[model]
+            m = models[model]
             if not m._store:
                 continue
-            if m._custom == custom:
-                m.update_db_indexes()
+            m.update_db_indexes()
         except Exception as e:
             print("Failed to update indexes of %s" % model)
             raise e
-    if not custom:
-        utils.set_db_version(mod_version)
+    if utils.is_empty_db():
+        print("Initializing empty database...")
+        utils.init_db()
+    utils.set_db_version(mod_version)
     print("Upgrade completed")
 
 
@@ -2315,26 +2295,15 @@ def delete_transient():
     pass  # XXX
 
 
-def models_to_json(custom=False):
-    if custom:
-        dbname = database.get_active_db()
-        if not dbname:
-            return {}
-        if dbname not in db_models:
-            load_db_models()
-        cur_models = db_models[dbname]
-    else:
-        cur_models = models
+def models_to_json():
     data = {}
-    for name, m in cur_models.items():
-        res = model_to_json(m, custom=custom)
-        if m._custom != custom and not res["fields"]:
-            continue
+    for name, m in models.items():
+        res = model_to_json(m)
         data[name] = res
     return data
 
 
-def model_to_json(m, custom=False):
+def model_to_json(m):
     data = {}
     if m._string:
         data["string"] = m._string
@@ -2342,8 +2311,6 @@ def model_to_json(m, custom=False):
         data["offline"] = True
     data["fields"] = {}
     for n, f in m._fields.items():
-        if f.custom != custom:
-            continue
         f_data = {}
         f_data["string"] = f.string
         if isinstance(f, fields.Char):
@@ -2404,128 +2371,6 @@ def model_to_json(m, custom=False):
             f_data["store"] = True
         data["fields"][n] = f_data
     return data
-
-
-def load_db_models():
-    db = database.get_connection()
-    try:
-        dbname = database.get_active_db()
-        #netforce.utils.print_color("Loading DB models (%s)..." % dbname, "green")
-        db_models[dbname] = models.copy()
-        db_version = utils.get_db_version()
-        if db_version >= "1.173":  # XXX
-            cur_models = db_models[dbname]
-            res = db.query("SELECT * FROM model WHERE module_id IS NOT NULL")
-            for r in res:
-                if r.name in cur_models:
-                    parent_cls = cur_models[r.name].__class__
-                else:
-                    parent_cls = Model
-                attrs = {
-                    "_name": r.name,
-                    "_string": r.string,
-                    "_custom": True,
-                    "_table": r.name.replace(".", "_"),
-                    "_fields": parent_cls._fields.copy(),
-                    "_order": parent_cls._order,
-                    "_defaults": parent_cls._defaults.copy(),
-                }
-                if r.order:
-                    attrs["_order"] = r.order
-                if r.get("offline"):
-                    attrs["_offline"] = r.offline
-                cls = type("C_" + r.name.replace(".", "_"), (parent_cls,), attrs)
-                cur_models[r.name] = object.__new__(cls)
-            res = db.query(
-                "SELECT f.*,m.name AS model,r.name AS relation,rf.name AS relfield FROM field f JOIN model m ON m.id=f.model_id LEFT JOIN model r ON r.id=f.relation_id LEFT JOIN field rf ON rf.id=f.relfield_id WHERE m.module_id IS NOT NULL")
-            for r in res:
-                opts = {
-                    "required": r.required,
-                    "readonly": r.readonly,
-                    "store": r.stored,
-                    "search": r.search,
-                }
-                if r.function:
-                    opts["function"] = r.function
-                if r.get("condition"):
-                    opts["condition"] = r.condition
-                if r.type == "char":
-                    f = fields.Char(r.string, **opts)
-                elif r.type == "text":
-                    f = fields.Text(r.string, **opts)
-                elif r.type == "float":
-                    f = fields.Float(r.string, **opts)
-                elif r.type == "integer":
-                    f = fields.Integer(r.string, **opts)
-                elif r.type == "date":
-                    f = fields.Date(r.string, **opts)
-                elif r.type == "datetime":
-                    f = fields.DateTime(r.string, **opts)
-                elif r.type == "selection":
-                    try:
-                        selection = utils.json_loads(r.selection)
-                    except:
-                        print("WARNING: Invalid selection value: %s (%s / %s)" % (r.selection, r.model, r.field))
-                        selection = []
-                    f = fields.Selection(selection, r.string, **opts)
-                elif r.type == "boolean":
-                    f = fields.Boolean(r.string, **opts)
-                elif r.type == "file":
-                    f = fields.File(r.string, **opts)
-                elif r.type == "many2one":
-                    if not r.relation:
-                        print("WARNING: Relation missing for field %s / %s" % (r.model, r.name))
-                    f = fields.Many2One(r.relation, r.string, **opts)
-                elif r.type == "one2many":
-                    if not r.relation:
-                        print("WARNING: Relation missing for field %s / %s" % (r.model, r.name))
-                    if not r.relfield:
-                        print("WARNING: Relation field missing for field %s / %s" % (r.model, r.name))
-                    f = fields.One2Many(r.relation, r.relfield, r.string, **opts)
-                elif r.type == "many2many":
-                    if not r.relation:
-                        print("WARNING: Relation missing for field %s / %s" % (r.model, r.name))
-                    f = fields.Many2Many(r.relation, r.string, **opts)
-                elif r.type == "reference":
-                    try:
-                        selection = utils.json_loads(r.selection)
-                    except:
-                        print("WARNING: Invalid selection value: %s (%s / %s)" % (r.selection, r.model, r.field))
-                        selection = []
-                    f = fields.Reference(utils.json_loads(r.selection or "[]"), r.string, **opts)
-                else:
-                    continue
-                f.register(r.model, r.name)
-                f.custom = True
-                m = cur_models[r.model]
-                if not m._custom:  # XXX: should not be needed...
-                    continue
-                m._fields[r.name] = f
-                if r.default:
-                    v = r.default
-                    try:
-                        if r.type == "integer":
-                            v = int(v)
-                        elif r.type == "float":
-                            v = float(v)
-                    except:
-                        print("WARNING: invalid default value: %s / %s" % (r.name, v))
-                        v = None
-                    m._defaults[r.name] = v
-        try:
-            from netforce_script_js import load_db_scripts_js
-        except:
-            load_db_scripts_js = None
-        try:
-            from netforce_script_py import load_db_scripts_py
-        except:
-            load_db_scripts_py = None
-        if load_db_scripts_js:
-            load_db_scripts_js()
-        if load_db_scripts_py:
-            load_db_scripts_py()
-    finally:
-        db.commit()  # XXX: because can be called outside of json-rpc...
 
 
 def add_method(model):

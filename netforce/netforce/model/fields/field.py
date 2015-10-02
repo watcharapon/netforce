@@ -53,7 +53,6 @@ class Field(object):
         self.search = search
         self.index = index
         self.multi_company = multi_company
-        self.custom = False
 
     def register(self, model, name):
         self.model = model

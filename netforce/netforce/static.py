@@ -303,7 +303,6 @@ def make_ui_params_db():
         data["use_buddhist_date"] = settings.use_buddhist_date and True or False
         res = db.query("SELECT action FROM inline_help")
         data["inline_help"] = {r.action: True for r in res}
-        data["models"] = models_to_json(custom=True)
         data["layouts"] = get_model("view.layout").layouts_to_json()
         data["actions"] = get_model("action").actions_to_json()
         data["menu_icon"] = settings.menu_icon

@@ -343,7 +343,7 @@ def get_db_version():
     db = database.get_connection()
     res = db.get("SELECT * FROM pg_class WHERE relname='settings'")
     if not res:
-        return none
+        return None
     res = db.get("SELECT * FROM settings WHERE id=1")
     if not res:
         return None
@@ -353,12 +353,31 @@ def get_db_version():
 def set_db_version(version):
     db = database.get_connection()
     res = db.get("SELECT * FROM pg_class WHERE relname='settings'")
-    if res:
-        res = db.get("SELECT * FROM settings WHERE id=1")
-        if res:
-            db.execute("UPDATE settings SET version=%s WHERE id=1", version)
-    db.execute("UPDATE company SET version=%s WHERE id=1", version)
+    if not res:
+        raise Exception("Missing settings table")
+    res = db.get("SELECT * FROM settings WHERE id=1")
+    if not res:
+        raise Exception("Missing settings record")
+    db.execute("UPDATE settings SET version=%s WHERE id=1", version)
 
+
+def is_empty_db():
+    db = database.get_connection()
+    res = db.get("SELECT * FROM pg_class WHERE relname='settings'")
+    if not res:
+        return True
+    res = db.get("SELECT * FROM settings WHERE id=1")
+    if not res:
+        return True
+    return False
+
+def init_db():
+    db = database.get_connection()
+    db.execute("INSERT INTO settings (id) VALUES (1)")
+    enc_pass=encrypt_password('1234')
+    db.execute("INSERT INTO profile (id,name) VALUES (1,'System Admin')")
+    db.execute("INSERT INTO base_user (id,login,password,name,profile_id,active) VALUES (1,'admin',%s,'Admin',1,true)",enc_pass)
+    db.execute("INSERT INTO company (id,name) VALUES (1,'Test Company')")
 
 _pack_int = Struct('>I').pack
 
