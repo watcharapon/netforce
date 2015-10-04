@@ -50,7 +50,7 @@ We sell services related to the Netforce platform (custom development, training,
 
 ## Documentation
 
-[https://github.com/nfco/netforce/wiki](https://github.com/nfco/netforce/wiki)
+https://github.com/nfco/netforce/wiki
 
 ## Contact
 
