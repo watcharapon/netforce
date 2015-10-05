@@ -104,7 +104,8 @@ var FormView=NFView.extend({
         this.data.breads=breads;
         this.render_waiting();
         if (this.active_id) {
-            nf_execute(model_name,"read",[[this.active_id]],{field_names:field_names,get_time:true},function(err,data) {
+            var ctx=clean_context(_.extend({},this.context,this.options));
+            nf_execute(model_name,"read",[[this.active_id]],{field_names:field_names,get_time:true,context:ctx},function(err,data) {
                 if (err) throw "ERROR: "+err;
                 var read_time=data[0].read_time;
                 delete data[0].read_time;
