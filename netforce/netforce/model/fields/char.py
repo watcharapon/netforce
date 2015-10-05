@@ -23,7 +23,7 @@ from .field import Field
 
 class Char(Field):
 
-    def __init__(self, string, size=64, password=False, **kw):
+    def __init__(self, string, size=256, password=False, **kw):
         super(Char, self).__init__(string=string, **kw)
         self.size = size
         self.password = password
