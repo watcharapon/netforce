@@ -243,6 +243,14 @@ class Move(Model):
                 raise Exception("Missing lot for product %s"%prod.code)
             vals["state"]="done"
             obj.write(vals=vals,context=context)
+            # change state in borrow requests
+            if not obj.related_id:
+                if pick.related_id._model=="product.borrow":
+                    if pick.related_id.is_return_item:
+                        pick.related_id.write({"state": "done"})
+            elif obj.related_id._model=="product.borrow":
+                if obj.related_id.is_return_item:
+                    obj.related_id.write({"state": "done"})
         prod_ids=list(set(prod_ids))
         if prod_ids:
             get_model("stock.compute.cost").compute_cost([],context={"product_ids": prod_ids})
@@ -339,6 +347,11 @@ class Move(Model):
             move.void()
             move.delete()
         self.write(ids,{"state":"draft"})
+        # change state in borrow requests
+        for obj in self.browse(ids):
+            if obj.related_id._model=="product.borrow":
+               if not obj.related_id.is_return_item:
+                    obj.related_id.write({"state": "approved"})
 
     def update_cost_price(self,ids,context={}): # XXX
         for obj in self.browse(ids):

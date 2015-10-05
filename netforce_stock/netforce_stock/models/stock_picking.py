@@ -157,6 +157,10 @@ class Picking(Model):
         for obj in self.browse(ids):
             for move in obj.lines:
                 move.write({"state": "voided"})
+                # change state in borrow requests
+                if move.related_id._model=="product.borrow":
+                    if not move.related_id.is_return_item:
+                        move.related_id.write({"state": "approved"})
             obj.write({"state": "voided"})
 
     def to_draft(self,ids,context={}):
