@@ -1,4 +1,0 @@
-<list model="pos.register">
-    <field name="name"/>
-    <field name="state"/>
-</list>

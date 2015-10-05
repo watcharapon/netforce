@@ -1,5 +1,0 @@
-<form model="pos.settings" title="POS Settings">
-    <field name="contact_id"/>
-    <field name="cash_account_id"/>
-    <field name="sale_ref"/>
-</form>

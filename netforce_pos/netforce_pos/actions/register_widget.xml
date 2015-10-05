@@ -1,5 +1,0 @@
-<action>
-    <field name="view_cls">list_view</field>
-    <field name="model">pos.register</field>
-    <field name="view_xml">register_widget</field>
-</action>

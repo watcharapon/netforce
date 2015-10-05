@@ -1,7 +1,0 @@
-<action>
-    <field name="name">pos_board</field>
-    <field name="string">POS Dashboard</field>
-    <field name="view_cls">board</field>
-    <field name="view_xml">pos_board</field>
-    <field name="menu">pos_menu</field>
-</action>

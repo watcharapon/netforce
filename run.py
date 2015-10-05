@@ -23,7 +23,6 @@ modules=[
     "netforce_messaging",
     "netforce_cms", 
     "netforce_ecom",
-    "netforce_pos",
 ]
 
 netforce.load_modules(modules)
