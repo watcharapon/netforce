@@ -1,7 +1,0 @@
-<search model="pos.shop">
-    <field name="name"/>
-    <field name="categ_id"/>
-    <field name="contact_id"/>
-    <field name="cash_account_id"/>
-    <field name="location_id"/>
-</search>

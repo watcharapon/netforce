@@ -1,9 +1,0 @@
-<form model="pos.register">
-    <field name="shop_id"/>
-    <field name="state"/>
-    <field name="name"/>
-    <field name="ask_note"/>
-    <field name="print_receipt"/>
-    <field name="print_note_receipt"/>
-    <field name="show_discount"/>
-</form>
