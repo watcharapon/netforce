@@ -10,7 +10,7 @@
                 <field name="code"/>
                 <field name="website"/>
                 <field name="phone"/>
-                <field name="email"/>
+                <field name="email" email="1"/>
                 <field name="branch"/>
                 <field name="picture"/>
             </group>

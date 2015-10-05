@@ -21,6 +21,7 @@
 from netforce.model import Model, fields, get_model
 from netforce.access import get_active_user
 from netforce.database import get_connection
+from netforce import utils
 
 
 class Contact(Model):
@@ -135,9 +136,7 @@ class Contact(Model):
         "code": _get_number,
     }
     _order = "name"
-    _sql_constraints = [
-        #("code_uniq","unique (code)","The code of products must be unique!"),
-    ]
+    _constraints=["check_email"]
 
     def create(self, vals, **kw):
         if not vals.get("type"):
@@ -236,5 +235,12 @@ class Contact(Model):
             vals[obj.id] = addr_id
         print("XXX", vals)
         return vals
+
+    def check_email(self,ids,context={}):
+        for obj in self.browse(ids):
+            if not obj.email:
+                continue
+            if not utils.check_email_syntax(obj.email):
+                raise Exception("Invalid email")
 
 Contact.register()

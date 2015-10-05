@@ -120,6 +120,7 @@ var Group=NFView.extend({
                     method: $el.attr("method"),
                     show_buttons: $el.attr("show_buttons"),
                     auto_save: $el.attr("auto_save"),
+                    email: $el.attr("email"),
                     form_layout: form_layout,
                     context: ctx
                 };
