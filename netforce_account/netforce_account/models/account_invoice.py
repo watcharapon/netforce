@@ -335,6 +335,8 @@ class Invoice(Model):
             obj.check_related()
             if obj.amount_total == 0:
                 raise Exception("Invoice total is zero")
+            if obj.amount_total < 0:
+                raise Exception("Invoice total is negative")
             if not obj.taxes:
                 obj.calc_taxes()
             contact = obj.contact_id
