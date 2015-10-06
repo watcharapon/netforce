@@ -177,6 +177,7 @@ var ListView=NFView.extend({
             this.render_waiting();
             rpc_execute(model_name,"search_read",[condition],opts,function(err,data) {
                 that.collection=new NFCollection(data[0],{name:model_name});
+                that.collection.fields=field_names;
                 that.collection.condition=condition;
                 that.collection.order=that.options.order;
                 that.collection.search_condition=condition; // XXX: check this
