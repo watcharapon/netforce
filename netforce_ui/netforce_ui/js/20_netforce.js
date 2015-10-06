@@ -2019,8 +2019,16 @@ function check_model_permission(model,perm) {
 }
 
 function check_menu_permission(action_name) {
+    var ctx=get_global_context();
+    var user_id=ctx.user_id;
+    if (user_id==1) return true;
     var action=get_action(action_name);
+    if (action_name=="login" || action_name=="logout") { // XXX: find some other way to do this
+        return true;
+    }
+    var default_menu_access="visible";
     if (ui_params_user) {
+        default_menu_access=ui_params_user.default_menu_access||"visible";
         var perms=_.find(ui_params_user.menu_perms,function(p) { return p.action==action_name; });
         if (!perms && action.menu) {
             perms=_.find(ui_params_user.menu_perms,function(p) { return p.menu==action.menu && !p.action; });
@@ -2028,7 +2036,7 @@ function check_menu_permission(action_name) {
     } else {
         var perms=null;
     }
-    var access=perms?perms.access:"visible";
+    var access=perms?perms.access:default_menu_access;
     return access=="visible";
 }
 

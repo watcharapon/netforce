@@ -25,6 +25,7 @@
             <field name="name"/>
         </list>
     </field>
+    <field name="default_menu_access"/>
     <separator string="Other Settings"/>
     <field name="home_action"/>
     <field name="login_company_id"/>

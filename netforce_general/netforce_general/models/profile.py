@@ -37,6 +37,7 @@ class Profile(Model):
         "prevent_login": fields.Boolean("Prevent Login"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "default_model_perms": fields.Selection([["full", "Full Access"], ["no", "No Access"]], "Default Model Permissions"),
+        "default_menu_access": fields.Selection([["visible", "Visible"], ["hidden", "Hidden"]], "Default Menu Access"),
     }
     _order = "name"
     _defaults = {

@@ -191,6 +191,7 @@ http://nf1.netforce.com/action?name=nfw_reset_passwd&reset_code=%s""" % code
                     "perm_read": p.perm_read,
                     "perm_write": p.perm_write,
                 })
+            params["default_menu_access"] = prof.default_menu_access
             params["menu_perms"] = []
             for p in prof.menu_perms:
                 params["menu_perms"].append({
