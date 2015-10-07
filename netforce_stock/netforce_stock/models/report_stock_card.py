@@ -162,8 +162,6 @@ class ReportStockCard(Model):
             q += " AND m.state IN ('pending','done')"
         else:
             q += " AND m.state='done'"
-        if company_id:
-            q += " AND m.company_id= %s" % company_id
         q += " ORDER BY m.date"
         res = db.query(q, *args)
         for r in res:

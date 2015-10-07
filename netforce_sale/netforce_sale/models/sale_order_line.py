@@ -58,9 +58,10 @@ class SaleOrderLine(Model):
         "est_profit_amount": fields.Float("Est. Profit Amount",function="get_est_profit",function_multi=True),
         "est_margin_percent": fields.Float("Est. Margin %",function="get_est_profit",function_multi=True),
         "act_cost_amount": fields.Float("Act. Cost Amount",function="get_act_profit",function_multi=True),
-        "act_profit_amount": fields.Float("Act. Profit Amount",function="get_act_profit",function_multi=True),
+        "act_profit_amount": fields.Float("Act. Profit Amount",function="get_act_profit",function_multi=True,store=True),
         "act_margin_percent": fields.Float("Act. Margin %",function="get_act_profit",function_multi=True),
         "promotion_amount": fields.Decimal("Prom Amt",function="get_amount",function_multi=True),
+        "agg_act_profit": fields.Decimal("Total Actual Profit", agg_function=["sum", "act_profit_amount"]),
     }
 
     def create(self, vals, context={}):
@@ -228,7 +229,7 @@ class SaleOrderLine(Model):
                 if k not in item_costs:
                     item_costs[k]=0
                 # TODO: convert currency
-                item_costs[k]-=amt
+                item_costs[k]-=line.amount
         vals={}
         for line in self.browse(ids):
             track_code="%s / %s"%(line.order_id.number,line.sequence)
