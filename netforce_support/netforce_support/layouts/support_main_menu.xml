@@ -1,0 +1,5 @@
+<inherit inherit="main_menu">
+    <item string="Services" position="after">
+        <item string="Support" action="support_board"/>
+    </item>
+</inherit>

@@ -1,0 +1,11 @@
+<list model="issue" colors='{"#ccc":[["state","=","closed"]]}'>
+    <field name="number"/>
+    <field name="date_created"/>
+    <field name="contact_id"/>
+    <field name="project_id"/>
+    <field name="description"/>
+    <field name="priority"/>
+    <field name="resource_id"/>
+    <field name="state"/>
+    <field name="days_open"/>
+</list>

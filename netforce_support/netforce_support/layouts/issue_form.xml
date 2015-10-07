@@ -1,0 +1,16 @@
+<form model="issue">
+    <field name="number"/>
+    <field name="date_created"/>
+    <field name="contact_id"/>
+    <field name="project_id"/>
+    <field name="description" width="600" height="200"/>
+    <newline/>
+    <field name="priority"/>
+    <field name="resource_id"/>
+    <field name="state"/>
+    <field name="date_closed"/>
+    <related>
+        <field name="documents"/>
+        <field name="emails"/>
+    </related>
+</form>

@@ -1,0 +1,8 @@
+<action>
+    <field name="name">issue</field>
+    <field name="string">Issues</field>
+    <field name="view_cls">multi_view</field>
+    <field name="model">issue</field>
+    <field name="tabs">[["All",[]],["Open",[["state","=","open"]]],["In Progress",[["state","=","in_progress"]]],["Closed",[["state","=","closed"]]],["Wait For Customer",[["state","=","wait_customer"]]],["Internal Wait",[["state","=","wait_internal"]]]]</field>
+    <field name="menu">support_menu</field>
+</action>
