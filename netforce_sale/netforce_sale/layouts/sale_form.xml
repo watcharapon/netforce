@@ -67,14 +67,16 @@
                     <field name="act_margin_percent"/>
                 </list>
             </field>
-            <group offset="8" span="4" columns="1" horizontal="1">
+            <group span="8">
+                <field name="payment_terms"/>
+                <newline/>
+                <field name="other_info"/>
+            </group>
+            <group span="4" columns="1" horizontal="1">
                 <field name="amount_subtotal"/>
                 <field name="amount_tax"/>
                 <field name="amount_total"/>
             </group>
-            <field name="payment_terms"/>
-            <newline/>
-            <field name="other_info"/>
         </tab>
         <tab string="Promotions">
             <separator string="Promotions"/>

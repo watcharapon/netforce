@@ -14,15 +14,11 @@
     <item string="Time Keeping">
         <item string="Time Sheets" action="work_time"/>
     </item>
-    <item string="Support">
-        <item string="Issues" action="issue"/>
-    </item>
     <item string="Reports">
         <item string="Service Item Analysis" action="service_item_analysis"/>
         <item string="Service Order Analysis" action="job_analysis"/>
         <item string="Task Analysis" action="task_analysis"/>
         <item string="Work Time Analysis" action="work_time_analysis"/>
-        <item string="Issue Analysis" action="issue_analysis"/>
     </item>
     <item string="Settings">
         <item string="Service Types" action="service_type"/>

@@ -29,6 +29,7 @@
         <field name="jobs"/>
         <field name="tasks"/>
         <field name="work_time"/>
+        <field name="issues"/>
         <field name="documents">
             <list>
                 <field name="file" target="_blank"/>

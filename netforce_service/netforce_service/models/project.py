@@ -43,6 +43,7 @@ class Project(Model):
         "description": fields.Text("Description"),
         "track_id": fields.Many2One("account.track.categ","Tracking Code"),
         "track_entries": fields.One2Many("account.track.entry",None,"Tracking Entries",function="get_track_entries",readonly=True),
+        "issues": fields.One2Many("issue","project_id","Issues"),
     }
     _order = "start_date"
 

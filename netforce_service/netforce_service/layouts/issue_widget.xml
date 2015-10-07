@@ -1,7 +1,0 @@
- <list>
-    <field name="contact_id"/>
-    <field name="date"/>
-    <field name="name"/>
-    <field name="priority"/>
-    <field name="state"/>
-</list>
