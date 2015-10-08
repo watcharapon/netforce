@@ -23,6 +23,6 @@ from setuptools import setup
 
 setup(
     name="netforce_delivery",
-    version="3.0.0",
+    version="3.1.0",
     description="Delivery module",
 )

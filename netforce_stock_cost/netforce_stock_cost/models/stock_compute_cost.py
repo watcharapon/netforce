@@ -96,7 +96,7 @@ class ComputeCost(Model):
             locations[loc.id]={}
         db=get_connection()
         print("reading...")
-        q="SELECT m.id,m.date,m.product_id,p.cost_method,p.uom_id as prod_uom_id,m.qty,m.uom_id,m.unit_price,m.location_from_id,m.location_to_id,m.move_id FROM stock_move m,product p WHERE p.cost_method='average' AND p.type='stock' AND p.id=m.product_id AND m.state='done'"
+        q="SELECT m.id,m.date,m.product_id,p.cost_method,p.uom_id as prod_uom_id,m.qty,m.uom_id,m.cost_amount,m.location_from_id,m.location_to_id,m.move_id FROM stock_move m,product p WHERE p.cost_method='average' AND p.type='stock' AND p.id=m.product_id AND m.state='done'"
         args=[]
         product_ids=context.get("product_ids")
         if product_ids:
@@ -109,17 +109,15 @@ class ComputeCost(Model):
             #print("MOVE date=%s prod=%s from=%s to=%s qty=%s method=%s"%(r.date,r.product_id,r.location_from_id,r.location_to_id,r.qty,r.cost_method))
             prod_id=r.product_id
             ratio=uoms[r.uom_id]/uoms[r.prod_uom_id]
-            qty=r.qty*ratio
-            price=(r.unit_price or 0)/ratio
             move={
                 "id": r.id,
                 "date": r.date,
-                "qty": qty,
-                "unit_price": price,
-                "old_unit_price": r.unit_price,
+                "qty": r.qty,
+                "conv_qty": r.qty*ratio,
+                "old_cost_amount": r.cost_amount,
+                "cost_amount": r.cost_amount,
                 "loc_from_id": r.location_from_id,
                 "loc_to_id": r.location_to_id,
-                "unit_ratio": ratio,
             }
             prod_moves.setdefault(prod_id,[]).append(move)
         prod_ids=sorted(prod_moves.keys())
@@ -131,30 +129,27 @@ class ComputeCost(Model):
                 loc["amt"]=0
             moves=prod_moves[prod_id]
             for m in moves:
-                if not m["qty"]:
-                    m["unit_price"]=0
-                    continue
                 loc_from=locations.get(m["loc_from_id"])
                 if loc_from:
-                    if loc_from["qty"]>=m["qty"]:
-                        m["unit_price"]=loc_from["amt"]/loc_from["qty"]
-                        amt=m["unit_price"]*m["qty"]
-                        loc_from["qty"]-=m["qty"]
-                        loc_from["amt"]-=amt
+                    if loc_from["qty"]>=m["conv_qty"]:
+                        cost_price=loc_from["amt"]/loc_from["qty"]
+                        m["cost_amount"]=round(cost_price*m["conv_qty"],2)
+                        loc_from["qty"]-=m["conv_qty"]
+                        loc_from["amt"]-=m["cost_amount"]
                     else:
-                        m["unit_price"]=0
-                print("[%s] move #%s: %s -> %s, %s @ %s (%s)"%(m["date"],m["id"],m["loc_from_id"],m["loc_to_id"],m["qty"],m["unit_price"],"calc" if loc_from else "read"))
+                        m["cost_amount"]=0
+                print("[%s] move #%s: %s -> %s, %s @ %s (%s)"%(m["date"],m["id"],m["loc_from_id"],m["loc_to_id"],m["conv_qty"],m["cost_amount"],"calc" if loc_from else "read"))
                 loc_to=locations.get(m["loc_to_id"])
                 if loc_to:
-                    loc_to["qty"]+=m["qty"]
-                    loc_to["amt"]+=m["unit_price"]*m["qty"]
+                    loc_to["qty"]+=m["conv_qty"]
+                    loc_to["amt"]+=m["cost_amount"]
         print("writing...")
         for prod_id in prod_ids:
             moves=prod_moves[prod_id]
             for m in moves:
-                new_unit_price=m["unit_price"]*m["unit_ratio"]
-                if new_unit_price!=m["old_unit_price"]:
-                    db.execute("UPDATE stock_move SET unit_price=%s WHERE id=%s",new_unit_price,m["id"])
+                if m["cost_amount"]!=m["old_cost_amount"]:
+                    cost_price=m["cost_amount"]/m["conv_qty"] if m["conv_qty"] else 0
+                    db.execute("UPDATE stock_move SET cost_amount=%s, cost_price=%s WHERE id=%s",m["cost_amount"],cost_price,m["id"])
         if prod_ids:
             db.execute("UPDATE product SET update_balance=true WHERE id IN %s",tuple(prod_ids))
 

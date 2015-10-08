@@ -57,7 +57,7 @@ class Location(Model):
 
     def get_balance(self, ids, context={}):
         db = database.get_connection()
-        q = "SELECT location_from_id,location_to_id,COALESCE(SUM(qty*unit_price),0) AS amount FROM stock_move WHERE (location_from_id IN %s OR location_to_id IN %s) AND state='done'"
+        q = "SELECT location_from_id,location_to_id,SUM(cost_amount) AS amount FROM stock_move WHERE (location_from_id IN %s OR location_to_id IN %s) AND state='done'"
         args = [tuple(ids), tuple(ids)]
         if context.get("date_to"):
             q += " AND date<=%s"
@@ -91,7 +91,7 @@ class Location(Model):
         vals = {}
         for id in ids:
             balance = self.get_balance([id], context={"date_to": date_from.strftime("%Y-%m-%d")})[id]
-            q = "SELECT date,location_from_id,location_to_id,qty*unit_price AS amount FROM stock_move WHERE (location_from_id=%s OR location_to_id=%s) AND date>%s AND date<=%s AND state='done' ORDER BY date"
+            q = "SELECT date,location_from_id,location_to_id,cost_amount FROM stock_move WHERE (location_from_id=%s OR location_to_id=%s) AND date>%s AND date<=%s AND state='done' ORDER BY date"
             res = db.query(q, id, id, date_from.strftime("%Y-%m-%d 23:59:59"), date_to.strftime("%Y-%m-%d 23:59:59"))
             d = date_from
             data = []
@@ -100,9 +100,9 @@ class Location(Model):
                     data.append([time.mktime(d.timetuple()) * 1000, balance])
                     d += datetime.timedelta(days=1)
                 if r.location_to_id == id and r.location_from_id != id:
-                    balance += r.amount or 0
+                    balance += r.cost_amount or 0
                 elif r.location_from_id == id and r.location_to_id != id:
-                    balance -= r.amount or 0
+                    balance -= r.cost_amount or 0
             while d <= date_to:
                 data.append([time.mktime(d.timetuple()) * 1000, balance])
                 d += datetime.timedelta(days=1)
@@ -115,7 +115,7 @@ class Location(Model):
         if not uom_id:
             uom_id = prod.uom_id.id
         db = database.get_connection()
-        q = "SELECT uom_id,SUM(qty) AS total_qty,SUM(unit_price*qty) AS total_amount,SUM(qty2) AS total_qty2 FROM stock_move WHERE location_to_id IN %s AND product_id=%s AND state='done'"
+        q = "SELECT uom_id,SUM(qty) AS total_qty,SUM(cost_amount) AS total_amount,SUM(qty2) AS total_qty2 FROM stock_move WHERE location_to_id IN %s AND product_id=%s AND state='done'"
         args = [tuple(ids), product_id]
         if date:
             q += " AND date<=%s"
@@ -136,7 +136,7 @@ class Location(Model):
             in_qty += qty
             in_amount += r.total_amount or 0
             in_qty2 += r.total_qty2 or 0
-        q = "SELECT uom_id,SUM(qty) AS total_qty,SUM(unit_price*qty) AS total_amount,SUM(qty2) AS total_qty2 FROM stock_move WHERE location_from_id IN %s AND product_id=%s AND state='done'"
+        q = "SELECT uom_id,SUM(qty) AS total_qty,SUM(cost_amount) AS total_amount,SUM(qty2) AS total_qty2 FROM stock_move WHERE location_from_id IN %s AND product_id=%s AND state='done'"
         args = [tuple(ids), product_id]
         if date:
             q += " AND date<=%s"

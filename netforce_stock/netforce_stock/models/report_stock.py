@@ -74,7 +74,7 @@ class ReportStock(Model):
                 "uom": line.uom_id.name,
                 "location_from": line.location_from_id.name,
                 "location_to": line.location_to_id.name,
-                "unit_price": line.unit_price,
+                "cost_price": line.cost_price,
             })
         return data
 
@@ -137,7 +137,7 @@ class ReportStock(Model):
                 "uom": line.uom_id.name,
                 "location_from": line.location_from_id.name,
                 "location_to": line.location_to_id.name,
-                "unit_price": line.unit_price,
+                "cost_price": line.cost_price,
                 "serial_no": line.serial_no,
             })
         return data

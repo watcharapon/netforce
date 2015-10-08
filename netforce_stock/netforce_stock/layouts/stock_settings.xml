@@ -8,6 +8,8 @@
     <newline/>
     <field name="stock_count_journal_id"/>
     <newline/>
+    <field name="landed_cost_journal_id"/>
+    <newline/>
     <field name="transform_journal_id"/>
     <newline/>
     <field name="production_journal_id"/>

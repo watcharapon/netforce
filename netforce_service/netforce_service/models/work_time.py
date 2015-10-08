@@ -30,7 +30,7 @@ class WorkTime(Model):
     _fields = {
         "resource_id": fields.Many2One("service.resource", "Resource", required=True, search=True, on_delete="cascade"),
         "project_id": fields.Many2One("project", "Project", search=True, required=True),
-        "related_id": fields.Reference([["job","Service Order"],["sale.order","Sales Order"],["rental.order","Rental Order"]],"Related To"),
+        "related_id": fields.Reference([["job","Service Order"],["sale.order","Sales Order"],["rental.order","Rental Order"]],"Related To",search=True),
         "job_id": fields.Many2One("job", "Service Order", search=True), # XXX: deprecated
         "service_item_id": fields.Many2One("service.item","Service Item"), # XXX: deprecated
         "service_type_id": fields.Many2One("service.type", "Service Type", function="_get_related", function_context={"path": "job_id.service_type_id"}, function_search="_search_related", search=True),

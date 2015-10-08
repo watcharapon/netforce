@@ -132,6 +132,7 @@ class Settings(Model):
         "pick_out_journal_id": fields.Many2One("stock.journal", "Goods Issue Journal"),
         "pick_internal_journal_id": fields.Many2One("stock.journal", "Goods Transfer Journal"),
         "stock_count_journal_id": fields.Many2One("stock.journal", "Stock Count Journal"),
+        "landed_cost_journal_id": fields.Many2One("stock.journal", "Landed Cost Journal"),
         "transform_journal_id": fields.Many2One("stock.journal", "Transform Journal"),
         "production_journal_id": fields.Many2One("stock.journal", "Production Journal"),
         "product_borrow_journal_id": fields.Many2One("stock.journal","Borrow Request Journal"),

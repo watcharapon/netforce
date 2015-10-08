@@ -128,7 +128,7 @@ class StockCount(Model):
                 "location_to_id": loc_to_id,
                 "qty": qty,
                 "uom_id": line.uom_id.id,
-                "unit_price": line.unit_price,
+                "cost_price": line.unit_price,
                 "related_id": "stock.count,%d" % obj.id,
             }
             move_id = get_model("stock.move").create(vals)

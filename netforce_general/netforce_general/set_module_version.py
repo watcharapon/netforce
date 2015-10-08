@@ -20,4 +20,4 @@
 
 from netforce import set_module_version
 
-set_module_version("3.0.0")
+set_module_version("3.1.0")

@@ -22,7 +22,7 @@
 from setuptools import setup
 
 setup(name="netforce",
-    version="3.0.0",
+    version="3.1.0",
     description="Netforce base module (server, ORM, etc.)",
     install_requires=[
         "tornado>=2.2",

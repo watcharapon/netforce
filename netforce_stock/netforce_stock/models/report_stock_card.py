@@ -30,7 +30,7 @@ def get_totals(date_from, date_to, product_id=None, show_pending=False, lot_id=N
     db = get_connection()
     q = "SELECT " \
         " m.product_id,m.location_from_id,m.location_to_id,m.uom_id, " \
-        " SUM(m.qty) AS total_qty,SUM(m.unit_price*m.qty) AS total_amt,SUM(m.qty2) AS total_qty2 " \
+        " SUM(m.qty) AS total_qty,SUM(m.cost_amount) AS total_amt,SUM(m.qty2) AS total_qty2 " \
         " FROM stock_move m " \
         " JOIN product p ON m.product_id=p.id WHERE true"
     q_args = []
@@ -141,7 +141,7 @@ class ReportStockCard(Model):
         prod_locs = {}
 
         db = get_connection()
-        q = "SELECT m.id,m.date,m.ref,m.related_id,m.lot_id,l.number AS lot_num,m.invoice_id,i.number AS invoice_num,m.product_id,m.location_from_id,m.location_to_id,m.qty,m.uom_id,m.unit_price,m.qty2 FROM stock_move m LEFT JOIN stock_lot l ON l.id=m.lot_id LEFT JOIN account_invoice i ON i.id=m.invoice_id LEFT JOIN product p on m.product_id=p.id WHERE m.date>=%s AND m.date<=%s"
+        q = "SELECT m.id,m.date,m.ref,m.related_id,m.lot_id,l.number AS lot_num,m.invoice_id,i.number AS invoice_num,m.product_id,m.location_from_id,m.location_to_id,m.qty,m.uom_id,m.cost_amount,m.qty2 FROM stock_move m LEFT JOIN stock_lot l ON l.id=m.lot_id LEFT JOIN account_invoice i ON i.id=m.invoice_id LEFT JOIN product p on m.product_id=p.id WHERE m.date>=%s AND m.date<=%s"
         args = [date_from + " 00:00:00", date_to + " 23:59:59"]
         if product_id:
             q += " AND m.product_id=%s"
@@ -199,23 +199,10 @@ class ReportStockCard(Model):
             lines.append(line)
             for r in moves:
                 ref = r.ref
-                if r.related_id:  # XXX: remove this!
-                    related_attr = r.related_id.split(",")
-                    if r.related_id and len(related_attr) == 2:
-                        try:
-                            obj_id = get_model(related_attr[0]).search([["id", "=", int(related_attr[1])]])
-                            if obj_id:
-                                related = get_model(related_attr[0]).browse(int(related_attr[1]))
-                                if related:
-                                    ref = related.number
-                        except Exception as e:
-                            import traceback
-                            traceback.print_exc()
-                            get_model("log").log("Invalid model", str(e))
                 uom = get_model("uom").browse(r.uom_id)
                 qty = r.qty * uom.ratio / prod.uom_id.ratio
-                price = (r.unit_price or 0) / (uom.ratio / prod.uom_id.ratio)
-                amt = (r.unit_price or 0) * r.qty
+                amt = r.cost_amount or 0
+                price = amt/qty if qty else 0
                 qty2 = r.qty2 or 0
                 if hide_zero and not qty and not qty2:
                     continue
@@ -236,7 +223,7 @@ class ReportStockCard(Model):
                     bal_qty2 += qty2
                     line.update({
                         "in_qty": qty,
-                        "in_unit_price": price,
+                        "in_cost_price": price,
                         "in_amount": amt,
                         "in_qty2": qty2,
                     })
@@ -246,7 +233,7 @@ class ReportStockCard(Model):
                     bal_qty2 -= qty2
                     line.update({
                         "out_qty": qty,
-                        "out_unit_price": price,
+                        "out_cost_price": price,
                         "out_amount": amt,
                         "out_qty2": qty2,
                     })
@@ -257,21 +244,6 @@ class ReportStockCard(Model):
                     "bal_cost_price": bal_price,
                     "bal_qty2": bal_qty2,
                 })
-                res=db.query("select l.id as landed_id,l.date as landed_date,l.number as landed_num,coalesce(a.est_ship,0)+coalesce(a.est_duty,0)+coalesce(a.act_ship,0)+coalesce(a.act_duty,0) as amount from landed_cost_alloc a join landed_cost l on l.id=a.landed_id where a.move_id=%s and l.state='posted'",r.id) # FIXME: too slow!
-                line["landed_costs"]=[]
-                if res:
-                    amt=0
-                    for r in res:
-                        vals={
-                            "landed_id": r.landed_id,
-                            "ref": r.landed_num,
-                            "date": r.landed_date,
-                            "amount": r.amount,
-                        }
-                        amt+=r.amount
-                        line["landed_costs"].append(vals)
-                    line["in_amount"]-=amt
-                    line["in_unit_price"]=line["in_amount"]/line["in_qty"] if line["in_qty"] else 0
                 lines.append(line)
             group = {
                 "product_id": prod.id,

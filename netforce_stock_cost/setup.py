@@ -23,6 +23,6 @@ from setuptools import setup
 
 setup(
     name="netforce_stock_cost",
-    version="3.3.0",
+    version="3.1.0",
     description="Costing module",
 )

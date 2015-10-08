@@ -23,6 +23,6 @@ from setuptools import setup
 
 setup(
     name="netforce_contact",
-    version="3.0.0",
+    version="3.1.0",
     description="Contact module",
 )

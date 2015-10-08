@@ -30,7 +30,7 @@ class StockCountLine(Model):
         "prev_qty": fields.Decimal("Previous Qty", required=True, readonly=True),
         "new_qty": fields.Decimal("New Qty", required=True),
         "uom_id": fields.Many2One("uom", "UoM", required=True, readonly=True),
-        "unit_price": fields.Decimal("Unit Price", scale=6),
+        "unit_price": fields.Decimal("Cost Price", scale=6),
     }
 
 StockCountLine.register()

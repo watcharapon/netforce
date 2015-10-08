@@ -186,7 +186,7 @@ class Picking(Model):
             for line in obj.lines:
                 move_ids.append(line.id)
             desc=obj.number
-            get_model("stock.move").write(move_ids,vals={"date":obj.date,"journal_id":obj.journal_id.id},context=context)
+            get_model("stock.move").write(move_ids,vals={"date":obj.date,"journal_id":obj.journal_id.id,"ref":obj.number},context=context)
             get_model("stock.move").set_done(move_ids,context=context)
             obj.write({"state":"done","done_by_id":user_id},context=context)
             obj.set_currency_rate()

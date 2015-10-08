@@ -8,7 +8,8 @@
     <field name="location_to_id"/>
     <field name="qty"/>
     <field name="uom_id"/>
-    <field name="unit_price"/>
+    <field name="cost_price"/>
+    <field name="cost_amount"/>
     <field name="state"/>
     <field name="picking_id"/>
     <field name="related_id"/>

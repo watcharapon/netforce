@@ -33,7 +33,7 @@ def list_parent(obj, lst):
 
 def get_categs(condition):
     print("get_categs")
-    res=get_model("product").read_group(["categ_id"],domain=condition)
+    res=get_model("product").read_group(["categ_id"],condition=condition)
     categ_nums={}
     for r in res:
         categ_id=r["categ_id"][0] if r["categ_id"] else None
@@ -69,7 +69,7 @@ def get_categs(condition):
 
 def get_brands(condition):
     print("get_brands")
-    res=get_model("product").read_group(["brand_id"],domain=condition)
+    res=get_model("product").read_group(["brand_id"],condition=condition)
     brand_nums={}
     for r in res:
         brand_id=r["brand_id"][0] if r["brand_id"] else None
@@ -221,7 +221,7 @@ class Products(BaseController):
                 "pricelist_id": website.sale_channel_id.pricelist_id.id if website.sale_channel_id else None,
                 "product_filter": cond,
             }
-            products = get_model("product").search_browse(domain=cond,order=sort_by,context=browse_ctx)
+            products = get_model("product").search_browse(condition=cond,order=sort_by,context=browse_ctx)
 
             cond_filter_supp = cond[:]
             if supp_id: cond_filter_supp.remove(["company_id","child_of", supp_id])
@@ -229,7 +229,7 @@ class Products(BaseController):
             ctx["products"] = products
             ctx["categs"] = get_categs(cond_filter_categ)
             ctx["brands"] = get_brands(cond_filter_brand)
-            ctx["suppliers"] = get_supps(get_model("product").search_browse(domain=cond_filter_supp, order=sort_by, context=browse_ctx))
+            ctx["suppliers"] = get_supps(get_model("product").search_browse(condition=cond_filter_supp, order=sort_by, context=browse_ctx))
             ctx["events"] = get_events()
             ctx["pricerange"] = get_price_range(get_model("product").search_browse([],context=browse_ctx), prices)
             ctx["filter_product_groups"]=get_model("product.group").search_browse([["code","=","recommended"]],context=browse_ctx)[0]

@@ -29,7 +29,8 @@
                     <field name="track_id"/>
                     <field name="qty_stock_gr"/>
                     <field name="qty_stock_lc"/>
-                    <field name="base_price"/>
+                    <field name="cost_price"/>
+                    <field name="cost_amount"/>
                     <field name="est_ship"/>
                     <field name="est_duty"/>
                     <field name="act_ship"/>
@@ -57,4 +58,7 @@
     <foot>
         <button string="Post" method="post" type="success" states="draft"/>
     </foot>
+    <related>
+        <field name="stock_moves"/>
+    </related>
 </form>

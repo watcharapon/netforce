@@ -85,12 +85,12 @@ class StockBalance(Model):
                 min_qtys[(r.location_id, r.product_id)] = (r.min_qty, r.uom_id)
             qtys = {}
             res = db.query(
-                "SELECT location_to_id,container_to_id,product_id,lot_id,uom_id,state,sum(qty) AS total_qty,sum(qty*unit_price) AS total_amt,max(date) AS max_date,SUM(qty2) AS total_qty2 FROM stock_move WHERE product_id IN %s AND location_to_id IN %s AND state IN ('pending','approved','done') GROUP BY location_to_id,container_to_id,product_id,lot_id,uom_id,state", tuple(prod_ids), tuple(loc_ids))
+                "SELECT location_to_id,container_to_id,product_id,lot_id,uom_id,state,sum(qty) AS total_qty,sum(cost_amount) AS total_amt,max(date) AS max_date,SUM(qty2) AS total_qty2 FROM stock_move WHERE product_id IN %s AND location_to_id IN %s AND state IN ('pending','approved','done') GROUP BY location_to_id,container_to_id,product_id,lot_id,uom_id,state", tuple(prod_ids), tuple(loc_ids))
             for r in res:
                 qtys.setdefault((r.location_to_id, r.container_to_id, r.product_id, r.lot_id), []).append(
                     ("in", r.total_qty, r.total_amt or 0, r.uom_id, r.state, r.max_date, r.total_qty2 or 0))
             res = db.query(
-                "SELECT location_from_id,container_from_id,product_id,lot_id,uom_id,state,sum(qty) AS total_qty,sum(qty*unit_price) AS total_amt,max(date) AS max_date,SUM(qty2) AS total_qty2 FROM stock_move WHERE product_id IN %s AND location_from_id IN %s AND state IN ('pending','approved','done') GROUP BY location_from_id,container_from_id,product_id,lot_id,uom_id,state", tuple(prod_ids), tuple(loc_ids))
+                "SELECT location_from_id,container_from_id,product_id,lot_id,uom_id,state,sum(qty) AS total_qty,sum(cost_amount) AS total_amt,max(date) AS max_date,SUM(qty2) AS total_qty2 FROM stock_move WHERE product_id IN %s AND location_from_id IN %s AND state IN ('pending','approved','done') GROUP BY location_from_id,container_from_id,product_id,lot_id,uom_id,state", tuple(prod_ids), tuple(loc_ids))
             for r in res:
                 qtys.setdefault((r.location_from_id, r.container_from_id, r.product_id, r.lot_id), []).append(
                     ("out", r.total_qty, r.total_amt or 0, r.uom_id, r.state, r.max_date, r.total_qty2 or 0))
@@ -322,7 +322,7 @@ class StockBalance(Model):
         print("stock_balance.get_totals product_ids=%s location_ids=%s lot_ids=%s container_ids=%s date_from=%s date_to=%s" % (
             product_ids, location_ids, lot_ids, container_ids, date_from, date_to))
         t0 = time.time()
-        q = "SELECT product_id,lot_id,location_from_id,container_from_id,location_to_id,container_to_id,uom_id,SUM(qty) AS total_qty,SUM(unit_price*qty) AS total_amt,SUM(qty2) AS total_qty2 FROM stock_move WHERE"
+        q = "SELECT product_id,lot_id,location_from_id,container_from_id,location_to_id,container_to_id,uom_id,SUM(qty) AS total_qty,SUM(cost_amount) AS total_amt,SUM(qty2) AS total_qty2 FROM stock_move WHERE"
         if virt_stock:
             q+=" state in ('pending','approved','done')"
         else:

@@ -91,7 +91,7 @@
                         {{currency in_qty}}
                     </td>
                     <td>
-                        {{currency in_unit_price}}
+                        {{currency in_cost_price}}
                     </td>
                     <td>
                         {{currency in_amount}}
@@ -105,7 +105,7 @@
                         {{currency out_qty}}
                     </td>
                     <td>
-                        {{currency out_unit_price}}
+                        {{currency out_cost_price}}
                     </td>
                     <td>
                         {{currency out_amount}}
@@ -130,51 +130,6 @@
                         </td>
                     {{/if}}
                 </tr>
-                {{#each landed_costs}}
-                    <tr>
-                        <td>
-                            {{date}}
-                        </td>
-                        <td>
-                            {{view "link" string=ref action="landed_cost" active_id=landed_id context=context}}
-                        </td>
-                        <td>
-                        </td>
-                        <td>
-                        </td>
-                        <td>
-                        </td>
-                        <td>
-                        </td>
-                        <td>
-                            {{currency amount}}
-                        </td>
-                        {{#if ../../show_qty2}}
-                            <td>
-                            </td>
-                        {{/if}}
-                        <td>
-                        </td>
-                        <td>
-                        </td>
-                        <td>
-                        </td>
-                        {{#if ../../show_qty2}}
-                            <td>
-                            </td>
-                        {{/if}}
-                        <td>
-                        </td>
-                        <td>
-                        </td>
-                        <td>
-                        </td>
-                        {{#if ../../show_qty2}}
-                            <td>
-                            </td>
-                        {{/if}}
-                    </tr>
-                {{/each}}
             {{/each}}
             <tr>
                 <td>

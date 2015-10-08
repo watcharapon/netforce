@@ -40,9 +40,9 @@ class Move(Model):
         "uom_id": fields.Many2One("uom", "UoM", required=True),
         "picking_id": fields.Many2One("stock.picking", "Picking", on_delete="cascade"),
         "date": fields.DateTime("Date", required=True, search=True),
-        "base_price": fields.Decimal("Base Price",scale=6), # in picking currency
-        "base_price_conv": fields.Decimal("Base Price (Conv)",scale=6,function="get_base_price_conv"), # in company currency
-        "unit_price": fields.Decimal("Cost Price", scale=6, function="get_unit_price", store=True),  # in company currency
+        "cost_price_cur": fields.Decimal("Cost Price (Cur)",scale=6), # in picking currency
+        "cost_price": fields.Decimal("Cost Price", scale=6),  # in company currency
+        "cost_amount": fields.Decimal("Cost Amount", scale=6), # in company currency
         "state": fields.Selection([("draft", "Draft"), ("pending", "Planned"), ("approved", "Approved"), ("done", "Completed"), ("voided", "Voided")], "Status", required=True),
         "stock_count_id": fields.Many2One("stock.count", "Stock Count"),
         "move_id": fields.Many2One("account.move", "Journal Entry"),
@@ -141,7 +141,8 @@ class Move(Model):
         "date": lambda *a: time.strftime("%Y-%m-%d %H:%M:%S"),
         "location_from_id": _get_loc_from,
         "location_to_id": _get_loc_to,
-        "unit_price": 0,
+        "cost_price": 0,
+        "cost_amount": 0,
         "company_id": lambda *a: get_active_company(),
         "number": _get_number,
     }
@@ -306,12 +307,9 @@ class Move(Model):
                 raise Exception("Missing output account for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
             track_from_id=move.location_from_id.track_id.id
             track_to_id=move.track_id.id or move.location_to_id.track_id.id # XXX
-            if move.base_price: # rest will be posted from landed costs
-                amt=round(move.qty*move.base_price_conv,2) # XXX: uom
-            else:
-                amt=round(move.qty*move.unit_price,2) # XXX: uom
+            amt=move.cost_amount
             if not amt:
-                raise Exception("No cost price for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
+                raise Exception("No cost amount for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
             accounts.setdefault((acc_from_id,track_from_id,desc),0)
             accounts.setdefault((acc_to_id,track_to_id,desc),0)
             accounts[(acc_from_id,track_from_id,desc)]-=amt
@@ -353,12 +351,6 @@ class Move(Model):
                if not obj.related_id.is_return_item:
                     obj.related_id.write({"state": "approved"})
 
-    def update_cost_price(self,ids,context={}): # XXX
-        for obj in self.browse(ids):
-            if obj.base_price:
-                alloc_cost_price=obj.alloc_cost_amount/obj.qty if obj.qty else 0
-                obj.write({"unit_price":obj.base_price+alloc_cost_price})
-
     def update_lots(self,ids,context={}):
         for obj in self.browse(ids):
             lot=obj.lot_id
@@ -367,7 +359,8 @@ class Move(Model):
             if obj.location_from_id.type!="internal" and obj.location_to_id.type=="internal":
                 lot.write({"received_date": obj.date})
 
-    def get_base_price_conv(self,ids,context={}):
+    # XXX
+    def get_unit_price(self,ids,context={}):
         settings=get_model("settings").browse(1)
         vals={}
         for obj in self.browse(ids):
@@ -386,21 +379,11 @@ class Move(Model):
                         if not rate_to:
                             raise Exception("Missing currency rate for %s" % settings.currency_id.code)
                         currency_rate = rate_from / rate_to
-                price=obj.base_price or 0
+                price=obj.unit_price_cur or 0
                 price_conv=get_model("currency").convert(price,pick.currency_id.id,settings.currency_id.id,rate=currency_rate)
             else:
                 price_conv=None
             vals[obj.id]=price_conv
-        return vals
-
-    def get_unit_price(self,ids,context={}):
-        vals={}
-        for obj in self.browse(ids):
-            if obj.base_price is not None: # XXX
-                unit_price=obj.base_price_conv+obj.alloc_cost_amount/obj.qty if obj.qty else 0
-            else:
-                unit_price=obj.unit_price
-            vals[obj.id]=unit_price
         return vals
 
 Move.register()

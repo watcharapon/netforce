@@ -41,6 +41,7 @@ class LandedCost(Model):
         "alloc_type": fields.Selection([["amount","Amount"],["qty","Qty"]],"Allocation Type"),
         "alloc_cost_type": fields.Selection([["est_ship","Est Shipping"],["est_duty","Estimate Duty"],["act_ship","Actual Shipping"],["act_duty","Actual Duty"]],"Cost Type"),
         "reverse_move_id": fields.Many2One("account.move","Reverse Journal Entry"),
+        "stock_moves": fields.One2Many("stock.move","related_id","Stock Movements"),
     }
 
     def _get_number(self, context={}):
@@ -141,7 +142,28 @@ class LandedCost(Model):
         move_id=get_model("account.move").create(vals)
         get_model("account.move").post([move_id])
         obj.write({"move_id":move_id, "state": "posted"})
-        obj.update_stock_cost_price()
+        move_ids=[]
+        for line in obj.cost_allocs:
+            move=line.move_id
+            if not move.qty:
+                raise Exception("Missing qty in stock movement %s"%move.number)
+            ratio=line.qty_stock_lc/line.qty_stock_gr
+            vals={
+                "journal_id": settings.landed_cost_journal_id.id,
+                "date": obj.date,
+                "related_id": "landed.cost,%s"%obj.id,
+                "ref": obj.number,
+                "product_id": move.product_id.id,
+                "qty": 0,
+                "uom_id": move.uom_id.id,
+                "location_from_id": move.location_from_id.id,
+                "location_to_id": move.location_to_id.id,
+                "cost_price": 0,
+                "cost_amount": line.amount*ratio,
+            }
+            move_id=get_model("stock.move").create(vals)
+            move_ids.append(move_id)
+        get_model("stock.move").set_done(move_ids)
 
     def to_draft(self,ids,context={}):
         obj=self.browse(ids[0])
@@ -151,16 +173,8 @@ class LandedCost(Model):
         if obj.reverse_move_id:
             obj.reverse_move_id.to_draft()
             obj.reverse_move_id.delete()
+        obj.stock_moves.delete()
         obj.write({"state": "draft"})
-        obj.update_stock_cost_price()
-
-    def update_stock_cost_price(self,ids,context={}):
-        obj=self.browse(ids[0])
-        move_ids=[]
-        for alloc in obj.cost_allocs:
-            move_ids.append(alloc.move_id.id)
-        move_ids=list(set(move_ids))
-        get_model("stock.move").update_cost_price(move_ids)
 
     def view_journal_entry(self,ids,context={}):
         obj=self.browse(ids[0])

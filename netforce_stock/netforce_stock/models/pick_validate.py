@@ -70,7 +70,7 @@ class PickValidate(Model):
                     "location_to_id": move.location_to_id.id,
                     "qty": remain_qty,
                     "uom_id": move.uom_id.id,
-                    "unit_price": move.unit_price,
+                    "cost_price": move.cost_price,
                     "state": move.state,
                 })
             if line.qty:
