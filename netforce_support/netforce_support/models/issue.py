@@ -23,6 +23,7 @@ class Issue(Model):
         "documents": fields.One2Many("document", "related_id", "Documents"),
         "emails": fields.One2Many("email.message", "related_id", "Emails"),
         "comments": fields.Text("Comments"),
+        "type_id": fields.Many2One("issue.type","Issue Type",required=True),
     }
     _order="priority,id"
 

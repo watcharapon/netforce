@@ -1,5 +1,4 @@
 <action>
-    <field name="name">issue</field>
     <field name="string">Issues</field>
     <field name="view_cls">multi_view</field>
     <field name="model">issue</field>

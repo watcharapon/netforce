@@ -5,6 +5,7 @@
     <field name="project_id"/>
     <newline/>
     <field name="title"/>
+    <field name="type_id"/>
     <newline/>
     <field name="description" width="600" height="200"/>
     <newline/>
