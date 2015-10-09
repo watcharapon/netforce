@@ -18,6 +18,7 @@ class Issue(Model):
         "priority": fields.Char("Priority",required=True),
         "emails": fields.One2Many("email.message", "related_id", "Emails"),
         "state": fields.Selection([["open","Open"],["in_progress","In Progress"],["closed","Closed"],["wait_customer","Wait For Customer"],["wait_internal","Internal Wait"]],"Status",required=True,search=True),
+        "planned_hours": fields.Decimal("Planned Hours"),
         "days_open": fields.Integer("Days Open",function="get_days_open"),
         "resource_id": fields.Many2One("service.resource","Assigned To"),
         "documents": fields.One2Many("document", "related_id", "Documents"),
