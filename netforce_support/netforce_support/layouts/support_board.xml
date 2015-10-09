@@ -1,2 +1,5 @@
 <board>
+    <hpanel>
+        <widget string="Top Open Issues" action="top_issues" span="12"/>
+    </hpanel>
 </board>

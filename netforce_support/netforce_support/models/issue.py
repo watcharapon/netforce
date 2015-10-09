@@ -15,7 +15,7 @@ class Issue(Model):
         "project_id": fields.Many2One("project","Project",required=True,search=True),
         "title": fields.Char("Title",required=True,search=True),
         "description": fields.Text("Description",search=True),
-        "priority": fields.Char("Priority",required=True),
+        "priority": fields.Decimal("Priority",required=True),
         "emails": fields.One2Many("email.message", "related_id", "Emails"),
         "state": fields.Selection([["new","New"],["ready","Ready To Start"],["in_progress","In Progress"],["closed","Closed"],["wait_customer","Wait For Customer"],["wait_internal","Internal Wait"]],"Status",required=True,search=True),
         "planned_hours": fields.Decimal("Planned Hours"),
