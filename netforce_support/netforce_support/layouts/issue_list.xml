@@ -1,4 +1,4 @@
-<list model="issue" colors='{"#ccc":[["state","=","closed"]],"#ccf":[["state","=","in_progress"]],"#efe":[["state","=","ready"]],"#fcc":[["state","=","wait_customer"]],"#fcf":[["state","=","wait_internal"]]}'>
+<list model="issue" colors='{"#ccc":[["state","=","closed"]],"#ccf":[["state","=","in_progress"]],"#efe":[["state","=","ready"]],"#fcc":[["state","=","wait_customer"]],"#ffc":[["state","=","wait_internal"]]}'>
     <field name="number"/>
     <field name="date_created"/>
     <field name="project_id"/>
