@@ -22,6 +22,7 @@ class Issue(Model):
         "resource_id": fields.Many2One("service.resource","Assigned To"),
         "documents": fields.One2Many("document", "related_id", "Documents"),
         "emails": fields.One2Many("email.message", "related_id", "Emails"),
+        "comments": fields.Text("Comments"),
     }
     _order="priority,id"
 

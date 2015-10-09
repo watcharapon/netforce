@@ -8,6 +8,8 @@
     <newline/>
     <field name="description" width="600" height="200"/>
     <newline/>
+    <field name="comments" width="600" height="200"/>
+    <newline/>
     <field name="priority"/>
     <field name="resource_id"/>
     <field name="state"/>
