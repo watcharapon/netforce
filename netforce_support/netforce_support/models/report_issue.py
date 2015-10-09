@@ -28,6 +28,10 @@ def js_time(s):
     d=datetime.strptime(s,"%Y-%m-%d %H:%M:%S")
     return time.mktime(d.timetuple()) * 1000
 
+def js_date(s):
+    d=datetime.strptime(s,"%Y-%m-%d")
+    return time.mktime(d.timetuple()) * 1000
+
 class ReportIssue(Model):
     _name = "report.issue"
     _store = False
@@ -52,6 +56,25 @@ class ReportIssue(Model):
             values.append((js_time(d), num_issues))
         data = {
             "value": values, 
+        }
+        return data
+
+    def get_issue_close_chart(self, context={}):
+        db=get_connection()
+        res = db.query("SELECT date_closed FROM issue WHERE state='closed' AND date_closed IS NOT NULL")
+        closed={}
+        for r in res:
+            d=r.date_closed[:10]
+            closed.setdefault(d,0)
+            closed[d]+=1
+        values=[]
+        for d,n in sorted(closed.items()):
+            values.append((js_date(d), n))
+        data = {
+            "value": [{
+                "key": "Closed",
+                "values": values,
+            }]
         }
         pprint(data)
         return data
