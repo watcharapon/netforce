@@ -10,6 +10,7 @@ class Issue(Model):
         "number": fields.Char("Number",required=True,search=True),
         "date_created": fields.DateTime("Date Created",required=True,search=True),
         "date_closed": fields.DateTime("Date Closed"),
+        "date_estimate": fields.DateTime("Estimated Close Date"),
         "contact_id": fields.Many2One("contact","Customer",required=True,search=True),
         "project_id": fields.Many2One("project","Project",required=True,search=True),
         "description": fields.Text("Description",required=True,search=True),
