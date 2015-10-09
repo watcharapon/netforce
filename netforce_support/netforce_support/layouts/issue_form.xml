@@ -13,6 +13,7 @@
     <field name="state"/>
     <field name="date_estimate"/>
     <field name="date_closed"/>
+    <field name="days_open"/>
     <related>
         <field name="documents"/>
         <field name="emails"/>
