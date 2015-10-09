@@ -37,8 +37,9 @@ class ReportIssue(Model):
         res = db.query("SELECT date_created,date_closed,state FROM issue")
         actions=[]
         for r in res:
-            actions.append((r.date_created,"open"))
-            if r.state=="closed":
+            if r.date_created:
+                actions.append((r.date_created,"open"))
+            if r.state=="closed" and r.date_closed:
                 actions.append((r.date_closed,"close"))
         actions.sort()
         values=[]
