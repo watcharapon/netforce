@@ -9,6 +9,7 @@ modules=[
     "netforce_general",
     "netforce_contact",
     "netforce_service",
+    "netforce_support",
     "netforce_product",
     "netforce_account",
     "netforce_account_report",
