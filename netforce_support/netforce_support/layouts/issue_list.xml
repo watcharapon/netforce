@@ -8,6 +8,6 @@
     <field name="resource_id"/>
     <field name="state"/>
     <field name="date_estimate"/>
-    <field name="date_close"/>
+    <field name="date_closed"/>
     <field name="days_open"/>
 </list>
