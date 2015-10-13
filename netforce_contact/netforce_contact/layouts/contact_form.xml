@@ -133,6 +133,7 @@
                 <field name="online"/>
             </form>
         </field>
+        <field name="users"/>
         <field name="sale_orders"/>
         <field name="coupons"/>
         <field name="documents">

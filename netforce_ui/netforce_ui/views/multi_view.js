@@ -181,6 +181,8 @@ var MultiView=NFView.extend({
                 order: this.options.order,
                 string: this.options.string,
                 view_xml: this.options.grid_view_xml,
+                modes: this.modes,
+                action_name: this.options.name, // XXX
                 context: this.context
             };
             if (_.contains(this.modes,"page")) { // XXX

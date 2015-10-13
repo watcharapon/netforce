@@ -4,6 +4,13 @@
     </div>
 {{/unless}}
 {{view "flash" context=context}}
+<div class="btn-toolbar nf-btn-toolbar">
+    {{{call render_top context}}}
+</div>
+<div class="search"></div>
+<div class="btn-toolbar nf-btn-toolbar">
+    {{{call render_head context}}}
+</div>
 {{#if rows.0.items}}
     {{#each rows context=context}}
         <div class="row">
