@@ -310,10 +310,11 @@ class Move(Model):
             amt=move.cost_amount
             if not amt:
                 raise Exception("No cost amount for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
-            accounts.setdefault((acc_from_id,track_from_id,desc),0)
-            accounts.setdefault((acc_to_id,track_to_id,desc),0)
-            accounts[(acc_from_id,track_from_id,desc)]-=amt
-            accounts[(acc_to_id,track_to_id,desc)]+=amt
+            if move.qty: # XXX: avoid create double journal entry for LC
+                accounts.setdefault((acc_from_id,track_from_id,desc),0)
+                accounts.setdefault((acc_to_id,track_to_id,desc),0)
+                accounts[(acc_from_id,track_from_id,desc)]-=amt
+                accounts[(acc_to_id,track_to_id,desc)]+=amt
         lines=[]
         for (acc_id,track_id,desc),amt in accounts.items():
             if amt==0:
