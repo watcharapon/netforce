@@ -126,8 +126,7 @@ var GridView=NFView.extend({
                 }
                 var opts={
                     string: new_string,
-                    action: this.options.action_name,
-                    action_options: "mode=form",
+                    onclick: function() { that.trigger("change_mode",{mode:"form"}); },
                     icon: "plus-sign",
                     context: context
                 };
@@ -149,7 +148,18 @@ var GridView=NFView.extend({
                 string: "List",
                 icon: "align-justify",
                 pull: "right",
-                onclick: function() { that.show_list(); },
+                onclick: function() { that.trigger("change_mode",{mode:"list"}); },
+                context: context
+            };
+            var view=Button.make_view(opts);
+            html.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
+        }
+        if (_.contains(this.modes,"Calendar")) {
+            var opts={
+                string: "Calendar",
+                icon: "calendar",
+                pull: "right",
+                onclick: function() { that.trigger("change_mode",{mode:"calendar"}); },
                 context: context
             };
             var view=Button.make_view(opts);
@@ -242,7 +252,7 @@ var GridView=NFView.extend({
 
     on_select_item: function(model_id) {
         log("grid_view.on_select_item",model_id);
-        this.trigger("select_item",{model_id:model_id})
+        this.trigger("change_mode",{mode:"form",active_id:model_id});
     }
 });
 

@@ -1,16 +1,18 @@
-{{#unless options.no_title}}
+{{#if options.show_top}}
     <div class="page-header nf-page-header">
         <h1>{{page_title}}</h1>
     </div>
-{{/unless}}
-{{view "flash" context=context}}
-<div class="btn-toolbar nf-btn-toolbar">
-    {{{call render_top context}}}
-</div>
-<div class="search"></div>
-<div class="btn-toolbar nf-btn-toolbar">
-    {{{call render_head context}}}
-</div>
+    {{view "flash" context=context}}
+    <div class="btn-toolbar nf-btn-toolbar">
+        {{{call render_top context}}}
+    </div>
+{{/if}}
+{{#if options.show_head}}
+    <div class="search"></div>
+    <div class="btn-toolbar nf-btn-toolbar">
+        {{{call render_head context}}}
+    </div>
+{{/if}}
 {{#if rows.0.items}}
     {{#each rows context=context}}
         <div class="row">

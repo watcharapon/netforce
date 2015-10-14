@@ -326,8 +326,7 @@ var ListView=NFView.extend({
                 }
                 var opts={
                     string: new_string,
-                    action: this.options.action_name,
-                    action_options: "mode=form",
+                    onclick: function() { that.trigger("change_mode",{mode:"form"}); },
                     icon: "plus-sign",
                     context: context
                 };
@@ -392,27 +391,29 @@ var ListView=NFView.extend({
                 html.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
             }
         });
+        if (_.contains(this.modes,"grid")) {
+            var opts={
+                string: "Grid",
+                icon: "th",
+                pull: "right",
+                onclick: function() { that.trigger("change_mode",{"mode":"grid"}); },
+                context: context
+            };
+            var view=Button.make_view(opts);
+            html.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
+        }
         if (_.contains(this.modes,"calendar")) {
             var opts={
                 string: "Calendar",
                 icon: "calendar",
                 pull: "right",
-                onclick: function() { that.show_calendar(); },
+                onclick: function() { that.trigger("change_mode",{"mode":"calendar"}); },
                 context: context
             };
             var view=Button.make_view(opts);
             html.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
         }
         return html.html();
-    },
-
-    show_calendar: function() {
-        log("list_view.show_calendar",this);
-        var action={
-            name: this.options.action_name,
-            mode: "calendar"
-        };
-        exec_action(action);
     },
 
     line_click: function(model) {

@@ -857,21 +857,7 @@ var FormView=NFView.extend({
     click_bread: function(e) {
         log("form_view.click_bread");
         e.preventDefault();
-        var action={
-            name: this.options.action_name,
-            mode: "list",
-            active_id: this.active_id
-        }
-        if (this.options.search_condition) {
-            action.search_condition=this.options.search_condition;
-        }
-        if (this.options.tab_no) {
-            action.tab_no=this.options.tab_no;
-        }
-        if (this.options.offset) {
-            action.offset=this.options.offset;
-        }
-        exec_action(action);
+        this.trigger("change_mode",{active_id:this.model.id});
     },
 
     call_method: function(e) {

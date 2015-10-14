@@ -183,6 +183,8 @@ var MultiView=NFView.extend({
                 string: this.options.string,
                 view_xml: this.options.grid_view_xml,
                 modes: this.modes,
+                show_top: true,
+                show_head: true,
                 action_name: this.options.name, // XXX
                 context: this.context
             };
@@ -192,15 +194,6 @@ var MultiView=NFView.extend({
             };
             var view=new GridView({options:opts});
             view.render();
-            view.on("select_item",function(opts) {
-                log("multi_view.select_item",opts);
-                var action={
-                    name: that.options.name,
-                    mode: "form",
-                    active_id: opts.model_id
-                };
-                exec_action(action);
-            });
             this.$el.append(view.el);
             this.subviews[view.cid]=view;
         } else if (this.mode=="columns") {
@@ -229,7 +222,30 @@ var MultiView=NFView.extend({
             view.render();
             this.$el.append(view.el);
             this.subviews[view.cid]=view;
+        } else {
+            throw "Invalid mode "+this.mode;
         }
+        view.on("change_mode",function(opts) {
+            var action={
+                name: that.options.name
+            };
+            if (opts.mode) {
+                action.mode=opts.mode;
+            }
+            if (opts.active_id) {
+                action.active_id=opts.active_id;
+            }
+            if (that.options.search_condition) {
+                action.search_condition=that.options.search_condition;
+            }
+            if (that.options.tab_no) {
+                action.tab_no=that.options.tab_no;
+            }
+            if (that.options.offset) {
+                action.offset=that.options.offset;
+            }
+            exec_action(action);
+        });
         return this;
     }
 });
