@@ -1281,8 +1281,8 @@ class Model(object):
                             v = obj[n]
                             if v:
                                 mr = get_model(v._model)
-                                name = mr._code_field or mr._name_field or "name"
-                                v = v[name]
+                                exp_field = mr.get_export_field()
+                                v = v[exp_field]
                             else:
                                 v = ""
                             row[path] = v
@@ -1305,8 +1305,8 @@ class Model(object):
                             v = obj[n]
                             if v:
                                 mr = get_model(v.model)
-                                name = mr._code_field or mr._name_field or "name"
-                                v = ", ".join([o[name] for o in v])
+                                exp_field=self.mr_export_field()
+                                v = ", ".join([o[exp_field] for o in v])
                             else:
                                 v = ""
                             row[path] = v
@@ -1681,9 +1681,17 @@ class Model(object):
     def archive(self, ids, context={}):
         self.write(ids, {"active": False})
 
+    def get_export_field(self):
+        try_fields=[self._code_field,"code",self._name_field,"name"]
+        for f in try_fields:
+            if f and f in self._fields:
+                print("XXXXX",self._name,f)
+                return f
+        raise Exception("No export field for model %s"%self._name)
+
     def import_get(self, name, context={}):
-        f = self._code_field or self._name_field or "name"
-        res = self.search([[f, "=", name]])
+        exp_field = self.get_export_field()
+        res = self.search([[exp_field, "=", name]])
         if not res:
             return None
         if len(res) > 1:
