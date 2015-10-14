@@ -53,6 +53,7 @@ var GridView=NFView.extend({
         }
         this.data.render_top=function(ctx) { return that.render_top.call(that,ctx); };
         this.data.render_head=function(ctx) { return that.render_head.call(that,ctx); };
+        this.data.on_select_item=_.bind(this.on_select_item,this);
     },
 
     render: function() {
@@ -237,6 +238,11 @@ var GridView=NFView.extend({
 
     reload: function() {
         this.render();
+    },
+
+    on_select_item: function(model_id) {
+        log("grid_view.on_select_item",model_id);
+        this.trigger("select_item",{model_id:model_id})
     }
 });
 

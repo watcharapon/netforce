@@ -44,6 +44,7 @@ var MultiView=NFView.extend({
 
     render: function() {
         //log("multi_view render",this);
+        var that=this;
         this.remove_subviews();
         if (this.mode=="list") {
             var opts={
@@ -191,6 +192,15 @@ var MultiView=NFView.extend({
             };
             var view=new GridView({options:opts});
             view.render();
+            view.on("select_item",function(opts) {
+                log("multi_view.select_item",opts);
+                var action={
+                    name: that.options.name,
+                    mode: "form",
+                    active_id: opts.model_id
+                };
+                exec_action(action);
+            });
             this.$el.append(view.el);
             this.subviews[view.cid]=view;
         } else if (this.mode=="columns") {

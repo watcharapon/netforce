@@ -16,7 +16,7 @@
         <div class="row">
             {{#each items context=context}}
                 <div class="col-sm-{{../../grid_item_span}}">
-                    {{view "grid_item" model=../../options.model grid_layout=../../grid_layout data=data next_action=../../options.next_action next_action_options=../../options.next_action_options context=context}}
+                    {{view "grid_item" model=../../options.model grid_layout=../../grid_layout data=data next_action=../../options.next_action next_action_options=../../options.next_action_options context=context on_select_item=../../on_select_item}}
                 </div>
             {{/each}}
         </div>

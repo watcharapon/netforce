@@ -23,7 +23,8 @@
 var GridItem=NFView.extend({
     _name: "grid_item",
     events: {
-        "click .title-link": "click_title"
+        "click .title-link": "click_title",
+        "click .nf-select-item": "select_item"
     },
 
     initialize: function(options) {
@@ -443,6 +444,14 @@ var GridItem=NFView.extend({
             }
         }
         exec_action(action);
+    },
+
+    select_item: function(e) {
+        log("grid_item.select_item");
+        e.preventDefault();
+        if (this.options.on_select_item) {
+            this.options.on_select_item(this.options.data.id);
+        }
     }
 });
 
