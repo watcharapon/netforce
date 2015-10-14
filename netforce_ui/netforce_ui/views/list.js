@@ -247,12 +247,10 @@ var List=NFView.extend({
 
     line_click: function(model) {
         log("list.line_click",this,model);
-        if (!this.options.action) return;
-        var action={
-            name: this.options.action,
-            active_id: model.id
+        e.preventDefault();
+        if (this.options.on_click_item) {
+            this.options.on_click_item(this.options.data.id);
         }
-        exec_action(action);
     },
 
     group_select: function(e) {

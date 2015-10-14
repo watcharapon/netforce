@@ -225,6 +225,21 @@ var MultiView=NFView.extend({
         } else {
             throw "Invalid mode "+this.mode;
         }
+        view.on("click_item",function(opts) {
+            var action={
+                name: that.options.name,
+                active_id: opts.active_id
+            };
+            if (_.contains(this.modes,"page")) {
+                action.mode="page";
+            } else if (_.contains(this.modes,"form")) {
+                action.mode="form";
+            } else {
+                log("can't view item details because no page or form view");
+                return;
+            }
+            exec_action(action);
+        });
         view.on("change_mode",function(opts) {
             var action={
                 name: that.options.name

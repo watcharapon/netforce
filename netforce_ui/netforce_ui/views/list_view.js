@@ -51,6 +51,7 @@ var ListView=NFView.extend({
         this.data.colors=this.$list.attr("colors");
         this.data.render_list_head=function(ctx) { return that.render_list_head.call(that,ctx); };
         this.data.render_list_top=function(ctx) { return that.render_list_top.call(that,ctx); };
+        this.data.on_click_item=_.bind(this.on_click_item,this);
         if (this.options.tabs) {
             var tabs=this.options.tabs;
             if (_.isString(tabs)) {
@@ -525,6 +526,10 @@ var ListView=NFView.extend({
             ids.push(id);
         });
         return ids;
+    },
+
+    on_click_item: function(model_id) {
+        this.trigger("click_item",{active_id:model_id});
     }
 });
 

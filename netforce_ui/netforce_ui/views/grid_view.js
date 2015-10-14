@@ -252,7 +252,7 @@ var GridView=NFView.extend({
 
     on_select_item: function(model_id) {
         log("grid_view.on_select_item",model_id);
-        this.trigger("change_mode",{mode:"form",active_id:model_id});
+        this.trigger("click_item",{active_id:model_id});
     }
 });
 
