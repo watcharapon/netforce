@@ -339,6 +339,7 @@ class Invoice(Model):
                 raise Exception("Invoice total is negative")
             if not obj.taxes:
                 obj.calc_taxes()
+                obj=obj.browse()[0]
             contact = obj.contact_id
             if obj.type == "out":
                 account_id = contact.account_receivable_id.id or settings.account_receivable_id.id
@@ -388,8 +389,6 @@ class Invoice(Model):
                 "company_id": obj.company_id.id,
             }
             lines = []
-            taxes = {}
-            tax_nos = []
             t01 = time.time()
             for line in obj.lines:
                 cur_amt = get_model("currency").convert(
