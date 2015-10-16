@@ -1258,7 +1258,7 @@ class Model(object):
             print("write_objs", len(objs))
             rows = []
             for i, obj in enumerate(objs):
-                print("%d/%d: %s.%d" % (i, len(objs), obj._model, obj.id))
+                print("%s/%s: %s.%s" % (i, len(objs), obj._model, obj.id))
                 row = {}
                 todo = {}
                 for path in exp_fields:
@@ -1305,7 +1305,7 @@ class Model(object):
                             v = obj[n]
                             if v:
                                 mr = get_model(v.model)
-                                exp_field=self.mr_export_field()
+                                exp_field = mr.get_export_field()
                                 v = ", ".join([o[exp_field] for o in v])
                             else:
                                 v = ""
