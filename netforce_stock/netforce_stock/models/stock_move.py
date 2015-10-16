@@ -258,6 +258,14 @@ class Move(Model):
         if settings.stock_cost_mode=="perpetual":
             self.post(ids,context=context)
         self.update_lots(ids,context=context)
+        self.set_reference(ids,context=context)
+
+    def set_reference(self,ids,context={}):
+        for obj in self.browse(ids):
+            if obj.ref or not obj.related_id:
+                continue
+            ref=obj.related_id.name_get()[0][1]
+            obj.write({"ref":ref})
 
     def get_production_orders(self, ids, context={}):
         prod_ids = []
