@@ -16,7 +16,7 @@
     <thead>
         <tr>
             <th>Date</th>
-            <th>Partner</th>
+            <th>Contact</th>
             <th>Number</th>
             <th>Description</th>
             <th>Due Date</th>
@@ -29,7 +29,7 @@
         {{#each lines context=context}}
             <tr>
                 <td>{{fmt_date move_date}}</td>
-                <td>{{partner_name}}</td>
+                <td>{{contact_name}}</td>
                 <td>
                     {{#view "link" action="view_transaction" active_id=id context=context}}
                         {{../move_number}}
