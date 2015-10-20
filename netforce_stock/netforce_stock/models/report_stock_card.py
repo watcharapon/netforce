@@ -26,7 +26,7 @@ from netforce.database import get_connection
 from pprint import pprint
 
 
-def get_totals(date_from, date_to, product_id=None, show_pending=False, lot_id=None, categ_id=None):
+def get_totals(date_from, date_to, product_id=None, location_id=None, show_pending=False, lot_id=None, categ_id=None):
     db = get_connection()
     q = "SELECT " \
         " m.product_id,m.location_from_id,m.location_to_id,m.uom_id, " \
@@ -43,6 +43,9 @@ def get_totals(date_from, date_to, product_id=None, show_pending=False, lot_id=N
     if product_id:
         q += " AND m.product_id=%s"
         q_args.append(product_id)
+    if location_id:
+        q += " AND (m.location_from_id=%s OR m.location_to_id=%s)"
+        q_args+=[location_id,location_id]
     if categ_id:
         q += " AND p.categ_id=%s"
         q_args.append(categ_id)
@@ -104,6 +107,8 @@ class ReportStockCard(Model):
 
         location_id = params.get("location_id")
         product_id = params.get("product_id")
+        if not location_id and not product_id:
+            raise Exception("Please select a product or location")
         categ_id = params.get("categ_id")
         uom_id = params.get("uom_id")
         date_from = params.get("date_from")
@@ -119,7 +124,7 @@ class ReportStockCard(Model):
 
         date_from_prev = (datetime.strptime(date_from, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
         open_totals = get_totals(
-            None, date_from_prev, product_id=product_id, show_pending=show_pending, lot_id=lot_id, categ_id=categ_id)
+            None, date_from_prev, product_id=product_id, location_id=location_id, show_pending=show_pending, lot_id=lot_id, categ_id=categ_id)
 
         def _get_open_balance(prod_id, loc_id):
             bal_qty = 0
