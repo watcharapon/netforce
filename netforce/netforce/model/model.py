@@ -69,6 +69,7 @@ class Model(object):
     _key = None
     _name_field = None
     _code_field = None
+    _export_field = None
     _image_field = None
     _store = True
     _transient = False
@@ -1704,10 +1705,9 @@ class Model(object):
         self.write(ids, {"active": False})
 
     def get_export_field(self):
-        try_fields=[self._code_field,"code",self._name_field,"name"]
+        try_fields=[self._export_field,self._code_field,"code",self._name_field,"name"]
         for f in try_fields:
             if f and f in self._fields:
-                print("XXXXX",self._name,f)
                 return f
         raise Exception("No export field for model %s"%self._name)
 
