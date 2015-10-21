@@ -273,10 +273,14 @@ class LandedCost(Model):
 
     def reverse(self,ids,context={}):
         obj=self.browse(ids)[0]
+        if obj.state!="posted":
+            raise Exception("Failed to reverse landed cost: invalid state")
         if not obj.move_id:
             raise Exception("Missing journal entry")
         res=obj.move_id.reverse()
-        obj.write({"state": "reversed","move_id": res["reverse_move_id"]})
+        obj.write({"state": "reversed","reverse_move_id": res["reverse_move_id"]})
+        for move in obj.stock_moves:
+            move.reverse()
 
     def merge_lc(self,ids,context={}):
         if len(ids)<2:

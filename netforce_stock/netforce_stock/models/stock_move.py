@@ -267,6 +267,30 @@ class Move(Model):
             ref=obj.related_id.name_get()[0][1]
             obj.write({"ref":ref})
 
+    def reverse(self,ids,context={}):
+        move_ids=[]
+        for obj in self.browse(ids):
+            if obj.state!="done":
+                raise Exception("Failed to reverse stock movement: invalid state")
+            vals={
+                "journal_id": obj.journal_id.id,
+                "product_id": obj.product_id.id,
+                "qty": obj.qty,
+                "uom_id": obj.uom_id.id,
+                "location_from_id": obj.location_to_id.id,
+                "location_to_id": obj.location_from_id.id,
+                "cost_price_cur": obj.cost_price_cur,
+                "cost_price": obj.cost_price,
+                "cost_amount": obj.cost_amount,
+                "qty2": obj.qty2,
+                "ref": "Reverse: %s"%obj.ref if obj.ref else None,
+                "related_id": "%s,%s"%(obj.related_id._model,obj.related_id.id) if obj.related_id else None,
+                "picking_id": obj.picking_id.id,
+            }
+            move_id=self.create(vals)
+            move_ids.append(move_id)
+        self.set_done(move_ids)
+
     def get_production_orders(self, ids, context={}):
         prod_ids = []
         for obj in self.browse(ids):

@@ -432,6 +432,7 @@ class Move(Model):
             }
             vals["lines"].append(("create", line_vals))
         new_id = self.create(vals, context={"journal_id": obj.journal_id.id})
+        self.post([new_id])
         new_obj = self.browse(new_id)
         return {
             "next": {
