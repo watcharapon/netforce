@@ -863,31 +863,25 @@ class Model(object):
             for r in res2:
                 vals[(r.record_id, r.field)] = r.value
             for n in multico_fields:
+                for r in res:
+                    k = (r["id"], n)
+                    r[n]=vals.get(k)
                 f = self._fields[n]
                 if isinstance(f, fields.Many2One):
                     r_ids=[]
                     for r in res:
-                        k = (r["id"], n)
-                        if k not in vals:
-                            continue
-                        v = vals[k]
+                        v = r[n]
                         if v is not None:
-                            v = int(v)
-                            r_ids.append(v)
+                            r_ids.append(int(v))
                     r_ids=list(set(r_ids))
                     mr=get_model(f.relation)
                     r_ids2=mr.search([["id","in",r_ids]],context={"active_test":False})
                     r_ids2_set=set(r_ids2)
                     for r in res:
-                        k = (r["id"], n)
-                        if k not in vals:
-                            continue
-                        v = vals[k]
+                        v = r[n]
                         if v is not None:
-                            v = int(v) 
-                            if v not in r_ids2_set:
-                                v=None
-                        r[n]=v
+                            if int(v) not in r_ids2_set:
+                                r[n]=None
                 elif isinstance(f, fields.Float):
                     for r in res:
                         k = (r["id"], n)
@@ -895,8 +889,7 @@ class Model(object):
                             continue
                         v = vals[k]
                         if v is not None:
-                            v = float(v)
-                        r[n] = v
+                            r[n] = float(v)
                 elif isinstance(f, fields.Char):
                     pass
                 elif isinstance(f, fields.File):
