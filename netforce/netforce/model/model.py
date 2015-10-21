@@ -880,7 +880,10 @@ class Model(object):
                     for r in res:
                         v = r[n]
                         if v is not None:
-                            if int(v) not in r_ids2_set:
+                            v=int(v)
+                            if v in r_ids2_set:
+                                r[n]=v
+                            else:
                                 r[n]=None
                 elif isinstance(f, fields.Float):
                     for r in res:

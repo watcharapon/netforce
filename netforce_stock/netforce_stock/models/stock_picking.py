@@ -748,12 +748,16 @@ class Picking(Model):
         if obj.currency_rate:
             currency_rate = obj.currency_rate
         else:
+            if not obj.currency_id:
+                raise Exception("Missing picking currency")
             if obj.currency_id.id == settings.currency_id.id:
                 currency_rate = 1
             else:
                 rate_from = obj.currency_id.get_rate(date=obj.date)
                 if not rate_from:
                     raise Exception("Missing currency rate for %s" % obj.currency_id.code)
+                if not settings.currency_id:
+                    raise Exception("Missing company currency")
                 rate_to = settings.currency_id.get_rate(date=obj.date)
                 if not rate_to:
                     raise Exception("Missing currency rate for %s" % settings.currency_id.code)
