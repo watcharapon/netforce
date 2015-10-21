@@ -158,7 +158,7 @@ class FixedAsset(Model):
         year_days = (d1 - d0).days + 1
         if obj.dep_method == "line":
             year_rate = (obj.price_purchase - (obj.salvage_value or 0)) * obj.dep_rate / 100
-            day_rate = float(year_rate) / year_days
+            day_rate = year_rate / year_days
         elif obj.dep_method == "decline":
             d = datetime.strptime(obj.date_purchase, "%Y-%m-%d")
             amt = obj.price_purchase - (obj.salvage_value or 0)
@@ -170,7 +170,7 @@ class FixedAsset(Model):
                 if n % 12 == 0:
                     amt -= year_rate
                     year_rate = amt * obj.dep_rate / 100
-            day_rate = float(year_rate) / year_days
+            day_rate = year_rate / year_days
         else:
             raise Exception("Invalid depreciation method for fixed asset %s" % obj.number)
         return day_rate
