@@ -30,19 +30,21 @@ def get_periods(date, period_days, num_periods):
     d0 = datetime.strptime(date, "%Y-%m-%d")
     date_from = d0 + timedelta(days=0)
     date_to = d0 + timedelta(days=period_days - 1)
-    periods.append({
+    period={
         "date_from": date_from.strftime("%Y-%m-%d"),
         "date_to": date_to.strftime("%Y-%m-%d"),
         "period_name": "%d-%d days" % ((date_from - d0).days, (date_to - d0).days),
-    })
+    }
+    periods.append(period)
     for i in range(num_periods - 1):
         date_from = date_from + timedelta(days=period_days)
         date_to = date_to + timedelta(days=period_days)
-        periods.append({
+        period={
             "date_from": date_from.strftime("%Y-%m-%d"),
             "date_to": date_to.strftime("%Y-%m-%d"),
             "period_name": "%d-%d days" % ((date_from - d0).days, (date_to - d0).days),
-        })
+        }
+        periods.append(period)
     return periods
 
 
@@ -90,7 +92,7 @@ class ReportStockForecast(Model):
     _name = "report.stock.forecast"
     _transient = True
     _fields = {
-        "date": fields.Date("Date", required=True),
+        "date": fields.Date("Start Date", required=True),
         "location_id": fields.Many2One("stock.location", "Location", on_delete="cascade"),
         "categ_id": fields.Many2One("product.categ", "Product Category", on_delete="cascade"),
         "product_id": fields.Many2One("product", "Product", on_delete="cascade"),
@@ -99,8 +101,8 @@ class ReportStockForecast(Model):
     }
     _defaults = {
         "date": lambda *a: date.today().strftime("%Y-%m-%d"),
-        "period_days": 7,
-        "num_periods": 8,
+        "period_days": 1,
+        "num_periods": 28,
     }
 
     def get_report_data(self, ids, context={}):
@@ -196,6 +198,7 @@ class ReportStockForecast(Model):
             "date": date,
             "periods": periods,
             "lines": lines,
+            "period_days": period_days,
         }
         return data
 

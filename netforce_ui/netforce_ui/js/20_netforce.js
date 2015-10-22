@@ -264,8 +264,8 @@ Handlebars.registerHelper("currency",function(v,options) {
     return s;
 });
 
-Handlebars.registerHelper("fmt_date",function(v) {
-    return format_date(v);
+Handlebars.registerHelper("fmt_date",function(v,options) {
+    return format_date(v,options);
 });
 
 Handlebars.registerHelper("time_ago",function(v) {
@@ -424,17 +424,21 @@ Handlebars.registerHelper("field_label",function(name,options) {
     return translate(field.string);
 });
 
-function format_date(val) {
+function format_date(val,options) {
     if (!val) return null;
     if (window.nf_use_buddhist_date) {
         var year=parseInt(val.substr(0,4));
         var year2=year+543;
         val=""+year2+val.substr(4);
     }
-    if (ui_params_db && ui_params_db.date_format) {
-        var fmt=ui_params_db.date_format;
+    if (options && options.hash.fmt) {
+        var fmt=options.hash.fmt;
     } else {
-        var fmt="YYYY-MM-DD";
+        if (ui_params_db && ui_params_db.date_format) {
+            var fmt=ui_params_db.date_format;
+        } else {
+            var fmt="YYYY-MM-DD";
+        }
     }
     var val2=moment(val,"YYYY-MM-DD").format(fmt);
     return val2;
