@@ -51,7 +51,7 @@ def get_periods(date, period_days, num_periods):
 def get_total_qtys(prod_id, loc_id, date_from, date_to, states, categ_id):
     db = get_connection()
     q = "SELECT " \
-        " t1.product_id,t1.location_from_id,t1.location_to_id,t1.uom_id,SUM(t1.qty) AS total_qty " \
+        " t1.product_id,t1.lot_id,t1.location_from_id,t1.location_to_id,t1.uom_id,SUM(t1.qty) AS total_qty " \
         " FROM stock_move t1 " \
         " LEFT JOIN product t2 on t1.product_id=t2.id " \
         " WHERE t1.state IN %s"
@@ -75,14 +75,14 @@ def get_total_qtys(prod_id, loc_id, date_from, date_to, states, categ_id):
     if company_id:
         q += " AND t1.company_id=%s"
         q_args.append(company_id)
-    q += " GROUP BY t1.product_id,t1.location_from_id,t1.location_to_id,t1.uom_id"
+    q += " GROUP BY t1.product_id,t1.lot_id,t1.location_from_id,t1.location_to_id,t1.uom_id"
     res = db.query(q, *q_args)
     totals = {}
     for r in res:
         prod = get_model("product").browse(r.product_id)
         uom = get_model("uom").browse(r.uom_id)
         qty = r.total_qty * uom.ratio / prod.uom_id.ratio
-        k = (r.product_id, r.location_from_id, r.location_to_id)
+        k = (r.product_id, r.lot_id, r.location_from_id, r.location_to_id)
         totals.setdefault(k, 0)
         totals[k] += qty
     return totals
@@ -98,6 +98,7 @@ class ReportStockForecast(Model):
         "product_id": fields.Many2One("product", "Product", on_delete="cascade"),
         "period_days": fields.Integer("Period Days", required=True),
         "num_periods": fields.Integer("Number of Periods", required=True),
+        "show_lot": fields.Boolean("Show Lot / Serial Number"),
     }
     _defaults = {
         "date": lambda *a: date.today().strftime("%Y-%m-%d"),
@@ -140,21 +141,27 @@ class ReportStockForecast(Model):
         qtys0 = get_total_qtys(product_id, location_id, None, date_to0, ["done"], categ_id)
         print("qtys0", qtys0)
         prod_locs = set([])
-        for prod_id, loc_from_id, loc_to_id in qtys0:
-            prod_locs.add((prod_id, loc_from_id))
-            prod_locs.add((prod_id, loc_to_id))
+        for prod_id, lot_id, loc_from_id, loc_to_id in qtys0:
+            if not params.get("show_lot"):
+                lot_id = -1
+            prod_locs.add((prod_id, lot_id, loc_from_id))
+            prod_locs.add((prod_id, lot_id, loc_to_id))
         for period in periods:
             period["qtys"] = get_total_qtys(
                 product_id, location_id, period["date_from"], period["date_to"], ["done", "pending"], categ_id)
-            for prod_id, loc_from_id, loc_to_id in period["qtys"]:
-                prod_locs.add((prod_id, loc_from_id))
-                prod_locs.add((prod_id, loc_to_id))
+            for prod_id, lot_id, loc_from_id, loc_to_id in period["qtys"]:
+                if not params.get("show_lot"):
+                    lot_id = -1
+                prod_locs.add((prod_id, lot_id, loc_from_id))
+                prod_locs.add((prod_id, lot_id, loc_to_id))
         print("prod_locs", prod_locs)
 
-        def get_balance_qty(prod_id, loc_id, qtys):
+        def get_balance_qty(prod_id, lot_id, loc_id, qtys):
             bal = 0
-            for (prod_id_, loc_from_id, loc_to_id), qty in qtys.items():
+            for (prod_id_, lot_id_, loc_from_id, loc_to_id), qty in qtys.items():
                 if prod_id_ != prod_id:
+                    continue
+                if lot_id!=-1 and lot_id_ != lot_id:
                     continue
                 if loc_to_id == loc_id and loc_from_id != loc_id:
                     bal += qty
@@ -162,23 +169,26 @@ class ReportStockForecast(Model):
                     bal -= qty
             return bal
         lines = []
-        for prod_id, loc_id in prod_locs:
+        for prod_id, lot_id, loc_id in prod_locs:
             loc = get_model("stock.location").browse(loc_id)
             if loc.type != "internal":
                 continue
             prod = get_model("product").browse(prod_id)
-            qty = get_balance_qty(prod_id, loc_id, qtys0)
+            qty = get_balance_qty(prod_id, lot_id, loc_id, qtys0)
+            lot=get_model("stock.lot").browse(lot_id) if lot_id and lot_id!=-1 else None
             line = {
                 "product_id": prod.id,
                 "product_name": prod.name,
                 "code": prod.code,
                 "location_id": loc.id,
                 "location_name": loc.name,
+                "lot_id": lot_id if lot_id!=-1 else None, 
+                "lot_num": lot.number if lot else None,
                 "qty": qty,
                 "periods": [],
             }
             for period in periods:
-                period_qty = get_balance_qty(prod_id, loc_id, period["qtys"])
+                period_qty = get_balance_qty(prod_id, lot_id, loc_id, period["qtys"])
                 qty += period_qty
                 line["periods"].append({
                     "date_from": period["date_from"],
@@ -187,7 +197,7 @@ class ReportStockForecast(Model):
                     "warning": qty < 0,
                 })
             lines.append(line)
-        lines.sort(key=lambda l: (l["product_name"], l["location_name"]))
+        lines.sort(key=lambda l: (l["product_name"], l["location_name"], l["lot_num"] or ""))
         print("lines", lines)
         for period in periods:
             del period["qtys"]
@@ -199,6 +209,7 @@ class ReportStockForecast(Model):
             "periods": periods,
             "lines": lines,
             "period_days": period_days,
+            "show_lot": params.get("show_lot"),
         }
         return data
 
