@@ -37,14 +37,12 @@ class ReportIssue(Model):
     _store = False
 
     def get_issue_chart(self, context={}):
-        db=get_connection()
-        res = db.query("SELECT date_created,date_closed,state FROM issue")
         actions=[]
-        for r in res:
-            if r.date_created:
-                actions.append((r.date_created,"open"))
-            if r.state=="closed" and r.date_closed:
-                actions.append((r.date_closed,"close"))
+        for issue in get_model("issue").search_browse([]):
+            if issue.date_created:
+                actions.append((issue.date_created,"open"))
+            if issue.state=="closed" and issue.date_closed:
+                actions.append((issue.date_closed,"close"))
         actions.sort()
         values=[]
         num_issues=0
@@ -60,11 +58,9 @@ class ReportIssue(Model):
         return data
 
     def get_issue_close_chart(self, context={}):
-        db=get_connection()
-        res = db.query("SELECT date_closed FROM issue WHERE state='closed' AND date_closed IS NOT NULL")
         closed={}
-        for r in res:
-            d=r.date_closed[:10]
+        for issue in get_model("issue").search_browse([["state","=","closed"],["date_closed","!=",None]]):
+            d=issue.date_closed[:10]
             closed.setdefault(d,0)
             closed[d]+=1
         values=[]
