@@ -1,5 +1,5 @@
 <list model="document" colors='{"expiry_date,#f00":[["expired","=",true]]}'>
-    <field name="file" target="_blank"/>
+    <field name="file" target="_blank" preview="1"/>
     <field name="categ_id"/>
     <field name="description"/>
     <field name="contact_id"/>

@@ -104,7 +104,33 @@
             <td></td>
             <td></td>
             <td></td>
-            <td style="text-align:right">{{currency totals_payable.unreal_gain}}</td>
+            <td style="text-align:right">{{currency totals_bank.unreal_gain}}</td>
+        </tr>
+        <tr>
+            <td style="font-weight:bold">
+                Deposit Accounts
+            </td>
+            <td colspan="10"></td>
+        </tr>
+        {{#each deposit_accounts}}
+            <tr>
+                <td>{{name}}</td>
+                <td style="text-align:right">{{currency balance_cur}}</td>
+                <td>{{account_currency_code}}</td>
+                <td style="text-align:right">{{currency balance}}</td>
+                <td>{{company_currency_code}}</td>
+                <td style="text-align:right">{{currency balance_reval}}</td>
+                <td style="text-align:right">{{currency unreal_gain}}</td>
+            </tr>
+        {{/each}}
+        <tr class="row-total">
+            <td>Total Deposit Accounts</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td style="text-align:right">{{currency totals_deposit.unreal_gain}}</td>
         </tr>
         <tr><td></td></tr>
         <tr class="row-total">

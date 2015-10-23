@@ -1,4 +1,7 @@
 <form model="issue">
+    <head>
+        <field name="state"/>
+    </head>
     <field name="number"/>
     <field name="date_created"/>
     <field name="contact_id"/>
@@ -19,6 +22,7 @@
     <field name="date_closed"/>
     <field name="days_open"/>
     <related>
+        <field name="messages"/>
         <field name="documents"/>
         <field name="emails"/>
     </related>

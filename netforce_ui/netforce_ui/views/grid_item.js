@@ -23,7 +23,8 @@
 var GridItem=NFView.extend({
     _name: "grid_item",
     events: {
-        "click .title-link": "click_title"
+        "click .title-link": "click_title",
+        "click .nf-select-item": "select_item"
     },
 
     initialize: function(options) {
@@ -53,6 +54,7 @@ var GridItem=NFView.extend({
     render: function() {
         //log("grid_item.render",this);
         this.data.context.model=this.options.data;
+        this.data.context.data=this.options.data.attributes; // XXX
         if (this.$grid.find("head").length>0) {
             this.data.show_head=true;
         }
@@ -384,6 +386,35 @@ var GridItem=NFView.extend({
                 }
                 var view=Button.make_view(opts);
                 cell.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
+            } else if (tag=="template") {
+                var span=$el.attr("span")
+                if (span) span=parseInt(span);
+                else span=12;
+                var offset=$el.attr("offset")
+                if (offset) offset=parseInt(offset);
+                else offset=0;
+                col+=offset;
+                if (col+span>12) {
+                    col=0;
+                    row=$('<div class="row"/>');
+                    body.append(row);
+                }
+                var cell=$('<div/>');
+                cell.addClass("col-sm-"+span);
+                if (offset) {
+                    cell.addClass("col-sm-offset-"+offset);
+                }
+                row.append(cell);
+                var tmpl_src=(new XMLSerializer()).serializeToString($el[0]).replace("<template>","").replace("</template>","");
+                var tmpl=Handlebars.compile(tmpl_src);
+                var data={context:context};
+                try {
+                    var html=tmpl(data);
+                } catch (err) {
+                    throw "Failed to render template: "+err.message;
+                }
+                cell.append(html);
+                col+=span;
             }
         });
         return body.html();
@@ -413,6 +444,14 @@ var GridItem=NFView.extend({
             }
         }
         exec_action(action);
+    },
+
+    select_item: function(e) {
+        log("grid_item.select_item");
+        e.preventDefault();
+        if (this.options.on_select_item) {
+            this.options.on_select_item(this.options.data.id);
+        }
     }
 });
 

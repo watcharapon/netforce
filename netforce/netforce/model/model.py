@@ -69,6 +69,7 @@ class Model(object):
     _key = None
     _name_field = None
     _code_field = None
+    _export_field = None
     _image_field = None
     _store = True
     _transient = False
@@ -864,22 +865,40 @@ class Model(object):
             for n in multico_fields:
                 for r in res:
                     k = (r["id"], n)
-                    if k not in vals:
-                        continue
-                    v = vals[k]
-                    if v is not None:
-                        f = self._fields[n]
-                        if isinstance(f, fields.Many2One):
-                            v = int(v)
-                        elif isinstance(f, fields.Float):
-                            v = float(v)
-                        elif isinstance(f, fields.Char):
-                            pass
-                        elif isinstance(f, fields.File):
-                            pass
-                        else:  # TODO: add more field types...
-                            raise Exception("Multicompany field not yet implemented: %s" % n)
-                    r[n] = v
+                    r[n]=vals.get(k)
+                f = self._fields[n]
+                if isinstance(f, fields.Many2One):
+                    r_ids=[]
+                    for r in res:
+                        v = r[n]
+                        if v is not None:
+                            r_ids.append(int(v))
+                    r_ids=list(set(r_ids))
+                    mr=get_model(f.relation)
+                    r_ids2=mr.search([["id","in",r_ids]],context={"active_test":False})
+                    r_ids2_set=set(r_ids2)
+                    for r in res:
+                        v = r[n]
+                        if v is not None:
+                            v=int(v)
+                            if v in r_ids2_set:
+                                r[n]=v
+                            else:
+                                r[n]=None
+                elif isinstance(f, fields.Float):
+                    for r in res:
+                        k = (r["id"], n)
+                        if k not in vals:
+                            continue
+                        v = vals[k]
+                        if v is not None:
+                            r[n] = float(v)
+                elif isinstance(f, fields.Char):
+                    pass
+                elif isinstance(f, fields.File):
+                    pass
+                else:  # TODO: add more field types...
+                    raise Exception("Multicompany field not yet implemented: %s" % n)
         for n in field_names:
             f = self._fields[n]
             if not f.function:
@@ -1258,7 +1277,7 @@ class Model(object):
             print("write_objs", len(objs))
             rows = []
             for i, obj in enumerate(objs):
-                print("%d/%d: %s.%d" % (i, len(objs), obj._model, obj.id))
+                print("%s/%s: %s.%s" % (i, len(objs), obj._model, obj.id))
                 row = {}
                 todo = {}
                 for path in exp_fields:
@@ -1281,8 +1300,8 @@ class Model(object):
                             v = obj[n]
                             if v:
                                 mr = get_model(v._model)
-                                name = mr._code_field or mr._name_field or "name"
-                                v = v[name]
+                                exp_field = mr.get_export_field()
+                                v = v[exp_field]
                             else:
                                 v = ""
                             row[path] = v
@@ -1305,8 +1324,8 @@ class Model(object):
                             v = obj[n]
                             if v:
                                 mr = get_model(v.model)
-                                name = mr._code_field or mr._name_field or "name"
-                                v = ", ".join([o[name] for o in v])
+                                exp_field = mr.get_export_field()
+                                v = ", ".join([o[exp_field] for o in v])
                             else:
                                 v = ""
                             row[path] = v
@@ -1681,9 +1700,16 @@ class Model(object):
     def archive(self, ids, context={}):
         self.write(ids, {"active": False})
 
+    def get_export_field(self):
+        try_fields=[self._export_field,self._code_field,"code",self._name_field,"name"]
+        for f in try_fields:
+            if f and f in self._fields:
+                return f
+        raise Exception("No export field for model %s"%self._name)
+
     def import_get(self, name, context={}):
-        f = self._code_field or self._name_field or "name"
-        res = self.search([[f, "=", name]])
+        exp_field = self.get_export_field()
+        res = self.search([[exp_field, "=", name]])
         if not res:
             return None
         if len(res) > 1:

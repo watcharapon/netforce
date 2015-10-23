@@ -44,6 +44,7 @@ var MultiView=NFView.extend({
 
     render: function() {
         //log("multi_view render",this);
+        var that=this;
         this.remove_subviews();
         if (this.mode=="list") {
             var opts={
@@ -181,6 +182,10 @@ var MultiView=NFView.extend({
                 order: this.options.order,
                 string: this.options.string,
                 view_xml: this.options.grid_view_xml,
+                modes: this.modes,
+                show_top: true,
+                show_head: true,
+                action_name: this.options.name, // XXX
                 context: this.context
             };
             if (_.contains(this.modes,"page")) { // XXX
@@ -217,7 +222,45 @@ var MultiView=NFView.extend({
             view.render();
             this.$el.append(view.el);
             this.subviews[view.cid]=view;
+        } else {
+            throw "Invalid mode "+this.mode;
         }
+        view.on("click_item",function(opts) {
+            var action={
+                name: that.options.name,
+                active_id: opts.active_id
+            };
+            if (_.contains(this.modes,"page")) {
+                action.mode="page";
+            } else if (_.contains(this.modes,"form")) {
+                action.mode="form";
+            } else {
+                log("can't view item details because no page or form view");
+                return;
+            }
+            exec_action(action);
+        });
+        view.on("change_mode",function(opts) {
+            var action={
+                name: that.options.name
+            };
+            if (opts.mode) {
+                action.mode=opts.mode;
+            }
+            if (opts.active_id) {
+                action.active_id=opts.active_id;
+            }
+            if (that.options.search_condition) {
+                action.search_condition=that.options.search_condition;
+            }
+            if (that.options.tab_no) {
+                action.tab_no=that.options.tab_no;
+            }
+            if (that.options.offset) {
+                action.offset=that.options.offset;
+            }
+            exec_action(action);
+        });
         return this;
     }
 });

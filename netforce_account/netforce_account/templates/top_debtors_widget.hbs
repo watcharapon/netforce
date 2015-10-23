@@ -2,7 +2,7 @@
     <table class="table">
         <thead>
             <tr>
-                <th>{{t "Partner"}}</th>
+                <th>{{t "Contact"}}</th>
                 <th style="text-align:right">{{t "Outstanding"}}</th>
                 <th style="text-align:right">{{t "Overdue"}}</th>
             </tr>
@@ -10,7 +10,7 @@
         <tbody>
             {{#each context.data}}
                 <tr>
-                    <td>{{partner_name}}</td>
+                    <td>{{contact_name}}</td>
                     <td style="text-align:right">{{currency amount_due}}</td>
                     <td style="text-align:right">{{currency amount_overdue}}</td>
                 </tr>

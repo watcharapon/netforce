@@ -25,6 +25,7 @@ from netforce.model import Model, fields, get_model
 from netforce.access import get_active_user, set_active_user
 from netforce.access import get_active_company
 from netforce import database
+from decimal import Decimal
 
 FMT_TIME = '%Y-%m-%d %H:%M:%S'
 FMT_DAY = '%Y-%m-%d'
@@ -166,13 +167,13 @@ class Leave(Model):
             total_sec = diff.seconds
             total_hrs = total_sec / 60 / 60
         if total_hrs >= part1 and total_hrs <= part1 + total_break and part1 > 0:
-            hrs2day = 0.5
+            hrs2day = Decimal(0.5)
         else:
             if total_hrs >= part1 + total_break * 2:  # XXX *2
                 total_hrs -= total_break
             hrs2day = (total_hrs / default_hour)
         res = total_day + hrs2day
-        return res
+        return Decimal(res)
 
     def cal_days_requested(self, ids, context={}):
         res = {}

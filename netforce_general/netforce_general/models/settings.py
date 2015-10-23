@@ -166,6 +166,8 @@ class Settings(Model):
         else:
             d0 = datetime.date.today()
         settings = self.browse(1)
+        if not settings.year_end_month or not settings.year_end_day:
+            raise Exception("Missing fiscal year end")
         month = int(settings.year_end_month)
         day = int(settings.year_end_day)
         d = datetime.date(d0.year, month, day)

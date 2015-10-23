@@ -28,7 +28,7 @@ class InvoicePayment(Model):
         "amount": fields.Decimal("Amount", required=True),
         "amount_overpay": fields.Decimal("Amount", function="get_overpay"),
         "date": fields.Date("Date", required=True),
-        "account_id": fields.Many2One("account.account", "Account", required=True, condition=["or", ["type", "=", "bank"], ["enable_payment", "=", True]], on_delete="cascade"),
+        "account_id": fields.Many2One("account.account", "Account", required=True, condition=["or", ["type", "in", ["bank","cash","cheque"]], ["enable_payment", "=", True]], on_delete="cascade"),
         "ref": fields.Char("Ref"),
         "invoice_id": fields.Many2One("account.invoice", "Invoice", required=True, on_delete="cascade"),
         "description": fields.Char("Description"),

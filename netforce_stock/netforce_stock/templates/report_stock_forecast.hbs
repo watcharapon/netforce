@@ -20,32 +20,47 @@
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
-            <th colspan="3"></td>
-            <th colspan="20" style="text-align:center">Forecast Qty</th>
+            <th></td>
+            <th></td>
+            {{#if show_lot}}
+                <th></th>
+            {{/if}}
+            <th colspan="100" style="text-align:center">Forecast Qty</th>
         </tr>
         <tr>
-            <th>Product Code</th>
             <th>Product</th>
             <th>Location</th>
+            {{#if show_lot}}
+                <th>Lot / Serial Number</th>
+            {{/if}}
             {{#each periods}}
-                <th>{{period_name}}</th>
+                <th>
+                    {{#ifeq ../period_days 1}}
+                        <span style="font-size:8px">{{fmt_date date_from fmt="ddd"}},</span>
+                        <span>{{fmt_date date_from fmt="DD"}}</span>
+                        <span style="font-size:10px">{{fmt_date date_from fmt="MMM"}}</span>
+                    {{else}}
+                        {{period_name}}
+                    {{/ifeq}}
+                </th>
             {{/each}}
         </tr>
     <tbody>
         {{#each lines context=context}}
             <tr>
                 <td>
-                    {{code}}
-                </td>
-                <td>
+                    [{{code}}]
                     {{product_name}}
                 </td>
                 <td>
                     {{location_name}}
                 </td>
+                <td>
+                    {{lot_num}}
+                </td>
                 {{#each periods}}
                     <td align="right">
-                        <a href="/ui#name=report_stock_card&defaults.product_id={{../product_id}}&defaults.location_id={{../location_id}}&defaults.date_from={{date_from}}&defaults.date_to={{date_to}}&defaults.show_pending=1" {{#if warning}}style="color:red;font-weight:bold"{{/if}}>{{currency qty}}</a>
+                        <a href="/ui#name=report_stock_card&defaults.product_id={{../product_id}}&defaults.location_id={{../location_id}}&defaults.date_from={{date_from}}&defaults.date_to={{date_to}}&defaults.show_pending=1" {{#if warning}}style="color:red;font-weight:bold"{{/if}}>{{qty}}</a>
                     </td>
                 {{/each}}
             </tr>

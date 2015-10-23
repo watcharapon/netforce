@@ -294,12 +294,8 @@ class Invoice(Model):
                 if settings.rounding_account_id:
                     base_amt=round(base_amt,2)
                 tax_comps = get_model("account.tax.rate").compute_taxes(tax_id, base_amt, when="invoice")
-                if not settings.rounding_account_id:
-                    base_amt=round(base_amt,2)
                 for comp_id, tax_amt in tax_comps.items():
                     tax_vals = taxes.setdefault(comp_id, {"tax_amt": 0, "base_amt": 0})
-                    if not settings.rounding_account_id:
-                        tax_amt=round(tax_amt,2)
                     tax_vals["tax_amt"] += tax_amt
                     tax_vals["base_amt"] += base_amt
             else:
@@ -312,8 +308,8 @@ class Invoice(Model):
             vals = {
                 "invoice_id": obj.id,
                 "tax_comp_id": comp_id,
-                "base_amount": tax_vals["base_amt"],
-                "tax_amount": tax_vals["tax_amt"],
+                "base_amount": round(tax_vals["base_amt"],2),
+                "tax_amount": round(tax_vals["tax_amt"],2),
             }
             if comp.type in ("vat", "vat_exempt"):
                 if obj.type == "out":
@@ -339,6 +335,7 @@ class Invoice(Model):
                 raise Exception("Invoice total is negative")
             if not obj.taxes:
                 obj.calc_taxes()
+                obj=obj.browse()[0]
             contact = obj.contact_id
             if obj.type == "out":
                 account_id = contact.account_receivable_id.id or settings.account_receivable_id.id
@@ -388,8 +385,6 @@ class Invoice(Model):
                 "company_id": obj.company_id.id,
             }
             lines = []
-            taxes = {}
-            tax_nos = []
             t01 = time.time()
             for line in obj.lines:
                 cur_amt = get_model("currency").convert(

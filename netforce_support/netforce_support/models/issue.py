@@ -6,6 +6,7 @@ import time
 class Issue(Model):
     _name="issue"
     _string="Issue"
+    _name_field="number"
     _fields={
         "number": fields.Char("Number",required=True,search=True),
         "date_created": fields.DateTime("Date Created",required=True,search=True),
@@ -25,6 +26,7 @@ class Issue(Model):
         "emails": fields.One2Many("email.message", "related_id", "Emails"),
         "comments": fields.Text("Comments"),
         "type_id": fields.Many2One("issue.type","Issue Type",required=True),
+        "messages": fields.One2Many("message", "related_id", "Messages"),
     }
     _order="priority,id"
 

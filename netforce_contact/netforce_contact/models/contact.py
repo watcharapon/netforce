@@ -29,6 +29,7 @@ class Contact(Model):
     _string = "Contact"
     _audit_log = True
     _key = ["code"]  # XXX
+    _export_field = "name"
     _fields = {
         "user_id": fields.Many2One("base.user", "User"),
         "type": fields.Selection([["person", "Individual"], ["org", "Organization"]], "Contact Type", required=True, search=True),
@@ -117,6 +118,7 @@ class Contact(Model):
         "request_product_groups": fields.Many2Many("product.group","Request Product Groups",reltable="m2m_contact_request_product_groups",relfield="contact_id",relfield_other="group_id"),
         "exclude_product_groups": fields.Many2Many("product.group","Exclude Product Groups",reltable="m2m_contact_exclude_product_groups",relfield="contact_id",relfield_other="group_id"),
         "picture": fields.File("Picture"),
+        "users": fields.One2Many("base.user","contact_id","Users"),
     }
 
     def _get_number(self, context={}):

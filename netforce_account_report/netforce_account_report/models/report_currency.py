@@ -57,6 +57,7 @@ class ReportCurrency(Model):
         receivable_accounts = []
         payable_accounts = []
         bank_accounts = []
+        deposit_accounts = []
         ctx = {
             #"date_from": date_from, # TODO: double-check that don't need date from
             "date_to": date_to,
@@ -104,6 +105,20 @@ class ReportCurrency(Model):
                 "unreal_gain": get_model("currency").convert(bal_reval - acc.balance, acc.company_currency_id.id, settings.currency_id.id, date=date_to, rate_type="sell"),
             }
             bank_accounts.append(vals)
+        for acc in get_model("account.account").search_browse([["type", "=", "cur_liability"]], context=ctx):
+            bal_reval = get_model("currency").convert(
+                acc.balance_cur, acc.currency_id.id, acc.company_currency_id.id, date=date_to, rate_type="sell")
+            vals = {
+                "code": acc.code,
+                "name": acc.name,
+                "balance_cur": acc.balance_cur,
+                "account_currency_code": acc.currency_id.code,
+                "company_currency_code": acc.company_currency_id.code,
+                "balance": acc.balance,
+                "balance_reval": bal_reval,
+                "unreal_gain": get_model("currency").convert(bal_reval - acc.balance, acc.company_currency_id.id, settings.currency_id.id, date=date_to, rate_type="sell"),
+            }
+            deposit_accounts.append(vals)
         data = {
             "date_from": date_from,
             "date_to": date_to,
@@ -112,6 +127,7 @@ class ReportCurrency(Model):
             "receivable_accounts": receivable_accounts,
             "payable_accounts": payable_accounts,
             "bank_accounts": bank_accounts,
+            "deposit_accounts": deposit_accounts,
             "totals_receivable": {
                 "unreal_gain": sum(a["unreal_gain"] for a in receivable_accounts),
             },
@@ -121,10 +137,14 @@ class ReportCurrency(Model):
             "totals_bank": {
                 "unreal_gain": sum(a["unreal_gain"] for a in bank_accounts),
             },
+            "totals_deposit": {
+                "unreal_gain": sum(a["unreal_gain"] for a in deposit_accounts),
+            },
             "total_exposure":
                 sum(a["unreal_gain"] for a in receivable_accounts) +
                 sum(a["unreal_gain"] for a in payable_accounts) +
-                sum(a["unreal_gain"] for a in bank_accounts),
+                sum(a["unreal_gain"] for a in bank_accounts) +
+                sum(a["unreal_gain"] for a in deposit_accounts),
         }
         return data
 

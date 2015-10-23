@@ -258,6 +258,38 @@ class Move(Model):
         if settings.stock_cost_mode=="perpetual":
             self.post(ids,context=context)
         self.update_lots(ids,context=context)
+        self.set_reference(ids,context=context)
+
+    def set_reference(self,ids,context={}):
+        for obj in self.browse(ids):
+            if obj.ref or not obj.related_id:
+                continue
+            ref=obj.related_id.name_get()[0][1]
+            obj.write({"ref":ref})
+
+    def reverse(self,ids,context={}):
+        move_ids=[]
+        for obj in self.browse(ids):
+            if obj.state!="done":
+                raise Exception("Failed to reverse stock movement: invalid state")
+            vals={
+                "journal_id": obj.journal_id.id,
+                "product_id": obj.product_id.id,
+                "qty": obj.qty,
+                "uom_id": obj.uom_id.id,
+                "location_from_id": obj.location_to_id.id,
+                "location_to_id": obj.location_from_id.id,
+                "cost_price_cur": obj.cost_price_cur,
+                "cost_price": obj.cost_price,
+                "cost_amount": obj.cost_amount,
+                "qty2": obj.qty2,
+                "ref": "Reverse: %s"%obj.ref if obj.ref else None,
+                "related_id": "%s,%s"%(obj.related_id._model,obj.related_id.id) if obj.related_id else None,
+                "picking_id": obj.picking_id.id,
+            }
+            move_id=self.create(vals)
+            move_ids.append(move_id)
+        self.set_done(move_ids)
 
     def get_production_orders(self, ids, context={}):
         prod_ids = []
@@ -310,10 +342,11 @@ class Move(Model):
             amt=move.cost_amount
             if not amt:
                 raise Exception("No cost amount for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
-            accounts.setdefault((acc_from_id,track_from_id,desc),0)
-            accounts.setdefault((acc_to_id,track_to_id,desc),0)
-            accounts[(acc_from_id,track_from_id,desc)]-=amt
-            accounts[(acc_to_id,track_to_id,desc)]+=amt
+            if move.qty: # XXX: avoid create double journal entry for LC
+                accounts.setdefault((acc_from_id,track_from_id,desc),0)
+                accounts.setdefault((acc_to_id,track_to_id,desc),0)
+                accounts[(acc_from_id,track_from_id,desc)]-=amt
+                accounts[(acc_to_id,track_to_id,desc)]+=amt
         lines=[]
         for (acc_id,track_id,desc),amt in accounts.items():
             if amt==0:

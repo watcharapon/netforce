@@ -81,8 +81,10 @@ class SaleQuot(Model):
     }
 
     def _get_number(self, context={}):
+        seq_id = get_model("sequence").find_sequence(type="sale_quot")
+        if not seq_id:
+            return None
         while 1:
-            seq_id = get_model("sequence").find_sequence(type="sale_quot")
             num = get_model("sequence").get_next_number(seq_id, context=context)
             if not num:
                 return None

@@ -27,7 +27,7 @@ class InvoiceRefund(Model):
     _fields = {
         "amount": fields.Decimal("Amount", required=True),
         "date": fields.Date("Date", required=True),
-        "account_id": fields.Many2One("account.account", "Account", required=True, condition=[["type", "in",[ "bank","cash","cheque"]]], on_delete="cascade"),
+        "account_id": fields.Many2One("account.account", "Account", required=True, condition=[["type", "in", ["bank","cash","cheque"]]], on_delete="cascade"),
         "ref": fields.Char("Ref"),
         "invoice_id": fields.Many2One("account.invoice", "Invoice", required=True, on_delete="cascade"),
     }
