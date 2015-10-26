@@ -20,6 +20,7 @@
 
 from netforce.model import Model, fields, get_model, BrowseRecord
 import uuid
+from decimal import *
 
 
 class TaxRate(Model):
@@ -72,8 +73,8 @@ class TaxRate(Model):
         if tax_type == "no_tax":
             return 0
         obj = self.browse(tax_id)
-        vat_rate = 0
-        wht_rate = 0
+        vat_rate = Decimal(0)
+        wht_rate = Decimal(0)
         for comp in obj.components:
             if comp.type == "wht":
                 wht_rate += comp.rate or 0
