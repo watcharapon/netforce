@@ -1,7 +1,5 @@
 <inherit inherit="main_menu">
     <item string="Inventory" position="after">
-        <!--
         <item string="Delivery" action="delivery_board"/>
-        -->
     </item>
 </inherit>
