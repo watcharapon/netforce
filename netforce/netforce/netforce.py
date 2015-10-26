@@ -105,8 +105,15 @@ def on_sigterm(signum,frame):
     print("Received SIGTERM")
     print("Kill all child processes...")
     root = psutil.Process(os.getpid())
+    pids=[os.get_pid()]
     for child in root.children(recursive=True):
-        child.kill()
+        pids.append(child.pid)
+    for pid in pids:
+        try:
+            proc=psutils.Process(pid)
+            proc.kill()
+        except Exception as e:
+            print("WARNING: failed to kill process %s: %s"%(pid,e))
 
 def run_server():
     global NUM_PROCESSES
