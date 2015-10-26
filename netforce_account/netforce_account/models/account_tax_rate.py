@@ -47,8 +47,8 @@ class TaxRate(Model):
     def get_rate(self, ids, context={}):
         vals = {}
         for obj in self.browse(ids):
-            rate = 0
-            wht_rate = 0
+            rate = Decimal(0)
+            wht_rate = Decimal(0)
             for comp in obj.components:
                 if comp.type == "vat":
                     rate += comp.rate
