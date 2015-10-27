@@ -119,6 +119,11 @@ class StockCount(Model):
                 loc_to_id = obj.location_id.id
             else:
                 continue
+            cost_amount = get_model("currency").convert(
+                line.unit_price,
+                settings.currency_id.id,
+                settings.currency_id.id,
+                rate = 1)
             vals = {
                 "journal_id": obj.journal_id.id or settings.stock_count_journal_id.id,
                 "date": obj.date,
@@ -129,6 +134,7 @@ class StockCount(Model):
                 "qty": qty,
                 "uom_id": line.uom_id.id,
                 "cost_price": line.unit_price,
+                "cost_amount": cost_amount * qty,
                 "related_id": "stock.count,%d" % obj.id,
             }
             move_id = get_model("stock.move").create(vals)
