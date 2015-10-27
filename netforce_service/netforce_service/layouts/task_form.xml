@@ -4,10 +4,9 @@
     </head>
     <field name="number"/>
     <field name="date_created"/>
-    <field name="contact_id"/>
-    <field name="project_id"/>
     <newline/>
     <field name="title"/>
+    <field name="project_id"/>
     <newline/>
     <field name="description" width="600" height="200"/>
     <newline/>

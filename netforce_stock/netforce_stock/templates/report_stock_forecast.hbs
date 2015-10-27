@@ -55,9 +55,11 @@
                 <td>
                     {{location_name}}
                 </td>
-                <td>
-                    {{lot_num}}
-                </td>
+                {{#if ../show_lot}}
+                    <td>
+                        {{lot_num}}
+                    </td>
+                {{/if}}
                 {{#each periods}}
                     <td align="right">
                         <a href="/ui#name=report_stock_card&defaults.product_id={{../product_id}}&defaults.location_id={{../location_id}}&defaults.date_from={{date_from}}&defaults.date_to={{date_to}}&defaults.show_pending=1" {{#if warning}}style="color:red;font-weight:bold"{{/if}}>{{qty}}</a>
