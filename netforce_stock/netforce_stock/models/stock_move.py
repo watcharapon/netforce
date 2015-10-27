@@ -364,7 +364,6 @@ class Move(Model):
         vals={
             "narration": "Inventory costing",
             "date": post_date,
-            "related_id": "stock.picking,%s"%obj.id,
             "lines": [("create",vals) for vals in lines],
         }
         pick_ids=list(set(pick_ids))
