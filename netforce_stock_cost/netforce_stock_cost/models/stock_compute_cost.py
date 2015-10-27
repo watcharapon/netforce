@@ -115,7 +115,7 @@ class ComputeCost(Model):
                 "qty": r.qty,
                 "conv_qty": r.qty*ratio,
                 "old_cost_amount": r.cost_amount,
-                "cost_amount": r.cost_amount,
+                "cost_amount": r.cost_amount or 0,
                 "loc_from_id": r.location_from_id,
                 "loc_to_id": r.location_to_id,
             }
