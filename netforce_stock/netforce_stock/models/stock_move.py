@@ -316,6 +316,7 @@ class Move(Model):
         print("stock.move post",ids)
         accounts={}
         post_date=None
+        pick_ids=[]
         for move in self.browse(ids):
             if move.move_id:
                 raise Exception("Journal entry already create for stock movement %s"%move.number)
@@ -347,6 +348,8 @@ class Move(Model):
                 accounts.setdefault((acc_to_id,track_to_id,desc),0)
                 accounts[(acc_from_id,track_from_id,desc)]-=amt
                 accounts[(acc_to_id,track_to_id,desc)]+=amt
+            if move.picking_id:
+                pick_ids.append(move.picking_id.id)
         lines=[]
         for (acc_id,track_id,desc),amt in accounts.items():
             if amt==0:
@@ -361,9 +364,11 @@ class Move(Model):
         vals={
             "narration": "Inventory costing",
             "date": post_date,
-            "related_id": "stock.picking,%s"%obj.id,
             "lines": [("create",vals) for vals in lines],
         }
+        pick_ids=list(set(pick_ids))
+        if len(pick_ids)==1:
+            vals["related_id"]="stock.picking,%s"%pick_ids[0]
         move_id=get_model("account.move").create(vals)
         get_model("account.move").post([move_id])
         get_model("stock.move").write(ids,{"move_id":move_id})
