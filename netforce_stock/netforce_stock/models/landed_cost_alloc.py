@@ -91,7 +91,7 @@ class LandedCostAlloc(Model):
             amt+=obj.act_duty or 0
             vals[obj.id]={
                 "amount": amt,
-                "percent": amt*100/(obj.base_price*obj.qty) if obj.base_price else None,
+                "percent": amt*100/obj.cost_amount if obj.cost_amount else None,
             }
         return vals
 
