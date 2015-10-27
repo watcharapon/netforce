@@ -20,89 +20,65 @@
 
 from netforce.model import Model, fields, get_model, clear_cache
 from netforce.database import get_connection
-import time
 import datetime
-from netforce.access import get_active_user, set_active_user
+import time
+from netforce import access
 
 
 class Task(Model):
     _name = "task"
     _string = "Task"
     _fields = {
-        "project_id": fields.Many2One("project", "Project", search=True), # XXX: deprecated
-        "job_id": fields.Many2One("job", "Service Order", search=True), # XXX: deprecated
-        "related_id": fields.Reference([["project","Project"],["job","Job"],["rental.order","Rental Order"]],"Related To"),
-        "name": fields.Char("Task Name", required=True, search=True),
-        "deadline": fields.Date("Deadline", search=True),
-        "description": fields.Text("Description"),
-        "state": fields.Selection([["in_progress", "In Progress"], ["done", "Completed"], ["waiting", "Waiting"], ["canceled", "Canceled"]], "Status", required=True),
-        "user_id": fields.Many2One("base.user", "Assigned To"),  # XXX: deprecated
-        "documents": fields.One2Many("document", "related_id", "Documents"),
-        "comments": fields.One2Many("message", "related_id", "Comments"),
-        "overdue": fields.Boolean("Overdue", function="get_overdue", function_search="search_overdue"),
-        "days_late": fields.Integer("Days Late", function="get_days_late"),
+        "number": fields.Char("Number",required=True,search=True),
+        "date_created": fields.DateTime("Date Created",required=True,search=True),
+        "date_closed": fields.DateTime("Date Closed"),
+        "date_estimate": fields.DateTime("Estimated Close Date"),
+        "contact_id": fields.Many2One("contact","Customer",required=True,search=True),
+        "project_id": fields.Many2One("project","Project",required=True,search=True),
+        "title": fields.Char("Title",required=True,search=True),
+        "description": fields.Text("Description",search=True),
+        "priority": fields.Decimal("Priority",required=True),
+        "emails": fields.One2Many("email.message", "related_id", "Emails"),
+        "state": fields.Selection([["new","New"],["ready","Ready To Start"],["in_progress","In Progress"],["closed","Closed"],["wait_customer","Wait For Customer"],["wait_internal","Internal Wait"]],"Status",required=True,search=True),
         "planned_hours": fields.Decimal("Planned Hours"),
-        "resource_id": fields.Many2One("service.resource", "Assigned To",search=True),
+        "days_open": fields.Integer("Days Open",function="get_days_open"),
+        "resource_id": fields.Many2One("service.resource","Assigned To"),
         "documents": fields.One2Many("document", "related_id", "Documents"),
-        "priority": fields.Integer("Priority",search=True),
-        "date_created": fields.Date("Date Created"),
-        "date_started": fields.Date("Date Started"),
-        "date_completed": fields.Date("Date Completed"),
-        "est_date_completed": fields.Date("Est. Completion Date"),
-        "actual_hours": fields.Decimal("Actual Hours"),
-        "requested_by_id": fields.Many2One("contact","Requested By"),
+        "emails": fields.One2Many("email.message", "related_id", "Emails"),
+        "comments": fields.Text("Comments"),
+        "messages": fields.One2Many("message", "related_id", "Messages"),
     }
     _order = "priority,id"
 
-    _defaults = {
-        "state": "in_progress",
+    def _get_number(self, context={}):
+        seq_id = get_model("sequence").find_sequence(type="task")
+        if not seq_id:
+            return None
+        while 1:
+            num = get_model("sequence").get_next_number(seq_id)
+            user_id = access.get_active_user()
+            access.set_active_user(1)
+            res = self.search([["number", "=", num]])
+            access.set_active_user(user_id)
+            if not res:
+                return num
+            get_model("sequence").increment_number(seq_id)
+
+    _defaults={
+        "date_created": lambda *a: time.strftime("%Y-%m-%d %H:%M:%S"),
+        "state": "new",
+        "number": _get_number,
     }
 
-    def get_overdue(self, ids, context={}):
-        vals = {}
+    def get_days_open(self,ids,context={}):
+        vals={}
+        today=date.today()
         for obj in self.browse(ids):
-            if obj.deadline:
-                vals[obj.id] = obj.deadline < time.strftime("%Y-%m-%d") and obj.state != "done"
-            else:
-                vals[obj.id] = False
+            if obj.state=="closed":
+                vals[obj.id]=None
+                continue
+            d=datetime.strptime(obj.date_created,"%Y-%m-%d %H:%M:%S").date()
+            vals[obj.id]=(today-d).days
         return vals
-
-    def search_overdue(self, clause, context={}):
-        return [["deadline", "<", time.strftime("%Y-%m-%d")], ["state", "!=", "done"], ["job_id.state", "=", "in_progress"]]
-
-    def get_days_late(self, ids, context={}):
-        vals = {}
-        d = datetime.datetime.now()
-        for obj in self.browse(ids):
-            if obj.deadline:
-                vals[obj.id] = max(0, (d - datetime.datetime.strptime(obj.deadline, "%Y-%m-%d")).days) or None
-            else:
-                vals[obj.id] = None
-        return vals
-
-    def view_task(self, ids, context={}):
-        obj = self.browse(ids[0])
-        return {
-            "next": {
-                "name": "job",
-                "mode": "form",
-                "active_id": obj.job_id.id,
-            }
-        }
-
-    def set_done(self, ids, context={}):
-        print("task.set_done", ids)
-        for obj in self.browse(ids):
-            obj.write({"state": "done"})
-
-    def click_task(self, ids, context={}):
-        task = self.browse(ids)[0]
-        return {
-            "next": {
-                "name": "job",
-                "active_id": task.job_id.id,
-                "mode": "page",
-            }
-        }
 
 Task.register()
