@@ -329,7 +329,7 @@ class Move(Model):
                 if date!=post_date:
                     raise Exception("Failed to post stock movements because they have different dates")
             prod=move.product_id
-            desc="[%s] %s @ %s %s "%(prod.code,prod.name,move.qty,move.uom_id.name)
+            desc="[%s] %s @ %s %s "%(prod.code,prod.name,round(move.qty,2),move.uom_id.name)
             acc_from_id=move.location_from_id.account_id.id
             if not acc_from_id:
                 acc_from_id=prod.stock_in_account_id.id
