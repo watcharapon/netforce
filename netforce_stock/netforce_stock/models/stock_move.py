@@ -220,6 +220,7 @@ class Move(Model):
         return {"next": next}
 
     def set_done(self,ids,context={}):
+        print("stock_move.set_done",ids)
         settings=get_model("settings").browse(1)
         prod_ids=[]
         for obj in self.browse(ids):
@@ -259,6 +260,7 @@ class Move(Model):
             self.post(ids,context=context)
         self.update_lots(ids,context=context)
         self.set_reference(ids,context=context)
+        print("<<<  stock_move.set_done")
 
     def set_reference(self,ids,context={}):
         for obj in self.browse(ids):

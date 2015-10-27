@@ -27,9 +27,9 @@ class LandedCost(Model):
     _name_field = "number"
     _string = "Landed Costs"
     _fields = {
-        "number": fields.Char("Number",required=True),
-        "date": fields.DateTime("Date",required=True),
-        "state": fields.Selection([["draft","Draft"],["posted","Posted"],["reversed","Reversed"]],"Status"),
+        "number": fields.Char("Number",required=True,search=True),
+        "date": fields.DateTime("Date",required=True,search=True),
+        "state": fields.Selection([["draft","Draft"],["posted","Posted"],["reversed","Reversed"]],"Status",search=True),
         "cost_allocs": fields.One2Many("landed.cost.alloc","landed_id","Cost Allocations"),
         "cost_alloc_method": fields.Selection([["amount", "By Amount"], ["qty", "By Qty"]], "Cost Allocation Method"),
         "move_id": fields.Many2One("account.move","Journal Entry"),
