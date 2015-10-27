@@ -342,9 +342,7 @@ class Move(Model):
                 raise Exception("Missing output account for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
             track_from_id=move.location_from_id.track_id.id
             track_to_id=move.track_id.id or move.location_to_id.track_id.id # XXX
-            amt=move.cost_amount
-            if not amt:
-                raise Exception("No cost amount for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
+            amt=move.cost_amount or 0
             if move.qty: # XXX: avoid create double journal entry for LC
                 accounts.setdefault((acc_from_id,track_from_id,desc),0)
                 accounts.setdefault((acc_to_id,track_to_id,desc),0)
