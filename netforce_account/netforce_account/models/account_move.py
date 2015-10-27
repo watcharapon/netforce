@@ -202,6 +202,7 @@ class Move(Model):
                 vals={
                     "track_id": line.track_id.id,
                     "amount": line.credit-line.debit,
+                    "description": line.description,
                     "move_id": obj.id,
                 }
                 get_model("account.track.entry").create(vals)
@@ -209,6 +210,7 @@ class Move(Model):
                 vals={
                     "track_id": line.track2_id.id,
                     "amount": line.credit-line.debit,
+                    "description": line.description,
                     "move_id": obj.id,
                 }
                 get_model("account.track.entry").create(vals)
