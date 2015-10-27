@@ -3,14 +3,14 @@
     <field name="related_id"/>
     <field name="priority"/>
     <field name="resource_id"/>
-    <field name="planned_duration"/>
+    <field name="planned_hours"/>
     <field name="deadline"/>
     <field name="date_created"/>
     <field name="requested_by_id"/>
     <field name="est_date_completed"/>
     <field name="date_started"/>
     <field name="date_completed"/>
-    <field name="actual_duration"/>
+    <field name="actual_hours"/>
     <field name="state"/>
     <field name="overdue" invisible="1"/>
 </list>
