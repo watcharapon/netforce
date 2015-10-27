@@ -20,7 +20,7 @@
 
 from netforce.model import Model, fields, get_model, clear_cache
 from netforce.database import get_connection
-import datetime
+from datetime import *
 import time
 from netforce import access
 

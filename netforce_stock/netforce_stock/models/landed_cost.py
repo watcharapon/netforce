@@ -69,8 +69,7 @@ class LandedCost(Model):
         total_amt=0
         for alloc in obj.cost_allocs:
             total_qty+=alloc.qty
-            amt=alloc.qty*(alloc.base_price or 0)
-            total_amt+=amt
+            total_amt+=alloc.cost_amount or 0
         accounts={}
         for alloc in obj.cost_allocs:
             total_alloc_amt=0
@@ -250,8 +249,7 @@ class LandedCost(Model):
         if obj.alloc_type=="amount":
             total_amt=0
             for line in obj.cost_allocs:
-                line_amt=line.base_price*line.qty
-                total_amt+=line_amt
+                total_amt+=line.cost_amount or 0
             if not total_amt:
                 raise Exception("Total amount is zero")
         elif obj.alloc_type=="qty":
@@ -262,8 +260,7 @@ class LandedCost(Model):
                 raise Exception("Total qty is zero")
         for line in obj.cost_allocs:
             if obj.alloc_type=="amount":
-                line_amt=line.base_price*line.qty
-                alloc_amt=obj.alloc_amount*line_amt/total_amt
+                alloc_amt=obj.alloc_amount*(line.cost_amount or 0)/total_amt
             elif obj.alloc_type=="qty":
                 alloc_amt=obj.alloc_amount*line.qty/total_qty
             vals={
