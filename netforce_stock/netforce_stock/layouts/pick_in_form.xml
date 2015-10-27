@@ -38,7 +38,7 @@
                     <field name="uom_id"/>
                     <field name="location_from_id" condition='[["type","!=","internal"]]'/>
                     <field name="location_to_id" condition='[["type","=","internal"]]'/>
-                    <field name="cost_price_cur" onchange="onchange_cost_price_cur"/>
+                    <field name="cost_price_cur" onchange="update_cost_price"/>
                     <field name="cost_price" readonly="1"/>
                     <field name="cost_amount" readonly="1"/>
                     <field name="qty2"/>
@@ -66,7 +66,7 @@
             <button string="Approve" icon="ok" method="approve_done" confirm="Are you sure?" perm="stock_approve_done"/>
         </tab>
         <tab string="Other">
-            <field name="currency_rate"/>
+            <field name="currency_rate" onchange="update_cost_price"/>
         </tab>
     </tabs>
     <field name="company_id" invisible="1"/>

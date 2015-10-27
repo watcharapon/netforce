@@ -764,7 +764,7 @@ class Picking(Model):
                 currency_rate = rate_from / rate_to
         obj.write({"currency_rate":currency_rate})
 
-    def onchange_cost_price_cur(self, context):
+    def update_cost_price(self, context):
         data = context["data"]
         path = context["path"]
         line = get_data_path(data, path, parent=True)
