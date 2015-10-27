@@ -2,40 +2,27 @@
     <head>
         <field name="state"/>
     </head>
-    <field name="name"/>
-    <field name="related_id"/>
+    <field name="number"/>
+    <field name="date_created"/>
+    <field name="contact_id"/>
+    <field name="project_id"/>
+    <newline/>
+    <field name="title"/>
+    <newline/>
+    <field name="description" width="600" height="200"/>
+    <newline/>
+    <field name="comments" width="600" height="200"/>
+    <newline/>
     <field name="priority"/>
     <field name="resource_id"/>
-    <field name="planned_hours"/>
-    <field name="description"/>
-    <field name="requested_by_id"/>
-    <newline/>
-    <field name="deadline"/>
-    <field name="date_created"/>
-    <field name="est_date_completed"/>
-    <field name="date_started"/>
-    <field name="date_completed"/>
-    <field name="actual_hours"/>
     <field name="state"/>
+    <field name="planned_hours"/>
+    <field name="date_estimate"/>
+    <field name="date_closed"/>
+    <field name="days_open"/>
     <related>
-        <field name="documents">
-            <list>
-                <field name="contact_id"/>
-                <field name="file" target="_blank"/>
-                <field name="categ_id"/>
-                <field name="description"/>
-                <field name="date"/>
-                <field name="expiry_date"/>
-            </list>
-            <form>
-                <field name="contact_id"/>
-                <field name="categ_id"/>
-                <field name="file" target="_blank" onchange="onchange_file"/>
-                <field name="date"/>
-                <field name="description"/>
-                <field name="expiry_date"/>
-            </form>
-        </field>
-        <field name="comments"/>
+        <field name="messages"/>
+        <field name="documents"/>
+        <field name="emails"/>
     </related>
 </form>
