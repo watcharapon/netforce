@@ -22,6 +22,7 @@ from netforce.model import Model, fields, get_model
 from netforce.utils import get_data_path
 import time
 from netforce.access import get_active_company
+from netforce import database
 
 
 class StockCount(Model):
@@ -107,7 +108,12 @@ class StockCount(Model):
         invent_loc_id = res[0]
         move_ids = []
         prod_ids = []
+        line_no=0
+        num_lines=len(obj.lines)
+        db=database.get_connection()
         for line in obj.lines:
+            line_no+=1
+            print("line %s/%s"%(line_no,num_lines))
             prod_ids.append(line.product_id.id)
             if line.new_qty < line.prev_qty:
                 qty = line.prev_qty - line.new_qty
@@ -128,10 +134,14 @@ class StockCount(Model):
                 "location_to_id": loc_to_id,
                 "qty": qty,
                 "uom_id": line.uom_id.id,
-                "cost_price": line.unit_price,
+                "cost_price": (line.unit_price or 0),
+                "cost_amount": (line.unit_price or 0) * qty,
                 "related_id": "stock.count,%d" % obj.id,
             }
-            move_id = get_model("stock.move").create(vals)
+            #move_id = get_model("stock.move").create(vals)
+            number="%s/%s"%(obj.number,line_no)
+            res=db.get("INSERT INTO stock_move (journal_id,date,ref,product_id,location_from_id,location_to_id,qty,uom_id,cost_price,cost_amount,related_id,state,number) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'draft',%s) RETURNING id",vals["journal_id"],vals["date"],vals["ref"],vals["product_id"],vals["location_from_id"],vals["location_to_id"],vals["qty"],vals["uom_id"],vals["cost_price"],vals["cost_amount"],vals["related_id"],number)
+            move_id=res.id
             move_ids.append(move_id)
         get_model("stock.move").set_done(move_ids)
         obj.write({"state": "done"})

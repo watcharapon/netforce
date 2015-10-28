@@ -220,6 +220,7 @@ class Move(Model):
         return {"next": next}
 
     def set_done(self,ids,context={}):
+        print("stock_move.set_done",ids)
         settings=get_model("settings").browse(1)
         prod_ids=[]
         for obj in self.browse(ids):
@@ -259,6 +260,7 @@ class Move(Model):
             self.post(ids,context=context)
         self.update_lots(ids,context=context)
         self.set_reference(ids,context=context)
+        print("<<<  stock_move.set_done")
 
     def set_reference(self,ids,context={}):
         for obj in self.browse(ids):
@@ -316,6 +318,7 @@ class Move(Model):
         print("stock.move post",ids)
         accounts={}
         post_date=None
+        pick_ids=[]
         for move in self.browse(ids):
             if move.move_id:
                 raise Exception("Journal entry already create for stock movement %s"%move.number)
@@ -326,7 +329,7 @@ class Move(Model):
                 if date!=post_date:
                     raise Exception("Failed to post stock movements because they have different dates")
             prod=move.product_id
-            desc=prod.code
+            desc="[%s] %s @ %s %s "%(prod.code,prod.name,round(move.qty,2),move.uom_id.name)
             acc_from_id=move.location_from_id.account_id.id
             if not acc_from_id:
                 acc_from_id=prod.stock_in_account_id.id
@@ -339,14 +342,14 @@ class Move(Model):
                 raise Exception("Missing output account for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
             track_from_id=move.location_from_id.track_id.id
             track_to_id=move.track_id.id or move.location_to_id.track_id.id # XXX
-            amt=move.cost_amount
-            if not amt:
-                raise Exception("No cost amount for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
+            amt=move.cost_amount or 0
             if move.qty: # XXX: avoid create double journal entry for LC
                 accounts.setdefault((acc_from_id,track_from_id,desc),0)
                 accounts.setdefault((acc_to_id,track_to_id,desc),0)
                 accounts[(acc_from_id,track_from_id,desc)]-=amt
                 accounts[(acc_to_id,track_to_id,desc)]+=amt
+            if move.picking_id:
+                pick_ids.append(move.picking_id.id)
         lines=[]
         for (acc_id,track_id,desc),amt in accounts.items():
             if amt==0:
@@ -363,6 +366,9 @@ class Move(Model):
             "date": post_date,
             "lines": [("create",vals) for vals in lines],
         }
+        pick_ids=list(set(pick_ids))
+        if len(pick_ids)==1:
+            vals["related_id"]="stock.picking,%s"%pick_ids[0]
         move_id=get_model("account.move").create(vals)
         get_model("account.move").post([move_id])
         get_model("stock.move").write(ids,{"move_id":move_id})

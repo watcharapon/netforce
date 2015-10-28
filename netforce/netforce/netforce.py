@@ -110,7 +110,7 @@ def on_sigterm(signum,frame):
         pids.append(child.pid)
     for pid in pids:
         try:
-            proc=psutils.Process(pid)
+            proc=psutil.Process(pid)
             proc.kill()
         except Exception as e:
             print("WARNING: failed to kill process %s: %s"%(pid,e))

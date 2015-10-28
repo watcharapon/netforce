@@ -71,7 +71,7 @@ class ComputeCost(Model):
                 "id": r.id,
                 "old_unit_price": r.unit_price,
             }
-            if loc_from_id:
+            if loc_from:
                 ratio=uoms[r.uom_id]/uoms[r.prod_uom_id]
                 move["unit_price"]=(r.prod_cost_price or 0)*ratio
             else:
@@ -115,7 +115,7 @@ class ComputeCost(Model):
                 "qty": r.qty,
                 "conv_qty": r.qty*ratio,
                 "old_cost_amount": r.cost_amount,
-                "cost_amount": r.cost_amount,
+                "cost_amount": r.cost_amount or 0,
                 "loc_from_id": r.location_from_id,
                 "loc_to_id": r.location_to_id,
             }

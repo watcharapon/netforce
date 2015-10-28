@@ -1,16 +1,10 @@
-<list model="task" colors='{"#f99":[["overdue","=",true]],"#9f9":[["state","=","done"]]}'>
-    <field name="name"/>
-    <field name="related_id"/>
+<list model="task" colors='{"#ccc":[["state","=","closed"]],"#ccf":[["state","=","in_progress"]],"#efe":[["state","=","ready"]],"#fcc":[["state","=","wait_customer"]],"#ffc":[["state","=","wait_internal"]]}'>
+    <field name="number"/>
+    <field name="date_created"/>
+    <field name="project_id"/>
+    <field name="title"/>
     <field name="priority"/>
     <field name="resource_id"/>
-    <field name="planned_duration"/>
-    <field name="deadline"/>
-    <field name="date_created"/>
-    <field name="requested_by_id"/>
-    <field name="est_date_completed"/>
-    <field name="date_started"/>
-    <field name="date_completed"/>
-    <field name="actual_duration"/>
     <field name="state"/>
-    <field name="overdue" invisible="1"/>
+    <field name="date_estimate"/>
 </list>

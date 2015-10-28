@@ -764,4 +764,34 @@ class Picking(Model):
                 currency_rate = rate_from / rate_to
         obj.write({"currency_rate":currency_rate})
 
+    def update_cost_price(self, context):
+        data = context["data"]
+        path = context["path"]
+        line = get_data_path(data, path, parent=True)
+        cost_price_cur=line["cost_price_cur"] or 0
+        qty=line["qty"] or 0
+        currency_id=data["currency_id"]
+        if not currency_id:
+            raise Exception("Missing currency")
+        currency=get_model("currency").browse(currency_id)
+        currency_rate=data["currency_rate"]
+        date=data["date"]
+        settings=get_model("settings").browse(1)
+        if not currency_rate:
+            if currency_id == settings.currency_id.id:
+                currency_rate = 1
+            else:
+                rate_from = currency.get_rate(date=date)
+                if not rate_from:
+                    raise Exception("Missing currency rate for %s" % currency.code)
+                rate_to = settings.currency_id.get_rate(date=date)
+                if not rate_to:
+                    raise Exception("Missing currency rate for %s" % settings.currency_id.code)
+                currency_rate = rate_from / rate_to
+        cost_price=get_model("currency").convert(cost_price_cur,currency_id,settings.currency_id.id,rate=currency_rate)
+        cost_amount=cost_price*qty
+        line["cost_price"]=cost_price
+        line["cost_amount"]=cost_amount
+        return data
+
 Picking.register()

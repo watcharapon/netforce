@@ -91,7 +91,7 @@
         </tab>
         <tab string="Costing">
             <separator string="Estimated Costs"/>
-            <field name="est_costs" nolabel="1" readonly="0">
+            <field name="est_costs" nolabel="1">
                 <list>
                     <field name="sequence"/>
                     <field name="product_id" onchange="onchange_cost_product" condition='[["type","!=","bundle"]]'/>
@@ -117,6 +117,7 @@
             <field name="track_balance"/>
             <field name="track_entries" nolabel="1">
                 <list>
+                    <field name="track_id"/>
                     <field name="date"/>
                     <field name="related_id"/>
                     <field name="product_id"/>

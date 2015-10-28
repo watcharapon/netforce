@@ -267,6 +267,7 @@ class PurchaseOrder(Model):
 
     def copy_to_picking(self, ids, context):
         id = ids[0]
+        settings=get_model("settings").browse(1)
         obj = self.browse(id)
         contact = obj.contact_id
         pick_vals = {
@@ -294,20 +295,25 @@ class PurchaseOrder(Model):
             remain_qty = line.qty - line.qty_received
             if remain_qty <= 0:
                 continue
+            unit_price=line.amount/line.qty if line.qty else 0
             if obj.tax_type=="tax_ex":
-                base_price=line.unit_price
+                cost_price_cur=unit_price
             elif obj.tax_type=="tax_in":
                 if line.tax_id:
                     tax_amt = get_model("account.tax.rate").compute_tax(
-                        line.tax_id.id, line.unit_price, tax_type=obj.tax_type)
+                        line.tax_id.id, unit_price, tax_type=obj.tax_type)
                 else:
                     tax_amt = 0
-                base_price=line.unit_price-tax_amt
+                cost_price_cur=round(unit_price-tax_amt,2)
+            cost_price=get_model("currency").convert(cost_price_cur,obj.currency_id.id,settings.currency_id.id)
+            cost_amount=cost_price*remain_qty
             line_vals = {
                 "product_id": prod.id,
                 "qty": remain_qty,
                 "uom_id": line.uom_id.id,
-                "base_price": base_price,
+                "cost_price_cur": cost_price_cur,
+                "cost_price": cost_price,
+                "cost_amount": cost_amount,
                 "location_from_id": supp_loc_id,
                 "location_to_id": line.location_id.id or wh_loc_id,
                 "related_id": "purchase.order,%s" % obj.id,
