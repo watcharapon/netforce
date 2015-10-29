@@ -171,7 +171,7 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                             var opts2={
                                 fields: sub_fields,
                                 count: parseInt($el.attr("count")),
-                                readonly: $el.attr("readonly")||that.readonly,
+                                readonly: $el.attr("readonly")||that.options.readonly,
                                 noadd: $el.attr("noadd"),
                                 context: params.context
                             }
