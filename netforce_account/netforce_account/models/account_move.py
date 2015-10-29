@@ -34,7 +34,7 @@ class Move(Model):
     _fields = {
         "journal_id": fields.Many2One("account.journal", "Journal", required=True, search=True),
         "narration": fields.Text("Narration", required=True, search=True),
-        "date": fields.Date("Date", required=True, search=True, index=True),
+        "date": fields.Date("Document Date", required=True, search=True, index=True),
         "date_posted": fields.Date("Posted Date", search=True, index=True),
         "state": fields.Selection([["draft", "Draft"], ["posted", "Posted"], ["voided", "Voided"]], "Status", required=True),
         "lines": fields.One2Many("account.move.line", "move_id", "Lines"),
