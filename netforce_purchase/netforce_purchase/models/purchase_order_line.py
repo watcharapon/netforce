@@ -107,25 +107,36 @@ class PurchaseOrderLine(Model):
         return vals
 
     def get_qty_invoiced(self, ids, context={}):
-        vals = {}
+        order_ids = []
         for obj in self.browse(ids):
-            order = obj.order_id
-            qty = 0
+            order_ids.append(obj.order_id.id)
+        order_ids = list(set(order_ids))
+        vals = {}
+        for order in get_model("purchase.order").browse(order_ids):
+            inv_qtys = {}
             for inv in order.invoices:
-                if inv.state == "voided":
+                if inv.state not in ("draft","waiting_payment","paid"):
                     continue
                 for line in inv.lines:
-                    if obj.product_id:
-                        if line.product_id.id != obj.product_id.id:
-                            continue
-                    else:
-                        if line.product_id or line.description != obj.description:
-                            continue
-                    if inv.type == "in":
-                        qty += line.qty  # XXX: uom
-                    elif inv.type == "out":
-                        qty -= line.qty  # XXX: uom
-            vals[obj.id] = qty
+                    prod_id = line.product_id.id
+                    inv_qtys.setdefault(prod_id, 0)
+                    inv_qtys[prod_id] += line.qty 
+            for line in order.lines:
+                if line.id not in ids:
+                    continue
+                prod_id = line.product_id.id
+                inv_qty = inv_qtys.get(prod_id, 0)  # XXX: uom
+                used_qty = min(line.qty, inv_qty)
+                vals[line.id] = used_qty
+                if prod_id in inv_qtys:
+                    inv_qtys[prod_id] -= used_qty
+            for line in reversed(order.lines):
+                prod_id = line.product_id.id
+                remain_qty = inv_qtys.get(prod_id, 0)  # XXX: uom
+                if remain_qty:
+                    vals[line.id] += remain_qty
+                    inv_qtys[prod_id] -= remain_qty
+        vals = {x: vals[x] for x in ids}
         return vals
 
 PurchaseOrderLine.register()
