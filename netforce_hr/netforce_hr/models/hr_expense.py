@@ -140,6 +140,13 @@ class Expense(Model):
         for obj in self.browse(ids):
             obj.write({"state": "waiting_approval"})
 
+    def do_to_draft(self,ids,context={}):
+        for obj in self.browse(ids):
+            if obj.move_id:
+                obj.move_id.void()
+                obj.move_id.delete()
+            obj.write({"state":"draft"})
+
     def do_approve(self, ids, context={}):
         settings = get_model("settings").browse(1)
         for obj in self.browse(ids):

@@ -1543,7 +1543,7 @@ class Cart(Model):
         for obj in self.browse(ids):
             can = False
             for sale in obj.sale_orders:
-                can = sale.state == "confirmed"
+                can = sale.state == "confirmed" and not sale.is_paid
                 for pick in sale.pickings:
                     if pick.state == "done":
                         can = False
