@@ -130,14 +130,6 @@ class Login(Model):
             audit_log("Invalid login (%s)" % login)
             db = database.get_connection()
             db.commit()
-            if config.get("sub_server"):
-                url = "http://nf4.netforce.com/record_user_login?dbname=%s&user=%s&ip=%s&invalid=1" % (
-                    database.get_active_db(), login, get_ip_addr())
-                req = urllib.request.Request(url)
-                try:
-                    urllib.request.urlopen(req).read()
-                except:
-                    print("ERROR: failed to record failed user login")
             raise Exception("Invalid login")
         try:
             print("login ok", login)
@@ -147,14 +139,6 @@ class Login(Model):
                 raise Exception("User not allowed to login")
             t = time.strftime("%Y-%m-%d %H:%M:%S")
             user.write({"lastlog": t})
-            if config.get("sub_server"):
-                url = "http://nf4.netforce.com/record_user_login?dbname=%s&user=%s&ip=%s" % (
-                    database.get_active_db(), login, get_ip_addr())
-                req = urllib.request.Request(url)
-                try:
-                    urllib.request.urlopen(req).read()
-                except:
-                    print("ERROR: failed to record user login")
             profile = user.profile_id
             action = profile.home_action or "account_board"
             token = new_token(db_name, user_id)

@@ -21,7 +21,8 @@
         <field name="related_id" span="2"/>
         <newline/>
         <field name="narration" span="4"/>
-        <field name="default_line_desc"/>
+        <field name="default_line_desc" span="3"/>
+        <field name="date_posted" span="2" readonly="1"/>
     </group>
     <field name="lines" nolabel="1" count="10">
         <list>

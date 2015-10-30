@@ -451,14 +451,6 @@ class Payment(Model):
         }
         move_id = get_model("account.move").create(move_vals)
         lines = []
-        track_id = None
-        for line in obj.lines:  # XXX
-            if line.track_id:
-                if track_id:
-                    track_id = None
-                    break
-                else:
-                    track_id = line.track_id.id
         amt = get_model("currency").convert(
             obj.amount_payment, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
         if obj.type == "out":
@@ -467,7 +459,6 @@ class Payment(Model):
             "move_id": move_id,
             "account_id": obj.account_id.id,
             "description": desc,
-            "track_id": track_id,
             "debit": amt > 0 and amt or 0,
             "credit": amt < 0 and -amt or 0,
         }

@@ -87,6 +87,8 @@ class PickValidate(Model):
                 "lines": [("create", x) for x in remain_lines],
                 "state": pick.state,
             }
+            if pick.related_id:
+                vals["related_id"]="%s,%d"%(pick.related_id._model,pick.related_id.id)
             rpick_id = get_model("stock.picking").create(vals, context={"pick_type": pick.type})
             rpick = get_model("stock.picking").browse(rpick_id)
             message = "Picking %s validated and back order %s created" % (pick.number, rpick.number)
