@@ -2,7 +2,8 @@
     <head>
         <field name="state"/>
         <button string="Options" dropdown="1">
-            <item string="Create Tracking Code" method="create_track"/>
+            <item string="Create Actual Cost Tracking Code" method="create_track"/>
+            <item string="Create Estimate Cost Tracking Code" method="create_est_track"/>
         </button>
     </head>
     <tabs string="General">
@@ -16,12 +17,31 @@
             <field name="description"/>
         </tab>
         <tab string="Costing">
-            <field name="track_id"/>
-            <field name="track_entries" nolabel="1" readonly="1">
+            <separator string="Estimate Costs"/>
+            <field name="est_track_id"/>
+            <field name="est_track_balance"/>
+            <field name="est_track_entries" nolabel="1">
                 <list>
                     <field name="date"/>
+                    <field name="track_id"/>
                     <field name="related_id"/>
                     <field name="product_id"/>
+                    <field name="description"/>
+                    <field name="qty"/>
+                    <field name="uom_id"/>
+                    <field name="amount"/>
+                </list>
+            </field>
+            <separator string="Actual Costs"/>
+            <field name="track_id"/>
+            <field name="track_balance"/>
+            <field name="track_entries" nolabel="1">
+                <list>
+                    <field name="date"/>
+                    <field name="track_id"/>
+                    <field name="related_id"/>
+                    <field name="product_id"/>
+                    <field name="description"/>
                     <field name="qty"/>
                     <field name="uom_id"/>
                     <field name="amount"/>
