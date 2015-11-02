@@ -85,7 +85,7 @@ class ReportServiceTime(Model):
 
     def get_resource_time(self, context={}):
         db = get_connection()
-        res = db.query("SELECT id,name FROM service_resource ORDER BY name")
+        res = db.query("SELECT id,name FROM service_resource WHERE type='person' ORDER BY name")
         resources = {}
         for r in res:
             resources[r.id] = {
