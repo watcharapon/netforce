@@ -44,15 +44,15 @@
                         {{project_name}}
                     </td>
                     <td>
-                        {{total}}
+                        {{total_bill_hours}} / {{total_actual_hours}}
                     </td>
                     {{#each weeks context=context}}
                         <td>
-                            {{this}}
+                            {{bill_hours}} / {{actual_hours}}
                         </td>
                     {{/each}}
                     <td>
-                        {{older}}
+                        {{older.bill_hours}} / {{older.actual_hours}}
                     </td>
                 </tr>
             {{/each}}

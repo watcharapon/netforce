@@ -29,6 +29,9 @@
                 <th>
                     Week-7
                 </th>
+                <th>
+                    Older
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -39,9 +42,12 @@
                     </td>
                     {{#each weeks context=context}}
                         <td>
-                            {{this}}
+                            {{bill_hours}} / {{actual_hours}}
                         </td>
                     {{/each}}
+                    <td>
+                        {{older.bill_hours}} / {{older.actual_hours}}
+                    </td>
                 </tr>
             {{/each}}
         </tbody>
