@@ -93,7 +93,7 @@ class ReportServiceTime(Model):
                 "weeks": {},
             }
         res = db.query(
-            "SELECT resource_id,week,SUM(actual_hours) AS total_actual_hours,SUM(bill_hours) AS total_bill_hours FROM work_time WHERE state='approved' GROUP BY resource_id,week")
+            "SELECT resource_id,week,SUM(actual_hours) AS total_actual_hours,SUM(bill_hours) AS total_bill_hours FROM work_time JOIN service_resource r ON r.id=resource_id WHERE state='approved' AND r.type='person' GROUP BY resource_id,week")
         for r in res:
             resource = resources.get(r.resource_id)
             if not resource:
