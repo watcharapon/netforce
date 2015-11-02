@@ -49,6 +49,21 @@
         </field>
         <field name="quotations"/>
         <field name="activities"/>
+        <field name="documents">
+            <list>
+                <field name="file" target="_blank"/>
+                <field name="categ_id"/>
+                <field name="description"/>
+                <field name="date"/>
+            </list>
+            <form>
+                <field name="categ_id"/>
+                <field name="file" target="_blank" onchange="onchange_file"/>
+                <field name="date"/>
+                <field name="description"/>
+                <field name="contact_id" invisible="1"/>
+            </form>
+        </field>
         <field name="emails"/>
         <field name="comments"/>
     </related>

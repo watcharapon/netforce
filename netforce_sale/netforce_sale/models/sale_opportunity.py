@@ -58,6 +58,7 @@ class Opportunity(Model):
         "month": fields.Char("Month", sql_function=["month", "date_close"]),
         "week": fields.Char("Week", sql_function=["week", "date_close"]),
         "agg_amount": fields.Decimal("Total Amount", agg_function=["sum", "amount"]),
+        "documents": fields.One2Many("document", "related_id", "Documents"),
     }
     _defaults = {
         "state": "open",
