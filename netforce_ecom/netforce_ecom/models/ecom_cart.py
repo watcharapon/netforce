@@ -1526,7 +1526,7 @@ class Cart(Model):
         for obj in self.browse(ids):
             amount_total_words = th_utils.num2word(float(obj.amount_total))
             vals[obj.id] = amount_total_words
-            return vals
+        return vals
 
     def void(self, ids, context={}):
         for obj in self.browse(ids):
