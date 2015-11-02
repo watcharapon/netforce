@@ -4,6 +4,7 @@
         <button string="Options" dropdown="1">
             <item string="Copy To Goods Issue" method="copy_to_pick_out"/>
             <item string="Copy To Invoice" method="copy_to_invoice"/>
+            <item string="Create Tracking Code" method="create_track"/>
         </button>
     </head>
     <tabs>

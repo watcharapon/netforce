@@ -7,7 +7,6 @@
     <field name="width"/>
     <field name="length"/>
     <field name="product_id"/>
-    <field name="service_item_id"/>
     <related>
         <field name="stock_balances"/>
         <field name="comments"/>

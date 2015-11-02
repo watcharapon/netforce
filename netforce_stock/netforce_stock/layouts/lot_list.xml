@@ -7,5 +7,4 @@
     <field name="expiry_date"/>
     <field name="description"/>
     <field name="product_id"/>
-    <field name="service_item_id"/>
 </list>

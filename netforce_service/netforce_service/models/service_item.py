@@ -33,7 +33,8 @@ class ServiceItem(Model):
         "number": fields.Char("Number", required=True, search=True),
         "name": fields.Char("Name", required=True, search=True),
         "product_id": fields.Many2One("product", "Product", search=True),
-        "serial_no": fields.Char("Serial No.", search=True),
+        "serial_no": fields.Char("Serial No.", search=True), # XXX: deprecated
+        "lot_id": fields.Many2One("stock.lot", "Lot / Serial Number"),
         "contact_id": fields.Many2One("contact", "Customer", search=True),
         "project_id": fields.Many2One("project", "Project", search=True),
         "priority": fields.Selection([["low", "Low"], ["medium", "Medium"], ["high", "High"]], "Priority"),
@@ -70,7 +71,6 @@ class ServiceItem(Model):
         "quarter": fields.Char("Quarter", sql_function=["quarter", "arrival_date"]),
         "month": fields.Char("Month", sql_function=["month", "arrival_date"]),
         "week": fields.Char("Week", sql_function=["week", "arrival_date"]),
-        "lots": fields.One2Many("stock.lot","service_item_id","Lots / Serial Numbers"),
     }
     _order = "number"
 

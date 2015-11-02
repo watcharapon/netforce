@@ -26,6 +26,7 @@ class StockCountLine(Model):
     _fields = {
         "count_id": fields.Many2One("stock.count", "Stock Count", required=True, on_delete="cascade"),
         "product_id": fields.Many2One("product", "Product", condition=[["type", "=", "stock"]], required=True),
+        "lot_id": fields.Many2One("stock.lot", "Lot / Serial Number"),
         "bin_location": fields.Char("Bin Location", readonly=True),
         "prev_qty": fields.Decimal("Previous Qty", required=True, readonly=True),
         "new_qty": fields.Decimal("New Qty", required=True),

@@ -28,6 +28,7 @@ class Project(Model):
     _audit_log = True
     _fields = {
         "name": fields.Char("Project Name", required=True, search=True),
+        "number": fields.Char("Project Number", search=True),
         "contact_id": fields.Many2One("contact", "Customer", search=True),
         "start_date": fields.Date("Start Date", required=True),
         "end_date": fields.Date("End Date"),
@@ -61,5 +62,20 @@ class Project(Model):
             res=get_model("account.track.entry").search([["track_id","child_of",obj.track_id.id]])
             vals[obj.id]=res
         return vals
+
+    def create_track(self,ids,context={}):
+        obj=self.browse(ids[0])
+        if not obj.number:
+            raise Exception("Missing project number")
+        res=get_model("account.track.categ").search([["code","=",obj.number]])
+        if res:
+            track_id=res[0]
+        else:
+            track_id=get_model("account.track.categ").create({
+                "code": obj.number,
+                "name": obj.name,
+                "type": "1",
+                })
+        obj.write({"track_id": track_id})
 
 Project.register()

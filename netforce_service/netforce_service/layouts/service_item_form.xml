@@ -5,7 +5,7 @@
     <field name="number"/>
     <field name="name"/>
     <field name="product_id"/>
-    <field name="serial_no"/>
+    <field name="lot_id"/>
     <field name="parent_id"/>
     <field name="contact_id"/>
     <field name="project_id"/>
@@ -33,7 +33,6 @@
     <related>
         <field name="components"/>
         <field name="addresses"/>
-        <field name="lots"/>
         <field name="jobs" action="job"/>
         <field name="documents">
             <list>

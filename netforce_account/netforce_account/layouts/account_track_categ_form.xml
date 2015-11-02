@@ -6,6 +6,7 @@
     <field name="description" width="400" height="100"/>
     <field name="balance"/>
     <related>
+        <field name="sub_tracks"/>
         <field name="track_entries"/>
         <field name="documents">
             <list>

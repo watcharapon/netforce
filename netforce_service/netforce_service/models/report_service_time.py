@@ -89,7 +89,7 @@ class ReportServiceTime(Model):
             resource = resources.get(r.resource_id)
             if not resource:
                 continue
-            resource["weeks"][r.week] = r.total_hours
+            resource["weeks"][r.week] = r.total_hours or 0
         weeks = []
         d = datetime.today()
         d -= timedelta(d.weekday())

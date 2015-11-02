@@ -74,6 +74,7 @@ class StockCount(Model):
             vals = {
                 "count_id": obj.id,
                 "product_id": bal.product_id.id,
+                "lot_id": bal.lot_id.id,
                 "bin_location": bal.product_id.bin_location,
                 "prev_qty": bal.qty_phys,
                 "new_qty": 0,
@@ -90,7 +91,8 @@ class StockCount(Model):
         if not prod_id:
             return {}
         prod = get_model("product").browse(prod_id)
-        qty = get_model("stock.balance").get_qty_phys(loc_id, prod_id)
+        lot_id = line.get("lot_id")
+        qty = get_model("stock.balance").get_qty_phys(loc_id, prod_id, lot_id)
         unit_price = get_model("stock.balance").get_unit_price(loc_id, prod_id)
         line["bin_location"] = prod.bin_location
         line["prev_qty"] = qty
@@ -130,6 +132,7 @@ class StockCount(Model):
                 "date": obj.date,
                 "ref": obj.number,
                 "product_id": line.product_id.id,
+                "lot_id": line.lot_id.id,
                 "location_from_id": loc_from_id,
                 "location_to_id": loc_to_id,
                 "qty": qty,
@@ -140,7 +143,7 @@ class StockCount(Model):
             }
             #move_id = get_model("stock.move").create(vals)
             number="%s/%s"%(obj.number,line_no)
-            res=db.get("INSERT INTO stock_move (journal_id,date,ref,product_id,location_from_id,location_to_id,qty,uom_id,cost_price,cost_amount,related_id,state,number) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'draft',%s) RETURNING id",vals["journal_id"],vals["date"],vals["ref"],vals["product_id"],vals["location_from_id"],vals["location_to_id"],vals["qty"],vals["uom_id"],vals["cost_price"],vals["cost_amount"],vals["related_id"],number)
+            res=db.get("INSERT INTO stock_move (journal_id,date,ref,product_id,lot_id,location_from_id,location_to_id,qty,uom_id,cost_price,cost_amount,related_id,state,number) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'draft',%s) RETURNING id",vals["journal_id"],vals["date"],vals["ref"],vals["product_id"],vals["lot_id"],vals["location_from_id"],vals["location_to_id"],vals["qty"],vals["uom_id"],vals["cost_price"],vals["cost_amount"],vals["related_id"],number)
             move_id=res.id
             move_ids.append(move_id)
         get_model("stock.move").set_done(move_ids)
@@ -179,6 +182,7 @@ class StockCount(Model):
         for line in obj.lines:
             line_vals = {
                 "product_id": line.product_id.id,
+                "lot_id": line.lot_id.id,
                 "bin_location": line.bin_location,
                 "prev_qty": line.prev_qty,
                 "new_qty": line.new_qty,

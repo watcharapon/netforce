@@ -46,7 +46,7 @@ class WorkTime(Model):
         "is_last_week": fields.Boolean("Last Week", store=False, function_search="search_last_week"),
         "state": fields.Selection([["waiting_approval", "Waiting Approval"], ["approved", "Approved"], ["rejected", "Rejected"]], "Status", required=True),
     }
-    _order = "date desc,resource_id.name"
+    _order = "date,resource_id.name"
 
     def get_resource(self, context={}):
         user_id = get_active_user()

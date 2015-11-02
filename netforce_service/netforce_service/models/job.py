@@ -417,4 +417,20 @@ class Job(Model):
                 rel_ids=op[1]
                 get_model("account.track.entry").delete(rel_ids,context=context)
 
+    def create_track(self,ids,context={}):
+        obj=self.browse(ids[0])
+        code=obj.number
+        res=get_model("account.track.categ").search([["code","=",code]])
+        if res:
+            track_id=res[0]
+        else:
+            parent_id=obj.project_id.track_id.id if obj.project_id else None
+            track_id=get_model("account.track.categ").create({
+                    "code": code,
+                    "name": code,
+                    "type": "1",
+                    "parent_id": parent_id,
+                })
+        obj.write({"track_id": track_id})
+
 Job.register()
