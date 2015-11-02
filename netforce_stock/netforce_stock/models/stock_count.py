@@ -130,6 +130,7 @@ class StockCount(Model):
                 "date": obj.date,
                 "ref": obj.number,
                 "product_id": line.product_id.id,
+                "lot_id": line.lot_id.id,
                 "location_from_id": loc_from_id,
                 "location_to_id": loc_to_id,
                 "qty": qty,
