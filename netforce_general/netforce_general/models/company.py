@@ -28,6 +28,7 @@ class Company(Model):
     _name = "company"
     _string = "Company"
     _key = ["name"]
+    _audit_log = True
     _fields = {
         "name": fields.Char("Company Name", required=True, search=True, translate=True),
         "code": fields.Char("Company Code", search=True),
