@@ -38,6 +38,7 @@ class TrackCateg(Model):
         "documents": fields.One2Many("document", "related_id", "Documents"),
         "track_entries": fields.One2Many("account.track.entry","track_id","Tracking Entries"),
         "balance": fields.Decimal("Tracking Balance",function="get_balance"),
+        "sub_tracks": fields.One2Many("account.track.categ","parent_id","Sub Tracking Categories"),
     }
     _order = "type,code,full_name"
     _constraints = ["_check_cycle"]
@@ -77,14 +78,27 @@ class TrackCateg(Model):
         return vals
 
     def get_balance(self,ids,context={}):
+        print("account.track.categ get_balance")
         db=database.get_connection()
-        res=db.query("SELECT track_id,SUM(amount) AS total FROM account_track_entry WHERE track_id IN %s GROUP BY track_id",tuple(ids))
+        child_ids=self.search([["id","child_of",ids]])
+        print("child_ids",child_ids)
+        res=db.query("SELECT track_id,SUM(amount) AS total FROM account_track_entry WHERE track_id IN %s GROUP BY track_id",tuple(child_ids))
         totals={}
         for r in res:
             totals[r.track_id]=r.total
+        res=db.query("SELECT id,parent_id FROM account_track_categ WHERE id IN %s",tuple(child_ids))
+        sub_ids={}
+        for r in res:
+            sub_ids.setdefault(r.parent_id,[])
+            sub_ids[r.parent_id].append(r.id)
+        def _get_total(track_id):
+            amt=totals.get(track_id,0)
+            for child_id in sub_ids.get(track_id,[]):
+                amt+=_get_total(child_id)
+            return amt
         vals={}
         for obj in self.browse(ids):
-            vals[obj.id]=totals.get(obj.id,0)
+            vals[obj.id]=_get_total(obj.id)
         return vals
 
 TrackCateg.register()
