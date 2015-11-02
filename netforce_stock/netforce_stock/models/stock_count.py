@@ -74,6 +74,7 @@ class StockCount(Model):
             vals = {
                 "count_id": obj.id,
                 "product_id": bal.product_id.id,
+                "lot_id": bal.lot_id.id,
                 "bin_location": bal.product_id.bin_location,
                 "prev_qty": bal.qty_phys,
                 "new_qty": 0,
@@ -90,7 +91,8 @@ class StockCount(Model):
         if not prod_id:
             return {}
         prod = get_model("product").browse(prod_id)
-        qty = get_model("stock.balance").get_qty_phys(loc_id, prod_id)
+        lot_id = line.get("lot_id")
+        qty = get_model("stock.balance").get_qty_phys(loc_id, prod_id, lot_id)
         unit_price = get_model("stock.balance").get_unit_price(loc_id, prod_id)
         line["bin_location"] = prod.bin_location
         line["prev_qty"] = qty
@@ -180,6 +182,7 @@ class StockCount(Model):
         for line in obj.lines:
             line_vals = {
                 "product_id": line.product_id.id,
+                "lot_id": line.lot_id.id,
                 "bin_location": line.bin_location,
                 "prev_qty": line.prev_qty,
                 "new_qty": line.new_qty,

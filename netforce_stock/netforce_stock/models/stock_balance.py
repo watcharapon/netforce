@@ -193,12 +193,14 @@ class StockBalance(Model):
         finally:
             access.set_active_user(user_id)
 
-    def get_qty_phys(self, location_id, product_id):
-        res = self.search([["location_id", "=", location_id], ["product_id", "=", product_id]])
-        if not res:
-            return 0
-        obj = self.browse(res)[0]
-        return obj.qty_phys
+    def get_qty_phys(self, location_id, product_id, lot_id):
+        cond=[["location_id", "=", location_id], ["product_id", "=", product_id]]
+        if lot_id: 
+            cond.append(["lot_id","=",lot_id])
+        qty=0
+        for bal in self.search_browse(cond):
+            qty+=bal.qty_phys
+        return bal
 
     def get_unit_price(self, location_id, product_id):
         res = self.search([["location_id", "=", location_id], ["product_id", "=", product_id]])
