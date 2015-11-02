@@ -362,7 +362,7 @@ class Account(Model):
         set_active_company(comp_id)
         vals = {}
         for obj in self.browse(ids):
-            vals[obj.id] = comp_cur[obj.company_id.id]
+            vals[obj.id] = comp_cur.get(obj.company_id.id)
         return vals
 
 Account.register()

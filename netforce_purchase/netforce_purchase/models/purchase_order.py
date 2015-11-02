@@ -288,6 +288,8 @@ class PurchaseOrder(Model):
         if not res:
             raise Exception("Warehouse not found")
         wh_loc_id = res[0]
+        if not settings.currency_id:
+            raise Exception("Missing currency in financial settings")
         for line in obj.lines:
             prod = line.product_id
             if prod.type not in ("stock", "consumable"):
