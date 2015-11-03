@@ -51,13 +51,11 @@ class CreateRoute(Model):
                 "lines": [],
             }
             for pick in get_model("stock.picking").browse(pick_ids):
-                for line in pick.lines:
-                    prod=line.product_id
-                    line_vals = {
-                        "sequence": pick.sequence,
-                        "picking_id": pick.id,
-                    }
-                    route_vals["lines"].append(("create", line_vals))
+                line_vals = {
+                    "sequence": pick.sequence,
+                    "picking_id": pick.id,
+                }
+                route_vals["lines"].append(("create", line_vals))
             if not route_vals["lines"]:
                 continue
             get_model("delivery.route").create(route_vals)
