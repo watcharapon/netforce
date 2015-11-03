@@ -6,12 +6,9 @@ class RouteLine(Model):
     _fields={
         "route_id": fields.Many2One("delivery.route","Route",required=True,on_delete="cascade"),
         "sequence": fields.Integer("Sequence",required=True),
-        "contact_id": fields.Many2One("contact","Customer",required=True),
-        "phone": fields.Char("Phone"),
-        "address": fields.Text("Address"),
-        "coordinates": fields.Char("Coordinates"),
-        "payment_type": fields.Selection([["transfer","Transfer"],["cod","Cash on Delivery"]],"Payment Type"),
-        "items_description": fields.Text("Items To Deliver"),
+        "picking_id": fields.Many2One("stock.picking","Goods Issue",condition=[["type","=","out"]]),
+        "contact_id": fields.Many2One("contact","Customer",function="_get_related",function_context={"path":"picking_id.contact_id"}),
+        "ship_address_id": fields.Many2One("address","Shipping Address",function="_get_related",function_context={"path":"picking_id.ship_address_id"}),
         "state": fields.Selection([["planned","Planned"],["done","Completed"],["canceled","Canceled"]],"Status",required=True),
     }
     _order="sequence"

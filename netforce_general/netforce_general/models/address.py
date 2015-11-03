@@ -57,6 +57,7 @@ class Address(Model):
         "employee_id": fields.Many2One("hr.employee", "Employee"),
         "related_id": fields.Reference([], "Related To"),
         "address_text": fields.Text("Address Text", function="get_address_text"),
+        "sequence": fields.Decimal("Sequence"),
     }
 
     def get_address_text(self, ids, context={}):

@@ -58,6 +58,7 @@
             <separator/>
             <field name="avail_messengers"/>
             <field name="messenger_id"/>
+            <field name="sequence"/>
         </tab>
         <tab string="Approval">
             <field name="pending_by_id"/>

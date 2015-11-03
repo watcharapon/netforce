@@ -6,17 +6,16 @@
         <field name="number" span="2"/>
         <field name="date" span="2"/>
         <field name="carrier_id" span="2"/>
+        <field name="ref" span="2"/>
     </group>
     <field name="lines">
         <list>
             <field name="sequence"/>
+            <field name="picking_id"/>
             <field name="contact_id"/>
-            <field name="phone"/>
-            <field name="address"/>
-            <field name="coordinates"/>
-            <field name="payment_type"/>
-            <field name="items_description"/>
+            <field name="ship_address_id"/>
             <field name="state"/>
         </list>
     </field>
+    <field name="state"/>
 </form>

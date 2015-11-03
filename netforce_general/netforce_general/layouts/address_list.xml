@@ -10,4 +10,5 @@
     <field name="country_id"/>
     <field name="province_id"/>
     <field name="phone"/>
+    <field name="sequence"/>
 </list>

@@ -65,6 +65,7 @@ class Picking(Model):
         "avail_messengers": fields.Many2Many("messenger","Available Messengers"),
         "currency_rate": fields.Decimal("Currency Rate"),
         "product_id2": fields.Many2One("product","Product",store=False,function_search="search_product2",search=True), #XXX ICC
+        "sequence": fields.Decimal("Sequence",function="_get_related",function_context={"path":"ship_address_id.sequence"}),
     }
     _order = "date desc,number desc"
 

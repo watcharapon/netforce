@@ -12,4 +12,5 @@
     <field name="ship_cost"/>
     <field name="ship_pay_by"/>
     <field name="state"/>
+    <field name="sequence"/>
 </list>

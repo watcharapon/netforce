@@ -1,7 +1,11 @@
 <list model="delivery.route">
+    <top>
+        <button string="Create Delivery Routes" action="create_delivery_route"/>
+    </top>
     <field name="number"/>
     <field name="date"/>
     <field name="carrier_id"/>
+    <field name="ref"/>
     <field name="num_lines"/>
     <field name="state"/>
 </list>

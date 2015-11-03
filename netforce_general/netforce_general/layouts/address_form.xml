@@ -20,4 +20,5 @@
     <field name="district_id" condition='[["province_id","=",province_id]]'/>
     <field name="subdistrict_id" condition='[["district_id","=",district_id]]'/>
     <field name="phone"/>
+    <field name="sequence"/>
 </form>
