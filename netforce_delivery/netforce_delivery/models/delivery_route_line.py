@@ -10,6 +10,8 @@ class RouteLine(Model):
         "contact_id": fields.Many2One("contact","Customer",function="_get_related",function_context={"path":"picking_id.contact_id"}),
         "ship_address_id": fields.Many2One("address","Shipping Address",function="_get_related",function_context={"path":"picking_id.ship_address_id"}),
         "state": fields.Selection([["planned","Planned"],["done","Completed"],["canceled","Canceled"]],"Status",required=True),
+        "start_time": fields.Char("Start Time"),
+        "end_time": fields.Char("End Time"),
     }
     _order="sequence"
     _defaults={

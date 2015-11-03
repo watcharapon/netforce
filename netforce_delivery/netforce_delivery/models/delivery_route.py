@@ -11,7 +11,7 @@ class Route(Model):
         "date": fields.Date("Date",required=True,search=True),
         "carrier_id": fields.Many2One("delivery.carrier","Carrier",required=True,search=True),
         "lines": fields.One2Many("delivery.route.line","route_id","Destinations"),
-        "state": fields.Selection([["planned","Planned"],["done","Completed"],["canceled","Canceled"]],"Status",required=True),
+        "state": fields.Selection([["planned","Planned"],["transit","In Transit"],["done","Completed"],["canceled","Canceled"]],"Status",required=True),
         "num_lines": fields.Integer("# Items",function="get_num_lines"),
         "ref": fields.Char("Ref"),
         "create_delivery_route_id": fields.Many2One("create.delivery.route","Create Wizard"),

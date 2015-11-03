@@ -215,7 +215,7 @@ var FieldDateTime=NFView.extend({
     blur: function() {
         if (this.disable_blur) return;
         log("field_datetime.blur");
-        this.$el.find("input").datetimepicker("hide");
+        this.$el.find("input").data("DateTimePicker").hide();
         this.trigger("blur");
     },
 
