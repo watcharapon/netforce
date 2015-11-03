@@ -1,3 +1,4 @@
 <columns model="delivery.route.line" group_field="route_id" title_field="contact_id">
+    <field name="picking_id"/>
     <field name="ship_address_id"/>
 </columns>
