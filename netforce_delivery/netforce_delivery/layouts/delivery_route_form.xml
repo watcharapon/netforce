@@ -1,6 +1,7 @@
 <form model="delivery.route">
     <head>
         <field name="state"/>
+        <button string="Print" icon="print" action="report_delivery_route_form"/>
     </head>
     <group form_layout="stacked">
         <field name="number" span="2"/>
