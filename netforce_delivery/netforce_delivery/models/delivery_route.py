@@ -16,7 +16,7 @@ class Route(Model):
         "ref": fields.Char("Ref"),
         "create_delivery_route_id": fields.Many2One("create.delivery.route","Create Wizard"),
     }
-    _order="date desc"
+    _order="date desc,number desc"
 
     def _get_number(self, context={}):
         seq_id = get_model("sequence").find_sequence(type="delivery_route",context=context)
