@@ -7,5 +7,7 @@
     <field name="carrier_id"/>
     <field name="ref"/>
     <field name="num_lines"/>
+    <field name="depart_time"/>
+    <field name="return_time"/>
     <field name="state"/>
 </list>

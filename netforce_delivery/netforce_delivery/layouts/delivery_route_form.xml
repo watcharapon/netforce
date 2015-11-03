@@ -8,6 +8,8 @@
         <field name="date" span="2"/>
         <field name="carrier_id" span="2"/>
         <field name="ref" span="2"/>
+        <field name="depart_time" span="2"/>
+        <field name="return_time" span="2"/>
     </group>
     <field name="lines">
         <list>

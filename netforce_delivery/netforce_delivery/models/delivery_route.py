@@ -15,6 +15,8 @@ class Route(Model):
         "num_lines": fields.Integer("# Items",function="get_num_lines"),
         "ref": fields.Char("Ref"),
         "create_delivery_route_id": fields.Many2One("create.delivery.route","Create Wizard"),
+        "depart_time": fields.DateTime("Departure Time"),
+        "return_time": fields.DateTime("Return Time"),
     }
     _order="date desc,number desc"
 
