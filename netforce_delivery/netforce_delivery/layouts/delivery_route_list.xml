@@ -1,6 +1,7 @@
 <list model="delivery.route">
     <top>
         <button string="Create Delivery Routes" action="create_delivery_route"/>
+        <button string="Print" icon="print" action="report_delivery_route_form"/>
     </top>
     <field name="number"/>
     <field name="date"/>
