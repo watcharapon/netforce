@@ -23,7 +23,7 @@ class CreateRoute(Model):
     def create_routes(self,ids,context={}):
         obj=self.browse(ids[0])
         rounds={}
-        for pick in get_model("stock.picking").search_browse([["type","=","out"],["type","=","approved"],["date",">=",obj.date+" 00:00:00"],["date","<=",obj.date+" 23:59:59"]]):
+        for pick in get_model("stock.picking").search_browse([["type","=","out"],["state","=","approved"],["date",">=",obj.date+" 00:00:00"],["date","<=",obj.date+" 23:59:59"]]):
             if pick.route_lines: # XXX
                 continue
             seq=pick.sequence
