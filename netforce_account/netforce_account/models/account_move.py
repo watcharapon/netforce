@@ -176,8 +176,10 @@ class Move(Model):
                     print("  ACC: [%s] %s DR: %s CR: %s" %
                           (line.account_id.code, line.account_id.name, line.debit, line.credit))
                 raise Exception("Journal entry is not balanced (debit=%s, credit=%s)" % (total_debit, total_credit))
-            date_posted = time.strftime("%Y-%m-%d")
-            obj.write({"state": "posted", "date_posted": date_posted})
+            obj.write({"state": "posted"})
+            if not obj.date_posted:
+                date_posted = time.strftime("%Y-%m-%d")
+                obj.write({"date_posted": date_posted})
             obj.create_track_entries()
             seq = 1
             for line in obj.lines:
