@@ -866,7 +866,7 @@ class Payment(Model):
                     "amount": line.amount,
                 }
                 vals["lines"].append(("create", line_vals))
-            inv_id = get_model("account.invoice").create(vals)
+            inv_id = get_model("account.invoice").create(vals,context={"type":vals["type"],"inv_type":"prepay"})
         elif obj.pay_type == "invoice":
             for line in obj.lines:
                 if line.type != "invoice":
@@ -898,7 +898,7 @@ class Payment(Model):
                         "payment_id": obj.id,
                         "currency_id": obj.currency_id.id,
                     }
-                    inv_id = get_model("account.invoice").create(vals)
+                    inv_id = get_model("account.invoice").create(vals,context={"type":vals["type"],"inv_type":"prepay"})
 
     def delete_credit_invoices(self, ids, context={}):  # XXX: improve/simplify this
         obj = self.browse(ids)[0]
