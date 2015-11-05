@@ -35,9 +35,6 @@ import traceback
 class JsonRpc(Controller):
     _path = "/json_rpc"
 
-    def get(self):
-        self.render("base/json_rpc.xml")
-
     def post(self):
         req = json.loads(self.request.body.decode())
         # open("/tmp/json_rpc.log","a").write(self.request.body.decode()+"\n###############################################################\n")
@@ -108,11 +105,15 @@ class JsonRpc(Controller):
         access.clear_active_user()
         try:
             data = json_dumps(resp)
+            self.add_header("Access-Control-Allow-Origin","*")
             self.write(data)
         except:
             print("JSONRPC ERROR: invalid response")
             from pprint import pprint
             pprint(resp)
             traceback.print_exc()
+
+    def get(self):
+        self.post()
 
 JsonRpc.register()

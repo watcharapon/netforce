@@ -296,19 +296,20 @@ class SaleQuot(Model):
         prod = get_model("product").browse(prod_id)
         pricelist_id = data["price_list_id"]
         qty = line["qty"]
-        price = None
-        if pricelist_id:
-            price = get_model("price.list").get_price(pricelist_id, prod.id, qty)
-            price_list = get_model("price.list").browse(pricelist_id)
-            price_currency_id = price_list.currency_id.id
-        if price is None:
-            price = prod.sale_price
-            settings = get_model("settings").browse(1)
-            price_currency_id = settings.currency_id.id
-        if price is not None:
-            currency_id = data["currency_id"]
-            price_cur = get_model("currency").convert(price, price_currency_id, currency_id)
-            line["unit_price"] = price_cur
+        if line.get("unit_price") is None:
+            price = None
+            if pricelist_id:
+                price = get_model("price.list").get_price(pricelist_id, prod.id, qty)
+                price_list = get_model("price.list").browse(pricelist_id)
+                price_currency_id = price_list.currency_id.id
+            if price is None:
+                price = prod.sale_price
+                settings = get_model("settings").browse(1)
+                price_currency_id = settings.currency_id.id
+            if price is not None:
+                currency_id = data["currency_id"]
+                price_cur = get_model("currency").convert(price, price_currency_id, currency_id)
+                line["unit_price"] = price_cur
         data = self.update_amounts(context)
         return data
 
@@ -334,7 +335,7 @@ class SaleQuot(Model):
         if not uom_id:
             return {}
         uom = get_model("uom").browse(uom_id)
-        if prod.sale_price is not None:
+        if line.get("unit_price") is None and prod.sale_price is not None:
             line["unit_price"] = prod.sale_price * uom.ratio / prod.uom_id.ratio
         data = self.update_amounts(context)
         return data
