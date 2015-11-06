@@ -34,6 +34,7 @@ import dateutil.parser
 import netforce
 from lxml import etree
 from netforce import utils
+from decimal import *
 
 models = {}
 browse_cache = {}
@@ -1606,7 +1607,20 @@ class Model(object):
         return view_opts
 
     def call_onchange(self, method, context={}):
-        # print("call_onchange",self._name,method)
+        #print("call_onchange",self._name,method)
+        data=context.get("data",{})
+        def _conv_decimal(m,vals):
+            for n,v in vals.items():
+                f=m._fields.get(n)
+                if not f:
+                    continue
+                if isinstance(f,fields.Decimal) and isinstance(v,float):
+                    vals[n]=Decimal(v)
+                elif isinstance(f,fields.One2Many) and isinstance(v,list):
+                    mr=get_model(f.relation)
+                    for line_vals in v:
+                        _conv_decimal(mr,line_vals)
+        _conv_decimal(self,data)
         f = getattr(self, method)
         res = f(context=context)
         if res is None:
@@ -1620,7 +1634,6 @@ class Model(object):
             data["meta"] = res["meta"]
         if "alert" in res:
             data["alert"] = res["alert"]
-
         def _fill_m2o(m, vals):
             for k, v in vals.items():
                 if not v:
