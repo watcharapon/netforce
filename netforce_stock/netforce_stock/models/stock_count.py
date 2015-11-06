@@ -101,6 +101,15 @@ class StockCount(Model):
         line["uom_id"] = prod.uom_id.id
         return data
 
+    def update_prev_qty(self, ids, context={}):
+        obj=self.browse(ids[0])
+        for line in obj.lines:
+            qty = get_model("stock.balance").get_qty_phys(obj.location_id.id, line.product_id.id, line.lot_id.id)
+            line.write({"prev_qty": qty})
+        return {
+            "flash": "Previous quantities updated",
+        }
+
     def validate(self, ids, context={}):
         obj = self.browse(ids)[0]
         settings = get_model("settings").browse(1)

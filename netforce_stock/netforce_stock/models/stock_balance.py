@@ -200,7 +200,7 @@ class StockBalance(Model):
         qty=0
         for bal in self.search_browse(cond):
             qty+=bal.qty_phys
-        return bal
+        return qty
 
     def get_unit_price(self, location_id, product_id):
         res = self.search([["location_id", "=", location_id], ["product_id", "=", product_id]])

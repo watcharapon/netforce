@@ -4,6 +4,7 @@
         <button string="Print PDF" icon="print" action="report_inventory_form"/>
         <button string="Options" dropdown="1">
             <item string="Fill Products" method="fill_products" states="draft"/>
+            <item string="Update Previous Quantities" method="update_prev_qty"/>
             <item string="Copy" method="copy"/>
             <item string="To Draft" method="to_draft" states="done"/>
             <item string="Void" method="void" confirm="Are you sure you want to void this stock count?" states="done"/>
