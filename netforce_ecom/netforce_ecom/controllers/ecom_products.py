@@ -228,7 +228,6 @@ class Products(BaseController):
                 contact = user.contact_id
                 if contact.sale_price_list_id.id:
                     browse_ctx["pricelist_id"] =contact.sale_price_list_id.id 
-                ctx["customer"]=contact
                 
             products = get_model("product").search_browse(condition=cond,order=sort_by,context=browse_ctx)
 

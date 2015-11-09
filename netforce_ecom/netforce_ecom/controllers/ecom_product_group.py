@@ -45,7 +45,6 @@ class ProductGroup(BaseController):
                 contact = user.contact_id
                 if contact.sale_price_list_id.id:
                     browse_ctx["pricelist_id"] =contact.sale_price_list_id.id 
-                ctx["customer"]=contact
                 
             if group_id:
                 group_id = int(group_id)

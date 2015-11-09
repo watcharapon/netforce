@@ -62,8 +62,7 @@ class Product(BaseController):
                 user=get_model("base.user").browse(user_id)
                 contact = user.contact_id
                 if contact.sale_price_list_id.id:
-                    browse_ctx["pricelist_id"] =contact.sale_price_list_id.id 
-                ctx["customer"]=contact
+                    browse_ctx["pricelist_id"] = contact.sale_price_list_id.id 
 
             product_id = self.get_argument("product_id")
             product_id = int(product_id)
