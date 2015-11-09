@@ -56,6 +56,15 @@ class Product(BaseController):
                 "sale_channel_id": website.sale_channel_id.id,
                 "pricelist_id": website.sale_channel_id.pricelist_id.id if website.sale_channel_id else None,
             }
+            user_id=self.get_cookie("user_id",None)
+            if user_id:
+                user_id=int(user_id)
+                user=get_model("base.user").browse(user_id)
+                contact = user.contact_id
+                if contact.sale_price_list_id.id:
+                    browse_ctx["pricelist_id"] =contact.sale_price_list_id.id 
+                ctx["customer"]=contact
+
             product_id = self.get_argument("product_id")
             product_id = int(product_id)
             prod = get_model("product").browse([product_id],context=browse_ctx)[0]
