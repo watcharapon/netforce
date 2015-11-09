@@ -637,7 +637,10 @@ class Cart(Model):
         if user_id:
             vals["user_id"] = user_id
             user=get_model("base.user").browse(user_id)
-            vals["contact_id"] = user.contact_id.id
+            contact =user.contact_id
+            vals["contact_id"] = contact.id
+            if contact.sale_price_list_id.id:
+                vals["pricelist_id"] =contact.sale_price_list_id.id 
         cart_id = self.create(vals)
         self.set_default_address([cart_id])
         return cart_id
