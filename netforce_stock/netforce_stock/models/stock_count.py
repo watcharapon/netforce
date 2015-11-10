@@ -154,6 +154,12 @@ class StockCount(Model):
         res = get_model("stock.location").search([["type", "=", "inventory"]])
         if not res:
             raise Exception("Inventory loss location not found")
+        prod_lines={}
+        for line in obj.lines:
+            k=(line.product_id.id,line.lot_id.id)
+            if k in prod_lines:
+                raise Exception("Duplicate product in stock count: %s"%line.product_id.code)
+            prod_lines[k]=line.id
         invent_loc_id = res[0]
         move_ids = []
         prod_ids = []
