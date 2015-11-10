@@ -32,9 +32,9 @@ class StockCountLine(Model):
         "new_qty": fields.Decimal("New Qty", required=True),
         "uom_id": fields.Many2One("uom", "UoM", required=True, readonly=True),
         "prev_cost_price": fields.Decimal("Previous Cost Price", scale=6),
-        "prev_cost_amount": fields.Decimal("Previous Cost Amount",function="get_cost_amount"),
+        "prev_cost_amount": fields.Decimal("Previous Cost Amount",function="get_cost_amount",function_multi=True),
         "unit_price": fields.Decimal("New Cost Price", scale=6), # TODO: rename to new_cost_price
-        "new_cost_amount": fields.Decimal("New Cost Amount",function="get_cost_amount"),
+        "new_cost_amount": fields.Decimal("New Cost Amount",function="get_cost_amount",function_multi=True),
     }
 
     def get_cost_amount(self,ids,context={}):
