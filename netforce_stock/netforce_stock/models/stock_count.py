@@ -61,26 +61,73 @@ class StockCount(Model):
         "company_id": lambda *a: get_active_company(),
     }
 
-    def fill_products(self, ids, context={}):
+    def delete_lines(self, ids, context={}):
         obj = self.browse(ids)[0]
-        if obj.lines:
-            line_ids = [l.id for l in obj.lines]
+        line_ids = [l.id for l in obj.lines]
+        if line_ids:
             get_model("stock.count.line").delete(line_ids)
-        loc_id = obj.location_id.id
-        bal_ids = get_model("stock.balance").search([["location_id", "=", loc_id]])
-        for bal in get_model("stock.balance").browse(bal_ids):
+        return {
+            "flash": "Stock count lines deleted",
+        }
+
+    def update_lines(self, ids, context={}):
+        obj=self.browse(ids[0])
+        qtys={}
+        amts={}
+        for bal in get_model("stock.balance").search_browse([["location_id", "=", obj.location_id.id]]):
             if bal.qty_phys == 0:
+                continue
+            k=(bal.product_id.id,bal.lot_id.id)
+            qtys[k]=bal.qty_phys
+            amts[k]=bal.amount
+        for line in obj.lines:
+            prod=line.product_id
+            k=(prod.id,line.lot_id.id)
+            qty=qtys.get(k,0)
+            amt=amts.get(k,0)
+            price=amt/qty if qty else 0
+            vals={
+                "bin_location": prod.bin_location,
+                "prev_qty": qty,
+                "prev_cost_price": price,
+                "new_qty": 0,
+                "unit_price": 0,
+                "uom_id": prod.uom_id.id,
+            }
+            line.write(vals)
+        return {
+            "flash": "Stock count lines updated",
+        }
+
+    def add_lines(self, ids, context={}):
+        obj = self.browse(ids)[0]
+        loc_id = obj.location_id.id
+        prod_lines={}
+        for line in obj.lines:
+            prod_lines[(line.product_id.id,line.lot_id.id)]=line.id
+        for bal in get_model("stock.balance").search_browse([["location_id", "=", loc_id]]):
+            if bal.qty_phys == 0:
+                continue
+            prod=bal.product_id
+            lot=bal.lot_id
+            line_id=prod_lines.get((prod.id,lot.id))
+            if line_id:
                 continue
             vals = {
                 "count_id": obj.id,
-                "product_id": bal.product_id.id,
+                "product_id": prod.id,
                 "lot_id": bal.lot_id.id,
-                "bin_location": bal.product_id.bin_location,
+                "bin_location": prod.bin_location,
                 "prev_qty": bal.qty_phys,
+                "prev_cost_price": bal.amount/bal.qty_phys if bal.qty_phys else 0,
                 "new_qty": 0,
-                "uom_id": bal.product_id.uom_id.id,
+                "unit_price": 0,
+                "uom_id": prod.uom_id.id,
             }
             get_model("stock.count.line").create(vals)
+        return {
+            "flash": "Stock count lines added",
+        }
 
     def onchange_product(self, context):
         data = context["data"]
@@ -96,19 +143,11 @@ class StockCount(Model):
         unit_price = get_model("stock.balance").get_unit_price(loc_id, prod_id)
         line["bin_location"] = prod.bin_location
         line["prev_qty"] = qty
+        line["prev_cost_price"] = unit_price
         line["new_qty"] = qty
         line["unit_price"] = unit_price
         line["uom_id"] = prod.uom_id.id
         return data
-
-    def update_prev_qty(self, ids, context={}):
-        obj=self.browse(ids[0])
-        for line in obj.lines:
-            qty = get_model("stock.balance").get_qty_phys(obj.location_id.id, line.product_id.id, line.lot_id.id)
-            line.write({"prev_qty": qty})
-        return {
-            "flash": "Previous quantities updated",
-        }
 
     def validate(self, ids, context={}):
         obj = self.browse(ids)[0]
@@ -127,11 +166,15 @@ class StockCount(Model):
             print("line %s/%s"%(line_no,num_lines))
             prod_ids.append(line.product_id.id)
             if line.new_qty < line.prev_qty:
-                qty = line.prev_qty - line.new_qty
+                qty_diff = line.prev_qty - line.new_qty
+                amount_diff = line.prev_cost_amount - line.new_cost_amount
+                price_diff = amount_diff / qty_diff if qty_diff else 0
                 loc_from_id = obj.location_id.id
                 loc_to_id = invent_loc_id
             elif line.new_qty > line.prev_qty:
-                qty = line.new_qty - line.prev_qty
+                qty_diff = line.new_qty - line.prev_qty
+                amount_diff = line.new_cost_amount - line.prev_cost_amount
+                price_diff = amount_diff / qty_diff if qty_diff else 0
                 loc_from_id = invent_loc_id
                 loc_to_id = obj.location_id.id
             else:
@@ -144,10 +187,10 @@ class StockCount(Model):
                 "lot_id": line.lot_id.id,
                 "location_from_id": loc_from_id,
                 "location_to_id": loc_to_id,
-                "qty": qty,
+                "qty": qty_diff,
                 "uom_id": line.uom_id.id,
-                "cost_price": (line.unit_price or 0),
-                "cost_amount": (line.unit_price or 0) * qty,
+                "cost_price": price_diff,
+                "cost_amount": amount_diff,
                 "related_id": "stock.count,%d" % obj.id,
             }
             #move_id = get_model("stock.move").create(vals)
