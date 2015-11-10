@@ -75,8 +75,6 @@ class StockCount(Model):
         qtys={}
         amts={}
         for bal in get_model("stock.balance").search_browse([["location_id", "=", obj.location_id.id]]):
-            if bal.qty_phys == 0:
-                continue
             k=(bal.product_id.id,bal.lot_id.id)
             qtys[k]=bal.qty_phys
             amts[k]=bal.amount
@@ -106,7 +104,7 @@ class StockCount(Model):
             prod_lines[(line.product_id.id,line.lot_id.id)]=line.id
         n=0
         for bal in get_model("stock.balance").search_browse([["location_id", "=", loc_id]]):
-            if bal.qty_phys == 0:
+            if bal.qty_phys == 0 and bal.amount==0:
                 continue
             prod=bal.product_id
             lot=bal.lot_id
