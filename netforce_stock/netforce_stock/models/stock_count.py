@@ -90,8 +90,6 @@ class StockCount(Model):
                 "bin_location": prod.bin_location,
                 "prev_qty": qty,
                 "prev_cost_price": price,
-                "new_qty": 0,
-                "unit_price": 0,
                 "uom_id": prod.uom_id.id,
             }
             line.write(vals)
