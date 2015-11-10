@@ -103,6 +103,7 @@ class StockCount(Model):
         prod_lines={}
         for line in obj.lines:
             prod_lines[(line.product_id.id,line.lot_id.id)]=line.id
+        n=0
         for bal in get_model("stock.balance").search_browse([["location_id", "=", loc_id]]):
             if bal.qty_phys == 0:
                 continue
@@ -123,8 +124,9 @@ class StockCount(Model):
                 "uom_id": prod.uom_id.id,
             }
             get_model("stock.count.line").create(vals)
+            n+=1
         return {
-            "flash": "Stock count lines added",
+            "flash": "%d stock count lines added"%n,
         }
 
     def onchange_product(self, context):
