@@ -53,6 +53,14 @@ class BaseController(Controller):
             set_active_locale(lang)
             self.set_cookie("locale",lang)
         ctx={}
+        user_id=self.get_cookie("user_id",None)
+        if user_id:
+            user_id=int(user_id)
+            user=get_model("base.user").browse(user_id)
+            contact = user.contact_id
+            if contact.sale_price_list_id.id:
+                browse_ctx["pricelist_id"] =contact.sale_price_list_id.id 
+            ctx["customer"]=contact
         ctx["website"]=website
         ctx["database"]=get_active_db()
         ctx["locale"]=get_active_locale()
@@ -71,11 +79,11 @@ class BaseController(Controller):
                 ctx["cart"]=get_model("ecom.cart").browse(cart_id,context=browse_ctx)
             else: # handle invalid cart_id cookie
                 self.clear_cookie("cart_id")
-        user_id=self.get_cookie("user_id",None)
-        if user_id:
-            user_id=int(user_id)
-            user=get_model("base.user").browse(user_id)
-            ctx["customer"]=user.contact_id
+        # user_id=self.get_cookie("user_id",None)
+        # if user_id:
+        #     user_id=int(user_id)
+        #     user=get_model("base.user").browse(user_id)
+        #     ctx["customer"]=user.contact_id
         offset=self.get_argument("offset",None)
         if offset:
             ctx["offset"]=int(offset)

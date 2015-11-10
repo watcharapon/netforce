@@ -38,6 +38,14 @@ class ProductGroup(BaseController):
             browse_ctx={
                 "pricelist_id": website.sale_channel_id.pricelist_id.id if website.sale_channel_id else None,
             }
+            user_id=self.get_cookie("user_id",None)
+            if user_id:
+                user_id=int(user_id)
+                user=get_model("base.user").browse(user_id)
+                contact = user.contact_id
+                if contact.sale_price_list_id.id:
+                    browse_ctx["pricelist_id"] =contact.sale_price_list_id.id 
+                
             if group_id:
                 group_id = int(group_id)
             else:

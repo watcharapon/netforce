@@ -221,6 +221,14 @@ class Products(BaseController):
                 "pricelist_id": website.sale_channel_id.pricelist_id.id if website.sale_channel_id else None,
                 "product_filter": cond,
             }
+            user_id=self.get_cookie("user_id",None)
+            if user_id:
+                user_id=int(user_id)
+                user=get_model("base.user").browse(user_id)
+                contact = user.contact_id
+                if contact.sale_price_list_id.id:
+                    browse_ctx["pricelist_id"] =contact.sale_price_list_id.id 
+                
             products = get_model("product").search_browse(condition=cond,order=sort_by,context=browse_ctx)
 
             cond_filter_supp = cond[:]
