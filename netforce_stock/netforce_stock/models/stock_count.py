@@ -42,6 +42,7 @@ class StockCount(Model):
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "company_id": fields.Many2One("company", "Company"),
         "journal_id": fields.Many2One("stock.journal", "Journal"),
+        "total_cost_amount": fields.Decimal("Total New Cost Amount",function="get_total_cost_amount"),
     }
 
     def _get_number(self, context={}):
@@ -275,5 +276,14 @@ class StockCount(Model):
                 move_ids.append(move.id)
         get_model("stock.move").delete(move_ids)
         super().delete(ids, **kw)
+
+    def get_total_cost_amount(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            total=0
+            for line in obj.lines:
+                total+=line.new_cost_amount
+            vals[obj.id]=total
+        return vals
 
 StockCount.register()

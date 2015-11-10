@@ -33,6 +33,7 @@
                     <field name="uom_id"/>
                 </list>
             </field>
+            <field name="total_cost_amount"/>
         </tab>
         <tab string="Other">
             <field name="journal_id"/>
