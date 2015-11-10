@@ -202,9 +202,6 @@ class StockCount(Model):
             move_ids.append(move_id)
         get_model("stock.move").set_done(move_ids)
         obj.write({"state": "done"})
-        prod_ids = list(set(prod_ids))
-        if prod_ids:
-            get_model("stock.compute.cost").compute_cost([], context={"product_ids": prod_ids})
 
     def void(self, ids, context={}):
         obj = self.browse(ids)[0]
