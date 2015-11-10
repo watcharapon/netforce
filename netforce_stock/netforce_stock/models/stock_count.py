@@ -129,6 +129,7 @@ class StockCount(Model):
         }
 
     def remove_dup(self,ids,context={}):
+        obj = self.browse(ids[0])
         prod_lines={}
         dup_ids=[]
         for line in obj.lines:
