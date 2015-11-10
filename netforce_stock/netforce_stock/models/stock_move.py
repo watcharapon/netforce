@@ -223,6 +223,7 @@ class Move(Model):
         print("stock_move.set_done",ids)
         settings=get_model("settings").browse(1)
         prod_ids=[]
+        self.write(ids,{"state":"done"},context=context)
         for obj in self.browse(ids):
             prod=obj.product_id
             prod_ids.append(prod.id)
@@ -243,9 +244,9 @@ class Move(Model):
                 raise Exception("Destination location '%s' is a view location"%obj.location_to_id.name)
             if prod.require_lot and not obj.lot_id:
                 raise Exception("Missing lot for product %s"%prod.code)
-            vals["state"]="done"
+            print("XXX write",vals)
             obj.write(vals=vals,context=context)
-            # change state in borrow requests
+            # change state in borrow requests # XXX: remove this
             if not obj.related_id:
                 if pick.related_id._model=="product.borrow":
                     if pick.related_id.is_return_item:
