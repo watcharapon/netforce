@@ -244,8 +244,8 @@ class Move(Model):
                 raise Exception("Destination location '%s' is a view location"%obj.location_to_id.name)
             if prod.require_lot and not obj.lot_id:
                 raise Exception("Missing lot for product %s"%prod.code)
-            print("XXX write",vals)
-            obj.write(vals=vals,context=context)
+            if vals:
+                obj.write(vals=vals,context=context)
             # change state in borrow requests # XXX: remove this
             if not obj.related_id:
                 if pick.related_id._model=="product.borrow":
