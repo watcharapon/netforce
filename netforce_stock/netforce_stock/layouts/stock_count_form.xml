@@ -6,6 +6,7 @@
             <item string="Add Lines" method="add_lines" states="draft"/>
             <item string="Update Lines" method="update_lines" states="draft"/>
             <item string="Delete Lines" method="delete_lines" states="draft"/>
+            <item string="Remove Duplicate Lines" method="remove_dup" states="draft"/>
             <item string="Copy" method="copy"/>
             <item string="To Draft" method="to_draft" states="done"/>
             <item string="Void" method="void" confirm="Are you sure you want to void this stock count?" states="done"/>

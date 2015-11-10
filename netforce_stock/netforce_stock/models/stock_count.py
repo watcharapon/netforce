@@ -128,6 +128,20 @@ class StockCount(Model):
             "flash": "%d stock count lines added"%n,
         }
 
+    def remove_dup(self,ids,context={}):
+        prod_lines={}
+        dup_ids=[]
+        for line in obj.lines:
+            k=(line.product_id.id,line.lot_id.id)
+            if k in prod_lines:
+                dup_ids.append(line.id)
+            else:
+                prod_lines[k]=line.id
+        get_model("stock.count.line").delete(dup_ids)
+        return {
+            "flash": "%d duplicate lines removed"%len(dup_ids),
+        }
+
     def onchange_product(self, context):
         data = context["data"]
         loc_id = data["location_id"]
