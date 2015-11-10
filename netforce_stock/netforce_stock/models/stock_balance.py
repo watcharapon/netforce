@@ -42,7 +42,7 @@ class StockBalance(Model):
         "supplier_id": fields.Many2One("contact", "Supplier", store=False, search=True, function_search="search_supplier"),
         "qty2": fields.Decimal("Secondary Qty"),
     }
-    _order = "product_id,location_id"
+    _order = "product_id.code,location_id"
     _sql_constraints = [
         ("prod_loc_uniq", "unique (product_id, location_id, lot_id, container_id)",
          "Stock balances must have unique products and locations!"),

@@ -36,7 +36,7 @@ class StockCountLine(Model):
         "unit_price": fields.Decimal("New Cost Price", scale=6), # TODO: rename to new_cost_price
         "new_cost_amount": fields.Decimal("New Cost Amount",function="get_new_cost_amount"),
     }
-    _order="id"
+    _order="product_id.code"
 
     def get_prev_cost_price(self,ids,context={}):
         vals={}
