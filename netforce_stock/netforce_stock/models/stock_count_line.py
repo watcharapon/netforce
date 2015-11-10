@@ -38,7 +38,7 @@ class StockCountLine(Model):
     }
     _order="id"
 
-    def get_new_prev_cost_price(self,ids,context={}):
+    def get_prev_cost_price(self,ids,context={}):
         vals={}
         for obj in self.browse(ids):
             vals[obj.id]=(obj.prev_cost_amount or 0)/obj.prev_qty if obj.prev_qty else 0
