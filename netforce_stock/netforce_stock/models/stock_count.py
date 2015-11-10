@@ -164,7 +164,7 @@ class StockCount(Model):
             line_no+=1
             print("line %s/%s"%(line_no,num_lines))
             prod_ids.append(line.product_id.id)
-            if line.new_qty < line.prev_qty:
+            if line.new_qty <= line.prev_qty:
                 qty_diff = line.prev_qty - line.new_qty
                 amount_diff = line.prev_cost_amount - line.new_cost_amount
                 price_diff = amount_diff / qty_diff if qty_diff else 0
@@ -176,8 +176,6 @@ class StockCount(Model):
                 price_diff = amount_diff / qty_diff if qty_diff else 0
                 loc_from_id = invent_loc_id
                 loc_to_id = obj.location_id.id
-            else:
-                continue
             vals = {
                 "journal_id": obj.journal_id.id or settings.stock_count_journal_id.id,
                 "date": obj.date,
