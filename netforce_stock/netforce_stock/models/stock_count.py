@@ -83,11 +83,10 @@ class StockCount(Model):
             k=(prod.id,line.lot_id.id)
             qty=qtys.get(k,0)
             amt=amts.get(k,0)
-            price=amt/qty if qty else 0
             vals={
                 "bin_location": prod.bin_location,
                 "prev_qty": qty,
-                "prev_cost_price": price,
+                "prev_cost_amount": amt,
                 "uom_id": prod.uom_id.id,
             }
             line.write(vals)
@@ -117,7 +116,7 @@ class StockCount(Model):
                 "lot_id": bal.lot_id.id,
                 "bin_location": prod.bin_location,
                 "prev_qty": bal.qty_phys,
-                "prev_cost_price": bal.amount/bal.qty_phys if bal.qty_phys else 0,
+                "prev_cost_amount": bal.amount,
                 "new_qty": 0,
                 "unit_price": 0,
                 "uom_id": prod.uom_id.id,

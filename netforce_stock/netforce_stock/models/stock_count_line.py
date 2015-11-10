@@ -31,20 +31,23 @@ class StockCountLine(Model):
         "prev_qty": fields.Decimal("Previous Qty", required=True, readonly=True),
         "new_qty": fields.Decimal("New Qty", required=True),
         "uom_id": fields.Many2One("uom", "UoM", required=True, readonly=True),
-        "prev_cost_price": fields.Decimal("Previous Cost Price", scale=6),
-        "prev_cost_amount": fields.Decimal("Previous Cost Amount",function="get_cost_amount",function_multi=True),
+        "prev_cost_price": fields.Decimal("Previous Cost Price", scale=6, function="get_prev_cost_price"),
+        "prev_cost_amount": fields.Decimal("Previous Cost Amount"),
         "unit_price": fields.Decimal("New Cost Price", scale=6), # TODO: rename to new_cost_price
-        "new_cost_amount": fields.Decimal("New Cost Amount",function="get_cost_amount",function_multi=True),
+        "new_cost_amount": fields.Decimal("New Cost Amount",function="get_new_cost_amount"),
     }
     _order="id"
 
-    def get_cost_amount(self,ids,context={}):
+    def get_new_prev_cost_price(self,ids,context={}):
         vals={}
         for obj in self.browse(ids):
-            vals[obj.id]={
-                "prev_cost_amount": (obj.prev_qty or 0)*(obj.prev_cost_price or 0),
-                "new_cost_amount": (obj.new_qty or 0)*(obj.unit_price or 0),
-            }
+            vals[obj.id]=(obj.prev_cost_amount or 0)/obj.prev_qty if obj.prev_qty else 0
+        return vals
+
+    def get_new_cost_amount(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            vals[obj.id]=(obj.new_qty or 0)*(obj.unit_price or 0)
         return vals
 
 StockCountLine.register()
