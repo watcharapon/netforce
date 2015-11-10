@@ -98,6 +98,7 @@ class StockCount(Model):
         }
 
     def add_lines(self, ids, context={}):
+        print("stock_count.add_lines")
         obj = self.browse(ids)[0]
         loc_id = obj.location_id.id
         prod_lines={}
@@ -125,6 +126,7 @@ class StockCount(Model):
             }
             get_model("stock.count.line").create(vals)
             n+=1
+        print("n=%d"%n)
         return {
             "flash": "%d stock count lines added"%n,
         }
