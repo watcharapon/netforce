@@ -199,7 +199,7 @@ class SaleQuot(Model):
                 continue
             amt = (line.get("qty") or 0) * (line.get("unit_price") or 0)
             if line.get("discount"):
-                disc = amt * line["discount"] / 100
+                disc = amt * line["discount"] / Decimal(100)
                 amt -= disc
             else:
                 disc = 0
@@ -668,7 +668,7 @@ class SaleQuot(Model):
         path=context["path"]
         line=get_data_path(data,path,parent=True)
         margin=line["est_margin_percent_input"]
-        amt=line["est_cost_amount"]/(1-margin/100)
+        amt=line["est_cost_amount"]/(1-margin/Decimal(100))
         price=round(amt/line["qty"])
         line["unit_price"]=price
         self.update_amounts(context)
