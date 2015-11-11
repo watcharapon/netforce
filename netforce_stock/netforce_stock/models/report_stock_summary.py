@@ -28,7 +28,7 @@ import time
 
 
 def get_totals(date_from, date_to, product_id=None, lot_id=None, location_id=None, container_id=None, prod_categ_id=None, prod_code=None, prod_company_ids=None):
-    q = "SELECT m.product_id,m.lot_id,m.location_from_id,m.container_from_id,m.location_to_id,m.container_to_id,m.uom_id,SUM(m.qty) AS total_qty,SUM(m.cost_amount) AS total_amt,SUM(m.qty2) AS total_qty2 FROM stock_move m LEFT JOIN product p ON m.product_id=p.id WHERE m.state='done' AND p.type='stock'"
+    q = "SELECT m.product_id,m.lot_id,m.location_from_id,m.container_from_id,m.location_to_id,m.container_to_id,m.uom_id,p.uom_id AS product_uom_id,SUM(m.qty) AS total_qty,SUM(m.cost_amount) AS total_amt,SUM(m.qty2) AS total_qty2 FROM stock_move m LEFT JOIN product p ON m.product_id=p.id WHERE m.state='done' AND p.type='stock'"
     q_args = []
     if date_from:
         q += " AND m.date>=%s"
@@ -60,18 +60,14 @@ def get_totals(date_from, date_to, product_id=None, lot_id=None, location_id=Non
     if prod_company_ids:
         q += " AND p.company_id in %s"
         q_args.append(prod_company_ids)
-    q += " GROUP BY m.product_id,m.lot_id,m.location_from_id,m.container_from_id,m.location_to_id,m.container_to_id,m.uom_id"
+    q += " GROUP BY m.product_id,m.lot_id,m.location_from_id,m.container_from_id,m.location_to_id,m.container_to_id,m.uom_id,product_uom_id"
     db = get_connection()
+    print("q",q)
+    print("q_args",q_args)
     res = db.query(q, *q_args)
-    prod_ids = []
-    for r in res:
-        prod_ids.append(r.product_id)
-    prod_ids = list(set(prod_ids))
-    products = get_model("product").browse(prod_ids)
     totals = {}
     for r in res:
-        prod = products.by_id(r.product_id)
-        qty = get_model("uom").convert(r.total_qty, r.uom_id, prod.uom_id.id)
+        qty = get_model("uom").convert(r.total_qty, r.uom_id, r.product_uom_id)
         amt = r.total_amt or 0
         qty2 = r.total_qty2 or 0
         k = (r.product_id, r.lot_id, r.location_from_id, r.container_from_id, r.location_to_id, r.container_to_id)
@@ -106,6 +102,7 @@ class ReportStockSummary(Model):
     }
 
     def get_report_data(self, ids, context={}):
+        print("stock_summary.get_report_data")
         company_id = get_active_company()
         comp = get_model("company").browse(company_id)
         if ids:
@@ -113,21 +110,20 @@ class ReportStockSummary(Model):
         else:
             params = self.default_get(load_m2o=False, context=context)
         date_from_m1 = (datetime.strptime(params["date_from"], "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
-        t0 = time.time()
         prod_company_id = params.get("prod_company_id")
         prod_company_ids = get_model("company").search([["id","child_of",prod_company_id]])
         if prod_company_ids:
             prod_company_ids = tuple(prod_company_ids)
         else:
             prod_company_ids = None
+        t0 = time.time()
         totals = {
             "open": get_totals(None, date_from_m1, product_id=params.get("product_id"), lot_id=params.get("lot_id"), location_id=params.get("location_id"), container_id=params.get("container_id"), prod_categ_id=params.get("prod_categ_id"), prod_code=params.get("prod_code"), prod_company_ids=prod_company_ids),
             "period": get_totals(params["date_from"], params["date_to"], product_id=params.get("product_id"), lot_id=params.get("lot_id"), location_id=params.get("location_id"), container_id=params.get("container_id"), prod_categ_id=params.get("prod_categ_id"), prod_code=params.get("prod_code"), prod_company_ids=prod_company_ids),
             "close": get_totals(None, params["date_to"], product_id=params.get("product_id"), lot_id=params.get("lot_id"), location_id=params.get("location_id"), container_id=params.get("container_id"), prod_categ_id=params.get("prod_categ_id"), prod_code=params.get("prod_code"), prod_company_ids=prod_company_ids),
         }
         t1 = time.time()
-        dt1 = (t1 - t0) * 1000
-        print("dt1: %d ms" % dt1)
+        print("get totals in %.3f s" % (t1-t0))
         prod_locs = set([])
         for prod_id, lot_id, loc_from_id, cont_from_id, loc_to_id, cont_to_id in list(totals["open"].keys()) + list(totals["period"].keys()) + list(totals["close"].keys()):
             if not params.get("show_lot"):
@@ -138,14 +134,19 @@ class ReportStockSummary(Model):
             prod_locs.add((prod_id, lot_id, loc_from_id, cont_from_id))
             prod_locs.add((prod_id, lot_id, loc_to_id, cont_to_id))
 
+        prod_totals={}
+        for when in ("open","period","close"):
+            tots={}
+            for (prod_id, lot_id, loc_from_id, cont_from_id, loc_to_id, cont_to_id), tot in totals[when].items():
+                tots.setdefault(prod_id,{})
+                tots[prod_id][(lot_id,loc_from_id,cont_from_id,loc_to_id,cont_to_id)]=tot
+            prod_totals[when]=tots
         def get_sum(when, prod=None, lot=-1, loc_to=-1, cont_from=-1, loc_from=-1, cont_to=-1):
             qty = 0
             amt = 0
             qty2 = 0
-            # TODO: faster
-            for (prod_id, lot_id, loc_from_id, cont_from_id, loc_to_id, cont_to_id), tot in totals[when].items():
-                if prod_id != prod:
-                    continue
+            tots=prod_totals[when].get(prod,{})
+            for (lot_id, loc_from_id, cont_from_id, loc_to_id, cont_to_id), tot in tots.items():
                 if lot != -1 and lot_id != lot:
                     continue
                 if loc_from != -1 and loc_from_id != loc_from:
@@ -160,9 +161,6 @@ class ReportStockSummary(Model):
                 amt += tot[1]
                 qty2 += tot[2]
             return (qty, amt, qty2)
-        t2 = time.time()
-        dt2 = (t2 - t1) * 1000
-        print("dt2: %d ms" % dt2)
         prod_ids = []
         lot_ids = []
         loc_ids = []
@@ -170,19 +168,43 @@ class ReportStockSummary(Model):
         for prod_id, lot_id, loc_id, cont_id in prod_locs:
             prod_ids.append(prod_id)
             loc_ids.append(loc_id)
-            if lot_id:
+            if lot_id and lot_id!=-1:
                 lot_ids.append(lot_id)
-            if cont_id:
+            if cont_id and lot_id!=-1:
                 cont_ids.append(cont_id)
         prod_ids = list(set(prod_ids))
         loc_ids = list(set(loc_ids))
         perm_loc_ids=get_model("stock.location").search([["id","in",loc_ids]])
         lot_ids = list(set(lot_ids))
         cont_ids = list(set(cont_ids))
-        prods = get_model("product").browse(prod_ids)
-        locs = get_model("stock.location").browse(loc_ids)
-        lots = get_model("stock.lot").browse(lot_ids)
-        conts = get_model("stock.container").browse(cont_ids)
+        prods = {}
+        for prod in get_model("product").browse(prod_ids):
+            prods[prod.id]={
+                "name": prod.name,
+                "code": prod.code,
+                "uom_id": prod.uom_id.id,
+                "uom_name": prod.uom_id.name,
+            }
+        locs = {}
+        for loc in get_model("stock.location").browse(loc_ids):
+            locs[loc.id]={
+                "name": loc.name,
+                "code": loc.code,
+                "type": loc.type,
+            }
+        lots = {}
+        for lot in get_model("stock.lot").browse(lot_ids):
+            lots[lot.id]={
+                "number": lot.number,
+            }
+        conts = {}
+        for cont in get_model("stock.container").browse(cont_ids):
+            conts[cont.id]={
+                "number": cont.number,
+            }
+        t2 = time.time()
+        print("get prod/loc/lot/cont info in %.3f s" % (t2-t1))
+
         lines = []
         print("num prod_locs", len(prod_locs))
         for prod_id, lot_id, loc_id, cont_id in prod_locs:
@@ -196,15 +218,15 @@ class ReportStockSummary(Model):
                 continue
             if params.get("container_id") and cont_id != params["container_id"]:
                 continue
-            loc = locs.by_id(loc_id)
-            if loc.type != "internal":
+            loc = locs[loc_id]
+            if loc["type"] != "internal":
                 continue
             if cont_id and cont_id != -1:
-                cont = conts.by_id(cont_id)
+                cont = conts[cont_id]
             else:
                 cont = None
-            prod = prods.by_id(prod_id)
-            lot = lots.by_id(lot_id) if lot_id and lot_id != -1 else None
+            prod = prods[prod_id]
+            lot = lots[lot_id] if lot_id and lot_id != -1 else None
             tot_open_in = get_sum("open", prod=prod_id, lot=lot_id, loc_to=loc_id, cont_to=cont_id)
             tot_open_out = get_sum("open", prod=prod_id, lot=lot_id, loc_from=loc_id, cont_from=cont_id)
             tot_period_in = get_sum("period", prod=prod_id, lot=lot_id, loc_to=loc_id, cont_to=cont_id)
@@ -213,15 +235,15 @@ class ReportStockSummary(Model):
             tot_close_out = get_sum("close", prod=prod_id, lot=lot_id, loc_from=loc_id, cont_from=cont_id)
             line_vals = {
                 "prod_id": prod_id,
-                "prod_name": prod.name,
-                "prod_code": prod.code,
+                "prod_name": prod["name"],
+                "prod_code": prod["code"],
                 "lot_id": lot_id if lot_id != -1 else None,
-                "lot_num": lot.number if lot else None,
-                "uom_name": prod.uom_id.name,
+                "lot_num": lot["number"] if lot else None,
+                "uom_name": prod["uom_name"],
                 "loc_id": loc_id,
-                "loc_name": loc.name,
+                "loc_name": loc["name"],
                 "cont_id": cont_id,
-                "cont_name": cont.number if cont else "",
+                "cont_name": cont["number"] if cont else "",
                 "open_qty": tot_open_in[0] - tot_open_out[0],
                 "open_amt": tot_open_in[1] - tot_open_out[1],
                 "open_qty2": tot_open_in[2] - tot_open_out[2],
@@ -244,8 +266,7 @@ class ReportStockSummary(Model):
                 continue
             lines.append(line_vals)
         t3 = time.time()
-        dt3 = (t3 - t2) * 1000
-        print("dt3: %d ms" % dt3)
+        print("make lines in %.3f s" % (t3-t2))
         lines.sort(
             key=lambda l: (l["prod_code"] or "", l["prod_name"], l["lot_num"] or "", l["loc_name"], l["cont_name"] or ""))
         data = {

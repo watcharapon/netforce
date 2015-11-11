@@ -194,6 +194,8 @@ class ReportStockCard(Model):
         for prod_id, loc_id in prod_locs:
             loc_ids.append(loc_id)
             prod_ids.append(prod_id)
+        loc_ids=list(set(loc_ids))
+        prod_ids=list(set(prod_ids))
         perm_loc_ids=get_model("stock.location").search([["id","in",loc_ids]])
 
         prods={}
