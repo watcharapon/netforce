@@ -24,6 +24,7 @@ from netforce.model import Model, fields
 class Address(Model):
     _name = "address"
     _name_field = "address_text"
+    _export_field = "sequence"
     _fields = {
         "type": fields.Selection([["billing", "Billing"], ["shipping", "Shipping"], ["mailing", "Mailing"], ["reporting", "Reporting"], ["other", "Other"]], "Address Type"),
         "first_name": fields.Char("First Name", translate=True),
