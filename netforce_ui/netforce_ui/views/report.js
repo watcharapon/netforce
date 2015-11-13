@@ -480,9 +480,13 @@ var Report=NFView.extend({
             ids=null;
             if (this.options.defaults) ctx.defaults=this.options.defaults;
         }
+        var img=$("<img/>").attr("src","/static/img/spinner.gif").addClass("loading");
+        this.$el.find(".report-content").append(img);
         rpc_execute(this.options.model,"get_report_data",[ids],{context:ctx},function(err,data) {
+            that.$el.find(".report-content").empty();
             if (err) {
                 set_flash("error",err.message);
+                render_flash();
                 return;
             }
             if (!data) return;

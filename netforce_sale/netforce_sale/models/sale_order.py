@@ -313,7 +313,7 @@ class SaleOrder(Model):
                 continue
             amt = (line.get("qty") or 0) * (line.get("unit_price") or 0)
             if line.get("discount"):
-                disc = amt * line["discount"] / 100
+                disc = amt * line["discount"] / Decimal(100)
                 amt -= disc
             if line.get("discount_amount"):
                 amt -= line["discount_amount"]

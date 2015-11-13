@@ -24,12 +24,13 @@ from dateutil.relativedelta import *
 from netforce.access import get_active_company
 from netforce.database import get_connection
 from pprint import pprint
+import time
 
 
 def get_totals(date_from, date_to, product_id=None, location_id=None, show_pending=False, lot_id=None, categ_id=None):
     db = get_connection()
     q = "SELECT " \
-        " m.product_id,m.location_from_id,m.location_to_id,m.uom_id, " \
+        " m.product_id,m.location_from_id,m.location_to_id,m.uom_id,p.uom_id as product_uom_id, " \
         " SUM(m.qty) AS total_qty,SUM(m.cost_amount) AS total_amt,SUM(m.qty2) AS total_qty2 " \
         " FROM stock_move m " \
         " JOIN product p ON m.product_id=p.id WHERE true"
@@ -56,13 +57,13 @@ def get_totals(date_from, date_to, product_id=None, location_id=None, show_pendi
         q += " AND m.state IN ('pending','done')"
     else:
         q += " AND m.state='done'"
-    q += " GROUP BY m.product_id,m.location_from_id,m.location_to_id,m.uom_id"
+    q += " GROUP BY m.product_id,m.location_from_id,m.location_to_id,m.uom_id,product_uom_id"
+    print("q",q)
+    print("q_args",q_args)
     res = db.query(q, *q_args)
     totals = {}
     for r in res:
-        prod = get_model("product").browse(r.product_id)
-        uom = get_model("uom").browse(r.uom_id)
-        qty = r.total_qty * uom.ratio / prod.uom_id.ratio
+        qty = r.total_qty * get_model("uom").get_ratio(r.uom_id) / get_model("uom").get_ratio(r.product_uom_id)
         amt = r.total_amt or 0
         qty2 = r.total_qty2 or 0
         k = (r.product_id, r.location_from_id, r.location_to_id)
@@ -96,6 +97,7 @@ class ReportStockCard(Model):
 
     # TODO: add uom_id support again
     def get_report_data(self, ids, context={}):
+        print("stock_card.get_report_data")
         company_id = get_active_company()
         comp = get_model("company").browse(company_id)
         if ids:
@@ -123,16 +125,25 @@ class ReportStockCard(Model):
         hide_zero = params.get("hide_zero")
 
         date_from_prev = (datetime.strptime(date_from, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
+        t0=time.time()
+        print("before get open_totals")
         open_totals = get_totals(
             None, date_from_prev, product_id=product_id, location_id=location_id, show_pending=show_pending, lot_id=lot_id, categ_id=categ_id)
+        t1=time.time()
+        print("get open_totals in %.3f s"%(t1-t0))
+        print("len open_totals=%s"%len(open_totals))
+
+        prod_open_totals={}
+        for (prod_id, loc_from_id, loc_to_id), (qty, amt, qty2) in open_totals.items():
+            prod_open_totals.setdefault(prod_id,{})
+            prod_open_totals[prod_id][(loc_from_id,loc_to_id)]=(qty,amt,qty2)
 
         def _get_open_balance(prod_id, loc_id):
             bal_qty = 0
             bal_amt = 0
             bal_qty2 = 0
-            for (prod_id_, loc_from_id, loc_to_id), (qty, amt, qty2) in open_totals.items():
-                if prod_id_ != prod_id:
-                    continue
+            tots=prod_open_totals.get(prod_id,{})
+            for (loc_from_id, loc_to_id), (qty, amt, qty2) in tots.items():
                 if loc_to_id == loc_id and loc_from_id != loc_id:
                     bal_qty += qty
                     bal_amt += amt
@@ -168,30 +179,59 @@ class ReportStockCard(Model):
         else:
             q += " AND m.state='done'"
         q += " ORDER BY m.date"
+        print("q",q)
+        print("args",args)
         res = db.query(q, *args)
+        print("%d results"%len(res))
+        t2=time.time()
+        print("get stock movements in %.3f s"%(t2-t1))
         for r in res:
             prod_locs.setdefault((r.product_id, r.location_from_id), []).append(r)
             prod_locs.setdefault((r.product_id, r.location_to_id), []).append(r)
 
         loc_ids=[]
+        prod_ids=[]
         for prod_id, loc_id in prod_locs:
             loc_ids.append(loc_id)
+            prod_ids.append(prod_id)
+        loc_ids=list(set(loc_ids))
+        prod_ids=list(set(prod_ids))
         perm_loc_ids=get_model("stock.location").search([["id","in",loc_ids]])
 
+        prods={}
+        for prod in get_model("product").browse(prod_ids):
+            prods[prod.id]={
+                "name": prod.name,
+                "code": prod.code,
+                "uom_id": prod.uom_id.id,
+            }
+        locs={}
+        for loc in get_model("stock.location").browse(loc_ids):
+            locs[loc.id]={
+                "name": loc.name,
+                "code": loc.code,
+                "type": loc.type,
+            }
+        t3=time.time()
+        print("get prod/loc info in %.3f s"%(t3-t2))
+
         groups = []
+        i=0
         for (prod_id, loc_id), moves in prod_locs.items():
+            i+=1
+            if i%100==0:
+                print("%d/%d"%(i,len(prod_locs)))
             if loc_id not in perm_loc_ids:
                 continue
-            prod = get_model("product").browse(prod_id)
-            loc = get_model("stock.location").browse(loc_id)
+            prod = prods[prod_id]
+            loc = locs[loc_id]
             if location_id:
-                if loc.id != location_id:
+                if loc_id != location_id:
                     continue
             else:
-                if loc.type != "internal":
+                if loc["type"] != "internal":
                     continue
             bal_qty, bal_amt, bal_qty2 = _get_open_balance(prod_id, loc_id)
-            #import pdb; pdb.set_trace()
             bal_price = bal_qty and bal_amt / bal_qty or 0
             lines = []
             line = {
@@ -204,8 +244,7 @@ class ReportStockCard(Model):
             lines.append(line)
             for r in moves:
                 ref = r.ref
-                uom = get_model("uom").browse(r.uom_id)
-                qty = r.qty * uom.ratio / prod.uom_id.ratio
+                qty = r.qty * get_model("uom").get_ratio(r.uom_id) / get_model("uom").get_ratio(prod["uom_id"])
                 amt = r.cost_amount or 0
                 price = amt/qty if qty else 0
                 qty2 = r.qty2 or 0
@@ -251,10 +290,12 @@ class ReportStockCard(Model):
                 })
                 lines.append(line)
             group = {
-                "product_id": prod.id,
-                "location_id": loc.id,
-                "product_name": prod.name_get()[0][1],
-                "location_name": loc.name_get()[0][1],
+                "product_id": prod_id,
+                "location_id": loc_id,
+                "product_name": prod["name"],
+                "product_code": prod["code"],
+                "location_name": loc["name"],
+                "location_code": loc["code"],
                 "lines": lines,
                 "total_in_qty": sum(l.get("in_qty", 0) for l in lines),
                 "total_in_amount": sum(l.get("in_amount", 0) for l in lines),
@@ -264,6 +305,8 @@ class ReportStockCard(Model):
                 "total_out_qty2": sum(l.get("out_qty2", 0) for l in lines),
             }
             groups.append(group)
+        t4=time.time()
+        print("make lines in %.3f s"%(t3-t2))
 
         groups.sort(key=lambda x: (x["product_name"], x["location_name"]))
         data = {
@@ -275,7 +318,7 @@ class ReportStockCard(Model):
             "groups": groups,
             "show_qty2": params.get("show_qty2"),
         }
-        pprint(data)
+        #pprint(data)
         return data
 
 ReportStockCard.register()

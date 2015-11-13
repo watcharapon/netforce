@@ -42,7 +42,7 @@ class Move(Model):
         "date": fields.DateTime("Date", required=True, search=True),
         "cost_price_cur": fields.Decimal("Cost Price (Cur)",scale=6), # in picking currency
         "cost_price": fields.Decimal("Cost Price", scale=6),  # in company currency
-        "cost_amount": fields.Decimal("Cost Amount", scale=6), # in company currency
+        "cost_amount": fields.Decimal("Cost Amount"), # in company currency
         "state": fields.Selection([("draft", "Draft"), ("pending", "Planned"), ("approved", "Approved"), ("done", "Completed"), ("voided", "Voided")], "Status", required=True),
         "stock_count_id": fields.Many2One("stock.count", "Stock Count"),
         "move_id": fields.Many2One("account.move", "Journal Entry"),
@@ -223,6 +223,7 @@ class Move(Model):
         print("stock_move.set_done",ids)
         settings=get_model("settings").browse(1)
         prod_ids=[]
+        self.write(ids,{"state":"done"},context=context)
         for obj in self.browse(ids):
             prod=obj.product_id
             prod_ids.append(prod.id)
@@ -243,9 +244,9 @@ class Move(Model):
                 raise Exception("Destination location '%s' is a view location"%obj.location_to_id.name)
             if prod.require_lot and not obj.lot_id:
                 raise Exception("Missing lot for product %s"%prod.code)
-            vals["state"]="done"
-            obj.write(vals=vals,context=context)
-            # change state in borrow requests
+            if vals:
+                obj.write(vals=vals,context=context)
+            # change state in borrow requests # XXX: remove this
             if not obj.related_id:
                 if pick.related_id._model=="product.borrow":
                     if pick.related_id.is_return_item:
@@ -254,8 +255,8 @@ class Move(Model):
                 if obj.related_id.is_return_item:
                     obj.related_id.write({"state": "done"})
         prod_ids=list(set(prod_ids))
-        if prod_ids:
-            get_model("stock.compute.cost").compute_cost([],context={"product_ids": prod_ids})
+        #if prod_ids:
+        #    get_model("stock.compute.cost").compute_cost([],context={"product_ids": prod_ids})
         if settings.stock_cost_mode=="perpetual":
             self.post(ids,context=context)
         self.update_lots(ids,context=context)

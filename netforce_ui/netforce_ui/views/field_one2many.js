@@ -47,7 +47,7 @@ var FieldOne2Many=NFView.extend({
             "template": this.options.inner||this.options.template,
             "field_names": this.options.field_names,
             "context": ctx,
-            "limit": 1000 // XXX
+            "limit": 10000 // XXX
         };
         var val=model.get(name);
         log("o2m val",name,val);

@@ -30,7 +30,7 @@ class Employee(Model):
     _string = "Employee"
     _name_field = "first_name"  # XXX
     _multi_company = True
-    _key = ["code"]
+    _key = ["code","company_id"]
     _export_name_field = "code"
 
     _fields = {
