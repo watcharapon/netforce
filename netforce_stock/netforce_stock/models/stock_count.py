@@ -222,23 +222,13 @@ class StockCount(Model):
 
     def void(self, ids, context={}):
         obj = self.browse(ids)[0]
-        prod_ids = []
-        for line in obj.lines:
-            prod_ids.append(line.product_id.id)
         obj.moves.delete()
         obj.write({"state": "voided"})
-        if prod_ids:
-            get_model("stock.compute.cost").compute_cost([], context={"product_ids": prod_ids})
 
     def to_draft(self, ids, context={}):
         obj = self.browse(ids)[0]
-        prod_ids = []
-        for line in obj.lines:
-            prod_ids.append(line.product_id.id)
         obj.moves.delete()
         obj.write({"state": "draft"})
-        if prod_ids:
-            get_model("stock.compute.cost").compute_cost([], context={"product_ids": prod_ids})
 
     def copy(self, ids, context={}):
         obj = self.browse(ids)[0]
