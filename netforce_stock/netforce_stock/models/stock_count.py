@@ -185,6 +185,9 @@ class StockCount(Model):
         for line in obj.lines:
             line_no+=1
             print("line %s/%s"%(line_no,num_lines))
+            prod=line.product_id
+            if prod.type!="stock":
+                raise Exception("Invalid product type in stock count: %s"%prod.code)
             prod_ids.append(line.product_id.id)
             if line.new_qty <= line.prev_qty:
                 qty_diff = line.prev_qty - line.new_qty
