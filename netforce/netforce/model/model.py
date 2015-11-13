@@ -379,7 +379,7 @@ class Model(object):
                         rtbl = "tbl%d" % tbl_count
                         tbl_count += 1
                         if isinstance(f, fields.Many2One):
-                            joins.append("JOIN %s %s ON %s.id=%s.%s" % (mr._table, rtbl, rtbl, col_tbl, fname))
+                            joins.append("LEFT JOIN %s %s ON %s.id=%s.%s" % (mr._table, rtbl, rtbl, col_tbl, fname))
                         elif isinstance(f, fields.One2Many):
                             joins.append("JOIN %s %s ON %s.id=%s.%s" % (mr._table, rtbl, col_tbl, rtbl, f.relfield))
                         elif isinstance(f, fields.Many2Many):
