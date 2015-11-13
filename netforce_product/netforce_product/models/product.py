@@ -169,7 +169,7 @@ class Product(Model):
                 name = "[%s] %s" % (obj.code, obj.name)
             else:
                 name = obj.name
-            vals.append((obj.id, name))
+            vals.append((obj.id, name, obj.image))
         return vals
 
     def name_search(self, name, condition=None, context={}, limit=None, **kw):
