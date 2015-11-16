@@ -1888,6 +1888,56 @@ class Model(object):
         res.sort(key=_sort_key)
         return res
 
+    def read_path(self, ids, field_paths, context={}):
+        field_names=[]
+        sub_paths={}
+        for path in field_paths:
+            n,_,p=path.partition(".")
+            f=self._fields[n]
+            field_names.append(n)
+            if p:
+                if not isinstance(f,(fields.Many2One,fields.One2Many,fields.Many2Many)):
+                    raise Exception("Invalid path %s"%path)
+                sub_paths.setdefault(n,[]).append(p)
+        field_names=list(set(field_names))
+        res=self.read(ids,field_names,context=context,load_m2o=False)
+        for n in field_names:
+            f=self._fields[n]
+            rpaths=sub_paths.get(n)
+            if rpaths:
+                mr=get_model(f.relation)
+                if isinstance(f,fields.Many2One):
+                    rids=[]
+                    for r in res:
+                        v=r[n]
+                        if v:
+                            rids.append(v)
+                    rids=list(set(rids))
+                    res2=mr.read_path(rids,rpaths,context=context)
+                    rvals={}
+                    for r in res2:
+                        rvals[r["id"]]=r
+                    for r in res:
+                        v=r[n]
+                        if v:
+                            r[n]=rvals[v]
+                elif isinstance(f,(fields.One2Many,fields.Many2Many)):
+                    rids=[]
+                    for r in res:
+                        rids+=r[n]
+                    rids=list(set(rids))
+                    res2=mr.read_path(rids,rpaths,context=context)
+                    rvals={}
+                    for r in res2:
+                        rvals[r["id"]]=r
+                    for r in res:
+                        r[n]=[rvals[v] for v in r[n]]
+        return res
+
+    def search_read_path(self, condition, field_paths, context={}):
+        ids=self.search(condition,context=context)
+        return self.read_path(ids,field_paths,context=context)
+
     def sync_get_key(self, ids, context={}):
         if not self._key:
             raise Exception("Missing key fields (model=%s)" % self._name)
