@@ -1889,16 +1889,27 @@ class Model(object):
         return res
 
     def read_path(self, ids, field_paths, context={}):
+        print(">>> read_path %s %s %s"%(self._name,ids,field_paths))
         field_names=[]
         sub_paths={}
         for path in field_paths:
-            n,_,p=path.partition(".")
+            if isinstance(path,str):
+                n,_,paths=path.partition(".")
+            elif isinstance(path,list):
+                n=path[0]
+                if not isinstance(n,str):
+                    raise Exception("Invalid path field path %s for model %s"%(path,self._name))
+                paths=path[1]
             f=self._fields[n]
             field_names.append(n)
-            if p:
+            if paths:
                 if not isinstance(f,(fields.Many2One,fields.One2Many,fields.Many2Many)):
-                    raise Exception("Invalid path %s"%path)
-                sub_paths.setdefault(n,[]).append(p)
+                    raise Exception("Invalid path field path %s for model %s"%(path,self._name))
+                sub_paths.setdefault(n,[])
+                if isinstance(paths,str) :
+                    sub_paths[n].append(paths)
+                elif isinstance(paths,list) :
+                    sub_paths[n]+=paths
         field_names=list(set(field_names))
         res=self.read(ids,field_names,context=context,load_m2o=False)
         for n in field_names:
