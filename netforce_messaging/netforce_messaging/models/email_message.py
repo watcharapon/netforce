@@ -458,6 +458,8 @@ class EmailMessage(Model):
     def send(self, ids, context={}):
         print("EmailMessage.send", ids)
         for obj in self.browse(ids):
+            if obj.state!="to_send":
+                continue
             mailbox = obj.mailbox_id
             if not mailbox:
                 raise Exception("Missing mailbox in email %s" % obj.id)
@@ -484,6 +486,8 @@ class EmailMessage(Model):
     def send_email_smtp(self, ids, context={}):
         print("send_email_smtp", ids)
         obj = self.browse(ids)[0]
+        if obj.state!="to_send":
+            return
         try:
             mailbox = obj.mailbox_id
             if not mailbox:
@@ -527,6 +531,8 @@ class EmailMessage(Model):
     def send_email_mailgun(self, ids, context={}):
         print("send_emails_mailgun", ids)
         obj = self.browse(ids)[0]
+        if obj.state!="to_send":
+            return
         try:
             mailbox = obj.mailbox_id
             if not mailbox:
