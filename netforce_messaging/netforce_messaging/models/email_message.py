@@ -154,6 +154,10 @@ class EmailMessage(Model):
         for obj in self.browse(ids):
             obj.write({"state": "to_send"})
 
+    def to_draft(self,ids,context={}):
+        for obj in self.browse(ids):
+            obj.write({"state": "to_draft"})
+
     def send_emails(self, context={}):  # FIXME
         print("send_emails")
         mailbox_ids = get_model("email.mailbox").search([["account_id.type", "in", ["smtp", "mailgun"]]])
