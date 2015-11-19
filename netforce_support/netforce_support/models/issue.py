@@ -75,8 +75,8 @@ class Issue(Model):
                     emails.append(user.email)
         return emails
 
-    def create(self,vals,*args,context={},**kw):
-        new_id=super().create(vals)
+    def create(self,vals,*args,**kw):
+        new_id=super().create(vals,*args,**kw)
         obj=self.browse(new_id)
         project=obj.project_id
         contact=project.contact_id
@@ -95,7 +95,7 @@ class Issue(Model):
             get_model("email.message").create(vals)
         return new_id
 
-    def write(self,ids,vals,*args,context={},**kw):
+    def write(self,ids,vals,*args,**kw):
         super().write(ids,vals,*args,**kw)
         for obj in self.browse(ids):
             project=obj.project_id
