@@ -84,6 +84,7 @@ class Issue(Model):
         if emails:
             body=obj.description
             vals={
+                "from_addr": "support@netforce.com", # XXX
                 "to_addrs": ",".join(emails),
                 "subject": "New issue %s: %s (Pri %s => %s)"%(obj.number,obj.title,obj.priority,obj.resource_id.name),
                 "body": body,
@@ -103,6 +104,7 @@ class Issue(Model):
             if emails:
                 body=json.dumps(vals)
                 vals={
+                    "from_addr": "support@netforce.com", # XXX
                     "to_addrs": ",".join(emails),
                     "subject": "Issue %s was modified: %s (Pri %s => %s)"%(obj.number,obj.title,obj.priority,obj.resource_id.name),
                     "body": body,
