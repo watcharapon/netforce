@@ -20,6 +20,7 @@
 
 from netforce.model import Model, fields, get_model
 import json
+from netforce import access
 
 class Message(Model):
     _inherit = "message"
@@ -27,6 +28,8 @@ class Message(Model):
     def create(self,vals,*args,**kw):
         new_id=super().create(vals,*args,**kw)
         obj=self.browse(new_id)
+        user_id=access.get_active_user()
+        user=get_model("base.user").browse(user_id)
         if obj.related_id._model=="issue":
             issue=obj.related_id
             project=issue.project_id
@@ -36,7 +39,7 @@ class Message(Model):
                 vals={
                     "from_addr": "support@netforce.com", # XXX
                     "to_addrs": ",".join(emails),
-                    "subject": "New message for issue %s: %s"%(issue.number,obj.subject),
+                    "subject": "New message by %s for issue %s: %s"%(user.name,issue.number,obj.subject),
                     "body": obj.body,
                     "state": "to_send",
                     "name_id": "contact,%s"%contact.id,
@@ -47,6 +50,8 @@ class Message(Model):
 
     def write(self,ids,vals,*args,**kw):
         super().write(ids,vals,*args,**kw)
+        user_id=access.get_active_user()
+        user=get_model("base.user").browse(user_id)
         for obj in self.browse(ids):
             if obj.related_id._model=="issue":
                 issue=obj.related_id
@@ -58,7 +63,7 @@ class Message(Model):
                     vals={
                         "from_addr": "support@netforce.com", # XXX
                         "to_addrs": ",".join(emails),
-                        "subject": "Message modified for issue %s: %s"%(issue.number,obj.subject),
+                        "subject": "Message modified by %s for issue %s: %s"%(user.name,issue.number,obj.subject),
                         "body": body,
                         "state": "to_send",
                         "name_id": "contact,%s"%contact.id,

@@ -81,12 +81,14 @@ class Issue(Model):
         project=obj.project_id
         contact=project.contact_id
         emails=obj.get_email_addresses()
+        user_id=access.get_active_user()
+        user=get_model("base.user").browse(user_id)
         if emails:
             body=obj.description
             vals={
                 "from_addr": "support@netforce.com", # XXX
                 "to_addrs": ",".join(emails),
-                "subject": "New issue %s: %s (Pri %s => %s)"%(obj.number,obj.title,obj.priority,obj.resource_id.name),
+                "subject": "New issue %s by %s: %s (Pri %s => %s)"%(obj.number,user.name,obj.title,obj.priority,obj.resource_id.name),
                 "body": body,
                 "state": "to_send",
                 "name_id": "contact,%s"%contact.id,
@@ -97,6 +99,8 @@ class Issue(Model):
 
     def write(self,ids,vals,*args,**kw):
         super().write(ids,vals,*args,**kw)
+        user_id=access.get_active_user()
+        user=get_model("base.user").browse(user_id)
         for obj in self.browse(ids):
             project=obj.project_id
             contact=project.contact_id
@@ -106,7 +110,7 @@ class Issue(Model):
                 vals={
                     "from_addr": "support@netforce.com", # XXX
                     "to_addrs": ",".join(emails),
-                    "subject": "Issue %s was modified: %s (Pri %s => %s)"%(obj.number,obj.title,obj.priority,obj.resource_id.name),
+                    "subject": "Issue %s modified by %s: %s (Pri %s => %s)"%(obj.number,user.name,obj.title,obj.priority,obj.resource_id.name),
                     "body": body,
                     "state": "to_send",
                     "name_id": "contact,%s"%contact.id,
