@@ -19,7 +19,7 @@ class Issue(Model):
         "description": fields.Text("Description",search=True),
         "priority": fields.Decimal("Priority",required=True),
         "emails": fields.One2Many("email.message", "related_id", "Emails"),
-        "state": fields.Selection([["new","New"],["ready","Ready To Start"],["in_progress","In Progress"],["closed","Closed"],["wait_customer","Wait For Customer"],["wait_internal","Internal Wait"]],"Status",required=True,search=True),
+        "state": fields.Selection([["new","New"],["ready","Ready To Start"],["in_progress","In Progress"],["test_internal","Internal Testing"],["test_customer","Customer Testing"],["closed","Closed"],["wait_customer","Wait For Customer"],["wait_internal","Internal Wait"]],"Status",required=True,search=True),
         "planned_hours": fields.Decimal("Planned Hours"),
         "days_open": fields.Integer("Days Open",function="get_days_open"),
         "resource_id": fields.Many2One("service.resource","Assigned To"),
