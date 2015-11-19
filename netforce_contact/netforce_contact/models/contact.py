@@ -28,7 +28,6 @@ class Contact(Model):
     _name = "contact"
     _string = "Contact"
     _audit_log = True
-    _key = ["code"]  # XXX
     _export_field = "name"
     _fields = {
         "user_id": fields.Many2One("base.user", "User"),

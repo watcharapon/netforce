@@ -2,6 +2,7 @@ from netforce.model import Model,fields,get_model
 from netforce import access
 from datetime import *
 import time
+import json
 
 class Issue(Model):
     _name="issue"
@@ -60,5 +61,55 @@ class Issue(Model):
             d=datetime.strptime(obj.date_created,"%Y-%m-%d %H:%M:%S").date()
             vals[obj.id]=(today-d).days
         return vals
+
+    def get_email_addresses(self,ids,context={}):
+        emails=[]
+        for obj in self.browse(ids):
+            project=obj.project_id
+            contact=project.contact_id
+            if contact.email:
+                emails.append(contact.email)
+            for resource in project.resources:
+                user=resource.user_id
+                if user:
+                    emails.append(user.email)
+        return emails
+
+    def create(self,vals,*args,context={},**kw):
+        new_id=super().create(vals)
+        obj=self.browse(new_id)
+        project=obj.project_id
+        contact=project.contact_id
+        emails=obj.get_email_addresses()
+        if emails:
+            body=obj.description
+            vals={
+                "to_addrs": ",".join(emails),
+                "subject": "New issue %s: %s (Pri %s => %s)"%(obj.number,obj.title,obj.priority,obj.resource_id.name),
+                "body": body,
+                "state": "to_send",
+                "name_id": "contact,%s"%contact.id,
+                "related_id": "issue,%s"%obj.id,
+            }
+            get_model("email.message").create(vals)
+        return new_id
+
+    def write(self,ids,vals,*args,context={},**kw):
+        super().write(ids,vals,*args,**kw)
+        for obj in self.browse(ids):
+            project=obj.project_id
+            contact=project.contact_id
+            emails=obj.get_email_addresses()
+            if emails:
+                body=json.dumps(vals)
+                vals={
+                    "to_addrs": ",".join(emails),
+                    "subject": "Issue %s was modified: %s (Pri %s => %s)"%(obj.number,obj.title,obj.priority,obj.resource_id.name),
+                    "body": body,
+                    "state": "to_send",
+                    "name_id": "contact,%s"%contact.id,
+                    "related_id": "issue,%s"%obj.id,
+                }
+                get_model("email.message").create(vals)
 
 Issue.register()

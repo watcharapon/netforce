@@ -45,6 +45,8 @@ class WorkTime(Model):
         "is_this_week": fields.Boolean("This Week", store=False, function_search="search_this_week"),
         "is_last_week": fields.Boolean("Last Week", store=False, function_search="search_last_week"),
         "state": fields.Selection([["waiting_approval", "Waiting Approval"], ["approved", "Approved"], ["rejected", "Rejected"]], "Status", required=True),
+        "agg_actual_hours_total": fields.Decimal("Actual Hours Total", agg_function=["sum", "actual_hours"]),
+        "agg_bill_hours_total": fields.Decimal("Billable Hours Total", agg_function=["sum", "bill_hours"]),
     }
     _order = "date,resource_id.name"
 
