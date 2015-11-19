@@ -156,7 +156,7 @@ class EmailMessage(Model):
 
     def to_draft(self,ids,context={}):
         for obj in self.browse(ids):
-            obj.write({"state": "to_draft"})
+            obj.write({"state": "draft"})
 
     def send_emails(self, context={}):  # FIXME
         print("send_emails")
