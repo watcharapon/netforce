@@ -88,7 +88,7 @@ class Issue(Model):
             vals={
                 "from_addr": "support@netforce.com", # XXX
                 "to_addrs": ",".join(emails),
-                "subject": "New issue %s by %s: %s (Pri %s => %s)"%(obj.number,user.name,obj.title,obj.priority,obj.resource_id.name),
+                "subject": "New issue %s by %s: %s (Pri %s)"%(obj.number,user.name,obj.title,obj.priority),
                 "body": body,
                 "state": "to_send",
                 "name_id": "contact,%s"%contact.id,
@@ -110,7 +110,7 @@ class Issue(Model):
                 vals={
                     "from_addr": "support@netforce.com", # XXX
                     "to_addrs": ",".join(emails),
-                    "subject": "Issue %s modified by %s: %s (Pri %s => %s)"%(obj.number,user.name,obj.title,obj.priority,obj.resource_id.name),
+                    "subject": "Issue %s modified by %s: %s (Pri %s)"%(obj.number,user.name,obj.title,obj.priority),
                     "body": body,
                     "state": "to_send",
                     "name_id": "contact,%s"%contact.id,

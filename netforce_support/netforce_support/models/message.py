@@ -35,11 +35,14 @@ class Message(Model):
             project=issue.project_id
             contact=issue.contact_id
             emails=issue.get_email_addresses()
+            subject="New message by %s for issue %s"%(user.name,issue.number)
+            if obj.subject:
+                subject+=": %s"%obj.subject
             if emails:
                 vals={
                     "from_addr": "support@netforce.com", # XXX
                     "to_addrs": ",".join(emails),
-                    "subject": "New message by %s for issue %s: %s"%(user.name,issue.number,obj.subject),
+                    "subject": subject,
                     "body": obj.body,
                     "state": "to_send",
                     "name_id": "contact,%s"%contact.id,
