@@ -25,6 +25,7 @@ from netforce import access
 class MenuAccess(Model):
     _name = "menu.access"
     _string = "Menu Access"
+    _key = ["profile_id","action","menu"]
     _fields = {
         "profile_id": fields.Many2One("profile", "Profile", required=True, on_delete="cascade", search=True),
         "action": fields.Char("Action", search=True),
