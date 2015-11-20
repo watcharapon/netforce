@@ -443,18 +443,24 @@ class Product(Model):
 
     def get_customer_price(self,ids,context={}): # XXX: make it faster
         pricelist_id=context.get("pricelist_id")
+        pricelist_ids=context.get("pricelist_ids")
+        if pricelist_ids is None and pricelist_id:
+            pricelist_ids=[pricelist_id]
         vals={}
         for obj in self.browse(ids):
             sale_price=None
             discount_text=None
             discount_percent=None
-            if pricelist_id:
+            if pricelist_ids:
+                min_sale_price=None
                 for item in obj.pricelist_items:
-                    if item.list_id.id==pricelist_id:
+                    if item.list_id.id in pricelist_ids:
                         sale_price=(item.price or 0)
-                        discount_text=item.discount_text
-                        discount_percent=item.discount_percent
-                        break
+                        if min_sale_price is None or sale_price<min_sale_price:
+                            min_sale_price=sale_price
+                            discount_text=item.discount_text
+                            discount_percent=item.discount_percent
+                sale_price=min_sale_price
             if sale_price is None:
                 sale_price=(obj.sale_price or 0)
             has_discount=sale_price<(obj.sale_price or 0)
