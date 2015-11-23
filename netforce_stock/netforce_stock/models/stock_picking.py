@@ -145,6 +145,8 @@ class Picking(Model):
         for obj in self.browse(ids):
             for move in obj.lines:
                 move.write({"state": "pending", "date": obj.date})
+                if obj.related_id and not move.related_id:
+                    move.write({"related_id":"%s,%d"%(obj.related_id._model,obj.related_id.id)})
             obj.write({"state": "pending", "pending_by_id": user_id})
 
     def approve(self, ids, context={}):
@@ -168,9 +170,6 @@ class Picking(Model):
         for obj in self.browse(ids):
             move_ids=[]
             for move in obj.lines:
-                if move.related_id:
-                    if move.related_id._model=="production.order" and move.related_id.state!="in_progress":
-                        raise Exception("Can only record stock transactions for production orders that are in progress")
                 move_ids.append(move.id)
             get_model("stock.move").to_draft(move_ids)
             obj.write({"state":"draft"})
@@ -178,11 +177,6 @@ class Picking(Model):
     def set_done(self,ids,context={}):
         user_id=get_active_user()
         for obj in self.browse(ids):
-            rel=obj.related_id
-            if rel:
-                if rel._model=="production.order":
-                    if rel.state!="in_progress":
-                        raise Exception("Can only record stock transactions for production orders that are in progress")
             move_ids=[]
             for line in obj.lines:
                 move_ids.append(line.id)

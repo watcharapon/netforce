@@ -43,6 +43,7 @@
                     <field name="discount_amount" onchange="update_amounts"/>
                     <field name="amount"/>
                     <field name="location_id"/>
+                    <field name="qty_stock"/>
                     <field name="ship_method_id"/>
                     <field name="qty_received"/>
                     <field name="qty_invoiced"/>

@@ -22,7 +22,7 @@ from netforce.model import Model, fields, get_model
 from netforce import database
 import time
 from netforce import access
-
+import math
 
 class StockBalance(Model):
     _name = "stock.balance"
@@ -232,14 +232,30 @@ class StockBalance(Model):
                 max_qty = op.max_qty
             else:
                 max_qty = 0
-            order_qty = max_qty - obj.qty_virt
+            diff_qty = max_qty - obj.qty_virt
+            if prod.purchase_uom_id:
+                purch_uom=prod.purchase_uom_id
+                if not prod.purchase_to_stock_uom_factor:
+                    raise Exception("Missing purchase order -> stock uom factor for product %s"%prod.code)
+                purch_qty=diff_qty/prod.purchase_to_stock_uom_factor
+            else:
+                purch_uom=prod.uom_id
+                purch_qty=diff_qty
+            if prod.purchase_qty_multiple:
+                n=math.ceil(purch_qty/prod.purchase_qty_multiple)
+                purch_qty=n*prod.purchase_qty_multiple
+            if prod.purchase_uom_id:
+                qty_stock=purch_qty*prod.purchase_to_stock_uom_factor
+            else:
+                qty_stock=None
             line_vals = {
                 "product_id": prod.id,
                 "description": prod.name_get()[0][1],
-                "qty": order_qty,
-                "uom_id": prod.uom_id.id,
+                "qty": purch_qty,
+                "uom_id": purch_uom.id,
                 "unit_price": prod.purchase_price or 0,
                 "tax_id": prod.purchase_tax_id.id,
+                "qty_stock": qty_stock,
             }
             if not prod.suppliers:
                 raise Exception("Missing default supplier for product %s" % prod.name)

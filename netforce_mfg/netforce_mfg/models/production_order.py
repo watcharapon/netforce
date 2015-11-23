@@ -90,7 +90,8 @@ class ProductionOrder(Model):
         "track_balance": fields.Decimal("Tracking Balance",function="_get_related",function_context={"path":"track_id.balance"}),
         "total_cost": fields.Float("Total Cost",function="get_total_cost",function_multi=True),
         "unit_cost": fields.Float("Unit Cost",function="get_total_cost",function_multi=True),
-        "period_id": fields.Many2One("production.period","Production Period",required=True),
+        "period_id": fields.Many2One("production.period","Production Period"),
+        "sale_lines": fields.One2Many("sale.order.line","production_id","Sales Order Lines"),
     }
     _order = "number"
 
@@ -297,6 +298,7 @@ class ProductionOrder(Model):
             else:
                 obj.write({"state": "waiting_material"})
                 obj.update_status()
+            obj.create_planned_production_moves()
 
     def ready(self, ids, context={}):
         for obj in self.browse(ids):
@@ -318,7 +320,7 @@ class ProductionOrder(Model):
             obj.check_qty_loss()
             obj.check_qc()
             t = time.strftime("%Y-%m-%d %H:%M:%S")
-            obj.create_production_moves()
+            obj.complete_production_moves()
             obj.write({"state": "done", "time_stop": t})
             if obj.parent_id:
                 obj.parent_id.update_planned_qtys_from_sub()
@@ -766,6 +768,8 @@ class ProductionOrder(Model):
 
     def to_draft(self, ids, context={}):
         obj = self.browse(ids)[0]
+        if obj.pickings:
+            raise Exception("There are still stock movements for production order %s"%obj.number)
         obj.write({"state": "draft"})
 
     def get_overdue(self, ids, context={}):
@@ -983,100 +987,54 @@ class ProductionOrder(Model):
             if new_state != obj.state:
                 obj.write({"state": new_state})
 
-    def get_qtys_in_production(self, ids, context={}):
-        print("get_qtys_in_production")
-        obj = self.browse(ids)[0]
-        db = database.get_connection()
-        res = db.query("SELECT m.product_id,m.lot_id,m.container_to_id,m.uom_id,SUM(m.qty) AS total_qty,SUM(m.unit_price*m.qty) AS total_amt,SUM(m.qty2) AS total_qty2 FROM stock_move m JOIN stock_picking p ON p.id=m.picking_id WHERE m.state='done' AND m.location_to_id=%s AND p.related_id=%s GROUP BY m.product_id,m.lot_id,m.container_to_id,m.uom_id",
-                       obj.production_location_id.id, "production.order,%d" % obj.id)
-        totals = {}
-        for r in res:
-            prod = get_model("product").browse(r.product_id)
-            uom = get_model("uom").browse(r.uom_id)
-            qty = r.total_qty * uom.ratio / prod.uom_id.ratio
-            amt = r.total_amt or 0
-            qty2 = r.total_qty2 or 0
-            k = (r.product_id, r.lot_id, r.container_to_id)
-            tot = totals.setdefault(k, [0, 0, 0])
-            tot[0] += qty
-            tot[1] += amt
-            tot[2] += qty2
-        res = db.query("SELECT m.product_id,m.lot_id,m.container_from_id,m.uom_id,SUM(m.qty) AS total_qty,SUM(m.unit_price*m.qty) AS total_amt,SUM(qty2) AS total_qty2 FROM stock_move m JOIN stock_picking p ON p.id=m.picking_id WHERE m.state='done' AND m.location_from_id=%s AND p.related_id=%s GROUP BY m.product_id,m.lot_id,m.container_from_id,m.uom_id",
-                       obj.production_location_id.id, "production.order,%d" % obj.id)
-        for r in res:
-            prod = get_model("product").browse(r.product_id)
-            uom = get_model("uom").browse(r.uom_id)
-            qty = r.total_qty * uom.ratio / prod.uom_id.ratio
-            amt = r.total_amt or 0
-            qty2 = r.total_qty2 or 0
-            k = (r.product_id, r.lot_id, r.container_from_id)
-            tot = totals.setdefault(k, [0, 0, 0])
-            tot[0] -= qty
-            tot[1] -= amt
-            tot[2] -= qty2
-        return totals
-
-    def create_production_moves(self, ids, context={}):
-        print("create_production_moves", ids)
-        obj = self.browse(ids)[0]
+    def create_planned_production_moves(self, ids, context={}):
+        print("create_planned_production_moves", ids)
+        obj = self.browse(ids[0])
         if obj.production_location_id.type!="internal":
-            return
-        totals = obj.get_qtys_in_production()
-        res = get_model("stock.location").search([["type", "=", "production"]])  # XXX
+            raise Exception("Invalid production location type")
+        res = get_model("stock.location").search([["type", "=", "production"]])
         if not res:
             raise Exception("Location of type 'production' not found")
-        if len(res) > 1:
-            raise Exception("More than one location of type 'production' found")
         prod_loc_id = res[0]
-        out_moves = []
-        in_moves = []
-        for (prod_id, lot_id, cont_id), (qty, amt, qty2) in totals.items():
-            prod = get_model("product").browse(prod_id)
-            if qty > 0.001:
-                vals = {
-                    "product_id": prod_id,
-                    "qty": qty,
-                    "uom_id": prod.uom_id.id,
-                    "qty2": qty2,
-                    "location_from_id": obj.production_location_id.id,
-                    "container_from_id": cont_id,
-                    "location_to_id": prod_loc_id,
-                    "lot_id": lot_id,
-                }
-                out_moves.append(vals)
-            elif qty < -0.001:
-                vals = {
-                    "product_id": prod_id,
-                    "qty": -qty,
-                    "uom_id": prod.uom_id.id,
-                    "qty2": -qty2,
-                    "location_from_id": prod_loc_id,
-                    "location_to_id": obj.production_location_id.id,
-                    "container_to_id": cont_id,
-                    "lot_id": lot_id,
-                }
-                in_moves.append(vals)
         settings = get_model("settings").browse(1)
-        if out_moves:
-            vals = {
-                "type": "out",
-                "related_id": "production.order,%s" % obj.id,
-                "ref": "Clearing %s" % obj.number,
-                "journal_id": settings.pick_out_journal_id.id,
-                "lines": [("create", x) for x in out_moves],
-            }
-            out_pick_id = get_model("stock.picking").create(vals, context={"pick_type": "out"})
-            get_model("stock.picking").set_done([out_pick_id])
-        if in_moves:
-            vals = {
-                "type": "in",
-                "related_id": "production.order,%s" % obj.id,
-                "ref": "Clearing %s" % obj.number,
-                "journal_id": settings.pick_in_journal_id.id,
-                "lines": [("create", x) for x in in_moves],
-            }
-            in_pick_id = get_model("stock.picking").create(vals, context={"pick_type": "in"})
-            get_model("stock.picking").set_done([in_pick_id])
+        vals = {
+            "type": "in",
+            "related_id": "production.order,%s" % obj.id,
+            "journal_id": settings.pick_in_journal_id.id,
+            "date": obj.due_date+" 00:00:00",
+            "lines": [("create", {
+                "product_id": obj.product_id.id,
+                "qty": obj.qty_planned,
+                "uom_id": obj.uom_id.id,
+                "location_from_id": prod_loc_id,
+                "location_to_id": obj.production_location_id.id,
+            })],
+        }
+        in_pick_id = get_model("stock.picking").create(vals, context={"pick_type": "in"})
+        get_model("stock.picking").pending([in_pick_id])
+        vals = {
+            "type": "out",
+            "related_id": "production.order,%s" % obj.id,
+            "journal_id": settings.pick_out_journal_id.id,
+            "date": obj.order_date+" 00:00:00",
+            "lines": [],
+        }
+        for comp in obj.components:
+            vals["lines"].append(("create",{
+                "product_id": comp.product_id.id,
+                "qty": comp.qty_planned,
+                "uom_id": comp.uom_id.id,
+                "location_from_id": obj.production_location_id.id,
+                "location_to_id": prod_loc_id,
+            }))
+        out_pick_id = get_model("stock.picking").create(vals, context={"pick_type": "out"})
+        get_model("stock.picking").pending([out_pick_id])
+
+    def complete_production_moves(self,ids,context={}):
+        obj=self.browse(ids[0])
+        for pick in obj.pickings:
+            if pick.state in ("in","out"):
+                pick.set_done()
 
     def get_pickings(self, ids, context={}):
         vals = {}

@@ -454,6 +454,8 @@ class SaleOrder(Model):
         for obj_line in obj.lines:
             picking_key = obj_line.ship_method_id and obj_line.ship_method_id.id or 0
             if picking_key in pick_vals: continue
+            if not obj.due_date:
+                raise Exception("Missing due date in sales order %s"%obj.number)
             pick_vals[picking_key] = {
                 "type": "out",
                 "ref": obj.number,
@@ -464,6 +466,7 @@ class SaleOrder(Model):
                 "state": "draft",
                 "ship_method_id": obj_line.ship_method_id.id or obj.ship_method_id.id,
                 "company_id": obj.company_id.id,
+                "date": obj.due_date+" 00:00:00",
             }
             if contact and contact.pick_out_journal_id:
                 pick_vals[picking_key]["journal_id"] = contact.pick_out_journal_id.id
@@ -773,21 +776,29 @@ class SaleOrder(Model):
         }
 
     def copy_to_production(self, ids, context={}):
-        obj = self.browse(ids)[0]
         order_ids = []
-        for line in obj.lines:
-            prod = line.product_id
-            if not prod:
-                continue
-            if prod.procure_method != "mto" or prod.supply_method != "production":
-                continue
-            # MTS need to mapping bom automatic
-            # We need to inherit this function
-            res = self.get_bom_ids(product_id=prod.id, sale_id=obj.id)
-            # res=get_model("bom").search([["product_id","=",prod.id]])
+        mfg_orders = {}
+        for obj in self.browse(ids):
+            for line in obj.lines:
+                prod = line.product_id
+                if not prod:
+                    continue
+                if prod.procure_method != "mto" or prod.supply_method != "production":
+                    continue
+                if line.production_id:
+                    raise Exception("Production order already created for sales order %s, product %s"%(obj.number,prod.code))
+                if not obj.due_date:
+                    raise Exception("Missing due date in sales order %s"%obj.number)
+                if not prod.mfg_lead_time:
+                    raise Exception("Missing manufacturing lead time in product %s"%prod.code)
+                k=(prod.id,obj.due_date)
+                mfg_orders.setdefault(k,[]).append(line.id)
+        for (prod_id,due_date),sale_line_ids in mfg_orders.items():
+            prod=get_model("product").browse(prod_id)
+            res=get_model("bom").search([["product_id","=",prod.id]]) # TODO: select bom in separate function
             if not res:
                 raise Exception("BoM not found for product '%s'" % prod.name)
-            bom_id = res[0]  # FIXME
+            bom_id = res[0]
             bom = get_model("bom").browse(bom_id)
             loc_id = bom.location_id.id
             if not loc_id:
@@ -799,30 +810,33 @@ class SaleOrder(Model):
             if not loc_prod_id:
                 raise Exception("Missing production location in routing %s" % routing.number)
             uom = prod.uom_id
-            if line.qty_stock:
-                qty = line.qty_stock
-            else:
-                qty = get_model("uom").convert(line.qty, line.uom_id.id, uom.id)
-            if not obj.due_date:
-                raise Exception("Missing due date in sales order")
+            mfg_qty=0
+            for line in get_model("sale.order.line").browse(sale_line_ids):
+                if line.qty_stock:
+                    qty = line.qty_stock
+                else:
+                    qty = get_model("uom").convert(line.qty, line.uom_id.id, uom.id)
+                mfg_qty+=qty
+            if not prod.mfg_lead_time:
+                raise Exception("Missing manufacturing lead time for product %s"%prod.code)
+            mfg_date=(datetime.strptime(due_date,"%Y-%m-%d")-timedelta(days=prod.mfg_lead_time)).strftime("%Y-%m-%d")
             order_vals = {
-                "sale_id": obj.id,
                 "product_id": prod.id,
-                "qty_planned": qty,
+                "qty_planned": mfg_qty,
                 "uom_id": uom.id,
                 "bom_id": bom_id,
                 "routing_id": routing.id,
                 "production_location_id": loc_prod_id,
                 "location_id": loc_id,
-                "due_date": obj.due_date,
+                "order_date": mfg_date,
+                "due_date": due_date,
                 "state": "waiting_confirm",
-                "team_id": obj.team_id.id,
-                "remark": line.remark,
             }
             order_id = get_model("production.order").create(order_vals)
             get_model("production.order").create_components([order_id])
             get_model("production.order").create_operations([order_id])
             order_ids.append(order_id)
+            get_model("sale.order.line").write(sale_line_ids,{"production_id":order_id})
         if not order_ids:
             return {
                 "flash": "No production orders to create",
@@ -831,11 +845,6 @@ class SaleOrder(Model):
         return {
             "flash": "Production orders created successfully",
         }
-
-    def get_bom_ids(self, **kwargs):
-        prod_id = kwargs["product_id"]
-        res = get_model("bom").search([["product_id", "=", prod_id]])
-        return res
 
     def get_production_status(self, ids, context={}):
         vals = {}

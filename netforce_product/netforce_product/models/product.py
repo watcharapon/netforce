@@ -135,10 +135,13 @@ class Product(Model):
         "state": fields.Selection([["draft","Draft"],["approved","Approved"]],"Status"),
         "sale_uom_id": fields.Many2One("uom", "Sales Order UoM"),
         "sale_invoice_uom_id": fields.Many2One("uom","Sales Invoice UoM"),
+        "sale_to_stock_uom_factor": fields.Decimal("Sales Order -> Stock Uom Conversion Factor", scale=6),
         "sale_to_invoice_uom_factor": fields.Decimal("Sales Order -> Sales Invoice Uom Conversion Factor", scale=6),
         "purchase_uom_id": fields.Many2One("uom", "Purchase Order UoM"),
         "purchase_invoice_uom_id": fields.Many2One("uom","Purchase Invoice UoM"),
+        "purchase_to_stock_uom_factor": fields.Decimal("Purchase Order -> Stock Uom Conversion Factor", scale=6),
         "purchase_to_invoice_uom_factor": fields.Decimal("Purchase Order -> Purchase Invoice Uom Conversion Factor", scale=6),
+        "purchase_qty_multiple": fields.Decimal("Purchase Qty Multiple"),
         "mfg_lead_time": fields.Integer("Manufacturing Lead Time (Days)"),
         "purchase_lead_time": fields.Integer("Purchasing Lead Time (Days)"),
         #"purchase_price_uom_id": fields.Many2One("uom", "Purchase Price UoM"), # not needed?

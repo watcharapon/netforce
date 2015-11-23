@@ -20,6 +20,8 @@
             <field name="container"/>
             <field name="lot"/>
             <field name="issue_method"/>
+            <field name="qty2"/>
+            <field name="notes"/>
         </list>
     </field>
     <separator/>

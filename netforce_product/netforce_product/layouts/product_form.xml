@@ -64,6 +64,7 @@
             <field name="sale_unit_qty"/>
             <field name="sale_uom_id"/>
             <field name="sale_invoice_uom_id"/>
+            <field name="sale_to_stock_uom_factor"/>
             <field name="sale_to_invoice_uom_factor"/>
             <separator/>
             <field name="sale_channels"/>
@@ -76,7 +77,9 @@
             <newline/>
             <field name="purchase_uom_id"/>
             <field name="purchase_invoice_uom_id"/>
+            <field name="purchase_to_stock_uom_factor"/>
             <field name="purchase_to_invoice_uom_factor"/>
+            <field name="purchase_qty_multiple"/>
             <field name="purchase_lead_time"/>
             <separator string="Suppliers"/>
             <field name="suppliers" nolabel="1">
