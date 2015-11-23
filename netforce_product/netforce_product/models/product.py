@@ -141,9 +141,12 @@ class Product(Model):
         "purchase_invoice_uom_id": fields.Many2One("uom","Purchase Invoice UoM"),
         "purchase_to_stock_uom_factor": fields.Decimal("Purchase Order -> Stock Uom Conversion Factor", scale=6),
         "purchase_to_invoice_uom_factor": fields.Decimal("Purchase Order -> Purchase Invoice Uom Conversion Factor", scale=6),
+        "purchase_lead_time": fields.Integer("Purchasing Lead Time (Days)"),
+        "purchase_min_qty": fields.Decimal("Purchase Minimum Qty"),
         "purchase_qty_multiple": fields.Decimal("Purchase Qty Multiple"),
         "mfg_lead_time": fields.Integer("Manufacturing Lead Time (Days)"),
-        "purchase_lead_time": fields.Integer("Purchasing Lead Time (Days)"),
+        "mfg_min_qty": fields.Decimal("Manufacturing Minimum Qty"),
+        "mfg_qty_multiple": fields.Decimal("Manufacturing Qty Multiple"),
         #"purchase_price_uom_id": fields.Many2One("uom", "Purchase Price UoM"), # not needed?
         #"sale_price_uom_id": fields.Many2One("uom", "List Price UoM"), # not needed?
         "events": fields.Many2Many("sale.event","Events"),
@@ -154,6 +157,7 @@ class Product(Model):
         "approve_date": fields.DateTime("Approve Date"),
         "service_items": fields.One2Many("service.item","product_id","Service Items"),
         "lots": fields.One2Many("stock.lot","product_id","Lots"),
+        "stock_plan_horizon": fields.Integer("Inventory Planning Horizon (days)"),
     }
 
     _defaults = {
