@@ -165,6 +165,7 @@ class StockOrder(Model):
                 "product_id": line["product_id"],
                 "qty": line["qty"],
                 "uom_id": line["uom_id"],
+                "date": line["date"],
             }
             get_model("stock.order.line").create(vals)
             n+=1
