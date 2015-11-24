@@ -95,6 +95,7 @@ class StockLot(Model):
         if pick_vals["lines"]:
             pick_id=get_model("stock.picking").create(pick_vals,context={"pick_type":"out"})
             get_model("stock.picking").set_done([pick_id])
+            get_model("stock.picking").trigger("lot_expired")
         return {
             "flash": "%d lots removed from stock"%n,
         }
