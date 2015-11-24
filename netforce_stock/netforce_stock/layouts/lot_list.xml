@@ -1,4 +1,7 @@
 <list model="stock.lot">
+    <top>
+        <button string="Remove Expired Lots" method="remove_expired_lots"/>
+    </top>
     <head>
         <button string="Print Labels" icon="print" action="lot_label" action_options="convert=pdf"/>
     </head>

@@ -146,6 +146,7 @@ class Settings(Model):
         "stock_cost_auto_compute": fields.Boolean("Auto Compute Cost"),
         "purchase_copy_picking": fields.Boolean("Auto-copy purchase orders to goods receipt"),
         "purchase_copy_invoice": fields.Boolean("Auto-copy purchase orders to supplier invoice"),
+        "lot_expiry_journal_id": fields.Many2One("stock.journal", "Lot Expiry Journal"),
     }
     _defaults = {
         "package": "free",
