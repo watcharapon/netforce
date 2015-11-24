@@ -19,11 +19,12 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
+from netforce import access
+from netforce.database import get_connection
+from netforce.logger import audit_log
 from datetime import *
 import time
 from dateutil.relativedelta import *
-from netforce.access import get_active_company
-from netforce.database import get_connection
 import math
 
 def get_total_qtys(prod_id, loc_id, date_from, date_to, states, categ_id):
@@ -49,7 +50,7 @@ def get_total_qtys(prod_id, loc_id, date_from, date_to, states, categ_id):
     if categ_id:
         q += " AND t2.categ_id=%s"
         q_args.append(categ_id)
-    company_id = get_active_company()
+    company_id = access.get_active_company()
     if company_id:
         q += " AND t1.company_id=%s"
         q_args.append(company_id)
@@ -197,8 +198,10 @@ class StockOrder(Model):
         num_po=res["num_orders"]
         res=obj.create_mo()
         num_mo=res["num_orders"]
+        msg="Stock ordering: %d purchase orders and %s production orders created"%(num_po,num_mo)
+        audit_log(msg)
         return {
-            "flash": "%d purchase orders and %s production orders created"%(num_po,num_mo),
+            "flash": msg,
         }
 
     def create_po(self,ids,context={}):
@@ -293,5 +296,15 @@ class StockOrder(Model):
         return {
             "num_orders": n,
         }
+
+    def auto_create_orders(self,context={}):
+        access.set_active_user(1)
+        access.set_active_company(1) # XXX
+        vals={
+            "confirm_orders": True,
+        }
+        obj_id=self.create(vals)
+        self.fill_products([obj_id])
+        self.create_orders([obj_id])
 
 StockOrder.register()
