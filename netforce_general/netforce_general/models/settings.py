@@ -143,6 +143,7 @@ class Settings(Model):
         "act_ship_account_id": fields.Many2One("account.account","Actual Shipping Account",multi_company=True),
         "act_duty_account_id": fields.Many2One("account.account","Actual Duty Account",multi_company=True),
         "menu_icon": fields.File("Menu Icon"),
+        "stock_cost_auto_compute": fields.Boolean("Auto Compute Cost"),
     }
     _defaults = {
         "package": "free",

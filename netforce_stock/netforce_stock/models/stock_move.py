@@ -255,8 +255,8 @@ class Move(Model):
                 if obj.related_id.is_return_item:
                     obj.related_id.write({"state": "done"})
         prod_ids=list(set(prod_ids))
-        #if prod_ids:
-        #    get_model("stock.compute.cost").compute_cost([],context={"product_ids": prod_ids})
+        if prod_ids and settings.stock_cost_auto_compute:
+            get_model("stock.compute.cost").compute_cost([],context={"product_ids": prod_ids})
         if settings.stock_cost_mode=="perpetual":
             self.post(ids,context=context)
         self.update_lots(ids,context=context)

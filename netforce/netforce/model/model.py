@@ -379,7 +379,7 @@ class Model(object):
                         rtbl = "tbl%d" % tbl_count
                         tbl_count += 1
                         if isinstance(f, fields.Many2One):
-                            joins.append("JOIN %s %s ON %s.id=%s.%s" % (mr._table, rtbl, rtbl, col_tbl, fname))
+                            joins.append("LEFT JOIN %s %s ON %s.id=%s.%s" % (mr._table, rtbl, rtbl, col_tbl, fname))
                         elif isinstance(f, fields.One2Many):
                             joins.append("JOIN %s %s ON %s.id=%s.%s" % (mr._table, rtbl, col_tbl, rtbl, f.relfield))
                         elif isinstance(f, fields.Many2Many):
@@ -1887,6 +1887,67 @@ class Model(object):
             return k
         res.sort(key=_sort_key)
         return res
+
+    def read_path(self, ids, field_paths, context={}):
+        print(">>> read_path %s %s %s"%(self._name,ids,field_paths))
+        field_names=[]
+        sub_paths={}
+        for path in field_paths:
+            if isinstance(path,str):
+                n,_,paths=path.partition(".")
+            elif isinstance(path,list):
+                n=path[0]
+                if not isinstance(n,str):
+                    raise Exception("Invalid path field path %s for model %s"%(path,self._name))
+                paths=path[1]
+            f=self._fields[n]
+            field_names.append(n)
+            if paths:
+                if not isinstance(f,(fields.Many2One,fields.One2Many,fields.Many2Many)):
+                    raise Exception("Invalid path field path %s for model %s"%(path,self._name))
+                sub_paths.setdefault(n,[])
+                if isinstance(paths,str) :
+                    sub_paths[n].append(paths)
+                elif isinstance(paths,list) :
+                    sub_paths[n]+=paths
+        field_names=list(set(field_names))
+        res=self.read(ids,field_names,context=context,load_m2o=False)
+        for n in field_names:
+            f=self._fields[n]
+            rpaths=sub_paths.get(n)
+            if rpaths:
+                mr=get_model(f.relation)
+                if isinstance(f,fields.Many2One):
+                    rids=[]
+                    for r in res:
+                        v=r[n]
+                        if v:
+                            rids.append(v)
+                    rids=list(set(rids))
+                    res2=mr.read_path(rids,rpaths,context=context)
+                    rvals={}
+                    for r in res2:
+                        rvals[r["id"]]=r
+                    for r in res:
+                        v=r[n]
+                        if v:
+                            r[n]=rvals[v]
+                elif isinstance(f,(fields.One2Many,fields.Many2Many)):
+                    rids=[]
+                    for r in res:
+                        rids+=r[n]
+                    rids=list(set(rids))
+                    res2=mr.read_path(rids,rpaths,context=context)
+                    rvals={}
+                    for r in res2:
+                        rvals[r["id"]]=r
+                    for r in res:
+                        r[n]=[rvals[v] for v in r[n]]
+        return res
+
+    def search_read_path(self, condition, field_paths, context={}):
+        ids=self.search(condition,context=context)
+        return self.read_path(ids,field_paths,context=context)
 
     def sync_get_key(self, ids, context={}):
         if not self._key:

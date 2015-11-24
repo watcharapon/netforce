@@ -76,6 +76,8 @@ def get_total_qtys(prod_id, loc_id, date_from, date_to, states, categ_id):
         q += " AND t1.company_id=%s"
         q_args.append(company_id)
     q += " GROUP BY t1.product_id,t1.lot_id,t1.location_from_id,t1.location_to_id,t1.uom_id"
+    print("q",q)
+    print("q_args",q_args)
     res = db.query(q, *q_args)
     totals = {}
     for r in res:
@@ -138,7 +140,7 @@ class ReportStockForecast(Model):
         num_periods = int(num_periods)
         periods = get_periods(date, period_days, num_periods)
         date_to0 = (datetime.strptime(date, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y-%m-%d")
-        qtys0 = get_total_qtys(product_id, location_id, None, date_to0, ["done"], categ_id)
+        qtys0 = get_total_qtys(product_id, location_id, None, date_to0, ["done","pending","approved"], categ_id)
         print("qtys0", qtys0)
         prod_locs = set([])
         for prod_id, lot_id, loc_from_id, loc_to_id in qtys0:
@@ -148,7 +150,7 @@ class ReportStockForecast(Model):
             prod_locs.add((prod_id, lot_id, loc_to_id))
         for period in periods:
             period["qtys"] = get_total_qtys(
-                product_id, location_id, period["date_from"], period["date_to"], ["done", "pending"], categ_id)
+                product_id, location_id, period["date_from"], period["date_to"], ["done", "pending","approved"], categ_id)
             for prod_id, lot_id, loc_from_id, loc_to_id in period["qtys"]:
                 if not params.get("show_lot"):
                     lot_id = -1

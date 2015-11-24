@@ -49,6 +49,7 @@ class Project(Model):
         "est_track_entries": fields.One2Many("account.track.entry",None,"Estimate Cost Tracking Entries",function="get_est_track_entries",function_write="write_est_track_entries"),
         "est_track_balance": fields.Decimal("Tracking Balance",function="_get_related",function_context={"path":"est_track_id.balance"}),
         "issues": fields.One2Many("issue","project_id","Issues"),
+        "resources": fields.Many2Many("service.resource","Resources"),
     }
     _order = "start_date"
 

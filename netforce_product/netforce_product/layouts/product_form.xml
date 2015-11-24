@@ -64,6 +64,7 @@
             <field name="sale_unit_qty"/>
             <field name="sale_uom_id"/>
             <field name="sale_invoice_uom_id"/>
+            <field name="sale_to_stock_uom_factor"/>
             <field name="sale_to_invoice_uom_factor"/>
             <separator/>
             <field name="sale_channels"/>
@@ -76,8 +77,12 @@
             <newline/>
             <field name="purchase_uom_id"/>
             <field name="purchase_invoice_uom_id"/>
+            <field name="purchase_to_stock_uom_factor"/>
             <field name="purchase_to_invoice_uom_factor"/>
             <field name="purchase_lead_time"/>
+            <newline/>
+            <field name="purchase_min_qty"/>
+            <field name="purchase_qty_multiple"/>
             <separator string="Suppliers"/>
             <field name="suppliers" nolabel="1">
                 <list>
@@ -90,6 +95,9 @@
         </tab>
         <tab string="Manufacturing">
             <field name="mfg_lead_time"/>
+            <newline/>
+            <field name="mfg_min_qty"/>
+            <field name="mfg_qty_multiple"/>
         </tab>
         <tab string="Accounting">
             <separator string="Purchasing"/>
@@ -137,6 +145,7 @@
             <field name="require_lot"/>
             <field name="lot_select"/>
             <separator/>
+            <field name="stock_plan_horizon"/>
             <field name="max_qty_loss"/>
         </tab>
         <tab string="Ecommerce">

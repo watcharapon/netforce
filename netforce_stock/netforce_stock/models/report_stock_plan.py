@@ -18,23 +18,36 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from netforce.model import Model, fields
-from netforce import access
+from netforce.model import Model, fields, get_model
+from datetime import *
+from dateutil.relativedelta import *
+from netforce.access import get_active_company
+from netforce.database import get_connection
 
 
-class MenuAccess(Model):
-    _name = "menu.access"
-    _string = "Menu Access"
-    _key = ["profile_id","action","menu"]
+class ReportStockPlan(Model):
+    _name = "report.stock.plan"
+    _transient = True
     _fields = {
-        "profile_id": fields.Many2One("profile", "Profile", required=True, on_delete="cascade", search=True),
-        "action": fields.Char("Action", search=True),
-        "menu": fields.Char("Menu", search=True),
-        "access": fields.Selection([["visible", "Visible"], ["hidden", "Hidden"]], "Access"),
+        "date": fields.Date("Start Date", required=True),
     }
-    _order = "profile_id.name,menu,action"
     _defaults = {
-        "access": "visible",
+        "date": lambda *a: date.today().strftime("%Y-%m-%d"),
     }
 
-MenuAccess.register()
+    def get_report_data(self, ids, context={}):
+        settings = get_model("settings").browse(1)
+        company_id = get_active_company()
+        comp = get_model("company").browse(company_id)
+        if ids:
+            params = self.read(ids, load_m2o=False)[0]
+        else:
+            params = self.default_get(load_m2o=False, context=context)
+        date=params["date"]
+        data = {
+            "company_name": comp.name,
+            "date": date,
+        }
+        return data
+
+ReportStockPlan.register()

@@ -185,6 +185,9 @@ class StockCount(Model):
         for line in obj.lines:
             line_no+=1
             print("line %s/%s"%(line_no,num_lines))
+            prod=line.product_id
+            if prod.type!="stock":
+                raise Exception("Invalid product type in stock count: %s"%prod.code)
             prod_ids.append(line.product_id.id)
             if line.new_qty <= line.prev_qty:
                 qty_diff = line.prev_qty - line.new_qty
@@ -222,23 +225,13 @@ class StockCount(Model):
 
     def void(self, ids, context={}):
         obj = self.browse(ids)[0]
-        prod_ids = []
-        for line in obj.lines:
-            prod_ids.append(line.product_id.id)
         obj.moves.delete()
         obj.write({"state": "voided"})
-        if prod_ids:
-            get_model("stock.compute.cost").compute_cost([], context={"product_ids": prod_ids})
 
     def to_draft(self, ids, context={}):
         obj = self.browse(ids)[0]
-        prod_ids = []
-        for line in obj.lines:
-            prod_ids.append(line.product_id.id)
         obj.moves.delete()
         obj.write({"state": "draft"})
-        if prod_ids:
-            get_model("stock.compute.cost").compute_cost([], context={"product_ids": prod_ids})
 
     def copy(self, ids, context={}):
         obj = self.browse(ids)[0]

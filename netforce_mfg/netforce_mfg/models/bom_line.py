@@ -32,6 +32,8 @@ class BomLine(Model):
         "container": fields.Selection([["sale", "From Sales Order"]], "RM Container"),
         "lot": fields.Selection([["production", "From Production Order"]], "RM Lot"),
         "issue_method": fields.Selection([["manual", "Manual"], ["backflush", "Backflush"]], "Issue Method"),
+        "qty2": fields.Decimal("Qty2", scale=6),
+        "notes": fields.Text("Notes"),
     }
 
 BomLine.register()

@@ -135,12 +135,18 @@ class Product(Model):
         "state": fields.Selection([["draft","Draft"],["approved","Approved"]],"Status"),
         "sale_uom_id": fields.Many2One("uom", "Sales Order UoM"),
         "sale_invoice_uom_id": fields.Many2One("uom","Sales Invoice UoM"),
+        "sale_to_stock_uom_factor": fields.Decimal("Sales Order -> Stock Uom Conversion Factor", scale=6),
         "sale_to_invoice_uom_factor": fields.Decimal("Sales Order -> Sales Invoice Uom Conversion Factor", scale=6),
         "purchase_uom_id": fields.Many2One("uom", "Purchase Order UoM"),
         "purchase_invoice_uom_id": fields.Many2One("uom","Purchase Invoice UoM"),
+        "purchase_to_stock_uom_factor": fields.Decimal("Purchase Order -> Stock Uom Conversion Factor", scale=6),
         "purchase_to_invoice_uom_factor": fields.Decimal("Purchase Order -> Purchase Invoice Uom Conversion Factor", scale=6),
-        "mfg_lead_time": fields.Integer("Manufacturing Lead Time (Days)"),
         "purchase_lead_time": fields.Integer("Purchasing Lead Time (Days)"),
+        "purchase_min_qty": fields.Decimal("Purchase Minimum Qty"),
+        "purchase_qty_multiple": fields.Decimal("Purchase Qty Multiple"),
+        "mfg_lead_time": fields.Integer("Manufacturing Lead Time (Days)"),
+        "mfg_min_qty": fields.Decimal("Manufacturing Minimum Qty"),
+        "mfg_qty_multiple": fields.Decimal("Manufacturing Qty Multiple"),
         #"purchase_price_uom_id": fields.Many2One("uom", "Purchase Price UoM"), # not needed?
         #"sale_price_uom_id": fields.Many2One("uom", "List Price UoM"), # not needed?
         "events": fields.Many2Many("sale.event","Events"),
@@ -151,6 +157,7 @@ class Product(Model):
         "approve_date": fields.DateTime("Approve Date"),
         "service_items": fields.One2Many("service.item","product_id","Service Items"),
         "lots": fields.One2Many("stock.lot","product_id","Lots"),
+        "stock_plan_horizon": fields.Integer("Inventory Planning Horizon (days)"),
     }
 
     _defaults = {
@@ -169,7 +176,7 @@ class Product(Model):
                 name = "[%s] %s" % (obj.code, obj.name)
             else:
                 name = obj.name
-            vals.append((obj.id, name))
+            vals.append((obj.id, name, obj.image))
         return vals
 
     def name_search(self, name, condition=None, context={}, limit=None, **kw):
@@ -443,18 +450,24 @@ class Product(Model):
 
     def get_customer_price(self,ids,context={}): # XXX: make it faster
         pricelist_id=context.get("pricelist_id")
+        pricelist_ids=context.get("pricelist_ids")
+        if pricelist_ids is None and pricelist_id:
+            pricelist_ids=[pricelist_id]
         vals={}
         for obj in self.browse(ids):
             sale_price=None
             discount_text=None
             discount_percent=None
-            if pricelist_id:
+            if pricelist_ids:
+                min_sale_price=None
                 for item in obj.pricelist_items:
-                    if item.list_id.id==pricelist_id:
+                    if item.list_id.id in pricelist_ids:
                         sale_price=(item.price or 0)
-                        discount_text=item.discount_text
-                        discount_percent=item.discount_percent
-                        break
+                        if min_sale_price is None or sale_price<min_sale_price:
+                            min_sale_price=sale_price
+                            discount_text=item.discount_text
+                            discount_percent=item.discount_percent
+                sale_price=min_sale_price
             if sale_price is None:
                 sale_price=(obj.sale_price or 0)
             has_discount=sale_price<(obj.sale_price or 0)

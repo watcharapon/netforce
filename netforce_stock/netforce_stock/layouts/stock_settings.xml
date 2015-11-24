@@ -25,4 +25,6 @@
     <field name="act_ship_account_id"/>
     <newline/>
     <field name="act_duty_account_id"/>
+    <newline/>
+    <field name="stock_cost_auto_compute"/>
 </form>

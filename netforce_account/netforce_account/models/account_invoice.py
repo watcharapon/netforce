@@ -1052,7 +1052,7 @@ class Invoice(Model):
     def onchange_sequence(self, context={}):
         data = context["data"]
         seq_id = data["sequence_id"]
-        num = self._get_number(context={"type": data["type"], "inv_type": data["inv_type"], "sequence_id": seq_id})
+        num = self._get_number(context={"type": data["type"], "inv_type": data["inv_type"], "date": data["date"], "sequence_id": seq_id})
         data["number"] = num
         return data
 
