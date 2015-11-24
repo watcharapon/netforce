@@ -124,6 +124,7 @@ class PurchaseOrder(Model):
         self.function_store(ids)
 
     def confirm(self, ids, context={}):
+        settings = get_model("settings").browse(1)
         for obj in self.browse(ids):
             if obj.state != "draft":
                 raise Exception("Invalid state")
@@ -132,6 +133,12 @@ class PurchaseOrder(Model):
                 if prod and prod.type in ("stock", "consumable", "bundle") and not line.location_id:
                     raise Exception("Missing location for product %s" % prod.code)
             obj.write({"state": "confirmed"})
+            if settings.purchase_copy_picking:
+                res=obj.copy_to_picking()
+                picking_id=res["picking_id"]
+                get_model("stock.picking").pending([picking_id])
+            if settings.purchase_copy_invoice:
+                obj.copy_to_invoice()
             obj.trigger("confirm")
 
     def done(self, ids, context={}):
@@ -265,7 +272,7 @@ class PurchaseOrder(Model):
         data = self.update_amounts(context)
         return data
 
-    def copy_to_picking(self, ids, context):
+    def copy_to_picking(self, ids, context={}):
         id = ids[0]
         settings=get_model("settings").browse(1)
         obj = self.browse(id)
@@ -339,6 +346,7 @@ class PurchaseOrder(Model):
                 "active_id": pick_id,
             },
             "flash": "Goods receipt %s created from purchase order %s" % (pick.number, obj.number),
+            "picking_id": pick_id,
         }
 
     def copy_to_invoice(self, ids, context={}):
