@@ -28,6 +28,7 @@ class StockOrderLine(Model):
         "product_id": fields.Many2One("product","Product",required=True),
         "qty": fields.Decimal("Order Qty",required=True),
         "uom_id": fields.Many2One("uom","Order UoM",required=True),
+        "date": fields.Date("Order Date",required=True),
         "supply_method": fields.Selection([["purchase", "Purchase"], ["production", "Production"]], "Supply Method", function="_get_related", function_context={"path":"product_id.supply_method"}),
         "supplier_id": fields.Many2One("contact","Supplier",function="get_supplier"),
     }

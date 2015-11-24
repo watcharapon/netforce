@@ -2,6 +2,7 @@
     <head>
         <button string="Options" dropdown="1">
             <item string="Fill Products" method="fill_products"/>
+            <item string="Delete Planned Orders" method="delete_planned_orders" confirm="Are you sure?"/>
         </button>
     </head>
     <field name="lines" nolabel="1">
@@ -9,6 +10,7 @@
             <field name="product_id"/>
             <field name="qty"/>
             <field name="uom_id"/>
+            <field name="date"/>
             <field name="supply_method"/>
             <field name="supplier_id"/>
         </list>
