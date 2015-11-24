@@ -20,8 +20,10 @@
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
-            <th></td>
-            <th></td>
+            <th></th>
+            {{#if show_location}}
+                <th></th>
+            {{/if}}
             {{#if show_lot}}
                 <th></th>
             {{/if}}
@@ -29,7 +31,9 @@
         </tr>
         <tr>
             <th>Product</th>
-            <th>Location</th>
+            {{#if show_location}}
+                <th>Location</th>
+            {{/if}}
             {{#if show_lot}}
                 <th>Lot / Serial Number</th>
             {{/if}}
@@ -52,9 +56,11 @@
                     [{{code}}]
                     {{product_name}}
                 </td>
-                <td>
-                    {{location_name}}
-                </td>
+                {{#if ../show_location}}
+                    <td>
+                        {{location_name}}
+                    </td>
+                {{/if}}
                 {{#if ../show_lot}}
                     <td>
                         {{lot_num}}

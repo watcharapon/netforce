@@ -271,10 +271,12 @@ class SaleOrder(Model):
                 raise Exception("Missing location for product %s" % prod.code)
         obj.write({"state": "confirmed"})
         settings = get_model("settings").browse(1)
+        if settings.sale_copy_picking:
+            res=obj.copy_to_picking()
+            picking_id=res["picking_id"]
+            get_model("stock.picking").pending([picking_id])
         if settings.sale_copy_invoice:
             obj.copy_to_invoice()
-        if settings.sale_copy_picking:
-            obj.copy_to_picking()
         if settings.sale_copy_production:
             obj.copy_to_production()
         obj.trigger("confirm")

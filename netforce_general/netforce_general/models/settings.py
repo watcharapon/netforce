@@ -144,6 +144,8 @@ class Settings(Model):
         "act_duty_account_id": fields.Many2One("account.account","Actual Duty Account",multi_company=True),
         "menu_icon": fields.File("Menu Icon"),
         "stock_cost_auto_compute": fields.Boolean("Auto Compute Cost"),
+        "purchase_copy_picking": fields.Boolean("Auto-copy purchase orders to goods receipt"),
+        "purchase_copy_invoice": fields.Boolean("Auto-copy purchase orders to supplier invoice"),
     }
     _defaults = {
         "package": "free",

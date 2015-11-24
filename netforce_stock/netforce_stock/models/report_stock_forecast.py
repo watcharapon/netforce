@@ -101,6 +101,7 @@ class ReportStockForecast(Model):
         "period_days": fields.Integer("Period Days", required=True),
         "num_periods": fields.Integer("Number of Periods", required=True),
         "show_lot": fields.Boolean("Show Lot / Serial Number"),
+        "show_location": fields.Boolean("Show Locations"),
     }
     _defaults = {
         "date": lambda *a: date.today().strftime("%Y-%m-%d"),
@@ -146,6 +147,9 @@ class ReportStockForecast(Model):
         for prod_id, lot_id, loc_from_id, loc_to_id in qtys0:
             if not params.get("show_lot"):
                 lot_id = -1
+            if not params.get("show_location"):
+                loc_from_id = -1
+                loc_to_id = -1
             prod_locs.add((prod_id, lot_id, loc_from_id))
             prod_locs.add((prod_id, lot_id, loc_to_id))
         for period in periods:
@@ -154,10 +158,17 @@ class ReportStockForecast(Model):
             for prod_id, lot_id, loc_from_id, loc_to_id in period["qtys"]:
                 if not params.get("show_lot"):
                     lot_id = -1
+                if not params.get("show_location"):
+                    loc_from_id = -1
+                    loc_to_id = -1
                 prod_locs.add((prod_id, lot_id, loc_from_id))
                 prod_locs.add((prod_id, lot_id, loc_to_id))
         print("prod_locs", prod_locs)
-
+        int_locs=set()
+        for loc in get_model("stock.location").search_browse([]):
+            if loc.type=="internal":
+                int_locs.add(loc.id)
+        print("int_locs",int_locs)
         def get_balance_qty(prod_id, lot_id, loc_id, qtys):
             bal = 0
             for (prod_id_, lot_id_, loc_from_id, loc_to_id), qty in qtys.items():
@@ -165,16 +176,25 @@ class ReportStockForecast(Model):
                     continue
                 if lot_id!=-1 and lot_id_ != lot_id:
                     continue
-                if loc_to_id == loc_id and loc_from_id != loc_id:
-                    bal += qty
-                elif loc_from_id == loc_id and loc_to_id != loc_id:
-                    bal -= qty
+                if loc_id!=-1:
+                    if loc_to_id == loc_id and loc_from_id != loc_id:
+                        bal += qty
+                    elif loc_from_id == loc_id and loc_to_id != loc_id:
+                        bal -= qty
+                else:
+                    if loc_to_id in int_locs and loc_from_id not in int_locs:
+                        bal+=qty
+                    elif loc_from_id in int_locs and loc_to_id not in int_locs:
+                        bal-=qty
             return bal
         lines = []
         for prod_id, lot_id, loc_id in prod_locs:
-            loc = get_model("stock.location").browse(loc_id)
-            if loc.type != "internal":
-                continue
+            if loc_id!=-1:
+                loc = get_model("stock.location").browse(loc_id)
+                if loc.type != "internal":
+                    continue
+            else:
+                loc=None
             prod = get_model("product").browse(prod_id)
             qty = get_balance_qty(prod_id, lot_id, loc_id, qtys0)
             lot=get_model("stock.lot").browse(lot_id) if lot_id and lot_id!=-1 else None
@@ -182,8 +202,8 @@ class ReportStockForecast(Model):
                 "product_id": prod.id,
                 "product_name": prod.name,
                 "code": prod.code,
-                "location_id": loc.id,
-                "location_name": loc.name,
+                "location_id": loc.id if loc else None,
+                "location_name": loc.name if loc else None,
                 "lot_id": lot_id if lot_id!=-1 else None, 
                 "lot_num": lot.number if lot else None,
                 "qty": qty,
@@ -199,7 +219,7 @@ class ReportStockForecast(Model):
                     "warning": qty < 0,
                 })
             lines.append(line)
-        lines.sort(key=lambda l: (l["product_name"], l["location_name"], l["lot_num"] or ""))
+        lines.sort(key=lambda l: (l["product_name"], l["location_name"] or "", l["lot_num"] or ""))
         print("lines", lines)
         for period in periods:
             del period["qtys"]
@@ -212,6 +232,7 @@ class ReportStockForecast(Model):
             "lines": lines,
             "period_days": period_days,
             "show_lot": params.get("show_lot"),
+            "show_location": params.get("show_location"),
         }
         return data
 
