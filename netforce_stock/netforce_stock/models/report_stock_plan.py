@@ -25,47 +25,6 @@ from netforce.access import get_active_company
 from netforce.database import get_connection
 import math
 
-def get_total_qtys(prod_id, loc_id, date_from, date_to, states, categ_id):
-    db = get_connection()
-    q = "SELECT " \
-        " t1.product_id,t1.location_from_id,t1.location_to_id,t1.uom_id,SUM(t1.qty) AS total_qty " \
-        " FROM stock_move t1 " \
-        " LEFT JOIN product t2 on t1.product_id=t2.id " \
-        " WHERE t1.state IN %s"
-    q_args = [tuple(states)]
-    if date_from:
-        q += " AND t1.date>=%s"
-        q_args.append(date_from + " 00:00:00")
-    if date_to:
-        q += " AND t1.date<=%s"
-        q_args.append(date_to + " 23:59:59")
-    if prod_id:
-        q += " AND t1.product_id=%s"
-        q_args.append(prod_id)
-    if loc_id:
-        q += " AND (t1.location_from_id=%s OR t1.location_to_id=%s)"
-        q_args += [loc_id, loc_id]
-    if categ_id:
-        q += " AND t2.categ_id=%s"
-        q_args.append(categ_id)
-    company_id = get_active_company()
-    if company_id:
-        q += " AND t1.company_id=%s"
-        q_args.append(company_id)
-    q += " GROUP BY t1.product_id,t1.location_from_id,t1.location_to_id,t1.uom_id"
-    print("q",q)
-    print("q_args",q_args)
-    res = db.query(q, *q_args)
-    totals = {}
-    for r in res:
-        prod = get_model("product").browse(r.product_id)
-        uom = get_model("uom").browse(r.uom_id)
-        qty = r.total_qty * uom.ratio / prod.uom_id.ratio
-        k = (r.product_id, r.location_from_id, r.location_to_id)
-        totals.setdefault(k, 0)
-        totals[k] += qty
-    return totals
-
 class ReportStockPlan(Model):
     _name = "report.stock.plan"
     _transient = True
@@ -89,21 +48,8 @@ class ReportStockPlan(Model):
         loc_types={}
         for loc in get_model("stock.location").search_browse([]):
             loc_types[loc.id]=loc.type
-        min_qtys={}
-        for op in get_model("stock.orderpoint").search_browse([]):
-            prod_id=op.product_id.id
-            min_qtys.setdefault(prod_id,0)
-            min_qtys[prod_id]+=op.min_qty
-        print("min_qtys",min_qtys)
-        res = get_total_qtys(product_id, None, None, None, ["done","pending","approved"], categ_id)
-        qtys_unlim={}
-        for (prod_id,loc_from_id,loc_to_id),qty in res.items():
-            qtys_unlim.setdefault(prod_id,0)
-            if loc_types[loc_from_id]=="internal":
-                qtys_unlim[prod_id]-=qty
-            if loc_types[loc_to_id]=="internal":
-                qtys_unlim[prod_id]+=qty
-        print("qtys_unlim",qtys_unlim)
+        min_qtys=get_model("stock.order").get_min_qtys()
+        qtys_unlim=get_model("stock.order").get_plan_qtys_unlim(product_id=product_id,categ_id=categ_id)
         product_ids=[]
         for prod_id,qty in qtys_unlim.items():
             min_qty=min_qtys.get(prod_id,0)
@@ -116,33 +62,21 @@ class ReportStockPlan(Model):
                     prod_ids2.append(prod.id)
             product_ids=prod_ids2
         print("product_ids",product_ids)
-        horizons={}
-        for prod in get_model("product").browse(product_ids):
-            if prod.stock_plan_horizon is None:
-                continue
-            horizons.setdefault(prod.stock_plan_horizon,[]).append(prod.id)
-        qtys_horiz={}
-        for n,prod_ids in horizons.items():
-            print("calc horizon %s"%n)
-            qtys_horiz[n]={}
-            date_to=(date.today()+timedelta(days=n)).strftime("%Y-%m-%d")
-            res = get_total_qtys(product_id, None, None, date_to, ["done","pending","approved"], categ_id)
-            for (prod_id,loc_from_id,loc_to_id),qty in res.items():
-                qtys_horiz[n].setdefault(prod_id,0)
-                if loc_types[loc_from_id]=="internal":
-                    qtys_horiz[n][prod_id]-=qty
-                if loc_types[loc_to_id]=="internal":
-                    qtys_horiz[n][prod_id]+=qty
+        qtys_horiz=get_model("stock.order").get_plan_qtys_horiz(product_ids)
+        req_dates=get_model("stock.order").get_required_dates(product_ids)
         lines=[]
         for prod in get_model("product").browse(product_ids):
             plan_days=prod.stock_plan_horizon
             qty_unlim=qtys_unlim.get(prod.id,0)
             if plan_days is not None:
-                qty_horiz=qtys_horiz[plan_days].get(prod.id)
+                qty_horiz=qtys_horiz.get(prod.id)
             else:
                 qty_horiz=qty_unlim
             min_qty=min_qtys.get(prod.id,0)
             req_qty=min_qty-qty_horiz
+            req_date=req_dates[prod.id]
+            if not req_date:
+                continue
             if prod.supply_method=="purchase":
                 supply_method="Purchase"
                 if prod.purchase_uom_id and prod.purchase_uom_id.id!=prod.uom_id.id:
@@ -158,10 +92,16 @@ class ReportStockPlan(Model):
                 else:
                     order_uom=prod.uom_id
                     order_qty=req_qty
+                if not prod.purchase_lead_time:
+                    raise Exception("Missing purchase lead time for product %s"%prod.code)
+                order_date=(datetime.strptime(req_date,"%Y-%m-%d")-timedelta(days=prod.purchase_lead_time)).strftime("%Y-%m-%d")
             elif prod.supply_method=="production":
                 supply_method="Production"
                 order_uom=prod.uom_id
                 order_qty=req_qty
+                if not prod.mfg_lead_time:
+                    raise Exception("Missing manufacturing lead time for product %s"%prod.code)
+                order_date=(datetime.strptime(req_date,"%Y-%m-%d")-timedelta(days=prod.mfg_lead_time)).strftime("%Y-%m-%d")
             else:
                 raise Exception("Invalid supply method")
             line_vals={
@@ -174,8 +114,10 @@ class ReportStockPlan(Model):
                 "min_qty": min_qty,
                 "req_qty": req_qty,
                 "stock_uom_name": prod.uom_id.name,
+                "req_date": req_date,
                 "order_qty": order_qty,
                 "order_uom_name": order_uom.name,
+                "order_date": order_date,
                 "below_min": qty_horiz<min_qty,
                 "supply_method": supply_method,
                 "supplier_name": prod.suppliers and prod.suppliers[0].supplier_id.name or None,

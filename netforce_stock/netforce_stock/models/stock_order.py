@@ -87,23 +87,9 @@ class StockOrder(Model):
 
     def get_product_order_qtys(self,context={}):
         print("StockOrder.get_product_order_qtys")
-        loc_types={}
-        for loc in get_model("stock.location").search_browse([]):
-            loc_types[loc.id]=loc.type
-        min_qtys={}
-        for op in get_model("stock.orderpoint").search_browse([]):
-            prod_id=op.product_id.id
-            min_qtys.setdefault(prod_id,0)
-            min_qtys[prod_id]+=op.min_qty
+        min_qtys=self.get_min_qtys()
         print("min_qtys",min_qtys)
-        res = get_total_qtys(None, None, None, None, ["done","pending","approved"], None)
-        qtys_unlim={}
-        for (prod_id,loc_from_id,loc_to_id),qty in res.items():
-            qtys_unlim.setdefault(prod_id,0)
-            if loc_types[loc_from_id]=="internal":
-                qtys_unlim[prod_id]-=qty
-            if loc_types[loc_to_id]=="internal":
-                qtys_unlim[prod_id]+=qty
+        qtys_unlim=self.get_plan_qtys_unlim()
         print("qtys_unlim",qtys_unlim)
         if context.get("product_ids"):
             product_ids=context["product_ids"]
@@ -113,34 +99,22 @@ class StockOrder(Model):
                 min_qty=min_qtys.get(prod_id,0)
                 if qty<min_qty:
                     product_ids.append(prod_id)
-        horizons={}
-        for prod in get_model("product").browse(product_ids):
-            if prod.stock_plan_horizon is None:
-                continue
-            horizons.setdefault(prod.stock_plan_horizon,[]).append(prod.id)
-        qtys_horiz={}
-        for n,prod_ids in horizons.items():
-            print("calc horizon %s"%n)
-            qtys_horiz[n]={}
-            date_to=(date.today()+timedelta(days=n)).strftime("%Y-%m-%d")
-            res = get_total_qtys(None, None, None, date_to, ["done","pending","approved"], None)
-            for (prod_id,loc_from_id,loc_to_id),qty in res.items():
-                qtys_horiz[n].setdefault(prod_id,0)
-                if loc_types[loc_from_id]=="internal":
-                    qtys_horiz[n][prod_id]-=qty
-                if loc_types[loc_to_id]=="internal":
-                    qtys_horiz[n][prod_id]+=qty
+        qtys_horiz=self.get_plan_qtys_horiz(product_ids)
+        req_dates=self.get_required_dates(product_ids)
         lines=[]
         product_ids.sort() # TODO: sort by code
         for prod in get_model("product").browse(product_ids):
             plan_days=prod.stock_plan_horizon
             qty_unlim=qtys_unlim.get(prod.id,0)
             if plan_days is not None:
-                qty_horiz=qtys_horiz[plan_days].get(prod.id)
+                qty_horiz=qtys_horiz.get(prod.id)
             else:
                 qty_horiz=qty_unlim
             min_qty=min_qtys.get(prod.id,0)
             req_qty=min_qty-qty_horiz
+            req_date=req_dates.get(prod.id)
+            if not req_date:
+                continue
             if prod.supply_method=="purchase":
                 supply_method="Purchase"
                 if prod.purchase_uom_id and prod.purchase_uom_id.id!=prod.uom_id.id:
@@ -156,16 +130,23 @@ class StockOrder(Model):
                 else:
                     order_uom=prod.uom_id
                     order_qty=req_qty
+                if not prod.purchase_lead_time:
+                    raise Exception("Missing purchase lead time for product %s"%prod.code)
+                order_date=(datetime.strptime(req_date,"%Y-%m-%d")-timedelta(days=prod.purchase_lead_time)).strftime("%Y-%m-%d")
             elif prod.supply_method=="production":
                 supply_method="Production"
                 order_uom=prod.uom_id
                 order_qty=req_qty
+                if not prod.mfg_lead_time:
+                    raise Exception("Missing manufacturing lead time for product %s"%prod.code)
+                order_date=(datetime.strptime(req_date,"%Y-%m-%d")-timedelta(days=prod.mfg_lead_time)).strftime("%Y-%m-%d")
             else:
                 raise Exception("Invalid supply method")
             line_vals={
                 "product_id": prod.id,
                 "qty": order_qty,
                 "uom_id": order_uom.id,
+                "date": order_date,
                 "supply_method": prod.supply_method,
                 "supplier_id": prod.suppliers[0].supplier_id.id if prod.suppliers else None,
             }
@@ -206,16 +187,24 @@ class StockOrder(Model):
 
     def create_po(self,ids,context={}):
         obj=self.browse(ids[0])
-        supplier_lines = {}
+        order_lines = {}
         for line in obj.lines:
+            prod=line.product_id
             if line.supply_method!="purchase":
                 continue
             supplier_id=line.supplier_id.id
-            supplier_lines.setdefault(supplier_id,[]).append(line.id)
+            order_date=line.date
+            if not prod.purchase_lead_time:
+                raise Exception("Missing purchase lead time in product %s"%prod.code)
+            due_date=(datetime.strptime(order_date,"%Y-%m-%d")+timedelta(days=prod.purchase_lead_time)).strftime("%Y-%m-%d")
+            k=(supplier_id,order_date,due_date)
+            order_lines.setdefault(k,[]).append(line.id)
         n=0
-        for supplier_id,line_ids in supplier_lines.items():
+        for (supplier_id,order_date,due_date),line_ids in order_lines.items():
             vals={
                 "contact_id": supplier_id,
+                "date": order_date,
+                "delivery_date": due_date,
                 "lines": [],
             }
             for line in get_model("stock.order.line").browse(line_ids):
@@ -271,7 +260,7 @@ class StockOrder(Model):
             if not loc_prod_id:
                 raise Exception("Missing production location in routing %s" % routing.number)
             uom = prod.uom_id
-            order_date=time.strftime("%Y-%m-%d")
+            order_date=line.date
             if not prod.mfg_lead_time:
                 raise Exception("Missing manufacturing lead time in product %s"%prod.code)
             due_date=(datetime.strptime(order_date,"%Y-%m-%d")+timedelta(days=prod.mfg_lead_time)).strftime("%Y-%m-%d")
@@ -297,14 +286,139 @@ class StockOrder(Model):
             "num_orders": n,
         }
 
-    def auto_create_orders(self,context={}):
+    def auto_create_purchase_orders(self,context={}):
         access.set_active_user(1)
         access.set_active_company(1) # XXX
         vals={
             "confirm_orders": True,
         }
         obj_id=self.create(vals)
+        self.delete_planned_orders([obj_id])
         self.fill_products([obj_id])
-        self.create_orders([obj_id])
+        self.create_po([obj_id])
+
+    def auto_create_production_orders(self,context={}):
+        access.set_active_user(1)
+        access.set_active_company(1) # XXX
+        vals={
+            "confirm_orders": True,
+        }
+        obj_id=self.create(vals)
+        self.delete_planned_orders([obj_id])
+        self.fill_products([obj_id])
+        self.create_mo([obj_id])
+
+    def delete_planned_orders(self,ids,context={}):
+        res=self.delete_planned_po()
+        num_po=res["num_orders"]
+        self.delete_planned_mo()
+        num_mo=res["num_orders"]
+        return {
+            "flash": "%d purchase orders and %s production orders deleted"%(num_po,num_mo),
+        }
+
+    def delete_planned_po(self,context={}):
+        d=datetime.today().strftime("%Y-%m-%d")
+        n=0
+        for purch in get_model("purchase.order").search_browse([["date",">=",d]]):
+            for pick in purch.pickings:
+                pick.void()
+                pick.delete()
+            purch.to_draft()
+            purch.delete()
+            n+=1
+        return {
+            "num_orders": n,
+        }
+
+    def delete_planned_mo(self,context={}):
+        d=datetime.today().strftime("%Y-%m-%d")
+        n=0
+        for order in get_model("production.order").search_browse([["order_date",">=",d]]):
+            if order.state in ("in_progress","done"):
+                continue
+            for pick in order.pickings:
+                pick.void()
+                pick.delete()
+            order.to_draft()
+            order.delete()
+            n+=1
+        return {
+            "num_orders": n,
+        }
+
+    def get_plan_qtys_unlim(self,product_id=None,categ_id=None,context={}):
+        print("StockOrder.get_plan_qtys_unlim")
+        loc_types={}
+        for loc in get_model("stock.location").search_browse([]):
+            loc_types[loc.id]=loc.type
+        res = get_total_qtys(product_id, None, None, None, ["done","pending","approved"], categ_id)
+        qtys_unlim={}
+        for (prod_id,loc_from_id,loc_to_id),qty in res.items():
+            qtys_unlim.setdefault(prod_id,0)
+            if loc_types[loc_from_id]=="internal":
+                qtys_unlim[prod_id]-=qty
+            if loc_types[loc_to_id]=="internal":
+                qtys_unlim[prod_id]+=qty
+        print("qtys_unlim",qtys_unlim)
+        return qtys_unlim
+
+    def get_plan_qtys_horiz(self,product_ids,context={}):
+        print("StockOrder.get_plan_qtys_horiz",product_ids)
+        loc_types={}
+        for loc in get_model("stock.location").search_browse([]):
+            loc_types[loc.id]=loc.type
+        horizons={}
+        for prod in get_model("product").browse(product_ids):
+            if prod.stock_plan_horizon is None:
+                continue
+            horizons.setdefault(prod.stock_plan_horizon,[]).append(prod.id)
+        qtys_horiz={}
+        for n,prod_ids in horizons.items():
+            print("calc horizon %s"%n)
+            date_to=(date.today()+timedelta(days=n)).strftime("%Y-%m-%d")
+            res = get_total_qtys(None, None, None, date_to, ["done","pending","approved"], None)
+            for (prod_id,loc_from_id,loc_to_id),qty in res.items():
+                qtys_horiz.setdefault(prod_id,0)
+                if loc_types[loc_from_id]=="internal":
+                    qtys_horiz[prod_id]-=qty
+                if loc_types[loc_to_id]=="internal":
+                    qtys_horiz[prod_id]+=qty
+        print("qtys_horiz",qtys_horiz)
+        return qtys_horiz
+
+    def get_required_dates(self,product_ids,context={}): # TODO: improve speed
+        print("StockOrder.get_required_dates",product_ids)
+        loc_types={}
+        for loc in get_model("stock.location").search_browse([]):
+            loc_types[loc.id]=loc.type
+        req_dates={}
+        MAX_HORIZON_DAYS=15 # XXX
+        for h_days in range(MAX_HORIZON_DAYS):
+            print("h_days=%d"%h_days)
+            date_to=(date.today()+timedelta(days=h_days)).strftime("%Y-%m-%d")
+            res = get_total_qtys(None, None, None, date_to, ["done","pending","approved"], None)
+            qtys={}
+            for (prod_id,loc_from_id,loc_to_id),qty in res.items():
+                qtys.setdefault(prod_id,0)
+                if loc_types[loc_from_id]=="internal":
+                    qtys[prod_id]-=qty
+                if loc_types[loc_to_id]=="internal":
+                    qtys[prod_id]+=qty
+            for prod_id,qty in qtys.items():
+                if qty<0 and prod_id not in req_dates:
+                    req_dates[prod_id]=date_to
+        print("req_dates",req_dates)
+        return req_dates
+
+    def get_min_qtys(self,context={}):
+        print("StockOrder.get_min_qtys")
+        min_qtys={}
+        for op in get_model("stock.orderpoint").search_browse([]):
+            prod_id=op.product_id.id
+            min_qtys.setdefault(prod_id,0)
+            min_qtys[prod_id]+=op.min_qty
+        print("min_qtys",min_qtys)
+        return min_qtys
 
 StockOrder.register()

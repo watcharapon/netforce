@@ -273,9 +273,8 @@ class PurchaseOrder(Model):
         return data
 
     def copy_to_picking(self, ids, context={}):
-        id = ids[0]
         settings=get_model("settings").browse(1)
-        obj = self.browse(id)
+        obj = self.browse(ids[0])
         contact = obj.contact_id
         pick_vals = {
             "type": "in",
@@ -285,6 +284,8 @@ class PurchaseOrder(Model):
             "currency_id": obj.currency_id.id,
             "lines": [],
         }
+        if obj.delivery_date:
+            pick_vals["date"]=obj.delivery_date
         if contact and contact.pick_in_journal_id:
             pick_vals["journal_id"] = contact.pick_in_journal_id.id
         res = get_model("stock.location").search([["type", "=", "supplier"]],order="id")
