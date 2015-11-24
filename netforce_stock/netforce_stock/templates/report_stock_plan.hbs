@@ -1,29 +1,77 @@
 <center>
     <h2>
-        Stock Planning
+        Stock Planning / Ordering
     </h2>
     <h3>
         {{company_name}}
     </h3>
 </center>
+<style>
+tr.nf-below-min td {
+    /*background-color: #fcc !important;*/
+}
+</style>
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
+            <th style="width:20px"><input type="checkbox" class="nf-select-all"/></th>
             <th>Product Code</th>
             <th>Product Name</th>
             <th>Planning Horizon (days)</th>
-            <th>Planned Qty</th>
+            <th>Planned Qty Within Horizon</th>
+            <th>Planned Qty Unlimited</th>
+            <th>Minimum Stock</th>
+            <th>Required Qty</th>
+            <th>Stock UoM</th>
             <th>Order Qty</th>
+            <th>Order UoM</th>
+            <th>Supply Method</th>
+            <th>Supplier Name</th>
         </tr>
     <tbody>
         {{#each lines context=context}}
-            <tr>
-                <th>{{product_code}}</th>
-                <th>{{product_name}}</th>
-                <th>{{plan_days}}</th>
-                <th>{{plan_qty}}</th>
-                <th>{{order_qty}}</th>
+            <tr {{#if below_min}}class="nf-below-min"{{/if}}>
+                <td><input type="checkbox" class="nf-prod-select" data-product-id="{{product_id}}"/></td>
+                <td><a href="#name=product&amp;mode=form&amp;active_id={{product_id}}">{{product_code}}</a></td>
+                <td>{{product_name}}</td>
+                <td>{{plan_days}}</td>
+                <td>{{plan_qty_horiz}}</td>
+                <td>{{plan_qty_unlim}}</td>
+                <td>{{min_qty}}</td>
+                <td>{{req_qty}}</td>
+                <td>{{stock_uom_name}}</td>
+                <td>{{order_qty}}</td>
+                <td>{{order_uom_name}}</td>
+                <td>{{supply_method}}</td>
+                <td>{{supplier_name}}</td>
             </tr>
         {{/each}}
     </tbody>
 </table>
+<button class="btn btn-success btn-lg nf-btn-order"><span class="glyphicon glyphicon-arrow-right"></span> Order Products</button>
+<script>
+$(function() {
+    $(".nf-btn-order").click(function() {
+        var prod_ids=[];
+        $("input.nf-prod-select:checked").each(function() {
+            var prod_id=$(this).data("product-id");
+            prod_ids.push(prod_id);
+        });
+        log("prod_ids",prod_ids);
+        if (_.isEmpty(prod_ids)) {
+            alert("No items selected");
+            return;
+        }
+        var action={
+            name: "stock_order",
+            product_ids: prod_ids
+        };
+        exec_action(action);
+    });
+
+    $(".nf-select-all").click(function() {
+        var val=$(this).is(":checked");
+        $("input.nf-prod-select").prop("checked",val);
+    });
+});
+</script>

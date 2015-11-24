@@ -63,3 +63,5 @@ from . import landed_cost
 from . import landed_cost_alloc
 from . import messenger
 from . import report_stock_plan
+from . import stock_order
+from . import stock_order_line
