@@ -50,4 +50,4 @@ class ReportStockPlan(Model):
         }
         return data
 
-ReportStockForecast.register()
+ReportStockPlan.register()

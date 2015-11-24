@@ -62,3 +62,4 @@ from . import stock_consign_period
 from . import landed_cost
 from . import landed_cost_alloc
 from . import messenger
+from . import report_stock_plan
