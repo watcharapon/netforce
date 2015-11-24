@@ -19,6 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
+from netforce import access
 import time
 
 
@@ -59,6 +60,8 @@ class StockLot(Model):
 
     def remove_expired_lots(self,context={}):
         print("StockLot.remove_expired_lots")
+        access.set_active_user(1)
+        access.set_active_company(1)
         settings=get_model("settings").browse(1)
         if not settings.lot_expiry_journal_id:
             raise Exception("Missing lot expiry journal")
