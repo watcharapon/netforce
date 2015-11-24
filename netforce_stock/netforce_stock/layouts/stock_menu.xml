@@ -26,6 +26,7 @@
         <item string="Stock Card" action="report_stock_card"/>
         <item string="Stock Aging" action="report_stock_aging"/>
         <item string="Stock Forecast" action="report_stock_forecast"/>
+        <item string="Stock Planning" action="report_stock_plan"/>
         <item string="Shipping Cost" action="report_ship_cost"/>
         <divider/>
         <item string="Goods Receive Report" action="report_goods_receive"/>

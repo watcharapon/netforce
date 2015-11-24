@@ -176,6 +176,16 @@ class StockBalance(Model):
                         parent_vals["last_change"] = bal_vals["last_change"]
                     parent_vals["qty2"] += bal_vals["qty2"]
                     child_id = parent_id
+            total_virt_qtys={}
+            for (loc_id, cont_id, prod_id, lot_id), bal_vals in bals.items():
+                total_virt_qtys.setdefault(prod_id,0)
+                total_virt_qtys[prod_id]+=bal_vals["qty_virt"]
+            below_prods=set()
+            for prod_id,qty_virt in total_virt_qtys.items():
+                if qty_virt<0: # XXX: take into account min stock rules
+                    below_prods.add(prod_id)
+            for (loc_id, cont_id, prod_id, lot_id), bal_vals in bals.items():
+                bal_vals["below_min"]=prod_id in below_prods
             for (loc_id, cont_id, prod_id, lot_id), bal_vals in bals.items():
                 qty_phys = bal_vals["qty_phys"]
                 qty_virt = bal_vals["qty_virt"]
@@ -185,7 +195,7 @@ class StockBalance(Model):
                 if qty_phys == 0 and qty_virt == 0 and min_qty == 0 and amt == 0:
                     continue
                 prod_loc_qty = prod_loc_qtys.get((loc_id, prod_id), 0)
-                below_min = prod_loc_qty < min_qty
+                below_min = bal_vals["below_min"]
                 uom_id = bal_vals["uom_id"]
                 last_change = bal_vals["last_change"]
                 db.execute("INSERT INTO stock_balance (location_id,container_id,product_id,lot_id,qty_phys,qty_virt,amount,min_qty,uom_id,below_min,last_change,qty2) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",

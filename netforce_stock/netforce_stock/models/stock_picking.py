@@ -248,7 +248,7 @@ class Picking(Model):
             line["uom_id"] = prod.uom_id.id
         if data["type"] == "in":
             if prod.purchase_price is not None:
-                line["base_price"] = prod.purchase_price
+                line["cost_price_cur"] = prod.purchase_price
         return data
 
     def copy_to_invoice(self, ids, context):
@@ -373,7 +373,7 @@ class Picking(Model):
             if line.related_id:
                 line_vals["related_id"] = "%s,%d" % (line.related_id._model, line.related_id.id)
             if obj.type == "in":
-                line_vals["base_price"] = line.base_price
+                line_vals["cost_price_cur"] = line.cost_price_cur
                 line_vals["unit_price"] = line.unit_price
             vals["lines"].append(("create", line_vals))
         from pprint import pprint
@@ -626,8 +626,8 @@ class Picking(Model):
                 prod=line.product_id
                 alloc_vals={
                     "move_id": line.id,
-                    "est_ship": line.qty*(line.base_price or 0)*(prod.purchase_ship_percent or 0)/100,
-                    "est_duty": line.qty*(line.base_price or 0)*(prod.purchase_duty_percent or 0)/100,
+                    "est_ship": line.qty*(line.cost_price_cur or 0)*(prod.purchase_ship_percent or 0)/100,
+                    "est_duty": line.qty*(line.cost_price_cur or 0)*(prod.purchase_duty_percent or 0)/100,
                 }
                 vals["cost_allocs"].append(("create",alloc_vals))
         landed_id=get_model("landed.cost").create(vals)
@@ -650,13 +650,6 @@ class Picking(Model):
             landed_ids=list(set(landed_ids))
             vals[obj.id]=landed_ids
         return vals
-
-    def onchange_base_price(self, context):
-        data = context["data"]
-        path = context["path"]
-        line = get_data_path(data, path, parent=True)
-        line["unit_price"]=line["base_price"]+line["alloc_cost_amount"]/line["qty"] if line["qty"] else 0
-        return data
 
     def assign_lots(self,ids,context={}):
         print("assign_lots",ids)

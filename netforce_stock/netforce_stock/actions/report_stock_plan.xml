@@ -1,0 +1,7 @@
+<action>
+    <field name="string">Stock Planning</field>
+    <field name="view_cls">report</field>
+    <field name="model">report.stock.plan</field>
+    <field name="report_template">report_stock_plan</field>
+    <field name="menu">stock_menu</field>
+</action>
