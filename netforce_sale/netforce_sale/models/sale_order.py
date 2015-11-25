@@ -1142,7 +1142,7 @@ class SaleOrder(Model):
                 "code": code,
                 "parent_id": sale_track_id,
                 "name": obj.number, #XXX
-                "type": "2",
+                "type": "1",
             }
             get_model("account.track.categ").create(vals)
             count+=1
