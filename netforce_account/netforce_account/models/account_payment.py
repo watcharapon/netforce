@@ -468,6 +468,7 @@ class Payment(Model):
             line_vals["amount_cur"] = obj.amount_payment if obj.type == "in" else -obj.amount_payment
         get_model("account.move.line").create(line_vals)
         taxes = {}
+        reconcile_ids = []
         total_over = 0
         for line in obj.lines:
             if line.type in ("direct", "prepay"):
@@ -552,6 +553,14 @@ class Payment(Model):
                     print("invoice")
                     pprint(line_vals)
                     pay_line_id = get_model("account.move.line").create(line_vals)
+                    if inv.reconcile_move_line_id:
+                        inv_line_id = inv.reconcile_move_line_id.id
+                    elif inv.move_id:  # XXX
+                        inv_line_id = inv.move_id.lines[0].id
+                    else:
+                        inv_line_id = None
+                    if inv_line_id:
+                        reconcile_ids.append([pay_line_id, inv_line_id])
                     for invline in inv.lines:
                         tax = invline.tax_id
                         if tax and inv.tax_type != "no_tax":  # XXX: simplify this
@@ -829,6 +838,8 @@ class Payment(Model):
             get_model("account.move.line").create(line_vals)
         get_model("account.move").post([move_id])
         obj.write({"move_id": move_id, "state": "posted"})
+        for rec_lines in reconcile_ids:
+            get_model("account.move.line").reconcile(rec_lines)
         obj.create_prepay_invoice()
 
     def create_prepay_invoice(self, ids, context={}):

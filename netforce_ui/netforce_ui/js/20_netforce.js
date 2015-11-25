@@ -426,7 +426,7 @@ Handlebars.registerHelper("field_label",function(name,options) {
 
 function format_date(val,options) {
     if (!val) return null;
-    if (window.nf_use_buddhist_date) {
+    if (ui_params_db && ui_params_db.use_buddhist_date) {
         var year=parseInt(val.substr(0,4));
         var year2=year+543;
         val=""+year2+val.substr(4);
@@ -452,7 +452,7 @@ function parse_date(val) {
         var fmt="YYYY-MM-DD";
     }
     var val2=moment(val,fmt).format("YYYY-MM-DD");
-    if (window.nf_use_buddhist_date) {
+    if (ui_params_db && ui_params_db.use_buddhist_date) {
         var year=parseInt(val2.substr(0,4));
         var year2=year-543;
         val2=""+year2+val2.substr(4);
@@ -462,7 +462,7 @@ function parse_date(val) {
 
 function format_datetime(val) {
     if (!val) return null;
-    if (window.nf_use_buddhist_date) {
+    if (ui_params_db && ui_params_db.use_buddhist_date) {
         var year=parseInt(val.substr(0,4));
         var year2=year+543;
         val=""+year2+val.substr(4);
@@ -484,7 +484,7 @@ function parse_datetime(val) {
         var fmt="YYYY-MM-DD HH:mm:ss";
     }
     var val2=moment(val,fmt).format("YYYY-MM-DD HH:mm:ss");
-    if (window.nf_use_buddhist_date) {
+    if (ui_params_db && ui_params_db.use_buddhist_date) {
         var year=parseInt(val2.substr(0,4));
         var year2=year-543;
         val2=""+year2+val2.substr(4);
