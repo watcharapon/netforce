@@ -1047,7 +1047,4 @@ class Invoice(Model):
         data["number"] = num
         return data
 
-    def check_reconciliation(self, ids, context={}):
-        pass
-
 Invoice.register()
