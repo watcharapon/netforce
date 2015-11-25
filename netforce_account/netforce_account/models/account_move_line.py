@@ -111,6 +111,17 @@ class MoveLine(Model):
                     raise Exception("Can only reconcile transactions of same account (%s / %s)"%(obj.account_id.code,acc.code))
         self.write(all_ids, {"reconcile_id": rec_id})
 
+    def unreconcile_manual(self, ids, context={}):
+        all_ids = ids[:]
+        for line in self.browse(ids):
+            rec = line.reconcile_id
+            if not rec:
+                continue
+            for rline in rec.lines:
+                all_ids.append(rline.id)
+        all_ids = list(set(all_ids))
+        self.write(all_ids,{"reconcile_id":None})
+
     def write(self, ids, vals, **kw):
         rec_ids = []
         for obj in self.browse(ids):

@@ -77,7 +77,7 @@
                 <ul class="nav navbar-nav navbar-right">
                     {{#view "item" string="Main Menu" icon="home" dropdown="1" context=context}}
                         {{#each ../mainmenu_items context=context}}
-                            {{view "item" string=string action=action perm=perm perm_check_admin=perm_check_admin pkg=pkg context=context}}
+                            {{view "item" string=string action=action perm=perm perm_check_admin=perm_check_admin pkg=pkg disabled=disabled context=context}}
                         {{/each}}
                     {{/view}}
                 </ul>

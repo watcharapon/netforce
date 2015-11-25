@@ -48,7 +48,7 @@ class Invoice(Model):
         "due_date": fields.Date("Due Date", search=True),
         "currency_id": fields.Many2One("currency", "Currency", required=True, search=True),
         "tax_type": fields.Selection([["tax_ex", "Tax Exclusive"], ["tax_in", "Tax Inclusive"], ["no_tax", "No Tax"]], "Tax Type", required=True),
-        "state": fields.Selection([("draft", "Draft"), ("waiting_approval", "Waiting Approval"), ("waiting_payment", "Waiting Payment"), ("paid", "Paid"), ("voided", "Voided")], "Status", function="get_state", store=True, function_order=20,search =True),
+        "state": fields.Selection([("draft", "Draft"), ("waiting_approval", "Waiting Approval"), ("waiting_payment", "Waiting Payment"), ("paid", "Paid"), ("voided", "Voided")], "Status", function="get_state", store=True, function_order=20, search=True),
         "lines": fields.One2Many("account.invoice.line", "invoice_id", "Lines"),
         "amount_subtotal": fields.Decimal("Subtotal", function="get_amount", function_multi=True, store=True),
         "amount_tax": fields.Decimal("Tax Amount", function="get_amount", function_multi=True, store=True),
@@ -86,6 +86,12 @@ class Invoice(Model):
         "original_invoice_id": fields.Many2One("account.invoice", "Original Invoice"),
         "product_id": fields.Many2One("product","Product",store=False,function_search="search_product",search=True),
         "taxes": fields.One2Many("account.invoice.tax","invoice_id","Taxes"),
+        "agg_amount_total": fields.Decimal("Total Amount", agg_function=["sum", "amount_total"]),
+        "agg_amount_subtotal": fields.Decimal("Total Amount w/o Tax", agg_function=["sum", "amount_subtotal"]),
+        "year": fields.Char("Year", sql_function=["year", "date"]),
+        "quarter": fields.Char("Quarter", sql_function=["quarter", "date"]),
+        "month": fields.Char("Month", sql_function=["month", "date"]),
+        "week": fields.Char("Week", sql_function=["week", "date"]),
     }
     _order = "date desc,number desc"
 
@@ -750,10 +756,6 @@ class Invoice(Model):
                 if obj.inv_type in ("invoice", "debit"):
                     if obj.amount_due == 0:
                         state = "paid"
-                        if obj.related_id:
-                            if obj.related_id.ref:
-                                if obj.related_id.ref.startswith("Ecommerce"):
-                                    obj.trigger("payment_posted")
                 elif obj.inv_type in ("credit", "prepay", "overpay"):
                     if obj.amount_credit_remain == 0:
                         state = "paid"
@@ -1044,5 +1046,8 @@ class Invoice(Model):
         num = self._get_number(context={"type": data["type"], "inv_type": data["inv_type"], "date": data["date"], "sequence_id": seq_id})
         data["number"] = num
         return data
+
+    def check_reconciliation(self, ids, context={}):
+        pass
 
 Invoice.register()

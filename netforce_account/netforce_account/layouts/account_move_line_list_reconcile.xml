@@ -4,7 +4,7 @@
     </top>
     <head replace="1">
         <button string="Manual Reconcile" method="reconcile" type="primary"/>
-        <button string="Unreconcile" method="unreconcile"/>
+        <button string="Unreconcile" method="unreconcile_manual"/>
     </head>
     <field name="move_number"/>
     <field name="move_date"/>
