@@ -537,18 +537,13 @@ class Invoice(Model):
                 tax_id = line.tax_id
                 if tax_id and inv.tax_type != "no_tax":
                     base_amt = get_model("account.tax.rate").compute_base(tax_id, line.amount, tax_type=inv.tax_type)
-                    if settings.rounding_account_id:
-                        base_amt=round(base_amt,2)
                     tax_comps = get_model("account.tax.rate").compute_taxes(tax_id, base_amt, when="invoice")
-                    if not settings.rounding_account_id:
-                        base_amt=round(base_amt,2)
                     for comp_id, tax_amt in tax_comps.items():
-                        if not settings.rounding_account_id:
-                            tax_amt=round(tax_amt,2)
                         tax += tax_amt
                 else:
                     base_amt = line.amount
                 subtotal += base_amt
+            subtotal=round(subtotal,2)
             tax=round(tax,2)
             vals["amount_subtotal"] = subtotal
             vals["amount_tax"] = tax
@@ -629,14 +624,8 @@ class Invoice(Model):
             tax_id = line.get("tax_id")
             if tax_id and tax_type != "no_tax":
                 base_amt = get_model("account.tax.rate").compute_base(tax_id, amt, tax_type=tax_type)
-                if settings.rounding_account_id:
-                    base_amt=round(base_amt,2)
                 tax_comps = get_model("account.tax.rate").compute_taxes(tax_id, base_amt, when="invoice")
-                if not settings.rounding_account_id:
-                    base_amt=round(base_amt,2)
                 for comp_id, tax_amt in tax_comps.items():
-                    if not settings.rounding_account_id:
-                        tax_amt=round(tax_amt,2)
                     data["amount_tax"] += tax_amt
             else:
                 base_amt = amt

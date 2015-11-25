@@ -31,7 +31,7 @@ class Employee(Model):
     _name_field = "first_name"  # XXX
     _multi_company = True
     _key = ["code","company_id"]
-    _export_name_field = "code"
+    _export_field = "code"
 
     _fields = {
         "code": fields.Char("Employee Code", search=True),
