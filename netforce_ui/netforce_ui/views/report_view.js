@@ -136,9 +136,9 @@ var ReportView=NFView.extend({
             var agg_fields=[];
         }
         that.model.set("_agg_field1",agg_fields[0]);
-        var agg_field1={type:"selection",selection:agg_select,string:"Aggregate Field #2"};
-        that.model.fields["_agg_field2"]=agg_field1;
-        that.model.set("_agg_field2",agg_fields[0]);
+        var agg_field2={type:"selection",selection:agg_select,string:"Aggregate Field #2"};
+        that.model.fields["_agg_field2"]=agg_field2;
+        that.model.set("_agg_field2",agg_fields[1]);
     },
 
     render: function() {
