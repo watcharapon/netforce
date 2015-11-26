@@ -113,7 +113,7 @@ var ReportView=NFView.extend({
         that.model.set("_group_field2",group_fields[1]);
         var view_type={type:"selection",selection:[["list","List"],["crosstab","Crosstab"],["bar","Bar Chart"],["pie","Pie Chart"]],string:"View Type"};
         that.model.fields["_view_type"]=view_type;
-        that.model.set("_view_type","list");
+        that.model.set("_view_type",this.options.view_type||"list");
         if (this.options.condition) {
             var cond=JSON.parse(this.options.condition);
             this.set_condition(cond);
