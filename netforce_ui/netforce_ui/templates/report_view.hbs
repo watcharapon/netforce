@@ -1,26 +1,28 @@
-<div class="page-header nf-page-header">
-    <h1>{{options.string}}</h1>
-</div>
-{{view "flash" context=context}}
-{{#view "form" border="1" context=context}}
-    {{#view "form_body" background="1" context=context}}
-        <div class="row">
-            {{view "field" name="_group_field1" span="2" context=context}}
-            {{view "field" name="_group_field2" span="2" context=context}}
-            {{view "field" name="_agg_field1" span="2" context=context}}
-            {{view "field" name="_agg_field2" span="2" context=context}}
-            {{view "field" name="_view_type" span="2" context=context}}
-        </div>
-        {{view "separator" string="Filter" context=context}}
-        <div>
-            {{{call ../../render_search_body context}}}
-        </div>
+{{#unless options.hide_params}}
+    <div class="page-header nf-page-header">
+        <h1>{{options.string}}</h1>
+    </div>
+    {{view "flash" context=context}}
+    {{#view "form" border="1" context=context}}
+        {{#view "form_body" background="1" context=context}}
+            <div class="row">
+                {{view "field" name="_group_field1" span="2" context=context}}
+                {{view "field" name="_group_field2" span="2" context=context}}
+                {{view "field" name="_agg_field1" span="2" context=context}}
+                {{view "field" name="_agg_field2" span="2" context=context}}
+                {{view "field" name="_view_type" span="2" context=context}}
+            </div>
+            {{view "separator" string="Filter" context=context}}
+            <div>
+                {{{call ../../render_search_body context}}}
+            </div>
+        {{/view}}
     {{/view}}
-{{/view}}
-<div class="btn-toolbar nf-btn-toolbar">
-    <a href="#" class="btn btn-primary run-report">Run Report</a>
-    <a href="#" class="btn btn-default nf-export-xls">Export XLS</a>
-</div>
+    <div class="btn-toolbar nf-btn-toolbar">
+        <a href="#" class="btn btn-primary run-report">Run Report</a>
+        <a href="#" class="btn btn-default nf-export-xls">Export XLS</a>
+    </div>
+{{/unless}}
 {{#ifeq view_type "list"}}
     <table class="table table-striped table-bordered">
         <thead>
