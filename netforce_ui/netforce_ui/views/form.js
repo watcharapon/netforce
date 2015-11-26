@@ -27,6 +27,11 @@ var Form=NFView.extend({
         "submit form": "submit"
     },
 
+    initialize: function(options) {
+        NFView.prototype.initialize.call(this,options);
+        this.field_attrs={};
+    },
+
     render: function() {
         var ctx=_.clone(this.data.context);
         var model=this.context.model;
@@ -59,16 +64,16 @@ var Form=NFView.extend({
             }
             var that=this;
             rpc_execute(model.name,"call_onchange",[method],{context: ctx},function(err,res) {
-                var data, fields, alert_msg;
-                if (res.data || res.fields || res.alert) {
+                var data, field_attrs, alert_msg;
+                if (res.data || res.field_attrs || res.alert) {
                     data=res.data;
-                    fields=res.fields;
+                    field_attrs=res.field_attrs;
                     alert_msg=res.alert;
                 } else {
                     data=res;
                 }
-                if (fields) {
-                    model.set_fields(fields);
+                if (field_attrs) {
+                    that.set_field_attrs(field_attrs);
                 }
                 if (data) {
                     model.set_vals(data);
@@ -92,6 +97,29 @@ var Form=NFView.extend({
         rpc_execute(model.name,method,[],{context: ctx},function(err,data) {
             model.set_vals(data);
         });
+    },
+
+    set_field_attrs: function(field_attrs) {
+        log("form set_field_attrs",field_attrs);
+        for (p in field_attrs) {
+            var attrs=field_attrs[p];
+            if (!this.field_attrs[p]) {
+                this.field_attrs[p]={};
+            }
+            if (!attrs) {
+                delete this.field_attrs[p];
+            } else {
+                _.extend(this.field_attrs[p],attrs);
+            }
+        }
+        log("new field_attrs",this.field_attrs);
+    },
+
+    get_field_attrs: function(path) {
+        log("form get_field_attrs",path);
+        var attrs=this.field_attrs[path];
+        log("attrs",attrs);
+        return attrs;
     },
 
     submit: function() { // XXX: not used?

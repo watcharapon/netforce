@@ -1625,15 +1625,10 @@ class Model(object):
         res = f(context=context)
         if res is None:
             res = {}
-        out = {}
-        if "data" in res:
-            out["data"] = res["data"]
+        if "data" in res or "field_attrs" in res or "alert" in res:
+            out=res
         else:
-            out["data"] = res
-        if "fields" in res:
-            out["fields"] = res["fields"]
-        if "alert" in res:
-            out["alert"] = res["alert"]
+            out={"data":res}
         def _fill_m2o(m, vals):
             for k, v in vals.items():
                 if not v:

@@ -1449,7 +1449,7 @@ window.NFModel=Backbone.Model.extend({
             if (n=="id") continue;
             var v=data[n];
             var f=this.get_field(n);
-            if (f.type=="many2one") {
+            if (f.type=="many2one" || f.type=="reference") {
                 if (_.isArray(v)) v=v[0];
             } else if (f.type=="one2many") {
                 if (!v) continue;
@@ -1503,26 +1503,20 @@ window.NFModel=Backbone.Model.extend({
         }
     },
 
-    set_fields: function(vals) {
-        log("model set_fields",vals);
-        for (var n in vals) {
-            var v=vals[n];
-            var f=this.get_field(n);
-            if (f.type=="many2one") {
-                if (_.isNumber(v)) {
-                    var old_v=this.get(n);
-                    if (_.isArray(old_v) && old_v[0]==v) {
-                        v=old_v;
-                    }
-                }
-                this.set(n,v);
-            } else if (f.type=="one2many") {
-                var col=this.get(n);
-                if (col instanceof NFCollection) {
-                    col.set_vals(v);
-                }
-            } else {
-                this.set(n,v);
+    set_fields: function(fields) {
+        log("model set_fields",fields);
+        for (var path in fields) {
+            var comps=path.split(".");
+            var n=comps[0];
+            var new_f=fields[n];
+            var cur_f=this.fields[n];
+            if (!cur_f) {
+                var f=get_field(this.name,n);
+                cur_f=_.clone(f);
+                this.fields[n]=cur_f;
+            }
+            if (comps.length==1) {
+                _.extend(cur_f,new_f);
             }
         }
     },
@@ -1530,7 +1524,6 @@ window.NFModel=Backbone.Model.extend({
     get_path: function(field_name) {
         var path;
         if (this.collection) {
-            var parent_path=this.collection.get_path();
             var found=false;
             for (var i=0; i<this.collection.models.length; i++) {
                 var m=this.collection.models[i];
@@ -1541,6 +1534,20 @@ window.NFModel=Backbone.Model.extend({
             }
             if (!found) throw "Model not found!";
             path=this.collection.get_path()+"."+i;
+        } else {
+            path="";
+        }
+        if (field_name) {
+            if (path) path+="."+field_name;
+            else path=field_name;
+        }
+        return path;
+    },
+
+    get_field_path: function(field_name) {
+        var path;
+        if (this.collection) {
+            path=this.collection.get_path();
         } else {
             path="";
         }
