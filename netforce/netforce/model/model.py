@@ -1625,15 +1625,15 @@ class Model(object):
         res = f(context=context)
         if res is None:
             res = {}
-        data = {}
-        if "vals" in res:
-            data["vals"] = res["vals"]
+        out = {}
+        if "data" in res:
+            out["data"] = res["data"]
         else:
-            data["vals"] = res
-        if "meta" in res:
-            data["meta"] = res["meta"]
+            out["data"] = res
+        if "fields" in res:
+            out["fields"] = res["fields"]
         if "alert" in res:
-            data["alert"] = res["alert"]
+            out["alert"] = res["alert"]
         def _fill_m2o(m, vals):
             for k, v in vals.items():
                 if not v:
@@ -1647,9 +1647,9 @@ class Model(object):
                     mr = get_model(f.relation)
                     for v2 in v:
                         _fill_m2o(mr, v2)
-        if data.get("vals"):
-            _fill_m2o(self, data["vals"])
-        return data
+        if out.get("data"):
+            _fill_m2o(self, out["data"])
+        return out
 
     def _check_cycle(self, ids, context={}):
         for obj in self.browse(ids):

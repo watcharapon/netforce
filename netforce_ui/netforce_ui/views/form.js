@@ -59,7 +59,7 @@ var Form=NFView.extend({
             }
             var that=this;
             rpc_execute(model.name,"call_onchange",[method],{context: ctx},function(err,res) {
-                var data, meta, alert_msg;
+                var data, fields, alert_msg;
                 if (res.data || res.fields || res.alert) {
                     data=res.data;
                     fields=res.fields;
