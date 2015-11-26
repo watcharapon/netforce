@@ -59,19 +59,19 @@ var Form=NFView.extend({
             }
             var that=this;
             rpc_execute(model.name,"call_onchange",[method],{context: ctx},function(err,res) {
-                var vals, meta, alert_msg;
-                if (res.vals || res.meta || res.alert) {
-                    vals=res.vals;
-                    meta=res.meta;
+                var data, meta, alert_msg;
+                if (res.data || res.fields || res.alert) {
+                    data=res.data;
+                    fields=res.fields;
                     alert_msg=res.alert;
                 } else {
-                    vals=res;
+                    data=res;
                 }
-                if (meta) {
-                    model.set_meta(meta);
+                if (fields) {
+                    model.set_fields(fields);
                 }
-                if (vals) {
-                    model.set_vals(vals);
+                if (data) {
+                    model.set_vals(data);
                 }
                 if (alert_msg) {
                     alert(alert_msg);

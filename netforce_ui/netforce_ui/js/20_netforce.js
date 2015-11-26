@@ -1503,6 +1503,30 @@ window.NFModel=Backbone.Model.extend({
         }
     },
 
+    set_fields: function(vals) {
+        log("model set_fields",vals);
+        for (var n in vals) {
+            var v=vals[n];
+            var f=this.get_field(n);
+            if (f.type=="many2one") {
+                if (_.isNumber(v)) {
+                    var old_v=this.get(n);
+                    if (_.isArray(old_v) && old_v[0]==v) {
+                        v=old_v;
+                    }
+                }
+                this.set(n,v);
+            } else if (f.type=="one2many") {
+                var col=this.get(n);
+                if (col instanceof NFCollection) {
+                    col.set_vals(v);
+                }
+            } else {
+                this.set(n,v);
+            }
+        }
+    },
+
     get_path: function(field_name) {
         var path;
         if (this.collection) {
@@ -1539,7 +1563,7 @@ window.NFModel=Backbone.Model.extend({
         }
     },
 
-    set_meta: function(meta) { // XXX
+    set_meta: function(meta) { // XXX: remove this
         log("model set_meta",this,meta);
         for (var n in meta) {
             var fmeta=meta[n];

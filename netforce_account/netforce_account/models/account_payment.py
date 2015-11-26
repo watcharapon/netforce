@@ -1195,7 +1195,7 @@ class Payment(Model):
                     break
                 get_model("sequence").increment_number(seq_id, context=context)
         else:
-            num = self._get_number(context={"type": data["type"]})
+            num = self._get_number(context={"type": data["type"], "date": data["date"]})
         data["number"] = num
         return data
 
