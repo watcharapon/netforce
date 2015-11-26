@@ -246,33 +246,32 @@ var SheetLine=NFView.extend({
         return true;
     },
 
-    eval_attrs: function(str) {
-        log("sheet_line.eval_attrs",this,str);
+    eval_attrs: function() {
+        var str=this.options.attrs;
+        //log("sheet_line.eval_attrs",this,str);
         if (!str) return {};
-        var that=this;
         var expr=JSON.parse(str);
+        var model=this.context.model;
         var attrs={};
-        var _get_field_val=function(path) {
-            var m=that.context.model;
-            var v=null;
-            _.each(path.split("."),function(n) { // FIXME
-                if (n=="parent") {
-                    m=that.context.collection.parent_model;
-                } else {
-                    v=m.get(n);
-                }
-            });
-            return v;
-        };
         for (var attr in expr) {
             var conds=expr[attr];
-            var attr_val=true;
+            if (_.isArray(conds)) {
+                var attr_val=true;
+            } else if (_.isObject(conds)) {
+                var attr_val=conds.value;
+                conds=conds.condition;
+                if (!conds) {
+                    throw "Missing condition in attrs expression: "+str;
+                }
+            } else {
+                throw "Invalid attrs expression: "+str;
+            }
             for (var i in conds) {
                 var clause=conds[i];
                 var n=clause[0];
                 var op=clause[1];
                 var cons=clause[2];
-                var v=_get_field_val(n);
+                var v=model.get_path_value(n);
                 var clause_v;
                 if (op=="=") {
                     clause_v=v==cons;
@@ -280,6 +279,8 @@ var SheetLine=NFView.extend({
                     clause_v=v!=cons;
                 } else if (op=="in") {
                     clause_v=_.contains(cons,v);
+                } else if (op=="not in") {
+                    clause_v=!_.contains(cons,v);
                 } else {
                     throw "Invalid operator: "+op;
                 }
@@ -290,7 +291,7 @@ var SheetLine=NFView.extend({
             }
             attrs[attr]=attr_val;
         }
-        log("==>",attrs);
+        //log("==>",attrs);
         return attrs;
     },
 

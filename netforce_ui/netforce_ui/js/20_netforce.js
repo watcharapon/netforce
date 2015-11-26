@@ -1479,6 +1479,22 @@ window.NFModel=Backbone.Model.extend({
         return vals;
     },
 
+    get_path_value: function(path) {
+        log("NFModel.get_path_value",path);
+        var comps=path.split(".");
+        var n=comps[0];
+        var v;
+        if (n=="parent") {
+            var parent_model=this.collection.parent_model;
+            if (!parent_model) throw "Parent model not found";
+            v=parent_model.get_path_value(path.substr(7));
+        } else {
+            v=this.get(n);
+        }
+        log("==>",v);
+        return v;
+    },
+
     set_vals: function(vals) {
         log("model set_vals",vals);
         for (var n in vals) {

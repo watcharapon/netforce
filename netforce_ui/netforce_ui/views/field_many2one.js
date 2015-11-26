@@ -232,8 +232,13 @@ var FieldMany2One=NFView.extend({
                 vals[k]=v;
             }
         }
-        if (this.options.condition) {
-            var cond_str=html_decode(this.options.condition);
+        var view_cond_s=this.options.condition;
+        var attrs=this.eval_attrs();
+        if (attrs.condition) {
+            view_cond_s=attrs.condition;
+        }
+        if (view_cond_s) {
+            var cond_str=html_decode(view_cond_s);
             log("cond_str",cond_str);
             var model=this.context.model;
             var ctx=model.toJSON();
@@ -586,13 +591,23 @@ var FieldMany2One=NFView.extend({
         var attrs={};
         for (var attr in expr) {
             var conds=expr[attr];
-            var attr_val=true;
+            if (_.isArray(conds)) {
+                var attr_val=true;
+            } else if (_.isObject(conds)) {
+                var attr_val=conds.value;
+                conds=conds.condition;
+                if (!conds) {
+                    throw "Missing condition in attrs expression: "+str;
+                }
+            } else {
+                throw "Invalid attrs expression: "+str;
+            }
             for (var i in conds) {
                 var clause=conds[i];
                 var n=clause[0];
                 var op=clause[1];
                 var cons=clause[2];
-                var v=model.get(n);
+                var v=model.get_path_value(n);
                 var clause_v;
                 if (op=="=") {
                     clause_v=v==cons;
