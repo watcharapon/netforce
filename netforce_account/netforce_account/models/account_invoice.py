@@ -298,7 +298,7 @@ class Invoice(Model):
             if tax_id and obj.tax_type != "no_tax":
                 base_amt = get_model("account.tax.rate").compute_base(tax_id, cur_amt, tax_type=obj.tax_type)
                 if settings.rounding_account_id:
-                    base_amt=round(base_amt,2)
+                    base_amt=get_model("currency").round(obj.currency_id.id,base_amt)
                 tax_comps = get_model("account.tax.rate").compute_taxes(tax_id, base_amt, when="invoice")
                 for comp_id, tax_amt in tax_comps.items():
                     tax_vals = taxes.setdefault(comp_id, {"tax_amt": 0, "base_amt": 0})
@@ -314,8 +314,8 @@ class Invoice(Model):
             vals = {
                 "invoice_id": obj.id,
                 "tax_comp_id": comp_id,
-                "base_amount": round(tax_vals["base_amt"],2),
-                "tax_amount": round(tax_vals["tax_amt"],2),
+                "base_amount": get_model("currency").round(obj.currency_id.id,tax_vals["base_amt"]),
+                "tax_amount": get_model("currency").round(obj.currency_id.id,tax_vals["tax_amt"]),
             }
             if comp.type in ("vat", "vat_exempt"):
                 if obj.type == "out":
@@ -452,7 +452,7 @@ class Invoice(Model):
             group_lines = sorted(groups.values(), key=lambda l: (l["debit"], l["credit"]))
             for line in group_lines:
                 amt = line["debit"] - line["credit"]
-                amt = round(amt, 2)
+                amt = get_model("currency").round(obj.currency_id.id,amt)
                 if amt >= 0:
                     line["debit"] = amt
                     line["credit"] = 0
@@ -549,8 +549,8 @@ class Invoice(Model):
                 else:
                     base_amt = line.amount
                 subtotal += base_amt
-            subtotal=round(subtotal,2)
-            tax=round(tax,2)
+            subtotal=get_model("currency").round(inv.currency_id.id,subtotal)
+            tax=get_model("currency").round(inv.currency_id.id,tax)
             vals["amount_subtotal"] = subtotal
             vals["amount_tax"] = tax
             if inv.tax_type == "tax_in":
@@ -1019,7 +1019,7 @@ class Invoice(Model):
             "is_cash": is_cash,
             "is_cheque": is_cheque,
             "currency_code": inv.currency_id.code,
-            "tax_rate": round(inv.amount_tax * 100 / inv.amount_subtotal, 2) if inv.amount_subtotal else 0,
+            "tax_rate": get_model("currency").round(inv.currency_id.id,inv.amount_tax * 100 / inv.amount_subtotal, 2) if inv.amount_subtotal else 0,
             "qty_total": inv.qty_total,
             "memo": inv.memo,
         })

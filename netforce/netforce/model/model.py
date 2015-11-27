@@ -1944,6 +1944,39 @@ class Model(object):
         ids=self.search(condition,context=context)
         return self.read_path(ids,field_paths,context=context)
 
+    def save_data(self,data,context={}):
+        print(">>> save_data %s %s"%(self._name,data))
+        o2m_fields=[]
+        obj_vals={}
+        for n,v in data.items():
+            if n=="id":
+                continue
+            f=self._fields[n]
+            if isinstance(f,fields.One2Many):
+                o2m_fields.append(n)
+            else:
+                obj_vals[n]=v
+        obj_id=data.get("id")
+        if obj_id:
+            self.write([obj_id],obj_vals,context=context)
+        else:
+            obj_id=self.create(obj_vals,context=context)
+        if o2m_fields:
+            o2m_vals=self.read([obj_id],o2m_fields,context=context)[0]
+            for n in o2m_fields:
+                f=self._fields[n]
+                mr=get_model(f.relation)
+                new_rids=set()
+                for rdata in data[n]:
+                    rdata2=rdata.copy()
+                    rdata2[f.relfield]=obj_id
+                    rid=mr.save_data(rdata2,context={})
+                    new_rids.add(rid)
+                del_rids=[rid for rid in o2m_vals[n] if rid not in new_rids]
+                if del_rids:
+                    mr.delete(del_rids)
+        return obj_id
+
     def sync_get_key(self, ids, context={}):
         if not self._key:
             raise Exception("Missing key fields (model=%s)" % self._name)

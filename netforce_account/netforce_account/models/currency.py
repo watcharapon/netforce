@@ -24,6 +24,7 @@ from netforce import ipc
 import os
 from netforce import access
 from decimal import *
+import decimal
 
 _cache = {}
 
@@ -138,6 +139,7 @@ class Currency(Model):
             return amt2
 
     def round(self, cur_id, amt):
-        return round(amt, 2)  # XXX: support currencies with more than 2 digits later
+        decimal.getcontext().rounding=ROUND_UP
+        return amt.quantize(Decimal("0.01"))
 
 Currency.register()
