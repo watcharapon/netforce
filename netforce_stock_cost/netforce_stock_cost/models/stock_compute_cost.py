@@ -274,7 +274,7 @@ class ComputeCost(Model):
                 if m["unit_price"] is not None:
                     new_cost_amount=m["unit_price"]*m["conv_qty"]
                 else:
-                    new_cost_amount=None
+                    new_cost_amount=0
                 if new_cost_amount!=m["old_cost_amount"]:
                     new_cost_price=new_cost_amount/m["qty"] if m["qty"] else 0
                     db.execute("UPDATE stock_move SET cost_amount=%s, cost_price=%s WHERE id=%s",new_cost_amount,new_cost_price,m["id"])
