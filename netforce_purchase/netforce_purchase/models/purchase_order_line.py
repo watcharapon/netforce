@@ -63,7 +63,11 @@ class PurchaseOrderLine(Model):
         settings = get_model("settings").browse(1)
         vals = {}
         for line in self.browse(ids):
-            amt = (line.qty * line.unit_price) - (line.discount_amount or 0)
+            uom_factor=line.product_id.purchase_to_stock_uom_factor
+            amt=line.qty * line.unit_price
+            if uom_factor:
+                amt=amt*uom_factor
+            amt = amt-(line.discount_amount or 0)
             order = line.order_id
             vals[line.id] = {
                 "amount": amt,
