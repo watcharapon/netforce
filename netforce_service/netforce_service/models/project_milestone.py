@@ -92,8 +92,8 @@ class Milestone(Model):
 
     def create_est_track(self,ids,context={}):
         obj=self.browse(ids[0])
-        if not obj.number:
-            raise Exception("Missing project number")
+        if not obj.sequence:
+            raise Exception("Missing milestone sequence")
         parent_track=obj.project_id.est_track_id
         if not parent_track:
             raise Exception("Missing estimate tracking category in project")
