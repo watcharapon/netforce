@@ -4,7 +4,6 @@
     <field name="type"/>
     <newline/>
     <field name="categ_id" child_of="1"/>
-    <field name="categs" child_of="1"/>
     <field name="brand_id"/>
     <field name="company_id" child_of="1"/>
 </search>

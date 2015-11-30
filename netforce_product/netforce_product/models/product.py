@@ -65,7 +65,7 @@ class Product(Model):
         "update_balance": fields.Boolean("Update Balance"),
         "active": fields.Boolean("Active"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
-        "categs": fields.Many2Many("product.categ", "Other Categories", search=True),  # XXX: deprecated
+        "categs": fields.Many2Many("product.categ", "Other Categories"),  # XXX: deprecated
         "attributes": fields.One2Many("product.attribute.value", "product_id", "Attributes"),
         "variants": fields.One2Many("product", "parent_id", "Variants"),
         #"variant_values": fields.One2Many("product.custom.option.variant.value","product_id","Variant Values"),

@@ -70,6 +70,9 @@ var Item=NFView.extend({
                 this.$el.hide();
             }
         }
+        if (this.options.disabled) {
+            this.$el.addClass("disabled");
+        }
     },
 
     ontouch: function(e) { // bootstrap bug

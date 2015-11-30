@@ -47,6 +47,8 @@ class Task(Model):
         "emails": fields.One2Many("email.message", "related_id", "Emails"),
         "comments": fields.Text("Comments"),
         "messages": fields.One2Many("message", "related_id", "Messages"),
+        "date_started": fields.DateTime("Date Started"),
+        "date_est_start": fields.DateTime("Estimated Start Date"),
     }
     _order = "priority,id"
 

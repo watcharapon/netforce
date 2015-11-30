@@ -1010,7 +1010,7 @@ class Payment(Model):
         data = context["data"]
         type = data["type"]
         seq_id = data["sequence_id"]
-        data["number"] = self._get_number(context={"type": type, "sequence_id": seq_id})
+        data["number"] = self._get_number(context={"type": type, "sequence_id": seq_id, "date": data["date"]})
         contact_id = data["contact_id"]
         if contact_id:
             contact = get_model("contact").browse(contact_id)
@@ -1026,6 +1026,7 @@ class Payment(Model):
         ctx = {
             "type": data["type"],
             "date": data["date"],
+            "sequence_id": data["sequence_id"],
         }
         number = self._get_number(context=ctx)
         data["number"] = number
@@ -1186,16 +1187,7 @@ class Payment(Model):
 
     def onchange_sequence(self, context={}):
         data = context["data"]
-        seq_id = data["sequence_id"]
-        if seq_id:
-            while 1:
-                num = get_model("sequence").get_next_number(seq_id, context=context)
-                res = self.search([["number", "=", num]])
-                if not res:
-                    break
-                get_model("sequence").increment_number(seq_id, context=context)
-        else:
-            num = self._get_number(context={"type": data["type"]})
+        num = self._get_number(context={"type": data["type"], "date": data["date"], "sequence_id": data["sequence_id"]})
         data["number"] = num
         return data
 

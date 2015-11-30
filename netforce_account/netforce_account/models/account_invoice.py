@@ -48,7 +48,7 @@ class Invoice(Model):
         "due_date": fields.Date("Due Date", search=True),
         "currency_id": fields.Many2One("currency", "Currency", required=True, search=True),
         "tax_type": fields.Selection([["tax_ex", "Tax Exclusive"], ["tax_in", "Tax Inclusive"], ["no_tax", "No Tax"]], "Tax Type", required=True),
-        "state": fields.Selection([("draft", "Draft"), ("waiting_approval", "Waiting Approval"), ("waiting_payment", "Waiting Payment"), ("paid", "Paid"), ("voided", "Voided")], "Status", function="get_state", store=True, function_order=20,search =True),
+        "state": fields.Selection([("draft", "Draft"), ("waiting_approval", "Waiting Approval"), ("waiting_payment", "Waiting Payment"), ("paid", "Paid"), ("voided", "Voided")], "Status", function="get_state", store=True, function_order=20, search=True),
         "lines": fields.One2Many("account.invoice.line", "invoice_id", "Lines"),
         "amount_subtotal": fields.Decimal("Subtotal", function="get_amount", function_multi=True, store=True),
         "amount_tax": fields.Decimal("Tax Amount", function="get_amount", function_multi=True, store=True),
@@ -86,6 +86,12 @@ class Invoice(Model):
         "original_invoice_id": fields.Many2One("account.invoice", "Original Invoice"),
         "product_id": fields.Many2One("product","Product",store=False,function_search="search_product",search=True),
         "taxes": fields.One2Many("account.invoice.tax","invoice_id","Taxes"),
+        "agg_amount_total": fields.Decimal("Total Amount", agg_function=["sum", "amount_total"]),
+        "agg_amount_subtotal": fields.Decimal("Total Amount w/o Tax", agg_function=["sum", "amount_subtotal"]),
+        "year": fields.Char("Year", sql_function=["year", "date"]),
+        "quarter": fields.Char("Quarter", sql_function=["quarter", "date"]),
+        "month": fields.Char("Month", sql_function=["month", "date"]),
+        "week": fields.Char("Week", sql_function=["week", "date"]),
     }
     _order = "date desc,number desc"
 
@@ -292,7 +298,7 @@ class Invoice(Model):
             if tax_id and obj.tax_type != "no_tax":
                 base_amt = get_model("account.tax.rate").compute_base(tax_id, cur_amt, tax_type=obj.tax_type)
                 if settings.rounding_account_id:
-                    base_amt=round(base_amt,2)
+                    base_amt=get_model("currency").round(obj.currency_id.id,base_amt)
                 tax_comps = get_model("account.tax.rate").compute_taxes(tax_id, base_amt, when="invoice")
                 for comp_id, tax_amt in tax_comps.items():
                     tax_vals = taxes.setdefault(comp_id, {"tax_amt": 0, "base_amt": 0})
@@ -308,8 +314,8 @@ class Invoice(Model):
             vals = {
                 "invoice_id": obj.id,
                 "tax_comp_id": comp_id,
-                "base_amount": round(tax_vals["base_amt"],2),
-                "tax_amount": round(tax_vals["tax_amt"],2),
+                "base_amount": get_model("currency").round(obj.currency_id.id,tax_vals["base_amt"]),
+                "tax_amount": get_model("currency").round(obj.currency_id.id,tax_vals["tax_amt"]),
             }
             if comp.type in ("vat", "vat_exempt"):
                 if obj.type == "out":
@@ -446,7 +452,7 @@ class Invoice(Model):
             group_lines = sorted(groups.values(), key=lambda l: (l["debit"], l["credit"]))
             for line in group_lines:
                 amt = line["debit"] - line["credit"]
-                amt = round(amt, 2)
+                amt = get_model("currency").round(obj.currency_id.id,amt)
                 if amt >= 0:
                     line["debit"] = amt
                     line["credit"] = 0
@@ -537,19 +543,14 @@ class Invoice(Model):
                 tax_id = line.tax_id
                 if tax_id and inv.tax_type != "no_tax":
                     base_amt = get_model("account.tax.rate").compute_base(tax_id, line.amount, tax_type=inv.tax_type)
-                    if settings.rounding_account_id:
-                        base_amt=round(base_amt,2)
                     tax_comps = get_model("account.tax.rate").compute_taxes(tax_id, base_amt, when="invoice")
-                    if not settings.rounding_account_id:
-                        base_amt=round(base_amt,2)
                     for comp_id, tax_amt in tax_comps.items():
-                        if not settings.rounding_account_id:
-                            tax_amt=round(tax_amt,2)
                         tax += tax_amt
                 else:
                     base_amt = line.amount
                 subtotal += base_amt
-            tax=round(tax,2)
+            subtotal=get_model("currency").round(inv.currency_id.id,subtotal)
+            tax=get_model("currency").round(inv.currency_id.id,tax)
             vals["amount_subtotal"] = subtotal
             vals["amount_tax"] = tax
             if inv.tax_type == "tax_in":
@@ -629,14 +630,8 @@ class Invoice(Model):
             tax_id = line.get("tax_id")
             if tax_id and tax_type != "no_tax":
                 base_amt = get_model("account.tax.rate").compute_base(tax_id, amt, tax_type=tax_type)
-                if settings.rounding_account_id:
-                    base_amt=round(base_amt,2)
                 tax_comps = get_model("account.tax.rate").compute_taxes(tax_id, base_amt, when="invoice")
-                if not settings.rounding_account_id:
-                    base_amt=round(base_amt,2)
                 for comp_id, tax_amt in tax_comps.items():
-                    if not settings.rounding_account_id:
-                        tax_amt=round(tax_amt,2)
                     data["amount_tax"] += tax_amt
             else:
                 base_amt = amt
@@ -761,10 +756,6 @@ class Invoice(Model):
                 if obj.inv_type in ("invoice", "debit"):
                     if obj.amount_due == 0:
                         state = "paid"
-                        if obj.related_id:
-                            if obj.related_id.ref:
-                                if obj.related_id.ref.startswith("Ecommerce"):
-                                    obj.trigger("payment_posted")
                 elif obj.inv_type in ("credit", "prepay", "overpay"):
                     if obj.amount_credit_remain == 0:
                         state = "paid"
@@ -1028,7 +1019,7 @@ class Invoice(Model):
             "is_cash": is_cash,
             "is_cheque": is_cheque,
             "currency_code": inv.currency_id.code,
-            "tax_rate": round(inv.amount_tax * 100 / inv.amount_subtotal, 2) if inv.amount_subtotal else 0,
+            "tax_rate": get_model("currency").round(inv.currency_id.id,inv.amount_tax * 100 / inv.amount_subtotal, 2) if inv.amount_subtotal else 0,
             "qty_total": inv.qty_total,
             "memo": inv.memo,
         })

@@ -1625,15 +1625,10 @@ class Model(object):
         res = f(context=context)
         if res is None:
             res = {}
-        data = {}
-        if "vals" in res:
-            data["vals"] = res["vals"]
+        if "data" in res or "field_attrs" in res or "alert" in res:
+            out=res
         else:
-            data["vals"] = res
-        if "meta" in res:
-            data["meta"] = res["meta"]
-        if "alert" in res:
-            data["alert"] = res["alert"]
+            out={"data":res}
         def _fill_m2o(m, vals):
             for k, v in vals.items():
                 if not v:
@@ -1647,9 +1642,9 @@ class Model(object):
                     mr = get_model(f.relation)
                     for v2 in v:
                         _fill_m2o(mr, v2)
-        if data.get("vals"):
-            _fill_m2o(self, data["vals"])
-        return data
+        if out.get("data"):
+            _fill_m2o(self, out["data"])
+        return out
 
     def _check_cycle(self, ids, context={}):
         for obj in self.browse(ids):
@@ -1948,6 +1943,39 @@ class Model(object):
     def search_read_path(self, condition, field_paths, context={}):
         ids=self.search(condition,context=context)
         return self.read_path(ids,field_paths,context=context)
+
+    def save_data(self,data,context={}):
+        print(">>> save_data %s %s"%(self._name,data))
+        o2m_fields=[]
+        obj_vals={}
+        for n,v in data.items():
+            if n=="id":
+                continue
+            f=self._fields[n]
+            if isinstance(f,fields.One2Many):
+                o2m_fields.append(n)
+            else:
+                obj_vals[n]=v
+        obj_id=data.get("id")
+        if obj_id:
+            self.write([obj_id],obj_vals,context=context)
+        else:
+            obj_id=self.create(obj_vals,context=context)
+        if o2m_fields:
+            o2m_vals=self.read([obj_id],o2m_fields,context=context)[0]
+            for n in o2m_fields:
+                f=self._fields[n]
+                mr=get_model(f.relation)
+                new_rids=set()
+                for rdata in data[n]:
+                    rdata2=rdata.copy()
+                    rdata2[f.relfield]=obj_id
+                    rid=mr.save_data(rdata2,context={})
+                    new_rids.add(rid)
+                del_rids=[rid for rid in o2m_vals[n] if rid not in new_rids]
+                if del_rids:
+                    mr.delete(del_rids)
+        return obj_id
 
     def sync_get_key(self, ids, context={}):
         if not self._key:

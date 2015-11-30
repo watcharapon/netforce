@@ -40,7 +40,8 @@ var NFLayout=NFView.extend({
                     action: $el.attr("action"),
                     perm: $el.attr("perm"),
                     perm_check_admin: $el.attr("perm_check_admin"),
-                    pkg: $el.attr("pkg")
+                    pkg: $el.attr("pkg"),
+                    disabled: $el.attr("disabled")
                 };
                 that.data.mainmenu_items.push(item);
             }
