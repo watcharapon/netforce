@@ -105,6 +105,7 @@ class Milestone(Model):
             track_id=get_model("account.track.categ").create({
                 "code": code,
                 "name": code,
+                "parent_id": parent_track.id,
                 "type": "1",
                 })
         obj.write({"est_track_id": track_id})
