@@ -23,9 +23,8 @@ from netforce.model import Model, fields, get_model
 
 class Barcode(Model):
     _inhierit= "stock.barcode"
-    _transient = True
+
     _fields = {
-        "type": fields.Selection([["in", "Goods Receipt"], ["internal", "Goods Transfer"], ["out", "Goods Issue"]], "Transaction Type"),
         "related_id": fields.Reference([["sale.order", "Sales Order"], ["purchase.order", "Purchase Order"], ["production.order", "Production Order"], ["stock.picking", "Picking"]], "Related To"),
     }
 
