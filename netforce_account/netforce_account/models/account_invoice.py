@@ -597,6 +597,7 @@ class Invoice(Model):
         t1 = time.time()
         dt = (t1 - t0) * 1000
         print("invoice.get_amount <<< %d ms" % dt)
+        import pdb; pdb.set_trace()
         return res
 
     def get_qty_total(self, ids, context={}):
