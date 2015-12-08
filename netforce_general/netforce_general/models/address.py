@@ -81,12 +81,12 @@ class Address(Model):
             comps = []
             if obj.city:
                 comps.append(obj.city)
-            if obj.province_id:
-                comps.append(obj.province_id.name)
-            if obj.district_id:
-                comps.append(obj.district_id.name)
             if obj.subdistrict_id:
                 comps.append(obj.subdistrict_id.name)
+            if obj.district_id:
+                comps.append(obj.district_id.name)
+            if obj.province_id:
+                comps.append(obj.province_id.name)
             if obj.country_id:
                 comps.append(obj.country_id.name)
             if obj.postal_code:
