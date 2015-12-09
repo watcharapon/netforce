@@ -153,7 +153,7 @@ class JsonRpc(Controller):
             resp = {
                 "result": res,
                 "error": None,
-                "id": req["id"],
+                "id": self.get_argument("id"),
             }
             if db:
                 db.commit()
