@@ -27,7 +27,7 @@ import time
 from dateutil.relativedelta import *
 import math
 
-def get_total_qtys(prod_id, loc_id, date_from, date_to, states, categ_id):
+def get_total_qtys(prod_ids, loc_id, date_from, date_to, states, categ_id):
     db = get_connection()
     q = "SELECT " \
         " t1.product_id,t1.location_from_id,t1.location_to_id,t1.uom_id,SUM(t1.qty) AS total_qty " \
@@ -42,8 +42,8 @@ def get_total_qtys(prod_id, loc_id, date_from, date_to, states, categ_id):
         q += " AND t1.date<=%s"
         q_args.append(date_to + " 23:59:59")
     if prod_id:
-        q += " AND t1.product_id=%s"
-        q_args.append(prod_id)
+        q += " AND t1.product_id IN %s"
+        q_args.append(tuple(prod_ids))
     if loc_id:
         q += " AND (t1.location_from_id=%s OR t1.location_to_id=%s)"
         q_args += [loc_id, loc_id]
@@ -249,7 +249,7 @@ class StockOrder(Model):
         loc_types={}
         for loc in get_model("stock.location").search_browse([]):
             loc_types[loc.id]=loc.type
-        res = get_total_qtys(product_id, None, None, None, ["done","pending","approved"], categ_id)
+        res = get_total_qtys([product_id], None, None, None, ["done","pending","approved"], categ_id)
         qtys_unlim={}
         for (prod_id,loc_from_id,loc_to_id),qty in res.items():
             qtys_unlim.setdefault(prod_id,0)
@@ -274,7 +274,7 @@ class StockOrder(Model):
         for n,prod_ids in horizons.items():
             print("calc horizon %s"%n)
             date_to=(date.today()+timedelta(days=n)).strftime("%Y-%m-%d")
-            res = get_total_qtys(None, None, None, date_to, ["done","pending","approved"], None)
+            res = get_total_qtys(prod_ids, None, None, date_to, ["done","pending","approved"], None)
             for (prod_id,loc_from_id,loc_to_id),qty in res.items():
                 qtys_horiz.setdefault(prod_id,0)
                 if loc_types[loc_from_id]=="internal":
