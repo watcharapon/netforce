@@ -7,6 +7,7 @@
     <newline/>
     <field name="title"/>
     <field name="project_id"/>
+    <field name="job_id"/>
     <newline/>
     <field name="description" width="600" height="200"/>
     <newline/>

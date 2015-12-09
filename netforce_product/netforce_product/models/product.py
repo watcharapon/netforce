@@ -158,6 +158,11 @@ class Product(Model):
         "service_items": fields.One2Many("service.item","product_id","Service Items"),
         "lots": fields.One2Many("stock.lot","product_id","Lots"),
         "stock_plan_horizon": fields.Integer("Inventory Planning Horizon (days)"),
+        "ecom_hide_qty": fields.Boolean("Hide Stock Qty From Website"),
+        "ecom_hide_unavail": fields.Boolean("Hide From Website When Out Of Stock"),
+        "ecom_no_order_unavail": fields.Boolean("Prevent Orders When Out Of Stock"),
+        "ecom_select_lot": fields.Boolean("Customers Select Lot When Ordering"),
+        "ecom_lot_before_invoice": fields.Boolean("Require Lot Before Invoicing"),
     }
 
     _defaults = {
