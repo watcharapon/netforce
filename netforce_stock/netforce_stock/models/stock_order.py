@@ -249,7 +249,8 @@ class StockOrder(Model):
         loc_types={}
         for loc in get_model("stock.location").search_browse([]):
             loc_types[loc.id]=loc.type
-        res = get_total_qtys([product_id], None, None, None, ["done","pending","approved"], categ_id)
+        prod_ids=[product_id] if product_id else None
+        res = get_total_qtys(prod_ids, None, None, None, ["done","pending","approved"], categ_id)
         qtys_unlim={}
         for (prod_id,loc_from_id,loc_to_id),qty in res.items():
             qtys_unlim.setdefault(prod_id,0)
