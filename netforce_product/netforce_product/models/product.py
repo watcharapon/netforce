@@ -160,7 +160,8 @@ class Product(Model):
         "stock_plan_horizon": fields.Integer("Inventory Planning Horizon (days)"),
         "ecom_hide_qty": fields.Boolean("Hide Stock Qty From Website"),
         "ecom_hide_unavail": fields.Boolean("Hide From Website When Out Of Stock"),
-        "ecom_no_order_unavail": fields.Boolean("Prevent Orders For Unavailable Products"),
+        "ecom_no_order_unavail": fields.Boolean("Prevent Orders When Out Of Stock"),
+        "ecom_select_lot": fields.Boolean("Customers Select Lot When Ordering"),
     }
 
     _defaults = {

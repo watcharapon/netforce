@@ -166,6 +166,7 @@
             <field name="ecom_hide_qty"/>
             <field name="ecom_hide_unavail"/>
             <field name="ecom_no_order_unavail"/>
+            <field name="ecom_select_lot"/>
         </tab>
         <tab string="Other">
             <field name="id"/>
