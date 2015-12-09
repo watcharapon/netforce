@@ -114,6 +114,79 @@ class JsonRpc(Controller):
             traceback.print_exc()
 
     def get(self):
-        self.post()
+        db = database.get_connection()
+        if db:
+            db.begin()
+        try:
+            clear_cache()
+            model = self.get_argument("model")
+            method = self.get_argument("method")
+            if method.startswith("_"):
+                raise Exception("Invalid method")
+            args = self.get_argument("args",None)
+            if args:
+                args=json.loads(args)
+            else:
+                args=[]
+            opts = self.get_argument("opts",None)
+            if opts:
+                opts=json.loads(opts)
+            else:
+                opts={}
+            user_id = access.get_active_user()
+            rpc_log.info("EXECUTE db=%s model=%s method=%s user=%s" %
+                         (database.get_active_db(), model, method, user_id))
+            m = get_model(model)
+            f = getattr(m, method)
+            ctx = {
+                "request_handler": self,
+                "request": self.request,
+            }
+            ctx.update(self.get_cookies())
+            opts.setdefault("context", {}).update(ctx)
+            with timeout(seconds=300):  # XXX: can make this faster? (less signal sys handler overhead)
+                t0 = time.time()
+                res = f(*args, **opts)
+                t1 = time.time()
+                dt = (t1 - t0) * 1000
+                rpc_log.info("<<< %d ms" % dt)
+            resp = {
+                "result": res,
+                "error": None,
+                "id": req["id"],
+            }
+            if db:
+                db.commit()
+        except Exception as e:
+            try:
+                msg = translate(str(e))
+            except:
+                print("WARNING: Failed to translate error message")
+                msg = str(e)
+            rpc_log.error(msg)
+            if db:
+                db.rollback()
+            rpc_log.error(traceback.format_exc())
+            err = {
+                "message": msg,
+            }
+            error_fields = getattr(e, "error_fields", None)
+            if error_fields:
+                err["error_fields"] = error_fields
+            resp = {
+                "result": None,
+                "error": err,
+                "id": req["id"],
+            }
+        access.clear_active_user()
+        try:
+            data = json_dumps(resp)
+            self.add_header("Access-Control-Allow-Origin","*")
+            self.write(data)
+        except:
+            print("JSONRPC ERROR: invalid response")
+            from pprint import pprint
+            pprint(resp)
+            traceback.print_exc()
 
 JsonRpc.register()
