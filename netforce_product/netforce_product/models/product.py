@@ -158,6 +158,9 @@ class Product(Model):
         "service_items": fields.One2Many("service.item","product_id","Service Items"),
         "lots": fields.One2Many("stock.lot","product_id","Lots"),
         "stock_plan_horizon": fields.Integer("Inventory Planning Horizon (days)"),
+        "ecom_hide_qty": fields.Boolean("Hide Stock Qty From Website"),
+        "ecom_hide_unavail": fields.Boolean("Hide From Website When Out Of Stock"),
+        "ecom_no_order_unavail": fields.Boolean("Prevent Orders For Unavailable Products"),
     }
 
     _defaults = {
@@ -167,9 +170,6 @@ class Product(Model):
         "can_purchase": False,
         "company_id": lambda *a: access.get_active_company(),
         "state": "draft",
-        "ecom_hide_qty": fields.Boolean("Hide Stock Qty From Website"),
-        "ecom_hide_unavail": fields.Boolean("Hide From Website When Out Of Stock"),
-        "ecom_no_order_unavail": fields.Boolean("Prevent Orders For Unavailable Products"),
     }
 
     def name_get(self, ids, context={}):
