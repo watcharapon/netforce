@@ -162,6 +162,10 @@
             <field name="details3_label"/>
             <newline/>
             <field name="details3" wysi="1" width="800" height="200"/>
+            <newline/>
+            <field name="ecom_hide_qty"/>
+            <field name="ecom_hide_unavail"/>
+            <field name="ecom_no_order_unavail"/>
         </tab>
         <tab string="Other">
             <field name="id"/>
