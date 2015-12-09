@@ -41,7 +41,7 @@ def get_total_qtys(prod_ids, loc_id, date_from, date_to, states, categ_id):
     if date_to:
         q += " AND t1.date<=%s"
         q_args.append(date_to + " 23:59:59")
-    if prod_id:
+    if prod_ids:
         q += " AND t1.product_id IN %s"
         q_args.append(tuple(prod_ids))
     if loc_id:
