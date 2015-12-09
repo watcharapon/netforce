@@ -162,7 +162,7 @@ class Product(Model):
         "ecom_hide_unavail": fields.Boolean("Hide From Website When Out Of Stock"),
         "ecom_no_order_unavail": fields.Boolean("Prevent Orders When Out Of Stock"),
         "ecom_select_lot": fields.Boolean("Customers Select Lot When Ordering"),
-        "ecom_pack_before_invoice": fields.Boolean("Require Packing Before Invoicing"),
+        "ecom_lot_before_invoice": fields.Boolean("Require Lot Before Invoicing"),
     }
 
     _defaults = {
