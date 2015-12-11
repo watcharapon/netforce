@@ -197,7 +197,7 @@ class StockCount(Model):
                 loc_to_id = invent_loc_id
             elif line.new_qty > line.prev_qty:
                 qty_diff = line.new_qty - line.prev_qty
-                amount_diff = line.new_cost_amount - line.prev_cost_amount
+                amount_diff = line.new_cost_amount - line.prev_cost_amount or 0
                 price_diff = amount_diff / qty_diff if qty_diff else 0
                 loc_from_id = invent_loc_id
                 loc_to_id = obj.location_id.id
