@@ -46,6 +46,7 @@ class PurchaseOrderLine(Model):
         "agg_qty": fields.Decimal("Total Order Qty", agg_function=["sum", "qty"]),
         "ship_method_id": fields.Many2One("ship.method", "Shipping Method"),
         "discount_amount": fields.Decimal("Disc Amt"),
+        "qty_stock": fields.Decimal("Qty (Stock UoM)"),
     }
     _order = "order_id desc,id"
 

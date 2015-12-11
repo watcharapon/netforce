@@ -112,7 +112,8 @@ var FieldMany2One=NFView.extend({
         if (attrs.required!=null) required=attrs.required;
         //log("XXXXXXXXXXXXXXXXXX",required);
         if (required && !this.data.readonly) {
-            this.data.required=true;
+            this.$el.addClass("nf-required-field");
+        /*this.data.required=true;*/
         } else {
             this.data.required=false;
         }
@@ -215,6 +216,15 @@ var FieldMany2One=NFView.extend({
 
     eval_condition: function() {
         log("eval_condition",this);
+        var form=this.context.form;
+        var model=this.context.model;
+        var path=model.get_field_path(this.options.name);
+        if (form) {
+            var form_attrs=form.get_field_attrs(path);
+            if (form_attrs && form_attrs.condition) {
+                return form_attrs.condition;
+            }
+        }
         var condition=this.field_condition;
         var _conv=function(vals) {
             for (var k in vals) {
@@ -225,8 +235,13 @@ var FieldMany2One=NFView.extend({
                 vals[k]=v;
             }
         }
-        if (this.options.condition) {
-            var cond_str=html_decode(this.options.condition);
+        var view_cond_s=this.options.condition;
+        var attrs=this.eval_attrs();
+        if (attrs.condition) {
+            view_cond_s=attrs.condition;
+        }
+        if (view_cond_s) {
+            var cond_str=html_decode(view_cond_s);
             log("cond_str",cond_str);
             var model=this.context.model;
             var ctx=model.toJSON();
@@ -579,13 +594,23 @@ var FieldMany2One=NFView.extend({
         var attrs={};
         for (var attr in expr) {
             var conds=expr[attr];
-            var attr_val=true;
+            if (_.isArray(conds)) {
+                var attr_val=true;
+            } else if (_.isObject(conds)) {
+                var attr_val=conds.value;
+                conds=conds.condition;
+                if (!conds) {
+                    throw "Missing condition in attrs expression: "+str;
+                }
+            } else {
+                throw "Invalid attrs expression: "+str;
+            }
             for (var i in conds) {
                 var clause=conds[i];
                 var n=clause[0];
                 var op=clause[1];
                 var cons=clause[2];
-                var v=model.get(n);
+                var v=model.get_path_value(n);
                 var clause_v;
                 if (op=="=") {
                     clause_v=v==cons;

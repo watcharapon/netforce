@@ -43,7 +43,7 @@ class Picking(Model):
         "move_id": fields.Many2One("account.move", "Journal Entry"),
         "product_id": fields.Many2One("product", "Product", store=False, function_search="search_product"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
-        "related_id": fields.Reference([["sale.order", "Sales Order"], ["purchase.order", "Purchase Order"], ["production.order", "Production Order"], ["job", "Service Order"], ["product.claim", "Claim Bill"], ["product.borrow", "Borrow Request"], ["stock.picking", "Picking"]], "Related To"),
+        "related_id": fields.Reference([["sale.order", "Sales Order"], ["purchase.order", "Purchase Order"], ["project","Project"], ["job", "Service Order"], ["product.claim", "Claim Bill"], ["product.borrow", "Borrow Request"], ["stock.picking", "Picking"]], "Related To"),
         "currency_id": fields.Many2One("currency", "Currency", required=True),
         "addresses": fields.One2Many("address", "related_id", "Addresses"),
         "ship_address_id": fields.Many2One("address", "Shipping Address"),
@@ -145,6 +145,8 @@ class Picking(Model):
         for obj in self.browse(ids):
             for move in obj.lines:
                 move.write({"state": "pending", "date": obj.date})
+                if obj.related_id and not move.related_id:
+                    move.write({"related_id":"%s,%d"%(obj.related_id._model,obj.related_id.id)})
             obj.write({"state": "pending", "pending_by_id": user_id})
 
     def approve(self, ids, context={}):
@@ -168,9 +170,6 @@ class Picking(Model):
         for obj in self.browse(ids):
             move_ids=[]
             for move in obj.lines:
-                if move.related_id:
-                    if move.related_id._model=="production.order" and move.related_id.state!="in_progress":
-                        raise Exception("Can only record stock transactions for production orders that are in progress")
                 move_ids.append(move.id)
             get_model("stock.move").to_draft(move_ids)
             obj.write({"state":"draft"})
@@ -178,11 +177,6 @@ class Picking(Model):
     def set_done(self,ids,context={}):
         user_id=get_active_user()
         for obj in self.browse(ids):
-            rel=obj.related_id
-            if rel:
-                if rel._model=="production.order":
-                    if rel.state!="in_progress":
-                        raise Exception("Can only record stock transactions for production orders that are in progress")
             move_ids=[]
             for line in obj.lines:
                 move_ids.append(line.id)
@@ -193,9 +187,6 @@ class Picking(Model):
             obj.set_currency_rate()
         self.check_order_qtys(ids)
         self.create_bundle_pickings(ids)
-        production_ids=self.get_update_production_orders(ids)
-        if production_ids:
-            get_model("production.order").update_status(production_ids)
         self.trigger(ids,"done")
 
     def check_order_qtys(self, ids, context={}):
@@ -254,7 +245,7 @@ class Picking(Model):
             line["uom_id"] = prod.uom_id.id
         if data["type"] == "in":
             if prod.purchase_price is not None:
-                line["base_price"] = prod.purchase_price
+                line["cost_price_cur"] = prod.purchase_price
         return data
 
     def copy_to_invoice(self, ids, context):
@@ -379,7 +370,7 @@ class Picking(Model):
             if line.related_id:
                 line_vals["related_id"] = "%s,%d" % (line.related_id._model, line.related_id.id)
             if obj.type == "in":
-                line_vals["base_price"] = line.base_price
+                line_vals["cost_price_cur"] = line.cost_price_cur
                 line_vals["unit_price"] = line.unit_price
             vals["lines"].append(("create", line_vals))
         from pprint import pprint
@@ -592,17 +583,6 @@ class Picking(Model):
         user_id = get_active_user()
         obj.write({"done_approved_by_id": user_id})
 
-    def get_update_production_orders(self, ids, context={}):
-        prod_ids = []
-        for obj in self.browse(ids):
-            for line in obj.lines:
-                prod_ids.append(line.product_id.id)
-        prod_ids = list(set(prod_ids))
-        production_ids = []
-        for comp in get_model("production.component").search_browse([["product_id", "in", prod_ids]]):
-            production_ids.append(comp.order_id.id)
-        return list(set(production_ids))
-
     def view_journal_entry(self,ids,context={}):
         obj=self.browse(ids)[0]
         move_id=None
@@ -632,8 +612,8 @@ class Picking(Model):
                 prod=line.product_id
                 alloc_vals={
                     "move_id": line.id,
-                    "est_ship": line.qty*(line.base_price or 0)*(prod.purchase_ship_percent or 0)/100,
-                    "est_duty": line.qty*(line.base_price or 0)*(prod.purchase_duty_percent or 0)/100,
+                    "est_ship": line.qty*(line.cost_price_cur or 0)*(prod.purchase_ship_percent or 0)/100,
+                    "est_duty": line.qty*(line.cost_price_cur or 0)*(prod.purchase_duty_percent or 0)/100,
                 }
                 vals["cost_allocs"].append(("create",alloc_vals))
         landed_id=get_model("landed.cost").create(vals)
@@ -656,13 +636,6 @@ class Picking(Model):
             landed_ids=list(set(landed_ids))
             vals[obj.id]=landed_ids
         return vals
-
-    def onchange_base_price(self, context):
-        data = context["data"]
-        path = context["path"]
-        line = get_data_path(data, path, parent=True)
-        line["unit_price"]=line["base_price"]+line["alloc_cost_amount"]/line["qty"] if line["qty"] else 0
-        return data
 
     def assign_lots(self,ids,context={}):
         print("assign_lots",ids)

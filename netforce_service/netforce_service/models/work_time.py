@@ -29,6 +29,7 @@ class WorkTime(Model):
     _string = "Work Time"
     _fields = {
         "resource_id": fields.Many2One("service.resource", "Resource", required=True, search=True, on_delete="cascade"),
+        "resource_type": fields.Selection([["person","Person"],["machine","Machine"]],"Resource Type",function="_get_related",function_search="_search_related",function_context={"path":"resource_id.type"},search=True),
         "project_id": fields.Many2One("project", "Project", search=True, required=True),
         "related_id": fields.Reference([["job","Service Order"],["sale.order","Sales Order"],["rental.order","Rental Order"]],"Related To",search=True),
         "job_id": fields.Many2One("job", "Service Order", search=True), # XXX: deprecated
@@ -45,6 +46,8 @@ class WorkTime(Model):
         "is_this_week": fields.Boolean("This Week", store=False, function_search="search_this_week"),
         "is_last_week": fields.Boolean("Last Week", store=False, function_search="search_last_week"),
         "state": fields.Selection([["waiting_approval", "Waiting Approval"], ["approved", "Approved"], ["rejected", "Rejected"]], "Status", required=True),
+        "agg_actual_hours_total": fields.Decimal("Actual Hours Total", agg_function=["sum", "actual_hours"]),
+        "agg_bill_hours_total": fields.Decimal("Billable Hours Total", agg_function=["sum", "bill_hours"]),
     }
     _order = "date,resource_id.name"
 

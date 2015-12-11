@@ -284,7 +284,7 @@ class Payment(Model):
             wht = get_model("currency").round(obj.currency_id.id, wht)
             vals["amount_subtotal"] = subtotal
             vals["amount_tax"] = vat
-            vals["amount_total"] = total # should be equal to subtotal + vat, compute separately because rounding
+            vals["amount_total"] = subtotal + vat
             vals["amount_wht"] = wht
             vals["amount_payment"] = vals["amount_total"] - wht
             res[obj.id] = vals
@@ -505,6 +505,8 @@ class Payment(Model):
                     "track_id": line.track_id.id,
                     "track2_id": line.track2_id.id,
                 }
+                if line.type=="prepay":
+                    line_vals["contact_id"]=obj.contact_id.id
                 print("direct")
                 pprint(line_vals)
                 get_model("account.move.line").create(line_vals)
@@ -1010,7 +1012,7 @@ class Payment(Model):
         data = context["data"]
         type = data["type"]
         seq_id = data["sequence_id"]
-        data["number"] = self._get_number(context={"type": type, "sequence_id": seq_id})
+        data["number"] = self._get_number(context={"type": type, "sequence_id": seq_id, "date": data["date"]})
         contact_id = data["contact_id"]
         if contact_id:
             contact = get_model("contact").browse(contact_id)
@@ -1026,6 +1028,7 @@ class Payment(Model):
         ctx = {
             "type": data["type"],
             "date": data["date"],
+            "sequence_id": data["sequence_id"],
         }
         number = self._get_number(context=ctx)
         data["number"] = number
@@ -1186,16 +1189,7 @@ class Payment(Model):
 
     def onchange_sequence(self, context={}):
         data = context["data"]
-        seq_id = data["sequence_id"]
-        if seq_id:
-            while 1:
-                num = get_model("sequence").get_next_number(seq_id, context=context)
-                res = self.search([["number", "=", num]])
-                if not res:
-                    break
-                get_model("sequence").increment_number(seq_id, context=context)
-        else:
-            num = self._get_number(context={"type": data["type"]})
+        num = self._get_number(context={"type": data["type"], "date": data["date"], "sequence_id": data["sequence_id"]})
         data["number"] = num
         return data
 

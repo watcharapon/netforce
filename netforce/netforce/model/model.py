@@ -1548,6 +1548,7 @@ class Model(object):
     def audit_log(self, operation, params, context={}):
         if not self._audit_log:
             return
+        related_id=None
         if self._string:
             model_name = self._string
         else:
@@ -1555,6 +1556,7 @@ class Model(object):
         if operation == "create":
             msg = "%s %d created" % (model_name, params["id"])
             details = utils.json_dumps(params["vals"])
+            related_id="%s,%d"%(self._name,params["id"])
         elif operation == "delete":
             msg = "%s %s deleted" % (model_name, ",".join([str(x) for x in params["ids"]]))
             details = ""
@@ -1564,6 +1566,8 @@ class Model(object):
                 return
             msg = "%s %s changed" % (model_name, ",".join([str(x) for x in params["ids"]]))
             details = utils.json_dumps(params["vals"])
+            if params["ids"]:
+                related_id="%s,%d"%(self._name,params["ids"][0]) # XXX
         if operation == "sync_create":
             msg = "%s %d created by remote sync" % (model_name, params["id"])
             details = utils.json_dumps(params["vals"])
@@ -1576,7 +1580,7 @@ class Model(object):
                 return
             msg = "%s %s changed by remote sync" % (model_name, ",".join([str(x) for x in params["ids"]]))
             details = utils.json_dumps(params["vals"])
-        netforce.logger.audit_log(msg, details)
+        netforce.logger.audit_log(msg, details, related_id=related_id)
 
     def get_view(self, name=None, type=None, context={}):  # XXX: remove this
         #print("get_view model=%s name=%s type=%s"%(self._name,name,type))
@@ -1628,15 +1632,10 @@ class Model(object):
         res = f(context=context)
         if res is None:
             res = {}
-        data = {}
-        if "vals" in res:
-            data["vals"] = res["vals"]
+        if "data" in res or "field_attrs" in res or "alert" in res:
+            out=res
         else:
-            data["vals"] = res
-        if "meta" in res:
-            data["meta"] = res["meta"]
-        if "alert" in res:
-            data["alert"] = res["alert"]
+            out={"data":res}
         def _fill_m2o(m, vals):
             for k, v in vals.items():
                 if not v:
@@ -1650,9 +1649,9 @@ class Model(object):
                     mr = get_model(f.relation)
                     for v2 in v:
                         _fill_m2o(mr, v2)
-        if data.get("vals"):
-            _fill_m2o(self, data["vals"])
-        return data
+        if out.get("data"):
+            _fill_m2o(self, out["data"])
+        return out
 
     def _check_cycle(self, ids, context={}):
         for obj in self.browse(ids):
@@ -1951,6 +1950,39 @@ class Model(object):
     def search_read_path(self, condition, field_paths, context={}):
         ids=self.search(condition,context=context)
         return self.read_path(ids,field_paths,context=context)
+
+    def save_data(self,data,context={}):
+        print(">>> save_data %s %s"%(self._name,data))
+        o2m_fields=[]
+        obj_vals={}
+        for n,v in data.items():
+            if n=="id":
+                continue
+            f=self._fields[n]
+            if isinstance(f,fields.One2Many):
+                o2m_fields.append(n)
+            else:
+                obj_vals[n]=v
+        obj_id=data.get("id")
+        if obj_id:
+            self.write([obj_id],obj_vals,context=context)
+        else:
+            obj_id=self.create(obj_vals,context=context)
+        if o2m_fields:
+            o2m_vals=self.read([obj_id],o2m_fields,context=context)[0]
+            for n in o2m_fields:
+                f=self._fields[n]
+                mr=get_model(f.relation)
+                new_rids=set()
+                for rdata in data[n]:
+                    rdata2=rdata.copy()
+                    rdata2[f.relfield]=obj_id
+                    rid=mr.save_data(rdata2,context={})
+                    new_rids.add(rid)
+                del_rids=[rid for rid in o2m_vals[n] if rid not in new_rids]
+                if del_rids:
+                    mr.delete(del_rids)
+        return obj_id
 
     def sync_get_key(self, ids, context={}):
         if not self._key:

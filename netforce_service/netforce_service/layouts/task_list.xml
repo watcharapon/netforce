@@ -2,9 +2,11 @@
     <field name="number"/>
     <field name="date_created"/>
     <field name="project_id"/>
+    <field name="job_id"/>
     <field name="title"/>
     <field name="priority"/>
     <field name="resource_id"/>
     <field name="state"/>
     <field name="date_estimate"/>
+    <field name="date_est_start"/>
 </list>

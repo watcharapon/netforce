@@ -113,7 +113,7 @@ var ReportView=NFView.extend({
         that.model.set("_group_field2",group_fields[1]);
         var view_type={type:"selection",selection:[["list","List"],["crosstab","Crosstab"],["bar","Bar Chart"],["pie","Pie Chart"]],string:"View Type"};
         that.model.fields["_view_type"]=view_type;
-        that.model.set("_view_type","list");
+        that.model.set("_view_type",this.options.view_type||"list");
         if (this.options.condition) {
             var cond=JSON.parse(this.options.condition);
             this.set_condition(cond);
@@ -136,6 +136,9 @@ var ReportView=NFView.extend({
             var agg_fields=[];
         }
         that.model.set("_agg_field1",agg_fields[0]);
+        var agg_field2={type:"selection",selection:agg_select,string:"Aggregate Field #2"};
+        that.model.fields["_agg_field2"]=agg_field2;
+        that.model.set("_agg_field2",agg_fields[1]);
     },
 
     render: function() {
@@ -144,6 +147,7 @@ var ReportView=NFView.extend({
         var group_field1=this.model.get("_group_field1");
         var group_field2=this.model.get("_group_field2");
         var agg_field1=this.model.get("_agg_field1");
+        var agg_field2=this.model.get("_agg_field2");
         var group_fields=[];
         if (group_field1) {
             var f=get_field_path(this.options.model,group_field1);
@@ -156,6 +160,9 @@ var ReportView=NFView.extend({
         var agg_fields=[];
         if (agg_field1) {
             agg_fields.push(agg_field1);
+        }
+        if (agg_field2) {
+            agg_fields.push(agg_field2);
         }
         var condition=this.get_condition();
         log("group_fields",group_fields);
@@ -183,7 +190,7 @@ var ReportView=NFView.extend({
                     string: "Count"
                 });
                 _.each(agg_fields,function(n) {
-                    var f=get_field_path(that.options.model,agg_field1);
+                    var f=get_field_path(that.options.model,n);
                     cols.push({
                         string: f.string
                     });
