@@ -163,6 +163,7 @@ class Product(Model):
         "ecom_no_order_unavail": fields.Boolean("Prevent Orders When Out Of Stock"),
         "ecom_select_lot": fields.Boolean("Customers Select Lot When Ordering"),
         "ecom_lot_before_invoice": fields.Boolean("Require Lot Before Invoicing"),
+        "product_origin": fields.Char("Product Origin"),
     }
 
     _defaults = {
