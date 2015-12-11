@@ -28,6 +28,7 @@ class Issue(Model):
         "comments": fields.Text("Comments"),
         "type_id": fields.Many2One("issue.type","Issue Type",required=True),
         "messages": fields.One2Many("message", "related_id", "Messages"),
+        "related_id": fields.Reference([["job","Service Order"],["service.item","Service Item"]],"Related To"),
     }
     _order="priority,id"
 
