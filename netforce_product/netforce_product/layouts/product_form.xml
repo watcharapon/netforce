@@ -218,6 +218,7 @@
                 <field name="description"/>
             </form>
         </field>
+        <field name="stock_balances"/>
         <field name="lots"/>
         <field name="service_items"/>
         <field name="documents">
