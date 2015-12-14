@@ -26,6 +26,7 @@ from PIL import Image, ImageChops
 from netforce import access
 from decimal import Decimal
 import time
+import math
 
 
 class Product(Model):
@@ -543,7 +544,7 @@ class Product(Model):
         vals={}
         for obj in self.browse(ids):
             factor=obj.sale_to_invoice_uom_factor or 1
-            vals[obj.id]=int((obj.sale_price or 0)*factor) # XXX: round up
+            vals[obj.id]=math.ceil((obj.sale_price or 0)*factor)
         return vals
 
 Product.register()
