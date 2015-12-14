@@ -4,3 +4,5 @@ from . import delivery_route_line
 from . import create_delivery_route
 from . import delivery_carrier_round
 from . import stock_picking
+from . import delivery_slot
+from . import delivery_slot_capacity

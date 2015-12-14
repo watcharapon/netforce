@@ -284,7 +284,7 @@ class Payment(Model):
             wht = get_model("currency").round(obj.currency_id.id, wht)
             vals["amount_subtotal"] = subtotal
             vals["amount_tax"] = vat
-            vals["amount_total"] = total # should be equal to subtotal + vat, compute separately because rounding
+            vals["amount_total"] = subtotal + vat
             vals["amount_wht"] = wht
             vals["amount_payment"] = vals["amount_total"] - wht
             res[obj.id] = vals
@@ -505,6 +505,8 @@ class Payment(Model):
                     "track_id": line.track_id.id,
                     "track2_id": line.track2_id.id,
                 }
+                if line.type=="prepay":
+                    line_vals["contact_id"]=obj.contact_id.id
                 print("direct")
                 pprint(line_vals)
                 get_model("account.move.line").create(line_vals)

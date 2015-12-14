@@ -36,7 +36,7 @@ class Move(Model):
         "narration": fields.Text("Narration", required=True, search=True),
         "date": fields.Date("Document Date", required=True, search=True, index=True),
         "date_posted": fields.Date("Posted Date", search=True, index=True),
-        "state": fields.Selection([["draft", "Draft"], ["posted", "Posted"], ["voided", "Voided"]], "Status", required=True),
+        "state": fields.Selection([["draft", "Draft"], ["posted", "Posted"], ["voided", "Voided"]], "Status", required=True, search=True),
         "lines": fields.One2Many("account.move.line", "move_id", "Lines"),
         "total_debit": fields.Decimal("Total Debit", function="get_total", function_multi=True),
         "total_credit": fields.Decimal("Total Credit", function="get_total", function_multi=True),
@@ -146,7 +146,7 @@ class Move(Model):
                 if acc.type == "view":
                     raise Exception("Can not post to 'view' account ([%s] %s)" % (acc.code, acc.name))
                 if acc.company_id.id!=obj.company_id.id:
-                    raise Exception("Wrong company for account %s"%acc.code)
+                    raise Exception("Wrong company for account %s in journal entry %s (account company: %s, journal entry company %s)("%(acc.code,obj.number,acc.company_id.code,obj.company_id.code))
                 if acc.require_contact and not line.contact_id:
                     raise Exception("Missing contact for account %s" % acc.code)
                 if acc.require_tax_no and not line.tax_no:
