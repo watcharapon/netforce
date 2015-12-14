@@ -5,7 +5,7 @@ class CartLine(Model):
     _name="ecom2.cart.line"
     _string="Cart Line"
     _fields={
-        "cart_id": fields.Many2One("plr.cart","Cart",required=True,on_delete="cascade"),
+        "cart_id": fields.Many2One("ecom2.cart","Cart",required=True,on_delete="cascade"),
         "product_id": fields.Many2One("product","Product",required=True),
         "lot_id": fields.Many2One("stock.lot","Lot / Serial Number"),
         "weight": fields.Decimal("Weight",function="_get_related",function_context={"path": "lot_id.weight"}),
@@ -15,7 +15,7 @@ class CartLine(Model):
         "amount": fields.Decimal("Amount",function="get_amount"),
         "deliver_date": fields.Date("Delivery Date"),
         "ship_address_id": fields.Many2One("address","Shipping Address"),
-        "deliver_slot_id": fields.Many2One("plr.deliver.slot","Peferred Delivery Slot"),
+        "deliver_slot_id": fields.Many2One("delivery.slot","Peferred Delivery Slot"),
     }
 
     def get_amount(self,ids,context={}):
