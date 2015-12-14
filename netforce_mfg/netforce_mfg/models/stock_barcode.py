@@ -22,7 +22,8 @@ from netforce.model import Model, fields, get_model
 
 
 class Barcode(Model):
-    _inhierit= "stock.barcode"
+    _inherit = "stock.barcode"
+    _transient = True
 
     _fields = {
         "related_id": fields.Reference([["sale.order", "Sales Order"], ["purchase.order", "Purchase Order"], ["production.order", "Production Order"], ["stock.picking", "Picking"]], "Related To"),
