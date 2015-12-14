@@ -13,9 +13,9 @@ class CartLine(Model):
         "qty": fields.Decimal("Qty",required=True),
         "uom_id": fields.Many2One("uom","UoM",required=True),
         "amount": fields.Decimal("Amount",function="get_amount"),
-        "deliver_date": fields.Date("Delivery Date"),
+        "delivery_date": fields.Date("Delivery Date"),
         "ship_address_id": fields.Many2One("address","Shipping Address"),
-        "deliver_slot_id": fields.Many2One("delivery.slot","Peferred Delivery Slot"),
+        "delivery_slot_id": fields.Many2One("delivery.slot","Peferred Delivery Slot"),
     }
 
     def get_amount(self,ids,context={}):

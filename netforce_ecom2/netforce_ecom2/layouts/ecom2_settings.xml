@@ -1,9 +1,9 @@
 <form model="ecom2.settings">
-    <field name="deliver_slot_discount"/>
+    <field name="delivery_slot_discount"/>
     <newline/>
-    <field name="deliver_max_days"/>
+    <field name="delivery_max_days"/>
     <newline/>
-    <field name="deliver_min_hours"/>
+    <field name="delivery_min_hours"/>
     <newline/>
     <field name="ecom_num_lots"/>
 </form>

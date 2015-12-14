@@ -10,9 +10,9 @@
             <field name="number"/>
             <field name="date"/>
             <field name="customer_id"/>
-            <field name="deliver_date"/>
+            <field name="delivery_date"/>
             <field name="ship_address_id" condition='[["contact_id","=",customer_id]]'/>
-            <field name="deliver_slot_id"/>
+            <field name="delivery_slot_id"/>
             <field name="bill_address_id" condition='[["contact_id","=",customer_id]]'/>
             <field name="pay_method_id"/>
             <field name="lines">
@@ -24,9 +24,9 @@
                     <field name="qty"/>
                     <field name="uom_id"/>
                     <field name="amount"/>
-                    <field name="deliver_date"/>
+                    <field name="delivery_date"/>
                     <field name="ship_address_id" condition='[["contact_id","=",customer_id]]'/>
-                    <field name="deliver_slot_id"/>
+                    <field name="delivery_slot_id"/>
                 </list>
             </field>
             <field name="amount_total"/>

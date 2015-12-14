@@ -16,14 +16,14 @@ class Cart(Model):
         "lines": fields.One2Many("ecom2.cart.line","cart_id","Lines"),
         "amount_total": fields.Decimal("Total Amount",function="get_total"),
         "sale_orders": fields.One2Many("sale.order","related_id","Sales Orders"),
-        "deliver_date": fields.Date("Delivery Date"),
+        "delivery_date": fields.Date("Delivery Date"),
         "ship_address_id": fields.Many2One("address","Shipping Address"),
         "bill_address_id": fields.Many2One("address","Billing Address"),
-        "deliver_slot_id": fields.Many2One("delivery.slot","Peferred Delivery Slot"),
+        "delivery_slot_id": fields.Many2One("delivery.slot","Peferred Delivery Slot"),
         "pay_method_id": fields.Many2One("payment.method","Payment Method"),
         "logs": fields.One2Many("log","related_id","Audit Log"),
         "state": fields.Selection([["draft","Draft"],["confirmed","Confirmed"]],"Status",required=True),
-        "deliver_slots": fields.Json("Delivery Slots",function="get_deliver_slots"),
+        "delivery_slots": fields.Json("Delivery Slots",function="get_delivery_slots"),
         "payment_methods": fields.Json("Payment Methods",function="get_payment_methods"),
     }
     _order="date desc"
@@ -59,13 +59,13 @@ class Cart(Model):
             vals[obj.id]=amt
         return vals
 
-    def get_deliver_slots(self,ids,context={}):
+    def get_delivery_slots(self,ids,context={}):
         obj=self.browse(ids[0])
         settings=get_model("ecom2.settings").browse(1)
-        max_days=settings.deliver_max_days
+        max_days=settings.delivery_max_days
         if not max_days:
             raise Exception("Missing delivery max days in settings")
-        min_hours=settings.deliver_min_hours or 0
+        min_hours=settings.delivery_min_hours or 0
         d_from=date.today()
         d_to=d_from+timedelta(days=max_days)
         d=d_from
@@ -97,7 +97,7 @@ class Cart(Model):
         access.set_active_company(1) # XXX
         order_lines={}
         for line in obj.lines:
-            due_date=line.deliver_date or obj.deliver_date
+            due_date=line.delivery_date or obj.delivery_date
             ship_address_id=line.ship_address_id.id
             k=(due_date,ship_address_id)
             order_lines.setdefault(k,[]).append(line)
