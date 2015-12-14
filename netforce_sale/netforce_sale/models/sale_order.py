@@ -382,8 +382,6 @@ class SaleOrder(Model):
             currency_id = data["currency_id"]
             price_cur = get_model("currency").convert(price, price_currency_id, currency_id)
             line["unit_price"] = price_cur
-        if line["uom_id"] == prod.uos_id.id and prod.uos_factor:
-            line["qty_stock"] = qty * prod.uos_factor
         data = self.update_amounts(context)
         return data
 
