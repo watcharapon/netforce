@@ -26,6 +26,7 @@ from netforce import access
 
 class StockBalance(Model):
     _inherit= "stock.balance"
+    _transient = False
 
     def make_mo(self, ids, context={}):
         count=0

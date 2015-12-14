@@ -172,26 +172,15 @@ class SaleOrder(Model):
         quot_id = vals.get("quot_id")
         if quot_id:
             get_model("sale.quot").function_store([quot_id])
-        line_ids=[]
-        obj=self.browse(id)
-        for line in obj.lines:
-            line_ids.append(line.id)
-        if line_ids:
-            get_model("sale.order.line").function_store(line_ids)
         return id
 
     def write(self, ids, vals, **kw):
         quot_ids = []
-        line_ids = []
         for obj in self.browse(ids):
-            for line in obj.lines:
-                line_ids.append(line.id)
             if obj.quot_id:
                 quot_ids.append(obj.quot_id.id)
         super(SaleOrder, self).write(ids, vals, **kw)
         self.function_store(ids)
-        if line_ids:
-            get_model("sale.order.line").function_store(line_ids)
         quot_id = vals.get("quot_id")
         if quot_id:
             quot_ids.append(quot_id)
