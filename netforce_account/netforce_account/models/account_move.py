@@ -36,7 +36,7 @@ class Move(Model):
         "narration": fields.Text("Narration", required=True, search=True),
         "date": fields.Date("Document Date", required=True, search=True, index=True),
         "date_posted": fields.Date("Posted Date", search=True, index=True),
-        "state": fields.Selection([["draft", "Draft"], ["posted", "Posted"], ["voided", "Voided"]], "Status", required=True),
+        "state": fields.Selection([["draft", "Draft"], ["posted", "Posted"], ["voided", "Voided"]], "Status", required=True, search=True),
         "lines": fields.One2Many("account.move.line", "move_id", "Lines"),
         "total_debit": fields.Decimal("Total Debit", function="get_total", function_multi=True),
         "total_credit": fields.Decimal("Total Credit", function="get_total", function_multi=True),

@@ -9,6 +9,7 @@
     <field name="date_created"/>
     <field name="contact_id"/>
     <field name="project_id"/>
+    <field name="related_id"/>
     <newline/>
     <field name="title"/>
     <field name="type_id"/>
