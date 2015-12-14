@@ -64,7 +64,7 @@ class Cart(Model):
         settings=get_model("ecom2.settings").browse(1)
         max_days=settings.delivery_max_days
         if not max_days:
-            raise Exception("Missing delivery max days in settings")
+            return []
         min_hours=settings.delivery_min_hours or 0
         d_from=date.today()
         d_to=d_from+timedelta(days=max_days)
