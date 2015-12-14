@@ -51,6 +51,7 @@
                 <newline/>
                 <field name="sale_price" span="2" onchange="update_prices"/>
                 <field name="max_discount" span="2" string="Listed Gross Profit"/>
+                <field name="sale_price_order_uom" span="2"/>
                 <!--<field name="price_index" span="2"/>-->
             </group>
             <separator/>

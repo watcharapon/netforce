@@ -45,7 +45,8 @@ class Product(Model):
         "categ_id": fields.Many2One("product.categ", "Product Category", search=True),
         "description": fields.Text("Description", translate=True),
         "purchase_price": fields.Decimal("Purchase Price", scale=6),
-        "sale_price": fields.Decimal("List Price", scale=6),
+        "sale_price": fields.Decimal("List Price (Sales Invoice UoM)", scale=6),
+        "sale_price_order_uom": fields.Decimal("List Price (Sales Order UoM)", scale=6, function="get_sale_price_order_uom"),
         "tags": fields.Many2Many("tag", "Tags"),
         "image": fields.File("Image"),
         "cost_method": fields.Selection([["standard", "Standard Cost"], ["average", "Weighted Average"], ["fifo", "FIFO"], ["lifo", "LIFO"]], "Costing Method"),
@@ -537,5 +538,12 @@ class Product(Model):
                 "url": "/ecom_product?product_id=%s"%prod_id,
             }
         }
+
+    def get_sale_price_order_uom(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            factor=obj.sale_to_invoice_uom_factor or 1
+            vals[obj.id]=(obj.sale_price or 0)*factor
+        return vals
 
 Product.register()
