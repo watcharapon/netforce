@@ -1,0 +1,4 @@
+<menu string="Ecommerce">
+    <item string="Dashboard" action="ecom2_board"/>
+    <item string="Carts" action="ecom2_cart"/>
+</menu>

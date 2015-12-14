@@ -1,0 +1,7 @@
+<list model="ecom2.cart">
+    <field name="number"/>
+    <field name="date"/>
+    <field name="customer_id"/>
+    <field name="amount_total"/>
+    <field name="state"/>
+</list>
