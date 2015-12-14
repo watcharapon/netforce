@@ -28,7 +28,13 @@ class CartLine(Model):
         prod_id=vals["product_id"]
         prod=get_model("product").browse(prod_id)
         vals["uom_id"]=prod.uom_id.id
-        vals["unit_price"]=prod.sale_price
+        if prod.ecom_select_lot: # XXX: improve this
+            lot_id=vals["lot_id"]
+            lot=get_model("stock.lot").browse(lot_id)
+            sale_price=(prod.sale_price or 0)*(lot.weight or 0)/1000
+            vals["unit_price"]=sale_price
+        else:
+            vals["unit_price"]=prod.sale_price
         return super().create(vals,*args,**kw)
 
 CartLine.register()
