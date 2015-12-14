@@ -543,7 +543,7 @@ class Product(Model):
         vals={}
         for obj in self.browse(ids):
             factor=obj.sale_to_invoice_uom_factor or 1
-            vals[obj.id]=(obj.sale_price or 0)*factor
+            vals[obj.id]=int((obj.sale_price or 0)*factor) # XXX: round up
         return vals
 
 Product.register()
