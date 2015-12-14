@@ -9,8 +9,8 @@ class RouteLine(Model):
         "picking_id": fields.Many2One("stock.picking","Goods Issue",condition=[["type","=","out"]]),
         "contact_id": fields.Many2One("contact","Customer",function="_get_related",function_context={"path":"picking_id.contact_id"}),
         "ship_address_id": fields.Many2One("address","Shipping Address",function="_get_related",function_context={"path":"picking_id.ship_address_id"}),
+        "delivery_slot_id": fields.Many2One("delivery.slot","Delivery Slot",function="_get_related",function_context={"path":"picking_id.delivery_slot_id"}),
         "state": fields.Selection([["planned","Planned"],["done","Completed"],["canceled","Canceled"]],"Status",required=True),
-        "delivery_slot_id": fields.Many2One("delivery.slot","Delivery Slot"),
     }
     _order="sequence"
     _defaults={
