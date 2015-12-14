@@ -1,5 +1,6 @@
 from netforce.model import Model,fields,get_model
 import time
+import math
 
 class CartLine(Model):
     _name="ecom2.cart.line"
@@ -31,7 +32,7 @@ class CartLine(Model):
         if prod.ecom_select_lot: # XXX: improve this
             lot_id=vals["lot_id"]
             lot=get_model("stock.lot").browse(lot_id)
-            sale_price=(prod.sale_price or 0)*(lot.weight or 0)/1000
+            sale_price=math.ceil((prod.sale_price or 0)*(lot.weight or 0)/1000)
             vals["unit_price"]=sale_price
         else:
             vals["unit_price"]=prod.sale_price
