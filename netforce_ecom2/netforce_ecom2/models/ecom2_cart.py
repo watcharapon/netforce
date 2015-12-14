@@ -61,7 +61,7 @@ class Cart(Model):
 
     def get_deliver_slots(self,ids,context={}):
         obj=self.browse(ids[0])
-        settings=get_model("plr.ecom.settings").browse(1)
+        settings=get_model("ecom2.settings").browse(1)
         max_days=settings.deliver_max_days
         if not max_days:
             raise Exception("Missing delivery max days in settings")
@@ -70,7 +70,7 @@ class Cart(Model):
         d_to=d_from+timedelta(days=max_days)
         d=d_from
         slots=[]
-        for slot in get_model("plr.deliver.slot").search_browse([]):
+        for slot in get_model("delivery.slot").search_browse([]):
             slots.append([slot.id,slot.name])
         days=[]
         while d<=d_to:
@@ -108,7 +108,7 @@ class Cart(Model):
                 "bill_address_id": obj.bill_address_id.id,
                 "due_date": due_date,
                 "lines": [],
-                "related_id": "plr.cart,%s"%obj.id,
+                "related_id": "ecom2.cart,%s"%obj.id,
             }
             for line in lines:
                 line_vals={
