@@ -133,7 +133,7 @@ class WorkTime(Model):
         vals={}
         for obj in self.browse(ids):
             prod=obj.resource_id.product_id
-            amt=(prod.cost_price or 0)*(obj.bill_hours or 0)
+            amt=(prod.cost_price or 0)*(obj.actual_hours or 0)
             vals[obj.id]=amt
         return vals
 
