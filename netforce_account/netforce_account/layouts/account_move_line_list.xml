@@ -7,5 +7,6 @@
     <field name="credit"/>
     <field name="track_id"/>
     <field name="amount_cur"/>
+    <field name="reconcile_id"/>
     <field name="is_account_reconciled" invisible="1"/>
 </list>
