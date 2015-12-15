@@ -15,66 +15,82 @@
             <item string="View Journal Entry" method="view_journal_entry" states="waiting_payment,paid"/>
         </button>
     </head>
-    <group form_layout="stacked">
-        <field name="contact_id" span="2" create="1"/>
-        <field name="date" span="2" onchange="onchange_date"/>
-        <field name="number" span="2"/>
-        <field name="ref" span="2"/>
-        <newline/>
-        <field name="currency_id" span="2"/>
-        <field name="tax_type" span="2" onchange="update_amounts"/>
-    </group>
-    <field name="lines" count="10" nolabel="1">
-        <list onchange="update_amounts">
-            <field name="product_id" onchange="onchange_product"/>
-            <field name="description"/>
-            <field name="qty" onchange="update_amounts"/>
-            <field name="uom_id" onchange="update_amounts"/>
-            <field name="unit_price" onchange="update_amounts"/>
-            <field name="account_id" condition='[["type","!=","view"]]'/>
-            <field name="tax_id" onchange="update_amounts"/>
-            <field name="amount"/>
-        </list>
-    </field>
-    <group offset="8" span="4" columns="1">
-        <field name="amount_subtotal"/>
-        <field name="amount_tax"/>
-        <field name="amount_total"/>
-        <field name="credit_alloc">
-            <fields>
-                <field name="invoice_id"/>
-                <field name="amount"/>
-            </fields>
-            <template>
-                {{#each context.data}}
-                    <div class="form-group nf-field">
-                        <label class="control-label col-md-4">Less credit to invoice <a href="#name=view_invoice&amp;active_id={{invoice_id.0.}}">{{invoice_id.1.}}</a></label>
-                        <div class="col-md-8" style="text-align:right">
-                            {{currency amount}}
-                            <a href="#" class="call-method" data-method="delete_alloc" data-context='{"alloc_id":{{id}} }' data-confirm="Are you sure you want to delete this credit allocation?"><i class="icon-remove"></i></a>
-                        </div>
-                    </div>
-                {{/each}}
-            </template>
-        </field>
-        <field name="payments">
-            <fields>
-                <field name="payment_id"/>
-                <field name="amount_currency"/>
-            </fields>
-            <template>
-                {{#each context.data}}
-                    <div class="form-group nf-field">
-                        <label class="control-label col-md-4">Less <a href="#name=payment&amp;mode=form&amp;active_id={{payment_id.0.}}">Refund</a></label>
-                        <div class="col-md-8" style="text-align:right">
-                            {{currency amount_currency}}
-                        </div>
-                    </div>
-                {{/each}}
-            </template>
-        </field>
-        <field name="amount_credit_remain" states="waiting_payment,paid"/>
-    </group>
+    <tabs>
+        <tab string="General">
+            <group form_layout="stacked">
+                <field name="contact_id" span="2" create="1"/>
+                <field name="bill_address_id" span="2" condition='[["contact_id", "=", contact_id], ["contact_id", "!=", null]]'/>
+                <field name="date" span="2" onchange="onchange_date"/>
+                <field name="number" span="2"/>
+                <field name="ref" span="2"/>
+                <field name="related_id" span="2"/>
+                <newline/>
+                <field name="currency_id" span="2"/>
+                <field name="tax_type" span="2" onchange="update_amounts"/>
+                <field name="memo" span="2"/>
+                <field name="tax_no" span="2"/>
+                <field name="tax_branch_no" span="2"/>
+            </group>
+            <field name="lines" count="10" nolabel="1">
+                <list onchange="update_amounts">
+                    <field name="product_id" onchange="onchange_product"/>
+                    <field name="description"/>
+                    <field name="qty" onchange="update_amounts"/>
+                    <field name="uom_id" onchange="update_amounts"/>
+                    <field name="unit_price" onchange="update_amounts"/>
+                    <field name="account_id" condition='[["type","!=","view"]]'/>
+                    <field name="tax_id" onchange="update_amounts"/>
+                    <field name="amount"/>
+                </list>
+            </field>
+            <group offset="8" span="4" columns="1">
+                <field name="amount_subtotal"/>
+                <field name="amount_tax"/>
+                <field name="amount_total"/>
+                <field name="credit_alloc">
+                    <fields>
+                        <field name="invoice_id"/>
+                        <field name="amount"/>
+                    </fields>
+                    <template>
+                        {{#each context.data}}
+                            <div class="form-group nf-field">
+                                <label class="control-label col-md-4">Less credit to invoice <a href="#name=view_invoice&amp;active_id={{invoice_id.0.}}">{{invoice_id.1.}}</a></label>
+                                <div class="col-md-8" style="text-align:right">
+                                    {{currency amount}}
+                                    <a href="#" class="call-method" data-method="delete_alloc" data-context='{"alloc_id":{{id}} }' data-confirm="Are you sure you want to delete this credit allocation?"><i class="icon-remove"></i></a>
+                                </div>
+                            </div>
+                        {{/each}}
+                    </template>
+                </field>
+                <field name="payments">
+                    <fields>
+                        <field name="payment_id"/>
+                        <field name="amount_currency"/>
+                    </fields>
+                    <template>
+                        {{#each context.data}}
+                            <div class="form-group nf-field">
+                                <label class="control-label col-md-4">Less <a href="#name=payment&amp;mode=form&amp;active_id={{payment_id.0.}}">Refund</a></label>
+                                <div class="col-md-8" style="text-align:right">
+                                    {{currency amount_currency}}
+                                </div>
+                            </div>
+                        {{/each}}
+                    </template>
+                </field>
+                <field name="amount_credit_remain" states="waiting_payment,paid"/>
+            </group>
+        </tab>
+        <tab string="Other Info">
+            <field name="journal_id" onchange="onchange_journal"/>
+            <newline/>
+            <field name="sequence_id" condition='[["type","=","supp_credit"]]' onchange="onchange_sequence"/>
+            <newline/>
+            <field name="currency_rate"/>
+        </tab>
+    </tabs>
     <field name="type" invisible="1"/>
     <field name="inv_type" invisible="1"/>
     <field name="contact_credit" invisible="1"/>
