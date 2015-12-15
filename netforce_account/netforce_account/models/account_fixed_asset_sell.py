@@ -30,6 +30,7 @@ class FixedAssetSell(Model):
         "date": fields.Date("Date", required=True),
         "sale_acc_id": fields.Many2One("account.account", "Account to Debit for Sale", required=True),
         "gain_loss_acc_id": fields.Many2One("account.account", "Gain / Loss Account", required=True),
+        "journal_id" : fields.Many2One("account.journal", "Account Journal", required=True),
         "price": fields.Decimal("Sale price (Excluding Tax)", required=True),
     }
     _defaults = {
@@ -38,10 +39,9 @@ class FixedAssetSell(Model):
 
     def sell(self, ids, context={}):
         obj = self.browse(ids)[0]
-        res = get_model("account.journal").search([["type", "=", "general"]])
-        if not res:
-            raise Exception("General journal not found")
-        journal_id = res[0]
+        journal_id=obj.journal_id.id
+        if not journal_id:
+            raise Exception("Account Journal not found")
         asset = obj.asset_id
         desc = "Sell fixed asset [%s] %s" % (asset.number, asset.name)
         move_vals = {

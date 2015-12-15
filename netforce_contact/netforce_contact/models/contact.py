@@ -137,6 +137,9 @@ class Contact(Model):
         "code": _get_number,
     }
     _order = "name"
+    _sql_constraints=[
+        ("name_uniq","unique (name)","Name must be unique!"),
+    ]
     _constraints=["check_email"]
 
     def create(self, vals, **kw):
