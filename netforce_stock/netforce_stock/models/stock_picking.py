@@ -306,6 +306,7 @@ class Picking(Model):
                 "number": number,
                 "contact_id": obj.contact_id.id,
                 "currency_id": obj.currency_id.id,
+                "currency_rate": obj.currency_rate,
                 "lines": [],
             }
             for line in obj.lines:

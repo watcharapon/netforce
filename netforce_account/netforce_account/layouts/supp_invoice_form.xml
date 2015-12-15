@@ -8,6 +8,7 @@
         </button>
         <button string="Options" dropdown="1">
             <item string="Copy" method="copy"/>
+            <item string="Copy To Credit Note" method="copy_to_credit_note" states="paid,waiting_payment"/>
             <item string="Void" method="void" confirm="Are you sure you want to void this invoice?" states="draft,waiting_payment"/>
             <item string="To Draft" method="to_draft" states="waiting_payment"/>
             <divider/>
