@@ -820,6 +820,7 @@ class Invoice(Model):
             "contact_id": obj.contact_id.id,
             "bill_address_id": obj.bill_address_id.id,
             "currency_id": obj.currency_id.id,
+            "currency_rate": obj.currency_rate,
             "tax_type": obj.tax_type,
             "memo": obj.memo,
             "pay_method_id": obj.pay_method_id.id,
