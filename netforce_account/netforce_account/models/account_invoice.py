@@ -823,6 +823,7 @@ class Invoice(Model):
             "currency_rate": obj.currency_rate,
             "tax_type": obj.tax_type,
             "memo": obj.memo,
+            "tax_no": obj.tax_no,
             "pay_method_id": obj.pay_method_id.id,
             "original_invoice_id": obj.id,
             "lines": [],
