@@ -178,6 +178,8 @@ class Invoice(Model):
                     name = "Overpayment"
             if obj.ref:
                 name += " [%s]" % obj.ref
+            if obj.tax_no:
+                name+=", "+obj.tax_no
             vals.append((obj.id, name))
         return vals
 
