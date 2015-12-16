@@ -53,6 +53,7 @@ class FixedAsset(Model):
         "invoice_id": fields.Many2One("account.invoice", "Invoice"),
         "periods": fields.One2Many("account.fixed.asset.period", "asset_id", "Depreciation Periods"),
         "salvage_value": fields.Decimal("Salvage Value"),
+        "documents": fields.One2Many("document", "related_id", "Documents"),
     }
     _order = "number desc"
 

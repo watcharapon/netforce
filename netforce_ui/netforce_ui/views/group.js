@@ -145,7 +145,7 @@ var Group=NFView.extend({
                             var opts2={
                                 fields: sub_fields,
                                 readonly: $el.attr("readonly")||that.options.readonly,
-                                default_count: parseInt($el.attr("default_count"))||1,
+                                default_count: $el.attr("count")||1,
                                 noadd: $el.attr("noadd"),
                                 context: params.context
                             }

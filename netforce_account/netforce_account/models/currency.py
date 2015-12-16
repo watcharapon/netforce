@@ -42,6 +42,7 @@ class Currency(Model):
     _string = "Currency"
     _key = ["name"]
     _name_field = "code"
+    _audit_log = True
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "code": fields.Char("Code", required=True, search=True),
@@ -139,7 +140,7 @@ class Currency(Model):
             return amt2
 
     def round(self, cur_id, amt):
-        decimal.getcontext().rounding=ROUND_UP
-        return amt.quantize(Decimal("0.01"))
+        decimal.getcontext().rounding=ROUND_HALF_UP
+        return Decimal(amt).quantize(Decimal("0.01"))
 
 Currency.register()

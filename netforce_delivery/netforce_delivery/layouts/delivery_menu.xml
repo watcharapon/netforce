@@ -5,6 +5,7 @@
         <item string="Destinations" action="delivery_route_line"/>
     </item>
     <item string="Carriers" action="delivery_carrier"/>
+    <item string="Delivery Slots" action="delivery_slot"/>
     <item string="Reports" dropdown="1">
     </item>
 </menu>

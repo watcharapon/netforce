@@ -119,6 +119,7 @@ class SaleOrder(Model):
         "seller_id": fields.Many2One("seller","Seller"),
         "product_id": fields.Many2One("product","Product",store=False,function_search="search_product",search=True),
         "currency_rates": fields.One2Many("custom.currency.rate","related_id","Currency Rates"),
+        "delivery_slot_id": fields.Many2One("delivery.slot","Delivery Slot"),
     }
 
     def _get_number(self, context={}):
@@ -172,26 +173,15 @@ class SaleOrder(Model):
         quot_id = vals.get("quot_id")
         if quot_id:
             get_model("sale.quot").function_store([quot_id])
-        line_ids=[]
-        obj=self.browse(id)
-        for line in obj.lines:
-            line_ids.append(line.id)
-        if line_ids:
-            get_model("sale.order.line").function_store(line_ids)
         return id
 
     def write(self, ids, vals, **kw):
         quot_ids = []
-        line_ids = []
         for obj in self.browse(ids):
-            for line in obj.lines:
-                line_ids.append(line.id)
             if obj.quot_id:
                 quot_ids.append(obj.quot_id.id)
         super(SaleOrder, self).write(ids, vals, **kw)
         self.function_store(ids)
-        if line_ids:
-            get_model("sale.order.line").function_store(line_ids)
         quot_id = vals.get("quot_id")
         if quot_id:
             quot_ids.append(quot_id)
@@ -393,8 +383,6 @@ class SaleOrder(Model):
             currency_id = data["currency_id"]
             price_cur = get_model("currency").convert(price, price_currency_id, currency_id)
             line["unit_price"] = price_cur
-        if line["uom_id"] == prod.uos_id.id and prod.uos_factor:
-            line["qty_stock"] = qty * prod.uos_factor
         data = self.update_amounts(context)
         return data
 
@@ -721,6 +709,11 @@ class SaleOrder(Model):
         data["price_list_id"] = contact.sale_price_list_id.id if contact else None
         data["bill_address_id"] = contact.get_address(pref_type="billing") if contact else None
         data["ship_address_id"] = contact.get_address(pref_type="shipping") if contact else None
+        if contact.currency_id:
+            data["currency_id"] = contact.currency_id.id
+        else:
+            settings = get_model("settings").browse(1)
+            data["currency_id"] = settings.currency_id.id
         return data
 
     def check_delivered_qtys(self, ids, context={}):

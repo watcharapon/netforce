@@ -7,6 +7,8 @@ class PriceType(Model):
         "name": fields.Char("Name",required=True),
         "currency_id": fields.Many2One("currency","Currency",required=True),
         "uom_id": fields.Many2One("uom","UoM",required=True),
+        "price_format": fields.Char("Price format"),
+        "price_format_factor": fields.Decimal("Price format factor",scale=6),
     }
 
     def convert(self,price,from_id,to_id,context={}):

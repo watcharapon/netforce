@@ -34,7 +34,7 @@ class BarcodeValidateLine(Model):
         "container_to_id": fields.Many2One("stock.container", "Container"),
         "location_from_id": fields.Many2One("stock.location", "From Location"),
         "location_to_id": fields.Many2One("stock.location", "To Location"),
-        "related_id": fields.Reference([["sale.order", "Sales Order"], ["purchase.order", "Purchase Order"], ["production.order", "Production Order"], ["job", "Service Order"], ["product.claim", "Claim Bill"], ["product.borrow", "Borrow Request"], ["stock.picking", "Picking"]], "Related To"),
+        "related_id": fields.Reference([["sale.order", "Sales Order"], ["purchase.order", "Purchase Order"], ["job", "Service Order"], ["product.claim", "Claim Bill"], ["product.borrow", "Borrow Request"], ["stock.picking", "Picking"]], "Related To"),
     }
 
 BarcodeValidateLine.register()

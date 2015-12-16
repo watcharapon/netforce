@@ -2,6 +2,7 @@
     <field name="number"/>
     <field name="date_created"/>
     <field name="project_id"/>
+    <field name="related_id"/>
     <field name="title"/>
     <field name="type_id"/>
     <field name="priority"/>
