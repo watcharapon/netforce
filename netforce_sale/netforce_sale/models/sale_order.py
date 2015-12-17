@@ -457,6 +457,7 @@ class SaleOrder(Model):
                 "ship_method_id": obj_line.ship_method_id.id or obj.ship_method_id.id,
                 "company_id": obj.company_id.id,
                 "date": obj.due_date+" 00:00:00",
+                'delivery_slot_id': obj.delivery_slot_id.id,
             }
             if contact and contact.pick_out_journal_id:
                 pick_vals[picking_key]["journal_id"] = contact.pick_out_journal_id.id
