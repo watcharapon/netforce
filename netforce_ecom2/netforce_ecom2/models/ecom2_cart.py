@@ -129,6 +129,7 @@ class Cart(Model):
         line_id=None
         for line in obj.lines:
             if line.product_id.id==prod_id:
+                line_id=line.id
                 break
         if line_id:
             if qty==0:
