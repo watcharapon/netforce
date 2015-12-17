@@ -137,6 +137,6 @@ class Cart(Model):
                 get_model("ecom2.cart.line").write([line_id],{"qty":qty})
         else:
             if qty!=0:
-                get_model("ecom2.cart.line").create({"cart_id": obj.id, "qty": qty})
+                get_model("ecom2.cart.line").create({"cart_id": obj.id, "product_id": prod_id, "qty": qty})
 
 Cart.register()
