@@ -123,7 +123,7 @@ class Cart(Model):
             sale=get_model("sale.order").browse(sale_id)
         obj.write({"state": "confirmed"})
 
-    def set_qty(self,ids,prod_id,qty):
+    def set_qty(self,ids,prod_id,qty,context={}):
         print("Cart.set_qty",ids,prod_id,qty)
         obj=self.browse(ids[0])
         line_id=None
