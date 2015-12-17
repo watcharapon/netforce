@@ -872,7 +872,7 @@ class Model(object):
                     r_ids=[]
                     for r in res:
                         v = r[n]
-                        if v is not None:
+                        if v is not None and v.isdigit():
                             r_ids.append(int(v))
                     r_ids=list(set(r_ids))
                     mr=get_model(f.relation)
@@ -880,7 +880,7 @@ class Model(object):
                     r_ids2_set=set(r_ids2)
                     for r in res:
                         v = r[n]
-                        if v is not None:
+                        if v is not None and v.isdigit():
                             v=int(v)
                             if v in r_ids2_set:
                                 r[n]=v
@@ -892,7 +892,7 @@ class Model(object):
                         if k not in vals:
                             continue
                         v = vals[k]
-                        if v is not None:
+                        if v is not None and v.isdigit():
                             r[n] = float(v)
                 elif isinstance(f, fields.Char):
                     pass
