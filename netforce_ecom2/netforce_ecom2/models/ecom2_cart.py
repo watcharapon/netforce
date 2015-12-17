@@ -123,5 +123,20 @@ class Cart(Model):
             sale=get_model("sale.order").browse(sale_id)
         obj.write({"state": "confirmed"})
 
+    def set_qty(self,ids,prod_id,qty):
+        print("Cart.set_qty",ids,prod_id,qty)
+        obj=self.browse(ids[0])
+        line_id=None
+        for line in obj.lines:
+            if line.product_id.id==prod_id:
+                break
+        if line_id:
+            if qty==0:
+                get_model("ecom2.cart.line").delete([line_id])
+            else:
+                get_model("ecom2.cart.line").write([line_id],{"qty":qty})
+        else:
+            if qty!=0:
+                get_model("ecom2.cart.line").create({"cart_id": obj.id, "qty": qty})
 
 Cart.register()
