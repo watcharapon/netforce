@@ -34,6 +34,7 @@ class Task(Model):
         "date_closed": fields.DateTime("Date Closed"),
         "date_estimate": fields.DateTime("Estimated Close Date"),
         "project_id": fields.Many2One("project","Project",required=True,search=True),
+        "job_id": fields.Many2One("job","Service Order",search=True),
         "contact_id": fields.Many2One("contact","Customer",function="_get_related",function_context={"path":"project_id.contact_id"}),
         "title": fields.Char("Title",required=True,search=True),
         "description": fields.Text("Description",search=True),
@@ -47,6 +48,8 @@ class Task(Model):
         "emails": fields.One2Many("email.message", "related_id", "Emails"),
         "comments": fields.Text("Comments"),
         "messages": fields.One2Many("message", "related_id", "Messages"),
+        "date_started": fields.DateTime("Date Started"),
+        "date_est_start": fields.DateTime("Estimated Start Date"),
     }
     _order = "priority,id"
 

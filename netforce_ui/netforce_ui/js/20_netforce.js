@@ -426,7 +426,7 @@ Handlebars.registerHelper("field_label",function(name,options) {
 
 function format_date(val,options) {
     if (!val) return null;
-    if (window.nf_use_buddhist_date) {
+    if (ui_params_db && ui_params_db.use_buddhist_date) {
         var year=parseInt(val.substr(0,4));
         var year2=year+543;
         val=""+year2+val.substr(4);
@@ -452,7 +452,7 @@ function parse_date(val) {
         var fmt="YYYY-MM-DD";
     }
     var val2=moment(val,fmt).format("YYYY-MM-DD");
-    if (window.nf_use_buddhist_date) {
+    if (ui_params_db && ui_params_db.use_buddhist_date) {
         var year=parseInt(val2.substr(0,4));
         var year2=year-543;
         val2=""+year2+val2.substr(4);
@@ -462,7 +462,7 @@ function parse_date(val) {
 
 function format_datetime(val) {
     if (!val) return null;
-    if (window.nf_use_buddhist_date) {
+    if (ui_params_db && ui_params_db.use_buddhist_date) {
         var year=parseInt(val.substr(0,4));
         var year2=year+543;
         val=""+year2+val.substr(4);
@@ -484,7 +484,7 @@ function parse_datetime(val) {
         var fmt="YYYY-MM-DD HH:mm:ss";
     }
     var val2=moment(val,fmt).format("YYYY-MM-DD HH:mm:ss");
-    if (window.nf_use_buddhist_date) {
+    if (ui_params_db && ui_params_db.use_buddhist_date) {
         var year=parseInt(val2.substr(0,4));
         var year2=year-543;
         val2=""+year2+val2.substr(4);
@@ -1449,7 +1449,7 @@ window.NFModel=Backbone.Model.extend({
             if (n=="id") continue;
             var v=data[n];
             var f=this.get_field(n);
-            if (f.type=="many2one") {
+            if (f.type=="many2one" || f.type=="reference") {
                 if (_.isArray(v)) v=v[0];
             } else if (f.type=="one2many") {
                 if (!v) continue;
@@ -1479,6 +1479,22 @@ window.NFModel=Backbone.Model.extend({
         return vals;
     },
 
+    get_path_value: function(path) {
+        log("NFModel.get_path_value",path);
+        var comps=path.split(".");
+        var n=comps[0];
+        var v;
+        if (n=="parent") {
+            var parent_model=this.collection.parent_model;
+            if (!parent_model) throw "Parent model not found";
+            v=parent_model.get_path_value(path.substr(7));
+        } else {
+            v=this.get(n);
+        }
+        log("==>",v);
+        return v;
+    },
+
     set_vals: function(vals) {
         log("model set_vals",vals);
         for (var n in vals) {
@@ -1503,10 +1519,27 @@ window.NFModel=Backbone.Model.extend({
         }
     },
 
+    set_fields: function(fields) {
+        log("model set_fields",fields);
+        for (var path in fields) {
+            var comps=path.split(".");
+            var n=comps[0];
+            var new_f=fields[n];
+            var cur_f=this.fields[n];
+            if (!cur_f) {
+                var f=get_field(this.name,n);
+                cur_f=_.clone(f);
+                this.fields[n]=cur_f;
+            }
+            if (comps.length==1) {
+                _.extend(cur_f,new_f);
+            }
+        }
+    },
+
     get_path: function(field_name) {
         var path;
         if (this.collection) {
-            var parent_path=this.collection.get_path();
             var found=false;
             for (var i=0; i<this.collection.models.length; i++) {
                 var m=this.collection.models[i];
@@ -1517,6 +1550,20 @@ window.NFModel=Backbone.Model.extend({
             }
             if (!found) throw "Model not found!";
             path=this.collection.get_path()+"."+i;
+        } else {
+            path="";
+        }
+        if (field_name) {
+            if (path) path+="."+field_name;
+            else path=field_name;
+        }
+        return path;
+    },
+
+    get_field_path: function(field_name) {
+        var path;
+        if (this.collection) {
+            path=this.collection.get_path();
         } else {
             path="";
         }
@@ -1539,7 +1586,7 @@ window.NFModel=Backbone.Model.extend({
         }
     },
 
-    set_meta: function(meta) { // XXX
+    set_meta: function(meta) { // XXX: remove this
         log("model set_meta",this,meta);
         for (var n in meta) {
             var fmeta=meta[n];

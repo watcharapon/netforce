@@ -51,6 +51,7 @@
                 <newline/>
                 <field name="sale_price" span="2" onchange="update_prices"/>
                 <field name="max_discount" span="2" string="Listed Gross Profit"/>
+                <field name="sale_price_order_uom" span="2"/>
                 <!--<field name="price_index" span="2"/>-->
             </group>
             <separator/>
@@ -64,6 +65,7 @@
             <field name="sale_unit_qty"/>
             <field name="sale_uom_id"/>
             <field name="sale_invoice_uom_id"/>
+            <field name="sale_to_stock_uom_factor"/>
             <field name="sale_to_invoice_uom_factor"/>
             <separator/>
             <field name="sale_channels"/>
@@ -76,8 +78,12 @@
             <newline/>
             <field name="purchase_uom_id"/>
             <field name="purchase_invoice_uom_id"/>
+            <field name="purchase_to_stock_uom_factor"/>
             <field name="purchase_to_invoice_uom_factor"/>
             <field name="purchase_lead_time"/>
+            <newline/>
+            <field name="purchase_min_qty"/>
+            <field name="purchase_qty_multiple"/>
             <separator string="Suppliers"/>
             <field name="suppliers" nolabel="1">
                 <list>
@@ -90,6 +96,9 @@
         </tab>
         <tab string="Manufacturing">
             <field name="mfg_lead_time"/>
+            <newline/>
+            <field name="mfg_min_qty"/>
+            <field name="mfg_qty_multiple"/>
         </tab>
         <tab string="Accounting">
             <separator string="Purchasing"/>
@@ -137,6 +146,7 @@
             <field name="require_lot"/>
             <field name="lot_select"/>
             <separator/>
+            <field name="stock_plan_horizon"/>
             <field name="max_qty_loss"/>
         </tab>
         <tab string="Ecommerce">
@@ -153,6 +163,14 @@
             <field name="details3_label"/>
             <newline/>
             <field name="details3" wysi="1" width="800" height="200"/>
+            <newline/>
+            <field name="ecom_hide_qty"/>
+            <field name="ecom_hide_unavail"/>
+            <field name="ecom_no_order_unavail"/>
+            <field name="ecom_select_lot"/>
+            <field name="ecom_lot_before_invoice"/>
+            <newline/>
+            <field name="product_origin"/>
         </tab>
         <tab string="Other">
             <field name="id"/>
@@ -201,6 +219,7 @@
                 <field name="description"/>
             </form>
         </field>
+        <field name="stock_balances"/>
         <field name="lots"/>
         <field name="service_items"/>
         <field name="documents">

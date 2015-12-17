@@ -28,7 +28,6 @@ class Contact(Model):
     _name = "contact"
     _string = "Contact"
     _audit_log = True
-    _key = ["code"]  # XXX
     _export_field = "name"
     _fields = {
         "user_id": fields.Many2One("base.user", "User"),
@@ -243,6 +242,6 @@ class Contact(Model):
             if not obj.email:
                 continue
             if not utils.check_email_syntax(obj.email):
-                raise Exception("Invalid email")
+                raise Exception("Invalid email for contact '%s'"%obj.name)
 
 Contact.register()

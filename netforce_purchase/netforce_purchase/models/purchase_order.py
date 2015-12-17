@@ -124,6 +124,7 @@ class PurchaseOrder(Model):
         self.function_store(ids)
 
     def confirm(self, ids, context={}):
+        settings = get_model("settings").browse(1)
         for obj in self.browse(ids):
             if obj.state != "draft":
                 raise Exception("Invalid state")
@@ -132,6 +133,12 @@ class PurchaseOrder(Model):
                 if prod and prod.type in ("stock", "consumable", "bundle") and not line.location_id:
                     raise Exception("Missing location for product %s" % prod.code)
             obj.write({"state": "confirmed"})
+            if settings.purchase_copy_picking:
+                res=obj.copy_to_picking()
+                picking_id=res["picking_id"]
+                get_model("stock.picking").pending([picking_id])
+            if settings.purchase_copy_invoice:
+                obj.copy_to_invoice()
             obj.trigger("confirm")
 
     def done(self, ids, context={}):
@@ -265,10 +272,9 @@ class PurchaseOrder(Model):
         data = self.update_amounts(context)
         return data
 
-    def copy_to_picking(self, ids, context):
-        id = ids[0]
+    def copy_to_picking(self, ids, context={}):
         settings=get_model("settings").browse(1)
-        obj = self.browse(id)
+        obj = self.browse(ids[0])
         contact = obj.contact_id
         pick_vals = {
             "type": "in",
@@ -278,6 +284,8 @@ class PurchaseOrder(Model):
             "currency_id": obj.currency_id.id,
             "lines": [],
         }
+        if obj.delivery_date:
+            pick_vals["date"]=obj.delivery_date
         if contact and contact.pick_in_journal_id:
             pick_vals["journal_id"] = contact.pick_in_journal_id.id
         res = get_model("stock.location").search([["type", "=", "supplier"]],order="id")
@@ -294,7 +302,7 @@ class PurchaseOrder(Model):
             prod = line.product_id
             if prod.type not in ("stock", "consumable"):
                 continue
-            remain_qty = line.qty - line.qty_received
+            remain_qty = (line.qty_stock or line.qty) - line.qty_received
             if remain_qty <= 0:
                 continue
             unit_price=line.amount/line.qty if line.qty else 0
@@ -307,12 +315,19 @@ class PurchaseOrder(Model):
                 cost_price_cur=round(unit_price-tax_amt,2)
             else:
                 cost_price_cur=unit_price
+            if line.qty_stock:
+                purch_uom=prod.uom_id
+                if not prod.purchase_to_stock_uom_factor:
+                    raise Exception("Missing purchase order to stock UoM factor for product %s"%prod.code)
+                cost_price_cur/=prod.purchase_to_stock_uom_factor
+            else:
+                purch_uom=line.uom_id
             cost_price=get_model("currency").convert(cost_price_cur,obj.currency_id.id,settings.currency_id.id)
             cost_amount=cost_price*remain_qty
             line_vals = {
                 "product_id": prod.id,
                 "qty": remain_qty,
-                "uom_id": line.uom_id.id,
+                "uom_id": purch_uom.id,
                 "cost_price_cur": cost_price_cur,
                 "cost_price": cost_price,
                 "cost_amount": cost_amount,
@@ -332,6 +347,7 @@ class PurchaseOrder(Model):
                 "active_id": pick_id,
             },
             "flash": "Goods receipt %s created from purchase order %s" % (pick.number, obj.number),
+            "picking_id": pick_id,
         }
 
     def copy_to_invoice(self, ids, context={}):
@@ -484,9 +500,9 @@ class PurchaseOrder(Model):
     def check_received_qtys(self, ids, context={}):
         obj = self.browse(ids)[0]
         for line in obj.lines:
-            if line.qty_received > line.qty:
+            if line.qty_received > (line.qty_stock or line.qty):
                 raise Exception("Can not receive excess quantity for purchase order %s and product %s (order qty: %s, received qty: %s)" % (
-                    obj.number, line.product_id.code, line.qty, line.qty_received))
+                    obj.number, line.product_id.code, line.qty_stock or line.qty, line.qty_received))
 
     def get_purchase_form_template(self, ids, context={}):
         obj = self.browse(ids)[0]

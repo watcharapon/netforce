@@ -41,6 +41,7 @@
                 <newline/>
                 <field name="bill_address_id" span="2" condition='[["contact_id","!=",null],["contact_id","=",contact_id]]'/>
                 <field name="ship_address_id" span="2" condition='[["contact_id","!=",null],["contact_id","=",contact_id]]'/>
+                <field name="delivery_slot_id"/>
             </group>
             <field name="lines" nolabel="1">
                 <list>
@@ -65,6 +66,7 @@
                     <field name="act_cost_amount"/>
                     <field name="act_profit_amount"/>
                     <field name="act_margin_percent"/>
+                    <field name="production_id"/>
                 </list>
             </field>
             <group span="8">
@@ -188,7 +190,6 @@
         <field name="invoices" click_action="view_invoice"/>
         <field name="pickings"/>
         <field name="purchase_lines"/>
-        <field name="production_orders"/>
         <field name="jobs"/>
         <field name="activities"/>
         <field name="emails"/>

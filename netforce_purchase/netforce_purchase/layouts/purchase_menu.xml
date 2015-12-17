@@ -13,6 +13,7 @@
         <item string="Commission Purchase Report" action="report_commission_po"/>
     </item>
     <item string="Settings">
+        <item string="Purchase Settings" action="purchase_settings"/>
         <item string="Purchase Types" action="purch_type"/>
     </item>
 </menu>

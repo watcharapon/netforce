@@ -44,6 +44,7 @@ from .access import get_active_user, set_active_user
 import netforce
 
 mimetypes.add_type("application/x-font-woff", ".woff")
+mimetypes.add_type("font/opentype", ".ttf")
 mimetypes.add_type("text/cache-manifest", ".appcache")
 mimetypes.add_type("text/plain", ".log")
 
@@ -222,7 +223,8 @@ def make_js(minify=False):
         if minify:
             if not os.path.exists("static/js/netforce-%s-min.js"%h):
                 print("  minifying js...")
-                os.system("closure static/js/netforce-%s.js > static/js/netforce-%s-min.js" %(h,h))
+                #os.system("closure static/js/netforce-%s.js > static/js/netforce-%s-min.js" %(h,h))
+                os.system("yui-compressor --type js static/js/netforce-%s.js > static/js/netforce-%s-min.js" %(h,h))
             _js_file="netforce-%s-min.js"%h
         else:    
             _js_file="netforce-%s.js"%h

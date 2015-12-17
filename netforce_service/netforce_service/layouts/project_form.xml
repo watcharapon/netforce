@@ -15,6 +15,7 @@
             <field name="end_date"/>
             <field name="state"/>
             <field name="description"/>
+            <field name="resources"/>
         </tab>
         <tab string="Costing">
             <separator string="Estimate Costs"/>
@@ -23,7 +24,7 @@
             <field name="est_track_entries" nolabel="1">
                 <list>
                     <field name="date"/>
-                    <field name="track_id"/>
+                    <field name="track_id" condition='[["id","child_of",parent.est_track_id]]'/>
                     <field name="related_id"/>
                     <field name="product_id"/>
                     <field name="description"/>
@@ -38,7 +39,7 @@
             <field name="track_entries" nolabel="1">
                 <list>
                     <field name="date"/>
-                    <field name="track_id"/>
+                    <field name="track_id" condition='[["id","child_of",parent.track_id]]'/>
                     <field name="related_id"/>
                     <field name="product_id"/>
                     <field name="description"/>
@@ -50,6 +51,7 @@
         </tab>
     </tabs>
     <related>
+        <field name="milestones"/>
         <field name="jobs"/>
         <field name="tasks"/>
         <field name="work_time"/>

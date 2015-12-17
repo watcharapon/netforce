@@ -1,0 +1,5 @@
+<inherit inherit="main_menu">
+    <item string="Sales" position="after">
+        <item string="Ecommerce" action="ecom2_board"/>
+    </item>
+</inherit>

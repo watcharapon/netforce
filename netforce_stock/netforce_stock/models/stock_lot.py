@@ -19,6 +19,8 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
+from netforce import access
+import time
 
 
 class StockLot(Model):
@@ -55,5 +57,47 @@ class StockLot(Model):
     _defaults = {
         "number": _get_number,
     }
+
+    def remove_expired_lots(self,context={}):
+        print("StockLot.remove_expired_lots")
+        access.set_active_user(1)
+        access.set_active_company(1)
+        settings=get_model("settings").browse(1)
+        if not settings.lot_expiry_journal_id:
+            raise Exception("Missing lot expiry journal")
+        journal=settings.lot_expiry_journal_id
+        if not journal.location_to_id:
+            raise Exception("Missing to location in lot expiry journal")
+        t=time.strftime("%Y-%m-%d")
+        pick_vals={
+            "type": "out",
+            "journal_id": journal.id,
+            "lines": [],
+        }
+        n=0
+        for obj in self.search_browse([["expiry_date","<",t]]):
+            prod=obj.product_id
+            if not prod:
+                continue
+            for bal in obj.stock_balances:
+                if bal.qty_phys<=0:
+                    continue
+                line_vals={
+                    "product_id": prod.id,
+                    "location_from_id": bal.location_id.id,
+                    "location_to_id": journal.location_to_id.id,
+                    "lot_id": obj.id,
+                    "qty": bal.qty_phys,
+                    "uom_id": prod.uom_id.id,
+                }
+                pick_vals["lines"].append(("create",line_vals))
+                n+=1
+        if pick_vals["lines"]:
+            pick_id=get_model("stock.picking").create(pick_vals,context={"pick_type":"out"})
+            get_model("stock.picking").set_done([pick_id])
+            get_model("stock.picking").trigger([pick_id],"lot_expired")
+        return {
+            "flash": "%d lots removed from stock"%n,
+        }
 
 StockLot.register()

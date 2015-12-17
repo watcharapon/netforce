@@ -31,7 +31,7 @@ class SaleOrderLine(Model):
         "description": fields.Text("Description", required=True, search=True),
         "qty": fields.Decimal("Qty"),
         "uom_id": fields.Many2One("uom", "UoM"),
-        "unit_price": fields.Decimal("Unit Price", search=True, scale=6),
+        "unit_price": fields.Decimal("Unit Price", search=True, required=True, scale=6),
         "tax_id": fields.Many2One("account.tax.rate", "Tax Rate"),
         "amount": fields.Decimal("Amount", function="get_amount", function_multi=True, store=True, function_order=1, search=True),
         "amount_cur": fields.Decimal("Amount", function="get_amount", function_multi=True, store=True, function_order=1, search=True),
@@ -62,6 +62,7 @@ class SaleOrderLine(Model):
         "act_margin_percent": fields.Float("Act. Margin %",function="get_act_profit",function_multi=True),
         "promotion_amount": fields.Decimal("Prom Amt",function="get_amount",function_multi=True),
         "agg_act_profit": fields.Decimal("Total Actual Profit", agg_function=["sum", "act_profit_amount"]),
+        "production_id": fields.Many2One("production.order","Production Order"),
     }
 
     def create(self, vals, context={}):

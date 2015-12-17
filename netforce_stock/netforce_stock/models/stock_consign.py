@@ -23,6 +23,15 @@ from netforce import access
 from datetime import *
 from dateutil.relativedelta import *
 
+def is_business_day(date_s):
+    d=datetime.strptime(date_s,"%Y-%m-%d").date()
+    if d.weekday() in (5,6):
+        return False
+    res=get_model("hr.holiday").search([["date","=",date_s]])
+    if res:
+        return False
+    return True
+
 class StockConsign(Model):
     _name = "stock.consign"
     _string = "Consignment Stock"
@@ -61,45 +70,29 @@ class StockConsign(Model):
 
     def create_periods(self,ids,context={}):
         for obj in self.browse(ids):
-            #date_from=date.today()
-            #date_to=date_from
-            #for i in range(7):
-                #date_from_s=date_from.strftime("%Y-%m-%d")
-                #date_to_s=date_to.strftime("%Y-%m-%d")
-                #res=get_model("stock.consign.period").search([["consign_id","=",obj.id],["date_from","<=",date_to_s],["date_to",">=",date_from_s]])
-                #if res:
-                    #continue
-                #vals={
-                    #"consign_id": obj.id,
-                    #"date_from": date_from_s,
-                    #"date_to": date_to_s,
-                #}
-                #print("create consign period",obj.id,date_from_s,date_to_s)
-                #get_model("stock.consign.period").create(vals)
-                #date_from+=timedelta(days=1)
-                #date_to+=timedelta(days=1)
-            res = get_model("stock.consign.period").search_browse(condition=[["consign_id","=",obj.id]], order="date_from desc")
+            res = get_model("stock.consign.period").search([["consign_id","=",obj.id]], order="date_to desc")
             if res:
-                date_from_s = res[0].date_from
-                date_from = datetime.strptime(date_from_s,"%Y-%m-%d")
+                period_id = res[0]
+                period=get_model("stock.consign.period").browse(period_id)
+                date_from = datetime.strptime(period.date_to,"%Y-%m-%d").date()+timedelta(days=1)
             else:
                 date_from = date.today()
-                date_from_s = date_from.strftime("%Y-%m-%d")
-            date_from = date_from + timedelta(days=1)
-            create_month = date_from.strftime("%m")
-            while create_month == date_from.strftime("%m"):
-                date_from_s = date_from.strftime("%Y-%m-%d")
-                date_to = date_from
-                while 1:
-                    res = get_model("hr.holiday").search([["date","=",(date_to+timedelta(days=1)).strftime("%Y-%m-%d")]])
-                    if (date_to+timedelta(days=1)).weekday() < 5 and not res: 
-                        break
-                    date_to += timedelta(days=1)
-                date_to_s = date_to.strftime("%Y-%m-%d")
+            last_d=date.today()+timedelta(days=1)
+            while date_from<=last_d:
+                next_d=date_from+timedelta(days=1)
+                while not is_business_day(next_d.strftime("%Y-%m-%d")):
+                    next_d+=timedelta(days=1)
+                date_to=next_d-timedelta(days=1)
+                date_from_s=date_from.strftime("%Y-%m-%d")
+                date_to_s=date_to.strftime("%Y-%m-%d")
+                res=get_model("stock.consign.period").search([["consign_id","=",obj.id],["date_from","<=",date_to_s],["date_to",">=",date_from_s]])
+                if res:
+                    print("overlapping consign period already exists",obj.id,date_from_s,date_to_s)
+                    continue
                 vals = {
                     "consign_id": obj.id,
                     "date_from": date_from_s,
-                    "date_to": date_to_s, 
+                    "date_to": date_to_s,
                 }
                 print("create consign period",obj.id,date_from_s,date_to_s)
                 get_model("stock.consign.period").create(vals)

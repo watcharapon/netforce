@@ -20,9 +20,10 @@
 
 from netforce.model import Model, fields, get_model
 from netforce import database
+from datetime import *
 import time
 from netforce import access
-
+import math
 
 class StockBalance(Model):
     _name = "stock.balance"
@@ -175,6 +176,16 @@ class StockBalance(Model):
                         parent_vals["last_change"] = bal_vals["last_change"]
                     parent_vals["qty2"] += bal_vals["qty2"]
                     child_id = parent_id
+            total_virt_qtys={}
+            for (loc_id, cont_id, prod_id, lot_id), bal_vals in bals.items():
+                total_virt_qtys.setdefault(prod_id,0)
+                total_virt_qtys[prod_id]+=bal_vals["qty_virt"]
+            below_prods=set()
+            for prod_id,qty_virt in total_virt_qtys.items():
+                if qty_virt<0: # XXX: take into account min stock rules
+                    below_prods.add(prod_id)
+            for (loc_id, cont_id, prod_id, lot_id), bal_vals in bals.items():
+                bal_vals["below_min"]=prod_id in below_prods
             for (loc_id, cont_id, prod_id, lot_id), bal_vals in bals.items():
                 qty_phys = bal_vals["qty_phys"]
                 qty_virt = bal_vals["qty_virt"]
@@ -184,7 +195,7 @@ class StockBalance(Model):
                 if qty_phys == 0 and qty_virt == 0 and min_qty == 0 and amt == 0:
                     continue
                 prod_loc_qty = prod_loc_qtys.get((loc_id, prod_id), 0)
-                below_min = prod_loc_qty < min_qty
+                below_min = bal_vals["below_min"]
                 uom_id = bal_vals["uom_id"]
                 last_change = bal_vals["last_change"]
                 db.execute("INSERT INTO stock_balance (location_id,container_id,product_id,lot_id,qty_phys,qty_virt,amount,min_qty,uom_id,below_min,last_change,qty2) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
@@ -226,20 +237,38 @@ class StockBalance(Model):
             if obj.qty_virt >= obj.min_qty:
                 continue
             prod = obj.product_id
+            if prod.supply_method!="purchase":
+                raise Exception("Supply method for product %s is not set to 'Purchase'"%prod.code)
             res = get_model("stock.orderpoint").search([["product_id", "=", prod.id]])
             if res:
                 op = get_model("stock.orderpoint").browse(res)[0]
                 max_qty = op.max_qty
             else:
                 max_qty = 0
-            order_qty = max_qty - obj.qty_virt
+            diff_qty = max_qty - obj.qty_virt
+            if prod.purchase_uom_id:
+                purch_uom=prod.purchase_uom_id
+                if not prod.purchase_to_stock_uom_factor:
+                    raise Exception("Missing purchase order -> stock uom factor for product %s"%prod.code)
+                purch_qty=diff_qty/prod.purchase_to_stock_uom_factor
+            else:
+                purch_uom=prod.uom_id
+                purch_qty=diff_qty
+            if prod.purchase_qty_multiple:
+                n=math.ceil(purch_qty/prod.purchase_qty_multiple)
+                purch_qty=n*prod.purchase_qty_multiple
+            if prod.purchase_uom_id:
+                qty_stock=purch_qty*prod.purchase_to_stock_uom_factor
+            else:
+                qty_stock=None
             line_vals = {
                 "product_id": prod.id,
                 "description": prod.name_get()[0][1],
-                "qty": order_qty,
-                "uom_id": prod.uom_id.id,
+                "qty": purch_qty,
+                "uom_id": purch_uom.id,
                 "unit_price": prod.purchase_price or 0,
                 "tax_id": prod.purchase_tax_id.id,
+                "qty_stock": qty_stock,
             }
             if not prod.suppliers:
                 raise Exception("Missing default supplier for product %s" % prod.name)

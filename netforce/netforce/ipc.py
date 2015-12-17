@@ -39,16 +39,19 @@ def init():
 
 
 def check_signals():
-    global _last_handled_signal
-    i = _last_handled_signal
-    while i < _sig_count.value:
-        i += 1
-        sig = _signals[i]
-        f = _handlers.get(sig)
-        if f:
-            f()
-    _last_handled_signal = i
-
+    try:
+        global _last_handled_signal
+        i = _last_handled_signal
+        while i < _sig_count.value:
+            i += 1
+            sig = _signals[i]
+            f = _handlers.get(sig)
+            if f:
+                f()
+        _last_handled_signal = i
+    except Exception as e:
+        print("!"*80)
+        print("WARNING: failed to check signals: %s"%e)
 
 def send_signal(sig):
     print("send_signal", sig)

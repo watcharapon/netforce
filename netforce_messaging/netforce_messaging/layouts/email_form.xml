@@ -3,6 +3,7 @@
         <field name="state"/>
         <button string="Options" dropdown="1">
             <item string="Link Email" method="link_emails"/>
+            <item string="To Draft" method="to_draft" states='to_send,sent,delivered,bounced,rejected,received,error'/>
         </button>
     </head>
     <tabs>

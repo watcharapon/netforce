@@ -16,6 +16,8 @@
     <newline/>
     <field name="product_borrow_journal_id"/>
     <newline/>
+    <field name="lot_expiry_journal_id"/>
+    <newline/>
     <field name="landed_cost_variance_account_id"/>
     <newline/>
     <field name="est_ship_account_id"/>
@@ -25,4 +27,6 @@
     <field name="act_ship_account_id"/>
     <newline/>
     <field name="act_duty_account_id"/>
+    <newline/>
+    <field name="stock_cost_auto_compute"/>
 </form>

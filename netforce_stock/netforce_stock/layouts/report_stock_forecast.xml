@@ -7,6 +7,7 @@
         <field name="period_days" span="2"/>
         <field name="num_periods" span="2"/>
         <newline/>
+        <field name="show_location" span="2"/>
         <field name="show_lot" span="2"/>
     </group>
 </form>
