@@ -124,6 +124,10 @@ class Cart(Model):
             sale_id=get_model("sale.order").create(vals)
             sale=get_model("sale.order").browse(sale_id)
         obj.write({"state": "confirmed"})
+        return {
+            "order_id": sale.id,
+            "order_num": sale.number,
+        }
 
     def to_draft(self,ids,context={}):
         obj=self.browse(ids[0])
