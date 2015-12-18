@@ -92,8 +92,10 @@ class Cart(Model):
             })
         return {ids[0]: res}
 
-    def copy_to_sale(self,ids,context={}):
+    def confirm(self,ids,context={}):
         obj=self.browse(ids)[0]
+        if obj.state=="confirmed":
+            raise Exception("Order is already confirmed")
         access.set_active_company(1) # XXX
         order_lines={}
         for line in obj.lines:
