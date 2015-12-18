@@ -133,7 +133,7 @@ class ReportAccountTrans(Model):
                 ids, ["move_date", "move_number", "description", "contact_id", "move_ref", "debit", "credit", "amount_cur"])
         total_debit = sum([o["debit"] for o in objs])
         total_credit = sum([o["credit"] for o in objs])
-        total_amount_cur = sum([o["amount_cur"] for o in objs])
+        total_amount_cur = sum([o["amount_cur"] or 0 for o in objs])
         balance = total_debit - total_credit
         data = {
             "company_name": comp.name,
@@ -143,7 +143,7 @@ class ReportAccountTrans(Model):
             "totals": {
                 "debit": total_debit,
                 "credit": total_credit,
-                "credit": total_amount_cur,
+                "amount_cur": total_amount_cur,
             },
             "account_name": acc.name,
             "balance_debit": balance > 0 and balance or 0,
