@@ -4,8 +4,8 @@ class EcomInterface(Model):
     _name="ecom2.interface"
     _store=False
 
-    def register(self,first_name,last_name,email,password,context={}):
-        print("EcomInterface.register",first_name,last_name,email,password)
+    def sign_up(self,first_name,last_name,email,password,context={}):
+        print("EcomInterface.sign_up",first_name,last_name,email,password)
         res=get_model("base.user").search([["email","=",email]])
         if res:
             raise Exception("User already exists with same email")
