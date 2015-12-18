@@ -140,4 +140,27 @@ class Cart(Model):
             if qty!=0:
                 get_model("ecom2.cart.line").create({"cart_id": obj.id, "product_id": prod_id, "qty": qty})
 
+    def add_lot(self,ids,prod_id,lot_id,context={}):
+        print("Cart.add_lot",ids,prod_id,lot_id)
+        obj=self.browse(ids[0])
+        line_id=None
+        for line in obj.lines:
+            if line.product_id.id==prod_id and line.lot_id.id==lot_id:
+                line_id=line.id
+                break
+        if line_id:
+            raise Exception("Lot already added to cart")
+        get_model("ecom2.cart.line").create({"cart_id": obj.id, "product_id": prod_id, "lot_id": lot_id, "qty": 1})
+
+    def remove_lot(self,ids,prod_id,lot_id,context={}):
+        obj=self.browse(ids[0])
+        line_id=None
+        for line in obj.lines:
+            if line.product_id.id==prod_id and line.lot_id.id==lot_id:
+                line_id=line.id
+                break
+        if not line_id:
+            raise Exception("Lot not found in cart")
+        get_model("ecom2.cart.line").delete([line_id])
+
 Cart.register()
