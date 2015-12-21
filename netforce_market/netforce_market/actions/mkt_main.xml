@@ -1,0 +1,4 @@
+<action>
+    <field name="view_cls">nf_market</field>
+    <field name="menu">mkt_menu</field>
+</action>
