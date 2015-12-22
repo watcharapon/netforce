@@ -50,9 +50,9 @@ class PurchaseOrder(Model):
         "qty_total": fields.Decimal("Total Quantity", function="get_qty_total"),
         "currency_id": fields.Many2One("currency", "Currency", required=True),
         "tax_type": fields.Selection([["tax_ex", "Tax Exclusive"], ["tax_in", "Tax Inclusive"], ["no_tax", "No Tax"]], "Tax Type", required=True),
-        "invoice_lines": fields.One2Many("account.invoice.line", "purch_id", "Invoice Lines"),
+        "invoice_lines": fields.One2Many("account.invoice.line", "related_id", "Invoice Lines"),
         #"stock_moves": fields.One2Many("stock.move","purch_id","Stock Moves"),
-        "invoices": fields.One2Many("account.invoice", "related_id", "Invoices"),
+        "invoices": fields.Many2Many("account.invoice", "Invoices", function="get_invoices"),
         "pickings": fields.Many2Many("stock.picking", "Stock Pickings", function="get_pickings"),
         "is_delivered": fields.Boolean("Delivered", function="get_delivered"),
         "is_paid": fields.Boolean("Paid", function="get_paid"),
@@ -416,11 +416,12 @@ class PurchaseOrder(Model):
         vals = {}
         for obj in self.browse(ids):
             amt_paid = 0
-            for inv in obj.invoices:
+            for inv_line in obj.invoice_lines:
+                inv=inv_line.invoice_id
                 if inv.state != "paid":
                     continue
-                amt_paid += inv.amount_total
-            is_paid = amt_paid >= obj.amount_total
+                amt_paid += inv_line.amount
+            is_paid = amt_paid >= obj.amount_subtotal
             vals[obj.id] = is_paid
         return vals
 
