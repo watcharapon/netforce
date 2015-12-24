@@ -1242,15 +1242,16 @@ class Model(object):
                     break
                 parent_m=get_model(parent._model)
             if not parent:
-                return None
-            n=fnames[-1]
-            val=parent[n]
-            if n!="id":
-                f=parent_m._fields[n]
-                if isinstance(f,(fields.Many2One,fields.Reference)):
-                    val = val.id
-                elif isinstance(f,(fields.One2Many,fields.Many2Many)):
-                    val=[v.id for v in val]
+                val=None
+            else:
+                n=fnames[-1]
+                val=parent[n]
+                if n!="id":
+                    f=parent_m._fields[n]
+                    if isinstance(f,(fields.Many2One,fields.Reference)):
+                        val = val.id
+                    elif isinstance(f,(fields.One2Many,fields.Many2Many)):
+                        val=[v.id for v in val]
             vals[obj.id] = val
         return vals
 
