@@ -105,7 +105,7 @@ def on_sigterm(signum,frame):
     print("Received SIGTERM")
     print("Kill all child processes...")
     root = psutil.Process(os.getpid())
-    pids=[os.get_pid()]
+    pids=[os.getpid()]
     for child in root.children(recursive=True):
         pids.append(child.pid)
     for pid in pids:
