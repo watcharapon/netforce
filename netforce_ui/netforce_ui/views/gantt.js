@@ -63,11 +63,40 @@ var Gantt=NFView.extend({
                 if (err) {
                     throw "Failed to get gantt data: "+err.message;
                 }
+                var data=_.sortBy(data,function(obj) {
+                    var vals=[];
+                    if (this.group_field) {
+                        vals.push(""+obj[this.group_field][1]); // XXX
+                    }
+                    vals.push(""+obj[this.start_field]);
+                    log("sort_vals",vals);
+                    return vals.join("_");
+                }.bind(this));
                 var proj_data={
                     tasks: [],
-                    canWrite: false,
+                    canWrite: true,
                 };
+                var last_group_name=null;
                 _.each(data,function(obj) {
+                    var group_name=obj[this.group_field][1];
+                    console.log("task ",obj.id,"group",group_name);
+                    if (group_name!=last_group_name) {
+                        console.log("new group",group_name);
+                        var task={
+                            id: Math.floor(Math.random()*100000000), // XXX
+                            name: group_name,
+                            level: 0,
+                            start: new moment(obj[this.start_field]).unix()*1000, // XXX
+                            end: new moment(obj[this.stop_field]).unix()*1000, // XXX
+                            duration: 5, // XXX
+                            startIsMilestone: false,
+                            endIsMilestone: false,
+                            depends: "",
+                            status: "STATUS_ACTIVE",
+                        }
+                        proj_data.tasks.push(task);
+                        last_group_name=group_name;
+                    }
                     var task={
                         id: obj.id,
                         name: obj[this.label_field][1], // XXX
