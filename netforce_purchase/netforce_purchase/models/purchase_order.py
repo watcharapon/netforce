@@ -79,6 +79,7 @@ class PurchaseOrder(Model):
         "agg_amount_subtotal": fields.Decimal("Total Amount w/o Tax", agg_function=["sum", "amount_subtotal"]),
         "user_id": fields.Many2One("base.user", "Owner", search=True),
         "emails": fields.One2Many("email.message", "related_id", "Emails"),
+        "related_id": fields.Reference([["sale.order","Sales Order"],["stock.consign","Consignment Stock"]],"Related To"),
     }
     _order = "date desc,number desc"
 
