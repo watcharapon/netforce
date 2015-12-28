@@ -47,72 +47,187 @@ var Gantt=NFView.extend({
             var gantt_view=get_xml_layout({model:this.options.model,type:"gantt"});
             log("gantt_view",gantt_view);
             this.$layout=$($.parseXML(gantt_view.layout)).children();
-            this.group_field=this.$layout.attr("group");
-            if (!this.group_field) throw "Missing attribute 'group' in gantt layout";
-            this.start_field=this.$layout.attr("start");
-            if (!this.start_field) throw "Missing attribute 'start' in gantt layout";
-            this.stop_field=this.$layout.attr("stop");
-            if (!this.stop_field) throw "Missing attribute 'stop' in gantt layout";
-            this.label_field=this.$layout.attr("label");
-            if (!this.label_field) throw "Missing attribute 'label' in gantt layout";
+            this.group_field_name=this.$layout.attr("group_field");
+            if (this.group_field_name) {
+                this.group_field=get_field(this.options.model,this.group_field_name);
+            }
+            this.subgroup_field_name=this.$layout.attr("subgroup_field");
+            if (this.subgroup_field_name) {
+                this.subgroup_field=get_field(this.options.model,this.subgroup_field_name);
+            }
+            this.subsubgroup_field_name=this.$layout.attr("subsubgroup_field");
+            if (this.subsubgroup_field_name) {
+                this.subsubgroup_field=get_field(this.options.model,this.subsubgroup_field_name);
+            }
+            this.start_field_name=this.$layout.attr("start_field");
+            if (!this.start_field_name) throw "Missing attribute 'start_field' in gantt layout";
+            this.start_field=get_field(this.options.model,this.start_field_name);
+            this.duration_field_name=this.$layout.attr("duration_field");
+            if (!this.duration_field_name) throw "Missing attribute 'duration_field' in gantt layout";
+            this.duration_field=get_field(this.options.model,this.duration_field_name);
+            this.label_field_name=this.$layout.attr("label_field");
+            if (!this.label_field_name) throw "Missing attribute 'label_field' in gantt layout";
+            this.label_field=get_field(this.options.model,this.label_field_name);
+            this.progress_field_name=this.$layout.attr("progress_field");
+            if (this.progress_field_name) {
+                this.progress_field=get_field(this.options.model,this.progress_field_name);
+            }
+            this.depends_field_name=this.$layout.attr("depends_field");
+            if (this.depends_field_name) {
+                this.depends_field=get_field(this.options.model,this.depends_field_name);
+            }
 
             var cond=[];
             console.log("cond ", cond);
-            var fields=[this.group_field,this.start_field,this.stop_field,this.label_field];
+            var fields=[this.start_field_name,this.duration_field_name,this.label_field_name];
+            if (this.group_field_name) fields.push(this.group_field_name);
+            if (this.subgroup_field_name) fields.push(this.subgroup_field_name);
+            if (this.subsubgroup_field_name) fields.push(this.subsubgroup_field_name);
+            if (this.progress_field_name) fields.push(this.progress_field_name);
+            if (this.depends_field_name) fields.push(this.depends_field_name);
             rpc_execute(this.options.model,"search_read",[cond,fields],{},function(err,data) {
                 if (err) {
                     throw "Failed to get gantt data: "+err.message;
                 }
                 var data=_.sortBy(data,function(obj) {
                     var vals=[];
-                    if (this.group_field) {
-                        vals.push(""+obj[this.group_field][1]); // XXX
+                    if (this.group_field_name) {
+                        var group_field_value=render_field_value(obj[this.group_field_name],this.group_field);
+                        vals.push(group_field_value||" ");
                     }
-                    vals.push(""+obj[this.start_field]);
-                    log("sort_vals",vals);
+                    if (this.subgroup_field_name) {
+                        var subgroup_field_value=render_field_value(obj[this.subgroup_field_name],this.subgroup_field);
+                        vals.push(subgroup_field_value||" ");
+                    }
+                    if (this.subsubgroup_field_name) {
+                        var subsubgroup_field_value=render_field_value(obj[this.subsubgroup_field_name],this.subsubgroup_field);
+                        vals.push(subsubgroup_field_value||" ");
+                    }
+                    var start_field_value=render_field_value(obj[this.start_field_name],this.start_field);
+                    vals.push(start_field_value);
                     return vals.join("_");
                 }.bind(this));
+                log("sorted gantt data",data);
                 var proj_data={
                     tasks: [],
                     canWrite: true,
                 };
-                var last_group_name=null;
+                var last_group_value=null;
+                var last_subgroup_value=null;
+                var last_subsubgroup_value=null;
+                var task_index={};
                 _.each(data,function(obj) {
-                    var group_name=obj[this.group_field][1];
-                    console.log("task ",obj.id,"group",group_name);
-                    if (group_name!=last_group_name) {
-                        console.log("new group",group_name);
-                        var task={
-                            id: Math.floor(Math.random()*100000000), // XXX
-                            name: group_name,
-                            level: 0,
-                            start: new moment(obj[this.start_field]).unix()*1000, // XXX
-                            end: new moment(obj[this.stop_field]).unix()*1000, // XXX
-                            duration: 5, // XXX
-                            startIsMilestone: false,
-                            endIsMilestone: false,
-                            depends: "",
-                            status: "STATUS_ACTIVE",
-                        }
-                        proj_data.tasks.push(task);
-                        last_group_name=group_name;
+                    var label_value=render_field_value(obj[this.label_field_name],this.label_field);
+                    var start_date=obj[this.start_field_name];
+                    if (!start_date) throw "Missing start date for task "+obj.id;
+                    var duration=obj[this.duration_field_name];
+                    if (duration==null) throw "Missing duration for task "+obj.id;
+                    if (this.group_field_name) {
+                        var group_value=render_field_value(obj[this.group_field_name],this.group_field);
                     }
+                    if (this.subgroup_field_name) {
+                        var subgroup_value=render_field_value(obj[this.subgroup_field_name],this.subgroup_field);
+                    }
+                    if (this.subsubgroup_field_name) {
+                        var subsubgroup_value=render_field_value(obj[this.subsubgroup_field_name],this.subsubgroup_field);
+                    }
+                    console.log("task ",obj.id,"group",group_value,"subgroup",subgroup_value,"subsubgroup",subsubgroup_value);
+                    if (group_value!=last_group_value) {
+                        console.log("new group",group_value);
+                        if (group_value) {
+                            var task={
+                                id: Math.floor(Math.random()*100000000), // XXX
+                                name: group_value,
+                                level: 0,
+                                start: new moment(start_date).unix()*1000,
+                                startIsMilestone: false,
+                                endIsMilestone: false,
+                                depends: "",
+                                status: "STATUS_ACTIVE",
+                            }
+                            proj_data.tasks.push(task);
+                        }
+                        last_group_value=group_value;
+                        last_subgroup_value=null;
+                        last_subsubgroup_value=null;
+                    }
+                    if (subgroup_value!=last_subgroup_value) {
+                        console.log("new subgroup",subgroup_value);
+                        if (subgroup_value) {
+                            var task={
+                                id: Math.floor(Math.random()*100000000), // XXX
+                                name: subgroup_value,
+                                level: 1,
+                                start: new moment(start_date).unix()*1000,
+                                startIsMilestone: false,
+                                endIsMilestone: false,
+                                depends: "",
+                                status: "STATUS_ACTIVE",
+                            }
+                            proj_data.tasks.push(task);
+                        }
+                        last_subgroup_value=subgroup_value;
+                        last_subsubgroup_value=null;
+                    }
+                    if (subsubgroup_value!=last_subsubgroup_value) {
+                        console.log("new subsubgroup",subsubgroup_value);
+                        if (subsubgroup_value) {
+                            var task={
+                                id: Math.floor(Math.random()*100000000), // XXX
+                                name: subsubgroup_value,
+                                level: 2,
+                                start: new moment(start_date).unix()*1000,
+                                startIsMilestone: false,
+                                endIsMilestone: false,
+                                depends: "",
+                                status: "STATUS_ACTIVE",
+                            }
+                            proj_data.tasks.push(task);
+                        }
+                        last_subsubgroup_value=subsubgroup_value;
+                    }
+                    var level;
+                    if (subsubgroup_value) {
+                        level=3;
+                    } else if (subgroup_value) {
+                        level=2;
+                    } else if (group_value) {
+                        level=1;
+                    } else {
+                        level=0;
+                    }
+                    var depends=null;
+                    if (this.depends_field_name) {
+                        var res=obj[this.depends_field_name];
+                        var deps=[];
+                        _.each(res,function(r) {
+                            var i=task_index[r[0]];
+                            if (!i) throw "Task index not found for task "+r[0];
+                            if (r[1]) {
+                                deps.push(""+i+":"+r[1]);
+                            } else {
+                                deps.push(""+i);
+                            }
+                        });
+                        depends=deps.join(",");
+                    }
+                    log("depends",depends); 
                     var task={
                         id: obj.id,
-                        name: obj[this.label_field][1], // XXX
-                        level: 1,
-                        start: new moment(obj[this.start_field]).unix()*1000,
-                        end: new moment(obj[this.stop_field]).unix()*1000,
-                        duration: 5, // XXX
+                        name: label_value,
+                        level: level,
+                        start: new moment(start_date).unix()*1000,
+                        duration: duration,
                         startIsMilestone: false,
                         endIsMilestone: false,
-                        depends: "",
+                        depends: depends,
                         status: "STATUS_ACTIVE",
-                        progress: 60,
+                        progress: obj[this.progress_field_name],
                         assigs: [],
                     };
-                    console.log("task",task);
+                    console.log("add task",task);
                     proj_data.tasks.push(task);
+                    task_index[task.id]=proj_data.tasks.length;
                 }.bind(this));
                 ge.loadProject(proj_data);
             }.bind(this));
