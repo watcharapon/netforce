@@ -9,6 +9,7 @@
     <field name="duration" onchange="update_end"/>
     <field name="date_start" onchange="update_end"/>
     <field name="date_end"/>
+    <field name="due_date"/>
     <field name="resource_id"/>
     <separator/>
     <field name="project_id"/>

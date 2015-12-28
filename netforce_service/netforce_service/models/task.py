@@ -51,6 +51,7 @@ class Task(Model):
         "date_start": fields.Date("Start Date",required=True),
         "date_end": fields.Date("End Date",required=True,readonly=True),
         "duration": fields.Integer("Duration (Days)",required=True),
+        "due_date": fields.Date("Due Date"),
         "resource_id": fields.Many2One("service.resource","Assigned To"),
         "documents": fields.One2Many("document", "related_id", "Documents"),
         "emails": fields.One2Many("email.message", "related_id", "Emails"),
