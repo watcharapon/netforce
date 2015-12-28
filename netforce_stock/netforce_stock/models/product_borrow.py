@@ -207,7 +207,7 @@ class Borrow(Model):
                 "mode": "form",
                 "active_id": pick_id,
             },
-                "flash": "Picking %s created from borrow request %s" % (pick.number, obj.number),
+            "flash": "Picking %s created from borrow request %s" % (pick.number, obj.number),
             "picking_id": pick_id,
         }
 
