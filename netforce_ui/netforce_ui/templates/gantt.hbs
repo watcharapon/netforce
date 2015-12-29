@@ -1,7 +1,16 @@
 <div class="page-header nf-page-header">
     <h1>{{title}}</h1>
 </div>
-<div class="nf-gantt-content" style="margin-top:20px; position: absolute; left: 0px; padding: 0"></div>
+{{#view "form" border="1" context=context}}
+    {{#view "form_body" background="1" context=context}}
+        {{{call ../../render_search_body context}}}
+    {{/view}}
+{{/view}}
+<div class="btn-toolbar nf-btn-toolbar">
+    <a href="#" class="btn btn-primary run-report">Run Report</a>
+    <a href="#" class="btn btn-default nf-export-xls">Export XLS</a>
+</div>
+<div class="nf-gantt-content" style="margin-top:20px; padding: 0; position: relative"></div>
 
 <div id="gantEditorTemplates" style="display:none;">
   <div class="__template__" type="GANTBUTTONS"><!--

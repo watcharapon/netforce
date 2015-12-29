@@ -23,25 +23,86 @@
 var Gantt=NFView.extend({
     _name: "gantt",
     events: {
+        "click .run-report": "run_report",
     },
 
-    initialize: function(options){
-        console.log("Gantt.initialize");
+    initialize: function(options) {
+        log("Gantt.initialize",this);
+        var that=this;
         NFView.prototype.initialize.call(this,options);
-
+        if (!this.options.model) throw "GanttView: missing model";
+        var search_view=get_xml_layout({model:this.options.model,type:"search",noerr:true});
+        if (!search_view) {
+            search_view=get_default_search_view(this.options.model);
+        }
+        var doc=$.parseXML(search_view.layout);
+        this.$search=$(doc).children();
+        this.model=new NFModel({},{name:"_gantt"});
+        this.data.context.model=this.model;
+        this.data.context.collection=null;
+        this.$search.find("field").each(function() {
+            var $el=$(this);
+            var name=$el.attr("name");
+            log("conv field: "+name);
+            var orig_field=get_field_path(that.options.model,name);
+            var search_field;
+            if (orig_field.type=="char") search_field={type:"char",string:orig_field.string};
+            else if (orig_field.type=="selection") search_field={type:"selection",selection:orig_field.selection,string:orig_field.string};
+            else if (orig_field.type=="many2one") {
+                if ($el.attr("noselect")) {
+                    search_field={type:"char",string:orig_field.string};
+                } else {
+                    search_field={type:"many2one",relation:orig_field.relation,string:orig_field.string};
+                }
+            } else if (orig_field.type=="text") search_field={type:"char",string:orig_field.string};
+            else if (orig_field.type=="reference") search_field={type:"char",string:orig_field.string};
+            else if (orig_field.type=="float") search_field={type:"float_range",string:orig_field.string};
+            else if (orig_field.type=="integer") search_field={type:"float_range",string:orig_field.string}; // XXX
+            else if (orig_field.type=="date" || orig_field.type=="datetime") search_field={type:"date_range",string:orig_field.string};
+            else if (orig_field.type=="boolean") search_field={type:"selection",selection:[["yes","Yes"],["no","No"]],string:orig_field.string};
+            else if (orig_field.type=="many2many") {
+                search_field={type:"many2one",relation:orig_field.relation,string:orig_field.string};
+            }
+            else throw "Can't search field: "+name;
+            that.model.fields[name]=search_field;
+        });
     },
 
     render: function() {
         console.log("Gantt.render",this);
+        var that=this;
         this.data.title=this.options.string;
+        this.data.render_search_body=function(ctx) { return that.render_search_body.call(that,ctx); };
         NFView.prototype.render.call(this);
+        var orig_tasks={};
         setTimeout(function() {
             $("#ganttemplates").loadTemplates();
             var ge=new GanttMaster();
+            var orig_endTransaction=ge.endTransaction.bind(ge);
+            var that=this;
+            ge.endTransaction=function() {
+                log("gantt endTransaction");
+                orig_endTransaction();
+                var new_proj_data=ge.saveProject();
+                log("new_proj_data",new_proj_data);
+                _.each(new_proj_data.tasks,function(task) {
+                    var orig_task=orig_tasks[task.id];
+                    if (!orig_task) return;
+                    if (task.start==orig_task.start && task.duration==orig_task.duration) return;
+                    log("task "+task.id+" modified, saving...",task,orig_task);
+                    orig_tasks[task.id]=task;
+                    var vals={};
+                    vals[that.start_field_name]=moment(task.start).format("YYYY-MM-DD");
+                    vals[that.duration_field_name]=task.duration;
+                    rpc_execute(that.options.model,"write",[[task.id],vals],{},function(err,data) {
+                        if (err) {
+                            throw "Failed to save task "+task.id;
+                        }
+                    });
+                });
+            };
             var workspace=this.$el.find(".nf-gantt-content");
-            var w=$(window).width();
-            var h=$(window).height()-245;
-            workspace.css({width: w, height: h});
+            workspace.css({height: 960});
             log("workspace",workspace);
             ge.init(workspace);
             var gantt_view=get_xml_layout({model:this.options.model,type:"gantt"});
@@ -77,15 +138,15 @@ var Gantt=NFView.extend({
                 this.depends_field=get_field(this.options.model,this.depends_field_name);
             }
 
-            var cond=[];
-            console.log("cond ", cond);
             var fields=[this.start_field_name,this.duration_field_name,this.label_field_name];
             if (this.group_field_name) fields.push(this.group_field_name);
             if (this.subgroup_field_name) fields.push(this.subgroup_field_name);
             if (this.subsubgroup_field_name) fields.push(this.subsubgroup_field_name);
             if (this.progress_field_name) fields.push(this.progress_field_name);
             if (this.depends_field_name) fields.push(this.depends_field_name);
-            rpc_execute(this.options.model,"search_read",[cond,fields],{},function(err,data) {
+            var condition=this.get_condition();
+            console.log("condition",condition);
+            rpc_execute(this.options.model,"search_read",[condition,fields],{},function(err,data) {
                 if (err) {
                     throw "Failed to get gantt data: "+err.message;
                 }
@@ -228,11 +289,103 @@ var Gantt=NFView.extend({
                     console.log("add task",task);
                     proj_data.tasks.push(task);
                     task_index[task.id]=proj_data.tasks.length;
+                    orig_tasks[task.id]=task;
                 }.bind(this));
                 ge.loadProject(proj_data);
             }.bind(this));
         }.bind(this),100);
         return this;
+    },
+
+    render_search_body: function(context) {
+        log("Gantt.render_search_body",this,context);
+        var that=this;
+        var body=$("<div/>");
+        var row=$('<div class="row"/>');
+        body.append(row);
+        var col=0;
+        this.$search.children().each(function() {
+            var $el=$(this);
+            var tag=$el.prop("tagName");
+            if (tag=="field") {
+                var name=$el.attr("name");
+                var cell=$('<div class="col-sm-2"/>');
+                if (col+2>12) {
+                    row=$('<div class="row"/>');
+                    body.append(row);
+                    col=0;
+                }
+                row.append(cell);
+                col+=2;
+                var opts={
+                    name: name,
+                    context: context
+                };
+                var view=Field.make_view(opts);
+                cell.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
+            } else if (tag=="newline") {
+                row=$('<div class="row"/>');
+                body.append(row);
+            }
+        });
+        return body.html();
+    },
+
+    run_report: function(e) {
+        log("report_view.run_report");
+        e.preventDefault();
+        e.stopPropagation();
+        this.render();
+    },
+
+    get_condition: function() {
+        log("report_view.get_condition",this);
+        var that=this;
+        var condition=[];
+        this.$search.find("field").each(function() {
+            var $el=$(this);
+            var n=$el.attr("name");
+            var v=that.model.get(n);
+            if (!v) return;
+            var f=get_field_path(that.options.model,n);
+            var sf=that.model.get_field(n);
+            if ((f.type=="float") || (f.type=="date")) {
+                if (v[0]) {
+                    var clause=[n,">=",v[0]];
+                    condition.push(clause);
+                }
+                if (v[1]) {
+                    var clause=[n,"<=",v[1]];
+                    condition.push(clause);
+                }
+            } else if ((f.type=="many2one") && (sf.type=="many2one")) {
+                if (_.isArray(v)) v=v[0];
+                if ($el.attr("child_of")) {
+                    var clause=[n,"child_of",v];
+                } else {
+                    var clause=[n,"=",v];
+                }
+                condition.push(clause);
+            } else if (f.type=="boolean") {
+                if (v=="yes") {
+                    condition.push([[n,"=",true]]);
+                } else if (v=="no") {
+                    condition.push([[n,"=",false]]);
+                }
+            } else if (f.type=="many2many") {
+                if ($el.attr("child_of")) {
+                    var clause=[n,"child_of",v[0]];
+                } else {
+                    var clause=[n,"=",v[0]];
+                }
+                condition.push(clause);
+            } else {
+                var clause=[n,"ilike",v];
+                condition.push(clause);
+            }
+        });
+        log("=> condition",condition);
+        return condition;
     },
 });
 
