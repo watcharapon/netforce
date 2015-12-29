@@ -3,6 +3,8 @@
         <field name="state"/>
         <button string="Options" dropdown="1">
             <item string="Allocate Credit" action="credit_alloc"/>
+            <divider/>
+            <item string="View Journal Entry" method="view_journal_entry" states="paid"/>
         </button>
     </head>
     <group form_layout="stacked">
