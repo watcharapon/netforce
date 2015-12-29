@@ -1233,4 +1233,44 @@ class SaleOrder(Model):
             rate=rate_from/rate_to
         return rate
 
+    def copy_to_sale_return(self,ids,context={}):
+        for obj in self.browse(ids):
+            order_vals = {}
+            order_vals = {
+                "contact_id":obj.contact_id.id,
+                "date":obj.date,
+                "ref":obj.number,
+                "due_date":obj.due_date,
+                "currency_id":obj.currency_id.id,
+                "tax_type":obj.tax_type,
+                "bill_address_id":obj.bill_address_id.id,
+                "ship_address_id":obj.ship_address_id.id,
+                "lines":[],
+            }
+            for line in obj.lines:
+                line_vals = {
+                    "product_id":line.product_id.id,
+                    "description":line.description,
+                    "qty":line.qty,
+                    "uom_id":line.uom_id.id,
+                    "unit_price":line.unit_price,
+                    "discount":line.discount,
+                    "discount_amount":line.discount_amount,
+                    "tax_id":line.tax_id.id,
+                    "amount":line.amount,
+                    "location_id":line.location_id.id,
+                }
+                order_vals["lines"].append(("create", line_vals))
+            sale_id = get_model("sale.return").create(order_vals)
+            sale = get_model("sale.return").browse(sale_id)
+        return {
+            "next": {
+                "name": "sale_return",
+                "mode": "form",
+                "active_id": sale_id,
+            },
+            "flash": "Sale Return %s created from sales order %s" % (sale.number, obj.number),
+            "order_id": sale_id,
+        }
+
 SaleOrder.register()
