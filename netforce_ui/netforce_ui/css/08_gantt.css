@@ -94,7 +94,7 @@
 
 .fixHead{
   position: absolute;
-  z-index: 2000;
+  z-index: 999; /* XXX */
   top:0;
 }
 
