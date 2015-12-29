@@ -564,6 +564,8 @@ Ganttalendar.prototype.drawTask = function (task) {
       }
     }
 
+    //var act_comp_date = svg.rect(taskSvg, 0, 20, "150%", "20%", {fill:"rgba(255,0,0,.5)"});
+
     if (task.hasChild)
       svg.rect(taskSvg, 0, 0, "100%", 3, {fill:"#000"});
 

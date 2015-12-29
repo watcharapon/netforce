@@ -384,7 +384,7 @@ input[readonly]{
 }
 
 .taskBoxSVG{
-  overflow: visible;
+  overflow: visible !important; /* XXX */
 }
 
 .taskBoxSVG .taskLayout{

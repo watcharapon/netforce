@@ -26,6 +26,9 @@ var Gantt=NFView.extend({
         "click .run-report": "run_report",
         "click .nf-zoom-in": "zoom_in",
         "click .nf-zoom-out": "zoom_out",
+        "click .nf-move-up": "move_up",
+        "click .nf-move-down": "move_down",
+        "click .nf-critical-path": "critical_path",
     },
 
     initialize: function(options) {
@@ -401,6 +404,22 @@ var Gantt=NFView.extend({
     zoom_out: function(e) {
         e.preventDefault();
         this.$el.find(".nf-gantt-content").trigger("zoomMinus.gantt");
+    },
+
+    move_up: function(e) {
+        e.preventDefault();
+        this.$el.find(".nf-gantt-content").trigger("moveUpCurrentTask.gantt");
+    },
+
+    move_down: function(e) {
+        e.preventDefault();
+        this.$el.find(".nf-gantt-content").trigger("moveDownCurrentTask.gantt");
+    },
+
+    critical_path: function(e) {
+        e.preventDefault();
+        this.ge.gantt.showCriticalPath=!this.ge.gantt.showCriticalPath;
+        this.ge.redraw();
     },
 });
 

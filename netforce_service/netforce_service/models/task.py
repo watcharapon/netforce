@@ -39,6 +39,7 @@ class Task(Model):
     _name_field = "title"
     _fields = {
         "number": fields.Char("Number",required=True,search=True),
+        "sequence": fields.Integer("Sequence"),
         "date_created": fields.DateTime("Date Created",required=True,search=True),
         "project_id": fields.Many2One("project","Project",required=True,search=True),
         "milestone_id": fields.Many2One("project.milestone","Milestone",search=True),
@@ -49,9 +50,10 @@ class Task(Model):
         "description": fields.Text("Description",search=True),
         "progress": fields.Integer("Progress (%)"),
         "date_start": fields.Date("Start Date",required=True),
-        "date_end": fields.Date("End Date",required=True,readonly=True),
+        "date_end": fields.Date("End Date",required=True,readonly=True,function="get_end_date",store=True),
         "duration": fields.Integer("Duration (Days)",required=True),
         "due_date": fields.Date("Due Date"),
+        "done_date": fields.Date("Completion Date"),
         "resource_id": fields.Many2One("service.resource","Assigned To"),
         "documents": fields.One2Many("document", "related_id", "Documents"),
         "emails": fields.One2Many("email.message", "related_id", "Emails"),
@@ -94,10 +96,8 @@ class Task(Model):
             vals[obj.id]=res
         return vals
 
-    def update_end(self,context={}):
-        data=context.get("data",{})
-        duration=data.get("duration",0)
-        d=datetime.strptime(data["date_start"],"%Y-%m-%d")
+    def calc_end_date(self,date_start,duration):
+        d=datetime.strptime(date_start,"%Y-%m-%d")
         dur=0
         while True:
             if not is_holiday(d):
@@ -105,7 +105,28 @@ class Task(Model):
             if dur>=duration:
                 break
             d+=timedelta(days=1)
-        data["date_end"]=d.strftime("%Y-%m-%d")
+        return d.strftime("%Y-%m-%d")
+
+    def update_end(self,context={}):
+        data=context.get("data",{})
+        date_start=data["date_start"]
+        duration=data.get("duration",0)
+        data["date_end"]=self.calc_end_date(date_start,duration)
         return data
+
+    def get_end_date(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            vals[obj.id]=self.calc_end_date(obj.date_start,obj.duration)
+        return vals
+
+    def create(self,vals,*args,**kw):
+        new_id=super().create(vals,*args,**kw)
+        self.function_store([new_id])
+        return new_id
+
+    def write(self,ids,*args,**kw):
+        super().write(ids,*args,**kw)
+        self.function_store(ids)
 
 Task.register()

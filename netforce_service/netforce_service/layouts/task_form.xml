@@ -3,6 +3,7 @@
         <field name="state"/>
     </head>
     <field name="number"/>
+    <field name="sequence"/>
     <field name="date_created"/>
     <separator/>
     <field name="title"/>
@@ -22,6 +23,7 @@
     <field name="progress"/>
     <separator/>
     <field name="state"/>
+    <field name="done_date"/>
     <related>
         <field name="depends">
             <list>

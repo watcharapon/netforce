@@ -1,5 +1,6 @@
 <list model="task" colors='{"#ccc":[["state","=","closed"]],"#ccf":[["state","=","in_progress"]],"#efe":[["state","=","ready"]],"#fcc":[["state","=","wait_customer"]],"#ffc":[["state","=","wait_internal"]]}'>
     <field name="number"/>
+    <field name="sequence"/>
     <field name="date_created"/>
     <field name="title"/>
     <field name="resource_id"/>
