@@ -1,0 +1,6 @@
+<form model="task.list.template">
+    <field name="name"/>
+    <related>
+        <field name="task_templates"/>
+    </related>
+</form>
