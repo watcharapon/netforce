@@ -263,7 +263,9 @@ var Gantt=NFView.extend({
                         var deps=[];
                         _.each(res,function(r) {
                             var i=task_index[r[0]];
-                            if (!i) throw "Task index not found for task "+r[0];
+                            if (!i) {
+                                log("WARNING: Task index not found for task "+r[0]);
+                            }
                             if (r[1]) {
                                 deps.push(""+i+":"+r[1]);
                             } else {
