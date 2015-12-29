@@ -24,6 +24,8 @@ var Gantt=NFView.extend({
     _name: "gantt",
     events: {
         "click .run-report": "run_report",
+        "click .nf-zoom-in": "zoom_in",
+        "click .nf-zoom-out": "zoom_out",
     },
 
     initialize: function(options) {
@@ -78,6 +80,7 @@ var Gantt=NFView.extend({
         setTimeout(function() {
             $("#ganttemplates").loadTemplates();
             var ge=new GanttMaster();
+            this.ge=ge;
             var orig_endTransaction=ge.endTransaction.bind(ge);
             var that=this;
             ge.endTransaction=function() {
@@ -388,6 +391,16 @@ var Gantt=NFView.extend({
         });
         log("=> condition",condition);
         return condition;
+    },
+
+    zoom_in: function(e) {
+        e.preventDefault();
+        this.$el.find(".nf-gantt-content").trigger("zoomPlus.gantt");
+    },
+
+    zoom_out: function(e) {
+        e.preventDefault();
+        this.$el.find(".nf-gantt-content").trigger("zoomMinus.gantt");
     },
 });
 
