@@ -2016,6 +2016,8 @@ class Model(object):
                     continue
                 if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
                     vals[n] = obj[n]
+                elif isinstance(f, fields.Decimal):
+                    vals[n] = obj[n] if obj[n] is None else float(obj[n])
                 elif isinstance(f, fields.Many2One):
                     v = obj[n]
                     if v:
