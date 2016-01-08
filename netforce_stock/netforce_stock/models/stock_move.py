@@ -163,11 +163,11 @@ class Move(Model):
         set_active_user(user_id)
         return new_id
 
-    def write(self, ids, vals, context={}):
+    def write(self, ids, vals, **kw):
         prod_ids = []
         for obj in self.browse(ids):
             prod_ids.append(obj.product_id.id)
-        super().write(ids, vals, context=context)
+        super().write(ids, vals, **kw)
         prod_id = vals.get("product_id")
         if prod_id:
             prod_ids.append(prod_id)
