@@ -38,5 +38,6 @@ class Company(Model):
         "contact_id": fields.Many2One("contact","Contact"),
     }
     _order = "name"
+    _constraints = ["_check_cycle"]
 
 Company.register()
