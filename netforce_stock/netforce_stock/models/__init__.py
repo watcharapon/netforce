@@ -66,3 +66,4 @@ from . import messenger
 from . import report_stock_plan
 from . import stock_order
 from . import stock_order_line
+from . import stock_settings
