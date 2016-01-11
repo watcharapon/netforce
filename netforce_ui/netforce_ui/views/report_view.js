@@ -646,7 +646,7 @@ var ReportView=NFView.extend({
             url+="&agg_field="+agg_field;
         }
         if (agg_field2) {
-            url+="&agg_field2="+agg_field;
+            url+="&agg_field2="+agg_field2;
         }
         download_url(url);
     }
