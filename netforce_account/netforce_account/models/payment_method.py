@@ -18,7 +18,8 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from netforce.model import Model, fields
+from netforce.model import Model, fields, get_model
+from netforce.logger import audit_log
 
 
 class PaymentMethod(Model):
@@ -45,5 +46,57 @@ class PaymentMethod(Model):
         "scb_url": fields.Selection([["test", "Test URL"], ["production", "Production URL"]], "Server URL"),
     }
     _order = "sequence,name"
+
+    def start_payment(self,ids,context={}):
+        pass
+
+    def payment_received(self,context={}):
+        transaction_no=context.get("transaction_no")
+        amount=context.get("amount")
+        currency_id=context.get("currency_id")
+        pay_type=context.get("type")
+        res=get_model("account.invoice").search([["transaction_no","=",transaction_no]])
+        if not res:
+            return
+        inv_id=res[0]
+        inv=get_model("account.invoice").browse(inv_id)
+        if currency_id!=inv.currency_id.id:
+            raise Exception("Received invoice payment in wrong currency (pmt: %s, inv: %s)"%(currency_id,inv.currency_id.id))
+        method=inv.pay_method_id
+        if not method:
+            raise Exception("Missing invoice payment method")
+        if method.type!=pay_type:
+            raise Exception("Received invoice payment with wrong method (pmt: %s, inv: %s)"%(pay_type,method.type))
+        audit_log("Payment received: transaction_no=%s"%transaction_no)
+        res=get_model("account.payment").search([["transaction_no","=",transaction_no]])
+        if res:
+            audit_log("Payment already recorded: transaction_no=%s"%transaction_no)
+            pmt_id=res[0]
+        else:
+            audit_log("Recording new payment: transaction_no=%s"%transaction_no)
+            if not method.account_id:
+                raise Exception("Missing account for payment method %s"%method.name)
+            pmt_vals={
+                "type": "in",
+                "pay_type": "invoice",
+                "contact_id": inv.contact_id.id,
+                "account_id": method.account_id.id,
+                "lines": [],
+                "company_id": inv.company_id.id,
+                "transaction_no": transaction_no,
+            }
+            line_vals={
+                "invoice_id": inv_id,
+                "amount": amount,
+            }
+            pmt_vals["lines"].append(("create",line_vals))
+            pmt_id=get_model("account.payment").create(pmt_vals,context={"type": "in"})
+            get_model("account.payment").post([pmt_id])
+        return {
+            "next_url": "/ui#name=payment&mode=form&active_id=%d"%pmt_id,
+        }
+
+    def payment_error(self,context={}):
+        pass
 
 PaymentMethod.register()

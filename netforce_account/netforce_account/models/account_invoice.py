@@ -92,6 +92,7 @@ class Invoice(Model):
         "quarter": fields.Char("Quarter", sql_function=["quarter", "date"]),
         "month": fields.Char("Month", sql_function=["month", "date"]),
         "week": fields.Char("Week", sql_function=["week", "date"]),
+        "transaction_no": fields.Char("Transaction ID",search=True),
     }
     _order = "date desc,number desc"
 
@@ -1056,5 +1057,24 @@ class Invoice(Model):
         num = self._get_number(context={"type": data["type"], "inv_type": data["inv_type"], "date": data["date"], "sequence_id": seq_id})
         data["number"] = num
         return data
+
+    def pay_online(self,ids,context={}):
+        obj=self.browse(ids[0])
+        method=obj.pay_method_id
+        if not method:
+            raise Exception("Missing payment method for invoice %s"%obj.number)
+        ctx={
+            "amount": obj.amount_total,
+            "currency_id": obj.currency_id.id,
+            "details": "Invoice %s"%obj.number,
+        }
+        res=method.start_payment(context=ctx)
+        if not res:
+            raise Exception("Failed to start online payment for payment method %s"%method.name)
+        transaction_no=res["transaction_no"]
+        obj.write({"transaction_no":transaction_no})
+        return {
+            "next": res["payment_action"],
+        }
 
 Invoice.register()

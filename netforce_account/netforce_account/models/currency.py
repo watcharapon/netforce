@@ -47,6 +47,7 @@ class Currency(Model):
         "name": fields.Char("Name", required=True, search=True),
         "code": fields.Char("Code", required=True, search=True),
         "sign": fields.Char("Sign", required=True),
+        "iso_number": fields.Char("ISO Number"),
         "rates": fields.One2Many("currency.rate", "currency_id", "Rate History"),
         "sell_rate": fields.Decimal("Current Sell Rate", scale=6, function="get_current_rate", function_multi=True),
         "buy_rate": fields.Decimal("Current Buy Rate", scale=6, function="get_current_rate", function_multi=True),

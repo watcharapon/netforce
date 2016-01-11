@@ -69,6 +69,7 @@ class Payment(Model):
         "credit_invoices": fields.One2Many("account.invoice", "payment_id", "Credit Invoices"),
         "journal_id": fields.Many2One("account.journal", "Journal"),
         "sequence_id": fields.Many2One("sequence", "Number Sequence"),
+        "transaction_no": fields.Char("Transaction ID",search=True),
     }
     _order = "date desc,id desc"
 
