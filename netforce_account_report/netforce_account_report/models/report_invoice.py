@@ -23,7 +23,7 @@ from datetime import *
 from dateutil.relativedelta import *
 from netforce import database
 from netforce.utils import get_file_path
-
+from decimal import Decimal
 
 class ReportInvoice(Model):
     _name = "report.invoice"
@@ -98,7 +98,7 @@ class ReportInvoice(Model):
             "is_cash": is_cash,
             "is_cheque": is_cheque,
             "currency_code": inv.currency_id.code,
-            "tax_rate": round(inv.amount_tax * 100.0 / inv.amount_subtotal or 0, 2),
+            "tax_rate": round(inv.amount_tax * Decimal(100.0) / inv.amount_subtotal or 0, 2),
             "qty_total": inv.qty_total,
             "memo": inv.memo,
         })
