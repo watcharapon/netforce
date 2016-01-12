@@ -32,7 +32,8 @@ class ReportDepSchedule(Model):
     _fields = {
         "date_from": fields.Date("From", required=True),
         "date_to": fields.Date("To", required=True),
-        "track_id": fields.Many2One("account.track.categ", "Tracking"),
+        "track_id": fields.Many2One("account.track.categ", "Tracking-1"),
+        "track_id2": fields.Many2One("account.track.categ", "Tracking-2"),
     }
 
     _defaults = {
@@ -50,10 +51,13 @@ class ReportDepSchedule(Model):
         date_from = params["date_from"]
         date_to = params["date_to"]
         track_id = params.get("track_id")
+        track_id2 = params.get("track_id2")
         assets = {}
         cond = [["state", "=", "registered"]]
         if track_id:
             cond.append(["track_id", "=", track_id])
+        if track_id2:
+            cond.append(["track_id2", "=", track_id2])
         for asset in get_model("account.fixed.asset").search_browse(cond, context={"date": date_from}):
             vals = {
                 "asset_id": asset.id,
