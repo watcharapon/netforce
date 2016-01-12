@@ -50,7 +50,7 @@ class Task(Model):
         "description": fields.Text("Description",search=True),
         "progress": fields.Integer("Progress (%)"),
         "date_start": fields.Date("Start Date",required=True),
-        "date_end": fields.Date("End Date",required=True,readonly=True,function="get_end_date",store=True),
+        "date_end": fields.Date("End Date",function="get_end_date",store=True),
         "duration": fields.Integer("Duration (Days)",required=True),
         "due_date": fields.Date("Due Date"),
         "done_date": fields.Date("Completion Date"),

@@ -27,7 +27,7 @@ class TaskListTemplate(Model):
     _name = "task.list.template"
     _string = "Task List Template"
     _fields = {
-        "name": fields.Char("Name"),
+        "name": fields.Char("Name",required=True),
         "task_templates": fields.One2Many("task.template","task_list_template_id","Task Templates"),
     }
     _order = "name"

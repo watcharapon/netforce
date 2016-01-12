@@ -45,3 +45,4 @@ from . import report_service_time
 from . import service_create_quot
 from . import service_application
 from . import project_milestone
+from . import create_task_list

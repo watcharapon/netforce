@@ -28,30 +28,14 @@ class TaskTemplate(Model):
     _string = "Task Template"
     _name_field = "description"
     _fields = {
-        "job_template_id": fields.Many2One("job.template", "Job Template", required=True, on_delete="cascade"), # deprecated
+        "job_template_id": fields.Many2One("job.template", "Job Template", on_delete="cascade"), # XXX: deprecated
         "task_list_template_id": fields.Many2One("task.list.template", "Task List Template", required=True, on_delete="cascade"),
         "sequence": fields.Integer("Sequence"),
+        "title": fields.Char("Title",required=True),
         "description": fields.Text("Description"),
-        "product_id": fields.Many2One("product", "Product", condition=[["type", "=", "service"]]),
-        "qty": fields.Decimal("Qty"),
-        "uom_id": fields.Many2One("uom", "UoM"),
-        "unit_price": fields.Decimal("Sale Unit Price"),
-        "amount": fields.Decimal("Sale Amount", function="get_amount"),
+        "duration": fields.Integer("Duration (Days)",required=True),
+        "start_after":  fields.Integer("Start After (Days)"),
     }
-    _order = "sequence,name"
-
-    def onchange_product(self, context={}):
-        data = context["data"]
-        prod_id = data["product_id"]
-        prod = get_model("product").browse(prod_id)
-        data["uom_id"] = prod.uom_id.id
-        data["unit_price"] = prod.sale_price
-        return data
-
-    def get_amount(self, ids, context={}):
-        vals = {}
-        for obj in self.browse(ids):
-            vals[obj.id] = (obj.qty or 0) * (obj.unit_price or 0)
-        return vals
+    _order = "task_list_template_id.name,sequence"
 
 TaskTemplate.register()
