@@ -158,8 +158,8 @@ var FormView=NFView.extend({
                 }
                 that.data.show_background=!that.data.readonly;
                 NFView.prototype.render.call(that);
-                if (that.focus_field) {
-                    var view=that.get_field_view(that.focus_field);
+                if (that.options.focus_field) {
+                    var view=that.get_field_view(that.options.focus_field);
                     view.focus();
                 }
             });
@@ -216,8 +216,8 @@ var FormView=NFView.extend({
                 }
                 that.data.show_background=!that.data.readonly;
                 NFView.prototype.render.call(that);
-                if (that.focus_field) {
-                    var view=that.get_field_view(that.focus_field);
+                if (that.options.focus_field) {
+                    var view=that.get_field_view(that.options.focus_field);
                     view.focus();
                 }
             });
