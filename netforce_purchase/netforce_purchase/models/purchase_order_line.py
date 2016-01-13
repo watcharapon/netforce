@@ -66,7 +66,7 @@ class PurchaseOrderLine(Model):
             amt = (line.qty * line.unit_price) - (line.discount_amount or 0)
             order = line.order_id
             vals[line.id] = {
-                "amount": amt,
+                "amount": round(amt,2), #XXX
                 "amount_cur": get_model("currency").convert(amt, order.currency_id.id, settings.currency_id.id),
             }
         return vals
