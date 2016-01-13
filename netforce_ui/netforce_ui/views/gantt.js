@@ -212,6 +212,7 @@ var Gantt=NFView.extend({
                                 depends: "",
                                 status: "STATUS_ACTIVE",
                             }
+                            console.log("add task group",task);
                             proj_data.tasks.push(task);
                         }
                         last_group_value=group_value;
@@ -220,48 +221,45 @@ var Gantt=NFView.extend({
                     }
                     if (subgroup_value!=last_subgroup_value) {
                         console.log("new subgroup",subgroup_value);
+                        var level=0;
+                        if (group_value) level+=1;
                         if (subgroup_value) {
                             var task={
                                 id: Math.floor(Math.random()*100000000), // XXX
                                 name: subgroup_value,
-                                level: 1,
+                                level: level,
                                 start: new moment(start_date).unix()*1000,
                                 startIsMilestone: false,
                                 endIsMilestone: false,
                                 depends: "",
                                 status: "STATUS_ACTIVE",
                             }
+                            console.log("add task subgroup",task);
                             proj_data.tasks.push(task);
                         }
                         last_subgroup_value=subgroup_value;
                         last_subsubgroup_value=null;
                     }
                     if (subsubgroup_value!=last_subsubgroup_value) {
-                        console.log("new subsubgroup",subsubgroup_value);
+                        console.log("new subsubgroup","new:",subsubgroup_value,"old:",last_subsubgroup_value);
                         if (subsubgroup_value) {
+                            var level=0;
+                            if (group_value) level+=1;
+                            if (subgroup_value) level+=1;
                             var task={
                                 id: Math.floor(Math.random()*100000000), // XXX
                                 name: subsubgroup_value,
-                                level: 2,
+                                level: level,
                                 start: new moment(start_date).unix()*1000,
                                 startIsMilestone: false,
                                 endIsMilestone: false,
                                 depends: "",
                                 status: "STATUS_ACTIVE",
                             }
+                            console.log("add task subsubgroup",task);
                             proj_data.tasks.push(task);
                         }
                         last_subsubgroup_value=subsubgroup_value;
-                    }
-                    var level;
-                    if (subsubgroup_value) {
-                        level=3;
-                    } else if (subgroup_value) {
-                        level=2;
-                    } else if (group_value) {
-                        level=1;
-                    } else {
-                        level=0;
                     }
                     var depends=null;
                     if (this.depends_field_name) {
@@ -280,6 +278,10 @@ var Gantt=NFView.extend({
                         });
                         depends=deps.join(",");
                     }
+                    var level=0;
+                    if (group_value) level+=1;
+                    if (subgroup_value) level+=1;
+                    if (subsubgroup_value) level+=1;
                     log("depends",depends); 
                     var task={
                         id: obj.id,
@@ -300,9 +302,38 @@ var Gantt=NFView.extend({
                     orig_tasks[task.id]=task;
                 }.bind(this));
                 ge.loadProject(proj_data);
+                var proj_data=ge.saveProject(); // XXX: to update group dates
+                this.update_group_dates(proj_data);
+                ge.loadProject(proj_data);
             }.bind(this));
         }.bind(this),100);
         return this;
+    },
+
+    update_group_dates: function(proj_data) {
+        log("update_group_dates");
+        var parents=[];
+        var prev_task=null;
+        _.each(proj_data.tasks,function(task) {
+            if (prev_task && task.level>prev_task.level) {
+                parents.push(prev_task);
+                prev_task.start=null;
+                prev_task.end=null;
+            } else {
+                parents=parents.slice(0,task.level);
+            }
+            _.each(parents,function(p) {
+                if (!p.start || task.start < p.start) {
+                    p.start=task.start;
+                }
+                if (!p.end || task.end>p.end) {
+                    p.end=task.end;
+                }
+                p.duration=recomputeDuration(p.start,p.end);
+            });
+            prev_task=task;
+        });
+        log("proj_data after update group",proj_data);
     },
 
     render_search_body: function(context) {
