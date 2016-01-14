@@ -134,7 +134,7 @@ class ComputeCost(Model):
                 loc_from=locations.get(m["loc_from_id"])
                 if loc_from:
                     if loc_from["qty"]>=m["conv_qty"]:
-                        cost_price=loc_from["amt"]/loc_from["qty"]
+                        cost_price=loc_from["amt"]/loc_from["qty"] if loc_from_qty else 0
                         m["cost_amount"]=round(cost_price*m["conv_qty"],2)
                         loc_from["qty"]-=m["conv_qty"]
                         loc_from["amt"]-=m["cost_amount"]
