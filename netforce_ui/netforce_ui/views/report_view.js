@@ -633,6 +633,7 @@ var ReportView=NFView.extend({
         var group_field=this.model.get("_group_field1");
         var subgroup_field=this.model.get("_group_field2");
         var agg_field=this.model.get("_agg_field1");
+        var agg_field2=this.model.get("_agg_field2");
         var condition=this.get_condition();
         var url="/report_xls?model="+model+"&condition="+JSON.stringify(condition);
         if (group_field) {
@@ -643,6 +644,9 @@ var ReportView=NFView.extend({
         }
         if (agg_field) {
             url+="&agg_field="+agg_field;
+        }
+        if (agg_field2) {
+            url+="&agg_field2="+agg_field2;
         }
         download_url(url);
     }

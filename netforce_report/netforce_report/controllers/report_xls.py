@@ -48,6 +48,7 @@ class ReportXLS(Controller):
             group_field = self.get_argument("group_field", None)
             subgroup_field = self.get_argument("subgroup_field", None)
             agg_field = self.get_argument("agg_field", None)
+            agg_field2 = self.get_argument("agg_field2", None)
             m = get_model(model)
             group_fields = []
             if group_field:
@@ -57,6 +58,8 @@ class ReportXLS(Controller):
             agg_fields = []
             if agg_field:
                 agg_fields.append(agg_field)
+            if agg_field2:
+                agg_fields.append(agg_field2)
             order = ",".join(group_fields)
             lines = m.read_group(group_fields, agg_fields, condition, order=order)
 

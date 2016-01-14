@@ -15,6 +15,7 @@
         <field name="number" span="2"/>
         <field name="fixed_asset_account_id" span="2" condition='[["type","!=","view"]]'/>
         <field name="track_id" span="2"/>
+        <field name="track2_id" span="2"/>
         <newline/>
         <field name="date_purchase" span="2"/>
         <field name="price_purchase" span="2"/>
