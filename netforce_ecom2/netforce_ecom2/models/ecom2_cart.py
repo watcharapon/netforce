@@ -94,6 +94,12 @@ class Cart(Model):
 
     def confirm(self,ids,context={}):
         obj=self.browse(ids)[0]
+        user_id=context.get("user_id") # XXX: remove this later
+        if user_id:
+            user_id=int(user_id)
+            user=get_model("base.user").browse(user_id)
+            if user.contact_id: # XXX
+                obj.write({"customer_id": user.contact_id.id})
         if obj.state=="confirmed":
             raise Exception("Order is already confirmed")
         access.set_active_company(1) # XXX
@@ -113,16 +119,23 @@ class Cart(Model):
                 "related_id": "ecom2.cart,%s"%obj.id,
             }
             for line in lines:
+                prod=line.product_id
+                if not prod.locations:
+                    raise Exception("Can't find location for product %s"%prod.code)
+                location_id=prod.locations[0].location_id.id
                 line_vals={
-                    "product_id": line.product_id.id,
-                    "description": line.product_id.description,
+                    "product_id": prod.id,
+                    "description": prod.description,
                     "qty": line.qty,
                     "uom_id": line.uom_id.id,
                     "unit_price": line.unit_price,
+                    "location_id": location_id,
+                    "lot_id": line.lot_id.id,
                 }
                 vals["lines"].append(("create",line_vals))
             sale_id=get_model("sale.order").create(vals)
             sale=get_model("sale.order").browse(sale_id)
+            sale.confirm()
         obj.write({"state": "confirmed"})
         return {
             "order_id": sale.id,

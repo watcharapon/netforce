@@ -149,9 +149,21 @@ class Picking(Model):
                 if obj.related_id and not move.related_id:
                     move.write({"related_id":"%s,%d"%(obj.related_id._model,obj.related_id.id)})
             obj.write({"state": "pending", "pending_by_id": user_id})
+            obj.check_stock()
+
+    def check_stock(self,ids,context={}):
+        print("stock_picking.check_stock",ids)
+        obj=self.browse(ids)[0]
+        for move in obj.lines:
+            prod=move.product_id
+            if not prod.check_lot_neg_stock:
+                continue
+            qty_virt=get_model("stock.balance").get_qty_virt(move.location_from_id.id,prod.id,move.lot_id.id) # XXX: improve speed
+            print("loc_id=%s prod_id=%s lot_id=%s => qty_virt=%s"%(move.location_from_id.id,prod.id,move.lot_id.id,qty_virt))
+            if qty_virt<0:
+                raise Exception("Lot %s is out of stock (product %s)"%(move.lot_id.number,prod.code))
 
     def approve(self, ids, context={}):
-        user_id = get_active_user()
         for obj in self.browse(ids):
             for move in obj.lines:
                 move.write({"state": "approved", "date": obj.date})
