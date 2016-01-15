@@ -72,13 +72,28 @@ class Cart(Model):
         slots=[]
         for slot in get_model("delivery.slot").search_browse([]):
             slots.append([slot.id,slot.name])
+        slot_num_sales={}
+        for sale in get_model("sale.order").search_browse([["date",">=",time.strftime("%Y-%m-%d")]]):
+            k=(sale.due_date,sale.delivery_slot_id.id)
+            slot_num_sales.setdefault(k,0)
+            slot_num_sales[k]+=1
+        slot_caps={}
+        for cap in get_model("delivery.slot.capacity").search_browse([]):
+            k=(cap.slot_id.id,int(cap.weekday))
+            slot_caps[k]=cap.capacity
         days=[]
         while d<=d_to:
             ds=d.strftime("%Y-%m-%d")
+            w=d.weekday()
             day_slots=[]
             for slot_id,slot_name in slots:
-                state="avail" # "full" if capacity full
-                day_slots.append([slot_id,slot_name,state])
+                capacity=slot_caps.get((slot_id,w))
+                num_sales=slot_num_sales.get((ds,slot_id),0)
+                if capacity is not None and num_sales>=capacity:
+                    state="full"
+                else:
+                    state="avail"
+                day_slots.append([slot_id,slot_name,state,num_sales,capacity])
             days.append([ds,day_slots])
             d+=timedelta(days=1)
         return {obj.id: days}
@@ -117,6 +132,7 @@ class Cart(Model):
                 "due_date": due_date,
                 "lines": [],
                 "related_id": "ecom2.cart,%s"%obj.id,
+                "delivery_slot_id": obj.delivery_slot_id.id,
             }
             for line in lines:
                 prod=line.product_id
