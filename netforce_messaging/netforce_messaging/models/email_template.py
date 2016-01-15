@@ -68,7 +68,7 @@ class Template(Model):
             try:
                 related_id = render_template(obj.related_id or "", data)
             except:
-                raise Exception("Failed to render 'From Address' in template: %s" % obj.name)
+                raise Exception("Failed to render 'Related To' in template: %s" % obj.name)
         attachments = []
         if obj.attachments:
             try:

@@ -9,6 +9,8 @@
             <item string="Void" method="void" confirm="Are you sure you want to void this invoice?" states="draft,waiting_payment"/>
             <item string="To Draft" method="to_draft" states="waiting_payment"/>
             <divider/>
+            <item string="Online Payment" method="pay_online" states="waiting_payment"/>
+            <divider/>
             <item string="View Journal Entry" method="view_journal_entry" states="waiting_payment,paid"/>
         </button>
     </head>
@@ -44,6 +46,7 @@
                     <field name="track_id"/>
                     <field name="track2_id"/>
                     <field name="amount" attrs='{"readonly":[["unit_price","!=",null]]}' onchange="update_amounts"/>
+                    <field name="related_id"/>
                 </list>
             </field>
             <group offset="8" span="4" columns="1">
@@ -123,6 +126,8 @@
             <field name="create_time"/>
             <newline/>
             <field name="currency_rate"/>
+            <newline/>
+            <field name="transaction_no"/>
         </tab>
     </tabs>
     <foot states="draft,waiting_approval" replace="1">

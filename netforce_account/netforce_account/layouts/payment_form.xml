@@ -134,6 +134,8 @@
             <field name="sequence_id" condition='[["type","in",["pay_in","pay_out"]]]' onchange="onchange_sequence"/>
             <newline/>
             <field name="currency_rate"/>
+            <newline/>
+            <field name="transaction_no"/>
         </tab>
     </tabs>
     <field name="company_id" invisible="1"/>
