@@ -4,7 +4,7 @@ from netforce.access import set_active_user, set_active_company
 
 class Migration(migration.Migration):
     _name="stock.update.ref.stock.move"
-    _version="3.1.1"
+    _version="3.1.0"
 
     def migrate(self):
         set_active_company(1)
