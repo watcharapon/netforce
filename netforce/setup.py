@@ -31,7 +31,6 @@ setup(name="netforce",
         "requests>=0.13.2",
         "python-dateutil>=2.1",
         "psutil>=1.2.1",
-        "pyinotify>=0.9.4",
         "pillow>=2.3.0",
         "XLSXWriter>=0.7.8"
     ],
