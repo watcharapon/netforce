@@ -745,16 +745,22 @@ class Picking(Model):
         data = context["data"]
         path = context["path"]
         line = get_data_path(data, path, parent=True)
-        cost_price_cur=line["cost_price_cur"] or 0
         qty=line["qty"] or 0
-        currency_id=data["currency_id"]
-        if not currency_id:
-            raise Exception("Missing currency")
-        currency=get_model("currency").browse(currency_id)
-        currency_rate=data["currency_rate"]
+        pick_type=data.get('type')
+        cost_price_cur=0
+        currency_rate=0
+        currency_id=None
+        if pick_type=='in':
+            cost_price_cur=line.get("cost_price_cur") or 0
+            currency_id=data["currency_id"]
+            if not currency_id:
+                raise Exception("Missing currency")
+            currency=get_model("currency").browse(currency_id)
+            currency_rate=data["currency_rate"]
         date=data["date"]
         settings=get_model("settings").browse(1)
         if not currency_rate:
+            currency=settings.currency_id
             if currency_id == settings.currency_id.id:
                 currency_rate = 1
             else:

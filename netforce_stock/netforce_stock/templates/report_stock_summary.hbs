@@ -215,7 +215,9 @@
             {{/if}}
             <td></td>
             {{#unless only_closing}}
-                <td></td>
+                <th>
+                    {{currency total_open_qty}}
+                </th>
                 <th>
                     {{currency total_open_amt}}
                 </th>
@@ -224,7 +226,9 @@
                         {{currency total_open_qty2}}
                     </th>
                 {{/if}}
-                <td></td>
+                <th>
+                    {{currency total_period_in_qty}}
+                </th>
                 <th>
                     {{currency total_period_in_amt}}
                 </th>
@@ -233,7 +237,9 @@
                         {{currency total_period_in_qty2}}
                     </th>
                 {{/if}}
-                <td></td>
+                <th>
+                    {{currency total_period_out_qty}}
+                </th>
                 <th>
                     {{currency total_period_out_amt}}
                 </th>
