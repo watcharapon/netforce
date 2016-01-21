@@ -113,7 +113,7 @@ class SaleOrderLine(Model):
                     amt-=prom_amt
                 order = line.order_id
                 vals[line.id] = {
-                    "amount": amt,
+                    "amount": round(amt,2),
                     "amount_cur": get_model("currency").convert(amt, order.currency_id.id, settings.currency_id.id),
                     "amount_discount": disc,
                     "promotion_amount": prom_amt,
