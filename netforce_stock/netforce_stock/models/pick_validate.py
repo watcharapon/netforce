@@ -67,7 +67,7 @@ class PickValidate(Model):
             if st.prevent_validate_neg_stock and pick.type=='out':
                 key=(move.product_id.id, None, move.location_from_id.id, None)
                 keys=[key]
-                bals = get_model("stock.balance").compute_key_balances(keys,context={"virt_stock":True})
+                bals = get_model("stock.balance").compute_key_balances(keys,context={"virt_stock":False})
                 bal_qty=bals[key][0]
                 if line.qty>bal_qty:
                     prod=move.product_id
