@@ -167,6 +167,7 @@ class Product(Model):
         "ecom_lot_before_invoice": fields.Boolean("Require Lot Before Invoicing"),
         "product_origin": fields.Char("Product Origin"),
         "stock_balances": fields.One2Many("stock.balance","product_id","Stock Balances"),
+        "check_lot_neg_stock": fields.Boolean("Check Lot Negative Stock"),
     }
 
     _defaults = {

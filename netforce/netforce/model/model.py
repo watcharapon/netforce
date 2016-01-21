@@ -809,8 +809,8 @@ class Model(object):
 
     def read(self, ids, field_names=None, load_m2o=True, get_time=False, context={}):
         #print(">>> READ",self._name,ids,field_names)
-        if not access.check_permission(self._name, "read", ids):
-            raise Exception("Permission denied (read %s, ids=%s)" % (self._name, ",".join([str(x) for x in ids])))
+        #if not access.check_permission(self._name, "read", ids):
+            #raise Exception("Permission denied (read %s, ids=%s)" % (self._name, ",".join([str(x) for x in ids])))
         #print("read perm ok")
         if not ids:
             #print("<<< READ",self._name)

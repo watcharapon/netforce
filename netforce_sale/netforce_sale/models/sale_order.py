@@ -474,6 +474,7 @@ class SaleOrder(Model):
                 continue
             line_vals = {
                 "product_id": prod.id,
+                "lot_id": line.lot_id.id,
                 "qty": qty_remain,
                 "uom_id": prod.uom_id.id if line.qty_stock else line.uom_id.id,
                 "location_from_id": line.location_id.id or wh_loc_id,

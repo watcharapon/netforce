@@ -213,6 +213,15 @@ class StockBalance(Model):
             qty+=bal.qty_phys
         return qty
 
+    def get_qty_virt(self, location_id, product_id, lot_id):
+        cond=[["location_id", "=", location_id], ["product_id", "=", product_id]]
+        if lot_id: 
+            cond.append(["lot_id","=",lot_id])
+        qty=0
+        for bal in self.search_browse(cond):
+            qty+=bal.qty_virt
+        return qty
+
     def get_unit_price(self, location_id, product_id):
         res = self.search([["location_id", "=", location_id], ["product_id", "=", product_id]])
         if not res:

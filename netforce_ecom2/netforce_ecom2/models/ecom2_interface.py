@@ -33,6 +33,7 @@ class EcomInterface(Model):
         user_id=get_model("base.user").create(vals)
         return {
             "user_id": user_id,
+            "contact_id" : contact_id,
         }
 
     def login(self,email,password,context={}):

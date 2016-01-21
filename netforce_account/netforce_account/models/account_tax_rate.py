@@ -72,6 +72,8 @@ class TaxRate(Model):
     def compute_tax(self, tax_id, amt, tax_type="tax_ex", wht=False):
         if tax_type == "no_tax":
             return 0
+        if not tax_id:
+            return 0
         obj = self.browse(tax_id)
         vat_rate = Decimal(0)
         wht_rate = Decimal(0)
