@@ -45,6 +45,10 @@ class QuotCost(Model):
         "supplier_id": fields.Many2One("contact","Supplier"),
     }
 
+    _defaults={
+        'sequence': '',
+    }
+
     def get_amount(self,ids,context={}):
         vals={}
         for obj in self.browse(ids):

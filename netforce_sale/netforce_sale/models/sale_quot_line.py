@@ -87,12 +87,13 @@ class SaleQuotLine(Model):
                     rate=quot.get_relative_currency_rate(cost.currency_id.id)
                     amt=amt*rate
                 comps=[]
-                for comp in cost.sequence.split("."):
-                    comps.append(comp)
-                    path=".".join(comps)
-                    k=(quot.id,path)
-                    item_costs.setdefault(k,0)
-                    item_costs[k]+=amt
+                if cost.sequence:
+                    for comp in cost.sequence.split("."):
+                        comps.append(comp)
+                        path=".".join(comps)
+                        k=(quot.id,path)
+                        item_costs.setdefault(k,0)
+                        item_costs[k]+=amt
         vals={}
         for line in self.browse(ids):
             k=(line.quot_id.id,line.sequence)

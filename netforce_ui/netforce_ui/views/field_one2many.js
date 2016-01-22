@@ -68,6 +68,11 @@ var FieldOne2Many=NFView.extend({
             }
             view_opts.data=vals;
         }
+        if (this.options.invisible || attrs.invisible) {
+            this.$el.hide()
+        } else {
+            this.$el.show()
+        }
         var view_cls=get_view_cls("collection_view");
         var view=view_cls.make_view(view_opts);
         model.set(name,view.collection);
