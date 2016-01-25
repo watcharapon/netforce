@@ -1815,15 +1815,20 @@ function get_action(name) {
 function find_action(options) {
     log("find_action",JSON.stringify(options));
     var actions=nf_actions;
+    var min_pri=null;
+    var found_action=null;
     for (var name in actions) {
         var action=actions[name];
         if (options.model && action.model!=options.model) continue;
         var view=action.view||action.view_cls; // XXX: remove view_cls later
         if (view!="multi_view" && view!="model_view") continue; // XXX: remove model_view
-        return name;
+        var pri=action.priority||10;
+        if (min_pri==null || pri<min_pri) {
+            min_pri=pri;
+            found_action=name;
+        }
     }
-    return null;
-    //throw "Action not found: "+model;
+    return found_action;
 }
 
 function find_details_action(model,active_id) {
@@ -1840,8 +1845,6 @@ function find_details_action(model,active_id) {
         a.mode="page";
     } else if (_.contains(modes,"form")) {
         a.mode="form";
-    } else {
-        return null;
     }
     return a;
 }
