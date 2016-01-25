@@ -184,7 +184,7 @@ var ListView=NFView.extend({
                 that.collection.search_condition=condition; // XXX: check this
                 if (that.options.show_full||that.options.show_pagination) { // FIXME
                     that.collection.count=data[1];
-                    that.collection.offset=that.options.offset;
+                    that.collection.offset=parseInt(that.options.offset);
                     that.collection.limit=that.options.limit||100;
                 }
                 that.collection.on("click",that.line_click,that);
@@ -432,7 +432,7 @@ var ListView=NFView.extend({
             if (this.options.action_options) {
                 _.extend(action,this.options.action_options);
             }
-            action.active_id=model.id;
+            action.active_offset=(this.collection.offset||0)+this.collection.indexOf(model);
             if (this.search_condition) {
                 action.search_condition=this.search_condition; // XXX
             }

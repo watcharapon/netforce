@@ -103,17 +103,47 @@ var FormView=NFView.extend({
         });
         this.data.breads=breads;
         this.render_waiting();
-        if (this.active_id) {
+        if (this.active_id||this.options.active_offset!=null) {
+            var offset=this.options.active_offset!=null?parseInt(this.options.active_offset):null;
+            that.data.item_no=offset+1;
             var ctx=clean_context(_.extend({},this.context,this.options));
-            nf_execute(model_name,"read",[[this.active_id]],{field_names:field_names,get_time:true,context:ctx},function(err,data) {
+            ctx.get_time=true;
+            var opts={
+                field_names:field_names,
+                limit: 1,
+                count: true,
+                context:ctx
+            };
+            var args;
+            if (offset!=null) {
+                args=[this.options.search_condition||[]];
+                opts.offset=offset;
+            } else {
+                args=[[["id","=",this.active_id]]];
+            }
+            nf_execute(model_name,"search_read",args,opts,function(err,data) {
                 if (err) throw "ERROR: "+err;
-                var read_time=data[0].read_time;
-                delete data[0].read_time;
-                that.model=new NFModel(data[0],{name:model_name});
-                that.model.set_orig_data(data[0]);
+                var form_data=data[0][0];
+                that.data.count=data[1];
+                if (offset>0) {
+                    var h=window.location.hash.substr(1);
+                    var action=qs_to_obj(h);
+                    action.active_offset=offset-1;
+                    that.data.prev_url="#"+obj_to_qs(action);
+                }
+                if (offset<that.data.count-1) {
+                    var h=window.location.hash.substr(1);
+                    var action=qs_to_obj(h);
+                    action.active_offset=offset+1;
+                    that.data.next_url="#"+obj_to_qs(action);
+                }
+                var read_time=form_data.read_time;
+                delete form_data.read_time;
+                that.model=new NFModel(form_data,{name:model_name});
+                that.model.set_orig_data(form_data);
                 that.model.read_time=read_time;
                 that.model.on("reload",that.reload,that);
-                that.data.context.data=data[0];
+                that.data.context.data=form_data;
                 that.data.context.model=that.model;
                 var attrs=that.eval_attrs();
                 that.readonly=attrs.readonly;

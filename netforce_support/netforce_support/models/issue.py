@@ -108,7 +108,7 @@ class Issue(Model):
                 emails.append(contact.email)
             for resource in project.resources:
                 user=resource.user_id
-                if user:
+                if user and user.email:
                     emails.append(user.email)
         return emails
 

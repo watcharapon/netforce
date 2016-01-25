@@ -13,6 +13,13 @@
 </div>
 {{view "inline_help" action=options.name context=context}}
 {{view "flash" context=context}}
+{{#if prev_url}}
+    <a href="{{prev_url}}" class="btn btn-sm btn-default">Prev</a>
+{{/if}}
+{{item_no}} /  {{count}}
+{{#if next_url}}
+    <a href="{{next_url}}" class="btn btn-sm btn-default">Next</a>
+{{/if}}
 {{#view "form" border="1" context=context}}
     {{#if ../show_head}}
         {{#view "form_head" context=context}}
