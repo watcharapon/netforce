@@ -105,6 +105,7 @@ var MultiView=NFView.extend({
             var opts={
                 model: this.options.model,
                 active_id: this.options.active_id,
+                active_offset: this.options.active_offset, 
                 search_condition: this.options.search_condition,
                 tab_no: this.options.tab_no,
                 offset: this.options.offset,
@@ -228,7 +229,7 @@ var MultiView=NFView.extend({
         view.on("click_item",function(opts) {
             var action={
                 name: that.options.name,
-                active_id: opts.active_id
+                active_id: opts.active_id,
             };
             if (_.contains(this.modes,"page")) {
                 action.mode="page";
