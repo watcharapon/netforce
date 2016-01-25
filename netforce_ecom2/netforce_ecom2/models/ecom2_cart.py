@@ -2,7 +2,7 @@ from netforce.model import Model,fields,get_model
 from netforce import access
 from datetime import *
 import time
-import json
+from pprint import pprint
 
 class Cart(Model):
     _name="ecom2.cart"
@@ -71,7 +71,7 @@ class Cart(Model):
         d=d_from
         slots=[]
         for slot in get_model("delivery.slot").search_browse([]):
-            slots.append([slot.id,slot.name])
+            slots.append([slot.id,slot.name,slot.time_from])
         slot_num_sales={}
         for sale in get_model("sale.order").search_browse([["date",">=",time.strftime("%Y-%m-%d")]]):
             k=(sale.due_date,sale.delivery_slot_id.id)
@@ -82,20 +82,25 @@ class Cart(Model):
             k=(cap.slot_id.id,int(cap.weekday))
             slot_caps[k]=cap.capacity
         days=[]
+        now=datetime.now()
         while d<=d_to:
             ds=d.strftime("%Y-%m-%d")
             w=d.weekday()
             day_slots=[]
-            for slot_id,slot_name in slots:
+            for slot_id,slot_name,from_time in slots:
+                t_from=datetime.strptime(ds+" "+from_time+":00","%Y-%m-%d %H:%M:%S")
                 capacity=slot_caps.get((slot_id,w))
                 num_sales=slot_num_sales.get((ds,slot_id),0)
-                if capacity is not None and num_sales>=capacity:
+                state="avail"
+                if t_from<now or (t_from-now).seconds<min_hours*3600:
                     state="full"
-                else:
-                    state="avail"
+                if capacity is not None and num_sales>=capacity:
+                        state="full"
                 day_slots.append([slot_id,slot_name,state,num_sales,capacity])
             days.append([ds,day_slots])
             d+=timedelta(days=1)
+        print("days:")
+        pprint(days)
         return {obj.id: days}
 
     def get_payment_methods(self,ids,context={}):
