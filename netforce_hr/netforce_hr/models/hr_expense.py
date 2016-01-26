@@ -18,9 +18,11 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
+import time
+from decimal import Decimal
+
 from netforce.model import Model, fields, get_model
 from netforce.utils import get_data_path
-import time
 from netforce.access import get_active_user, get_active_company
 
 
@@ -89,15 +91,15 @@ class Expense(Model):
         res = {}
         for obj in self.browse(ids):
             vals = {}
-            subtotal = 0
-            tax = 0
+            subtotal = Decimal(0)
+            tax = Decimal(0)
             for line in obj.lines:
                 tax_id = line.tax_id
                 if tax_id and obj.tax_type != "no_tax":
                     base_amt = get_model("account.tax.rate").compute_base(tax_id, line.amount, tax_type=obj.tax_type)
                     tax_comps = get_model("account.tax.rate").compute_taxes(tax_id, base_amt, when="invoice")
                     for comp_id, tax_amt in tax_comps.items():
-                        tax += tax_amt
+                        tax += Decimal(tax_amt)
                 else:
                     base_amt = line.amount
                 subtotal += base_amt
