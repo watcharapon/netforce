@@ -6,4 +6,6 @@
     <field name="delivery_min_hours"/>
     <newline/>
     <field name="ecom_num_lots"/>
+    <newline/>
+    <field name="sale_lead_time_nostock"/>
 </form>

@@ -15,6 +15,7 @@
             <field name="delivery_slot_id"/>
             <field name="bill_address_id" condition='[["contact_id","=",customer_id]]'/>
             <field name="pay_method_id"/>
+            <field name="delivery_delay"/>
             <field name="lines">
                 <list>
                     <field name="product_id"/>
@@ -27,12 +28,18 @@
                     <field name="delivery_date"/>
                     <field name="ship_address_id" condition='[["contact_id","=",customer_id]]'/>
                     <field name="delivery_slot_id"/>
+                    <field name="qty_avail"/>
+                    <field name="delivery_delay"/>
+                    <field name="delivery_weekdays"/>
                 </list>
             </field>
             <field name="amount_total"/>
             <field name="state"/>
+            <newline/>
+            <field name="comments"/>
         </tab>
         <tab string="Other">
+            <field name="delivery_slots_str"/>
         </tab>
     </tabs>
     <foot>

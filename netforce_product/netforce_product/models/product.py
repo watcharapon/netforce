@@ -168,6 +168,9 @@ class Product(Model):
         "product_origin": fields.Char("Product Origin"),
         "stock_balances": fields.One2Many("stock.balance","product_id","Stock Balances"),
         "check_lot_neg_stock": fields.Boolean("Check Lot Negative Stock"),
+        "sale_lead_time_nostock": fields.Integer("Sale Lead Time When Out Of Stock (Days)"),
+        "ship_methods": fields.Many2Many("ship.method", "Shipping Methods"),
+        "delivery_weekdays": fields.Char("Delivery Weekday Constraints"),
     }
 
     _defaults = {
