@@ -23,7 +23,7 @@
 var FormView=NFView.extend({
     _name: "form_view",
     events: {
-        "click ol.breadcrumb": "click_bread",
+        "click ol.breadcrumb li": "click_bread",
         "click .call-method": "call_method"
     },
 
@@ -181,6 +181,13 @@ var FormView=NFView.extend({
                         action.active_id=prev_active_id;
                         var h2=obj_to_qs(action);
                         that.data.prev_url="#"+h2;
+
+                        var start_active_id=data[0];
+                        var h=window.location.hash.substr(1);
+                        var action=qs_to_obj(h);
+                        action.active_id=start_active_id;
+                        var h2=obj_to_qs(action);
+                        that.data.start_url="#"+h2;
                     }
                     if (that.data.record_index < that.data.count-1) {
                         var next_active_id=data[that.data.record_index+1];
@@ -189,6 +196,13 @@ var FormView=NFView.extend({
                         action.active_id=next_active_id;
                         var h2=obj_to_qs(action);
                         that.data.next_url="#"+h2;
+
+                        var end_active_id=data[data.length-1];
+                        var h=window.location.hash.substr(1);
+                        var action=qs_to_obj(h);
+                        action.active_id=end_active_id;
+                        var h2=obj_to_qs(action);
+                        that.data.end_url="#"+h2;
                     }
                     NFView.prototype.render.call(that);
                     if (that.focus_field) {
