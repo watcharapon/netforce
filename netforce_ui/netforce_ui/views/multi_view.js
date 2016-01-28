@@ -105,7 +105,6 @@ var MultiView=NFView.extend({
             var opts={
                 model: this.options.model,
                 active_id: this.options.active_id,
-                active_offset: this.options.active_offset, 
                 search_condition: this.options.search_condition,
                 tab_no: this.options.tab_no,
                 offset: this.options.offset,

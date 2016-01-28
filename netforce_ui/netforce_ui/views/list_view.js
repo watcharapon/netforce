@@ -432,7 +432,7 @@ var ListView=NFView.extend({
             if (this.options.action_options) {
                 _.extend(action,this.options.action_options);
             }
-            action.active_offset=(this.collection.offset||0)+this.collection.indexOf(model);
+            action.active_id=model.id;
             if (this.search_condition) {
                 action.search_condition=this.search_condition; // XXX
             }
