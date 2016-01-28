@@ -1716,7 +1716,7 @@ class Model(object):
         self.write(ids, {"active": False})
 
     def get_export_field(self):
-        try_fields=[self._export_field,self._code_field,"code",self._name_field,"name"]
+        try_fields=[self._export_field,self._code_field,self._name_field,"code","name"]
         for f in try_fields:
             if f and f in self._fields:
                 return f

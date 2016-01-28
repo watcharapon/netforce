@@ -25,7 +25,7 @@ class Permission(Model):
     _name = "permission"
     _string = "Permission"
     _key = ["code"]
-    _export_name_field = "code"
+    _export_field = "code"
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "code": fields.Char("Code", required=True),

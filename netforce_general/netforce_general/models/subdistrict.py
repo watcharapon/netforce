@@ -24,7 +24,7 @@ from netforce.model import Model, fields
 class Subdistrict(Model):
     _name = "subdistrict"
     _string = "Subdistrict"
-    _export_name_field = "code"
+    _export_field = "code"
     _fields = {
         "district_id": fields.Many2One("district", "District"),
         "name": fields.Char("Name", required=True, search=True, translate=True),
