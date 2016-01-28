@@ -737,13 +737,21 @@ class Invoice(Model):
                 layout = "supp_prepay_form"
             elif obj.inv_type == "overpay":
                 layout = "supp_overpay_form"
+        next_action={
+            "name": action,
+            "mode": "form",
+            "form_view_xml": layout,
+            "active_id": obj.id,
+        }
+        call_action=context.get("action",{})
+        if call_action.get("tab_no"):
+            next_action["tab_no"]=call_action["tab_no"]
+        if call_action.get("offset"):
+            next_action["offset"]=call_action["offset"]
+        if call_action.get("search_condition"):
+            next_action["search_condition"]=call_action["search_condition"]
         return {
-            "next": {
-                "name": action,
-                "mode": "form",
-                "form_view_xml": layout,
-                "active_id": obj.id,
-            }
+            "next": next_action,
         }
 
     def get_contact_credit(self, ids, context={}):
