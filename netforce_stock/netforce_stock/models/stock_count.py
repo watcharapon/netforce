@@ -191,7 +191,7 @@ class StockCount(Model):
             prod_ids.append(line.product_id.id)
             if line.new_qty <= line.prev_qty:
                 qty_diff = line.prev_qty - line.new_qty
-                amount_diff = line.prev_cost_amount - line.new_cost_amount
+                amount_diff = (line.prev_cost_amount or 0) - (line.new_cost_amount or 0)
                 price_diff = amount_diff / qty_diff if qty_diff else 0
                 loc_from_id = obj.location_id.id
                 loc_to_id = invent_loc_id

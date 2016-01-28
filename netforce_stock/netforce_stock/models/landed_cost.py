@@ -146,7 +146,7 @@ class LandedCost(Model):
             move=line.move_id
             if not move.qty:
                 raise Exception("Missing qty in stock movement %s"%move.number)
-            ratio=line.qty_stock_lc/line.qty_stock_gr
+            ratio=max(line.qty_stock_lc/line.qty_stock_gr,1)
             vals={
                 "journal_id": settings.landed_cost_journal_id.id,
                 "date": obj.date,
