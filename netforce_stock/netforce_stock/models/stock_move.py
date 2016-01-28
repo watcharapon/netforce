@@ -163,11 +163,11 @@ class Move(Model):
         set_active_user(user_id)
         return new_id
 
-    def write(self, ids, vals, **kw):
+    def write(self, ids, vals, context={}):
         prod_ids = []
         for obj in self.browse(ids):
             prod_ids.append(obj.product_id.id)
-        super().write(ids, vals, **kw)
+        super().write(ids, vals, context=context)
         prod_id = vals.get("product_id")
         if prod_id:
             prod_ids.append(prod_id)
@@ -257,7 +257,7 @@ class Move(Model):
         prod_ids=list(set(prod_ids))
         if prod_ids and settings.stock_cost_auto_compute:
             get_model("stock.compute.cost").compute_cost([],context={"product_ids": prod_ids})
-        if settings.stock_cost_mode=="perpetual":
+        if settings.stock_cost_mode=="perpetual" and not context.get("no_post"):
             self.post(ids,context=context)
         self.update_lots(ids,context=context)
         self.set_reference(ids,context=context)
