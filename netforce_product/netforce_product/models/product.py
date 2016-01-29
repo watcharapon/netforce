@@ -35,7 +35,7 @@ class Product(Model):
     _audit_log = True
     _key = ["code","state","company_id"]
     _order = "code,name"
-    _export_name_field = "code"
+    _export_field = "code"
     _history = True
     _fields = {
         "name": fields.Char("Name", required=True, search=True, translate=True, size=256),

@@ -31,7 +31,7 @@ class Account(Model):
     _string = "Account"
     _audit_log = True
     _key = ["code", "company_id"]
-    _export_name_field = "code"
+    _export_field = "code"
     _multi_company = True
     _fields = {
         "code": fields.Char("Account Code", required=True, search=True, index=True),
