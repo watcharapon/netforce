@@ -212,8 +212,12 @@ class Cart(Model):
         now=datetime.now()
         while d<=d_to:
             ds=d.strftime("%Y-%m-%d")
+            res=get_model("hr.holiday").search([["date","=",ds]])
+            if res:
+                d+=timedelta(days=1)
+                continue
             w=d.weekday()
-            if delivery_weekdays is not None and w not in delivery_weekdays:
+            if w==6 or delivery_weekdays is not None and w not in delivery_weekdays:
                 d+=timedelta(days=1)
                 continue
             day_slots=[]
