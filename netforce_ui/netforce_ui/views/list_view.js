@@ -427,12 +427,21 @@ var ListView=NFView.extend({
                 _.extend(action,action_options);
             }
             action.active_id=model.id;
+            if (this.tab_no) {
+                action.tab_no=this.tab_no;
+            }
+            if (this.search_condition) {
+                action.search_condition=this.search_condition;
+            }
+            if (this.collection.offset) {
+                action.offset=this.collection.offset;
+            }
         } else if (this.options.action) {
             var action={name:this.options.action};
             if (this.options.action_options) {
                 _.extend(action,this.options.action_options);
             }
-            action.active_offset=(this.collection.offset||0)+this.collection.indexOf(model);
+            action.active_id=model.id;
             if (this.search_condition) {
                 action.search_condition=this.search_condition; // XXX
             }

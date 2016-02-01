@@ -23,7 +23,7 @@
 var FormView=NFView.extend({
     _name: "form_view",
     events: {
-        "click ol.breadcrumb": "click_bread",
+        "click ol.breadcrumb li": "click_bread",
         "click .call-method": "call_method"
     },
 
@@ -103,40 +103,17 @@ var FormView=NFView.extend({
         });
         this.data.breads=breads;
         this.render_waiting();
-        if (this.active_id||this.options.active_offset!=null) {
-            var offset=this.options.active_offset!=null?parseInt(this.options.active_offset):null;
-            that.data.item_no=offset+1;
+        if (this.active_id) {
             var ctx=clean_context(_.extend({},this.context,this.options));
-            ctx.get_time=true;
             var opts={
                 field_names:field_names,
-                limit: 1,
-                count: true,
+                get_time: true,
                 context:ctx
             };
-            var args;
-            if (offset!=null) {
-                args=[this.options.search_condition||[]];
-                opts.offset=offset;
-            } else {
-                args=[[["id","=",this.active_id]]];
-            }
-            nf_execute(model_name,"search_read",args,opts,function(err,data) {
+            var args=[[this.active_id]];
+            nf_execute(model_name,"read",args,opts,function(err,data) {
                 if (err) throw "ERROR: "+err;
-                var form_data=data[0][0];
-                that.data.count=data[1];
-                if (offset>0) {
-                    var h=window.location.hash.substr(1);
-                    var action=qs_to_obj(h);
-                    action.active_offset=offset-1;
-                    that.data.prev_url="#"+obj_to_qs(action);
-                }
-                if (offset<that.data.count-1) {
-                    var h=window.location.hash.substr(1);
-                    var action=qs_to_obj(h);
-                    action.active_offset=offset+1;
-                    that.data.next_url="#"+obj_to_qs(action);
-                }
+                var form_data=data[0];
                 var read_time=form_data.read_time;
                 delete form_data.read_time;
                 that.model=new NFModel(form_data,{name:model_name});
@@ -187,11 +164,52 @@ var FormView=NFView.extend({
                     that.data.show_foot=true;
                 }
                 that.data.show_background=!that.data.readonly;
-                NFView.prototype.render.call(that);
-                if (that.focus_field) {
-                    var view=that.get_field_view(that.focus_field);
-                    view.focus();
-                }
+                var args=[that.options.search_condition || []];
+                var opts={
+                    offset: that.options.offset||0,
+                    limit: that.options.limit||100,
+                };
+                nf_execute(model_name,"search",args,opts,function(err,data) {
+                    if (err) throw "ERROR: "+err;
+                    that.data.count=data.length;
+                    that.data.record_index=data.indexOf(that.active_id);
+                    that.data.record_index_p1=that.data.record_index+1;
+                    if (that.data.record_index>0) {
+                        var prev_active_id=data[that.data.record_index-1];
+                        var h=window.location.hash.substr(1);
+                        var action=qs_to_obj(h);
+                        action.active_id=prev_active_id;
+                        var h2=obj_to_qs(action);
+                        that.data.prev_url="#"+h2;
+
+                        var start_active_id=data[0];
+                        var h=window.location.hash.substr(1);
+                        var action=qs_to_obj(h);
+                        action.active_id=start_active_id;
+                        var h2=obj_to_qs(action);
+                        that.data.start_url="#"+h2;
+                    }
+                    if (that.data.record_index < that.data.count-1) {
+                        var next_active_id=data[that.data.record_index+1];
+                        var h=window.location.hash.substr(1);
+                        var action=qs_to_obj(h);
+                        action.active_id=next_active_id;
+                        var h2=obj_to_qs(action);
+                        that.data.next_url="#"+h2;
+
+                        var end_active_id=data[data.length-1];
+                        var h=window.location.hash.substr(1);
+                        var action=qs_to_obj(h);
+                        action.active_id=end_active_id;
+                        var h2=obj_to_qs(action);
+                        that.data.end_url="#"+h2;
+                    }
+                    NFView.prototype.render.call(that);
+                    if (that.focus_field) {
+                        var view=that.get_field_view(that.focus_field);
+                        view.focus();
+                    }
+                });
             });
         } else {
             var ctx=clean_context(_.extend({},this.context,this.options));

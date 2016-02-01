@@ -1096,8 +1096,9 @@ function exec_action_ready(action) {
         var args=[];
         if (active_id) args.push([active_id]);
         var opts={};
+        opts.context={action:action_opts};
         if (action_opts.context) {
-            opts.context=action_opts.context;
+            _.extend(opts.context,action_opts.context);
         }
         rpc_execute(model,method,args,opts,function(err,data) {
             if (err) {

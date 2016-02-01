@@ -1439,7 +1439,7 @@ class Model(object):
                     elif isinstance(f, fields.Selection):
                         found = None
                         for k, s in f.selection:
-                            if v == s:
+                            if v == s and k!="_group":
                                 found = k
                                 break
                         if found is None:

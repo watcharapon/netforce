@@ -257,7 +257,7 @@ class Move(Model):
         prod_ids=list(set(prod_ids))
         if prod_ids and settings.stock_cost_auto_compute:
             get_model("stock.compute.cost").compute_cost([],context={"product_ids": prod_ids})
-        if settings.stock_cost_mode=="perpetual":
+        if settings.stock_cost_mode=="perpetual" and not context.get("no_post"):
             self.post(ids,context=context)
         self.update_lots(ids,context=context)
         self.set_reference(ids,context=context)

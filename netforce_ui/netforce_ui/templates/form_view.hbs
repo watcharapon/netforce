@@ -3,6 +3,23 @@
         <li>
             <a href="#">{{t bread_string}}</a>
         </li>
+        <div class="pull-right">
+            {{#if start_url}}
+                <a href="{{start_url}}">&laquo; Start</a>
+            {{/if}}
+            {{#if prev_url}}
+                <a href="{{prev_url}}">&lsaquo; Prev</a>
+            {{/if}}
+            {{#if count}}
+                <span style="margin:5px;color:#666">{{record_index_p1}} /  {{count}}</span>
+            {{/if}}
+            {{#if next_url}}
+                <a href="{{next_url}}">Next &rsaquo;</a>
+            {{/if}}
+            {{#if end_url}}
+                <a href="{{end_url}}">End &raquo;</a>
+            {{/if}}
+        </div>
     </ol>
 {{/if}}
 <div class="page-header nf-page-header">
@@ -13,13 +30,6 @@
 </div>
 {{view "inline_help" action=options.name context=context}}
 {{view "flash" context=context}}
-{{#if prev_url}}
-    <a href="{{prev_url}}" class="btn btn-sm btn-default">Prev</a>
-{{/if}}
-{{item_no}} /  {{count}}
-{{#if next_url}}
-    <a href="{{next_url}}" class="btn btn-sm btn-default">Next</a>
-{{/if}}
 {{#view "form" border="1" context=context}}
     {{#if ../show_head}}
         {{#view "form_head" context=context}}
