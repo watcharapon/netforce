@@ -68,12 +68,6 @@ class SaleQuotLine(Model):
             vals[line.id] = (line.retail_price or 0) * (line.qty or 0)
         return vals
 
-    def get_retail_amount(self,ids,context={}):
-        vals={}
-        for line in self.browse(ids):
-            vals[line.id]=(line.retail_price or 0)*(line.qty or 0)
-        return vals
-
     def get_est_profit(self,ids,context={}):
         quot_ids=[]
         for line in self.browse(ids):

@@ -92,11 +92,12 @@ class InvoiceLine(Model):
         vals = {}
         for obj in self.browse(ids):
             amt = (obj.qty or 0) * (obj.unit_price or 0)
+            disc = 0
             if obj.discount:
-                amt *= (1 - obj.discount / 100)
+                disc = amt*(obj.discount/100)
             if obj.discount_amount:
-                amt -= obj.discount_amount
-            vals[obj.id] = amt
+                disc += obj.discount_amount
+            vals[obj.id] = disc
         return vals
 
 InvoiceLine.register()
