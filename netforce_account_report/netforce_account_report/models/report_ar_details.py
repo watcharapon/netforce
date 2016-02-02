@@ -91,7 +91,7 @@ class ReportARDetails(Model):
         date_from_current = d0
         date_to_older = d0 - timedelta(days=period_days * num_periods + 1)
         db = get_connection()
-        q = "SELECT l.id,m.number AS number,m.ref AS ref,i.number AS inv_number,l.move_date AS doc_date,COALESCE(i.due_date,l.due_date,l.move_date) AS due_date,p.name as contact_name,p.id as contact_id,l.debit-l.credit as amount,l.reconcile_id FROM account_move_line l JOIN account_move m ON m.id=l.move_id JOIN account_account a ON a.id=l.account_id LEFT JOIN contact p ON p.id=l.contact_id LEFT JOIN account_invoice i ON i.reconcile_move_line_id=l.id WHERE move_state='posted' AND a.type='receivable' AND a.company_id IN %s AND l.move_date<=%s"
+        q = "SELECT l.id,m.number AS number,m.ref AS ref,i.number AS inv_number,m.date AS doc_date,COALESCE(i.due_date,l.due_date,m.date) AS due_date,p.name as contact_name,p.id as contact_id,l.debit-l.credit as amount,l.reconcile_id FROM account_move_line l JOIN account_move m ON m.id=l.move_id JOIN account_account a ON a.id=l.account_id LEFT JOIN contact p ON p.id=l.contact_id LEFT JOIN account_invoice i ON i.reconcile_move_line_id=l.id WHERE m.state='posted' AND a.type='receivable' AND a.company_id IN %s AND m.date<=%s"
         args = [tuple(company_ids), date]
         if contact_id:
             q += " AND l.contact_id=%s"

@@ -37,7 +37,8 @@ class FixedAsset(Model):
         "fixed_asset_account_id": fields.Many2One("account.account", "Fixed Asset Account", required=True, search=True),
         "date_purchase": fields.Date("Purchase Date", required=True, search=True),
         "date_dispose": fields.Date("Dispose Date"),
-        "track_id": fields.Many2One("account.track.categ", "Tracking", condition=[["type", "=", "1"]], search=True),
+        "track_id": fields.Many2One("account.track.categ", "Tracking-1", condition=[["type", "=", "1"]], search=True),
+        "track2_id": fields.Many2One("account.track.categ", "Tracking-2", condition=[["type", "=", "2"]], search=True),
         "price_purchase": fields.Decimal("Purchase Price", required=True),
         "description": fields.Text("Description"),
         "type_id": fields.Many2One("account.fixed.asset.type", "Asset Type", required=True),
@@ -105,7 +106,6 @@ class FixedAsset(Model):
             "name": obj.name,
             "fixed_asset_account_id": obj.fixed_asset_account_id.id,
             "date_purchase": obj.date_purchase,
-            "track_id": obj.track_id.id,
             "price_purchase": obj.price_purchase,
             "description": obj.description,
             "type_id": obj.type_id.id,
@@ -114,7 +114,8 @@ class FixedAsset(Model):
             "accum_dep_account_id": obj.accum_dep_account_id.id,
             "dep_exp_account_id": obj.dep_exp_account_id.id,
             "state": "pending",
-            "track_id": obj.track_id.id
+            "track_id": obj.track_id.id,
+            "track2_id": obj.track2_id.id,
         }
         new_id = self.create(vals)
         new_obj = self.browse(new_id)
@@ -253,6 +254,14 @@ class FixedAsset(Model):
             pprint(move_vals)
             move_id = get_model("account.move").create(move_vals)
             get_model("account.move").post([move_id])
-            get_model("account.fixed.asset.period").write(date_period_ids, {"move_id": move_id})
+            for period in get_model("account.fixed.asset.period").browse(date_period_ids):
+                period.write({"move_id": move_id})
+                asset=period.asset_id
+                for mline in get_model("account.move").browse(move_id).lines:
+                    mline.write({
+                        'track_id': asset.track_id.id,
+                        'track2_id': asset.track2_id.id,
+                    })
+
 
 FixedAsset.register()

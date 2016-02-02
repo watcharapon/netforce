@@ -56,11 +56,23 @@ class PickValidate(Model):
     }
 
     def do_validate(self, ids, context={}):
+        st=get_model("settings").browse(1) 
         obj = self.browse(ids)[0]
         pick = obj.picking_id
         remain_lines = []
         for i, line in enumerate(obj.lines):
             move = pick.lines[i]
+            ########################################
+            # prevent to validate stock if it's not enough
+            if st.prevent_validate_neg_stock and pick.type=='out':
+                key=(move.product_id.id, None, move.location_from_id.id, None)
+                keys=[key]
+                bals = get_model("stock.balance").compute_key_balances(keys,context={"virt_stock":False})
+                bal_qty=bals[key][0]
+                if line.qty>bal_qty:
+                    prod=move.product_id
+                    raise Exception("Stock is not enough :Line %s [%s] %s (%s of %s)"%(i+1,prod.code,prod.name,line.qty,bal_qty))
+            ########################################
             remain_qty = move.qty - get_model("uom").convert(line.qty, line.uom_id.id, move.uom_id.id)
             if remain_qty:
                 remain_lines.append({

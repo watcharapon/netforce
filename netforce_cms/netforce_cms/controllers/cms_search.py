@@ -40,6 +40,7 @@ class Search(BaseController):
                 "pricelist_id": website.sale_channel_id.pricelist_id.id if website.sale_channel_id else None,
             }
             condition = [["state","=","approved"]]
+            condition.append(["is_published","=",True])
             if minprice: condition.append(["sale_price", ">=", minprice])
             if maxprice: condition.append(["sale_price", "<=", maxprice])
             if q: condition.append(["or",["name","ilike",q],["description","ilike",q]])
