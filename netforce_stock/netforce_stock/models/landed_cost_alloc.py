@@ -53,6 +53,8 @@ class LandedCostAlloc(Model):
         for obj in self.browse(ids):
             move=obj.move_id
             pick_id=move.picking_id.id
+            if not pick_id:
+                continue
             lc_id=obj.landed_id.id
             k=(move.product_id.id,move.lot_id.id,move.location_to_id.id,move.container_to_id.id)
             gr_keys.setdefault(pick_id,[]).append(k)

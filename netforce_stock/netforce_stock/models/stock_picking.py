@@ -374,7 +374,8 @@ class Picking(Model):
                 line_vals["related_id"] = "%s,%d" % (line.related_id._model, line.related_id.id)
             if obj.type == "in":
                 line_vals["cost_price_cur"] = line.cost_price_cur
-                line_vals["unit_price"] = line.unit_price
+                line_vals["cost_price"] = line.cost_price
+                line_vals["cost_amount"] = line.cost_amount
             vals["lines"].append(("create", line_vals))
         from pprint import pprint
         pprint(vals)

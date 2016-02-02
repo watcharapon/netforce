@@ -546,7 +546,7 @@ class SaleQuot(Model):
             line["purchase_duty_percent"]=prod.purchase_duty_percent
             line["purchase_ship_percent"]=prod.purchase_ship_percent
             line["landed_cost"]=prod.landed_cost
-            line["purcase_price"]=prod.purchase_price
+            line["amount"]=line['qty']*line['landed_cost'] or 0
 
             if prod.suppliers:
                 line["supplier_id"]=prod.suppliers[0].supplier_id.id
@@ -691,5 +691,12 @@ class SaleQuot(Model):
             rate_to=obj.currency_id.get_rate(obj.date) or Decimal(1)
             rate=rate_from/rate_to
         return rate
+
+    def update_cost_amount(self,context={}):
+        data=context['data']
+        path=context['path']
+        line=get_data_path(data,path,parent=True)
+        line['amount']=(line['qty'] or 0) *(line['landed_cost'] or 0)
+        return data
 
 SaleQuot.register()
