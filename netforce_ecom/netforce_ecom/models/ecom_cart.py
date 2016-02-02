@@ -423,6 +423,7 @@ class Cart(Model):
             "subdistrict_id": obj.bill_subdistrict_id.id,
             "phone": obj.bill_phone,
         }
+        bill_addr_id=obj.contact_id.add_address(bill_addr_vals)
         ship_addr_vals = {
             "first_name": obj.ship_first_name,
             "last_name": obj.ship_last_name,
@@ -437,7 +438,7 @@ class Cart(Model):
             "subdistrict_id": obj.ship_subdistrict_id.id,
             "phone": obj.ship_phone,
         }
-        get_model("address").create(bill_addr_vals)
+        ship_addr_id=obj.contact_id.add_address(ship_addr_vals)
         res=get_model("company").search([["parent_id","=",None]],order="id")
         default_company_id=res[0]
         company_ids=[]
@@ -457,8 +458,8 @@ class Cart(Model):
                 "company_id": sale_company_id,
                 "related_id": "ecom.cart,%d"%obj.id,
                 "contact_id": obj.contact_id.id,
-                "bill_address_id": get_model("address").create(bill_addr_vals),  # FIXME
-                "ship_address_id": get_model("address").create(ship_addr_vals),  # FIXME
+                "ship_address_id": ship_addr_id,
+                "bill_address_id": bill_addr_id,
                 "tax_type": "tax_in",
                 "lines": [],
                 "used_promotions": [],
