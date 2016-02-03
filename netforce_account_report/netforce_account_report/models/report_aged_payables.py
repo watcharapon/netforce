@@ -161,7 +161,6 @@ class ReportAgedPayables(Model):
             contact["amount_total"] += r.amount
 
         data["lines"] = list(contacts.values())
-        data["lines"] = [l for l in data["lines"] if abs(l["amount_total"]) > 0.001]
         data["lines"].sort(key=lambda c: c["contact_name"])
         pprint(data)
         return data
