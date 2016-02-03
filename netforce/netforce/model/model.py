@@ -1337,6 +1337,15 @@ class Model(object):
                             if n not in todo:
                                 v = obj[n]
                                 todo[n] = [v]
+                    elif isinstance(f, fields.Reference):
+                        v = obj[n]
+                        if v:
+                            mr = get_model(v._model)
+                            exp_field = mr.get_export_field()
+                            v = '%s,%s'%(v._model,v.id)
+                        else:
+                            v = None
+                        row[path] = v
                     else:
                         v = obj[n]
                         row[path] = v
@@ -1434,6 +1443,15 @@ class Model(object):
                     elif isinstance(f, fields.Date):
                         dt = dateutil.parser.parse(v)
                         v = dt.strftime("%Y-%m-%d")
+                    elif isinstance(f, fields.Reference):
+                        if v:
+                            try:
+                                model_name,rid=v.split(",")
+                                v = "%s,%s" % (model_name,rid)
+                            except:
+                                v = None
+                        else:
+                            v = None
                     elif isinstance(f, fields.Many2One):
                         mr = get_model(f.relation)
                         ctx = {
@@ -1716,7 +1734,7 @@ class Model(object):
         self.write(ids, {"active": False})
 
     def get_export_field(self):
-        try_fields=[self._export_field,self._code_field,"code",self._name_field,"name"]
+        try_fields=[self._export_field,self._code_field,self._name_field,"code","name"]
         for f in try_fields:
             if f and f in self._fields:
                 return f

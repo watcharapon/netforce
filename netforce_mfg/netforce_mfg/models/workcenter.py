@@ -44,7 +44,7 @@ class Workcenter(Model):
     _name = "workcenter"
     _string = "Workcenter"
     _key = ["code"]
-    _export_name_field = "code"
+    _export_field = "code"
     _fields = {
         "code": fields.Char("Workcenter Code", search=True),
         "name": fields.Char("Workcenter Name", search=True),
