@@ -30,7 +30,7 @@ class Move(Model):
     _name_field = "number"
     _multi_company = True
     _audit_log = True
-    _key = ["company_id", "number"]
+    #_key = ["company_id", "number"]
     _fields = {
         "journal_id": fields.Many2One("account.journal", "Journal", required=True, search=True),
         "narration": fields.Text("Narration", required=True, search=True),
