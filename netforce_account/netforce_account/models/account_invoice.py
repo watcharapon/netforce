@@ -552,6 +552,8 @@ class Invoice(Model):
             subtotal=get_model("currency").round(inv.currency_id.id,subtotal)
             tax=get_model("currency").round(inv.currency_id.id,tax)
             vals["amount_subtotal"] = subtotal
+            if inv.taxes:
+                tax=sum(t.tax_amount for t in inv.taxes)
             vals["amount_tax"] = tax
             if inv.tax_type == "tax_in":
                 vals["amount_rounding"] = sum(l.amount for l in inv.lines) - (subtotal + tax)
