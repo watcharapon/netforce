@@ -42,6 +42,7 @@ class Move(Model):
         "date": fields.DateTime("Date", required=True, search=True),
         "cost_price_cur": fields.Decimal("Cost Price (Cur)",scale=6), # in picking currency
         "cost_price": fields.Decimal("Cost Price", scale=6),  # in company currency
+        "unit_price": fields.Decimal("Cost Price", scale=6),  # deprecated  change to cost_price
         "cost_amount": fields.Decimal("Cost Amount"), # in company currency
         "state": fields.Selection([("draft", "Draft"), ("pending", "Planned"), ("approved", "Approved"), ("done", "Completed"), ("voided", "Voided")], "Status", required=True),
         "stock_count_id": fields.Many2One("stock.count", "Stock Count"),
