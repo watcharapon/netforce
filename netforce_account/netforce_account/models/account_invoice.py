@@ -746,12 +746,14 @@ class Invoice(Model):
 
     def get_contact_credit(self, ids, context={}):
         obj = self.browse(ids[0])
-        contact = get_model("contact").browse(obj.contact_id.id, context={"currency_id": obj.currency_id.id})
+        amt=0
         vals = {}
-        if obj.type == "out":
-            amt = contact.receivable_credit
-        elif obj.type == "in":
-            amt = contact.payable_credit
+        if obj.contact_id:
+            contact = get_model("contact").browse(obj.contact_id.id, context={"currency_id": obj.currency_id.id})
+            if obj.type == "out":
+                amt = contact.receivable_credit
+            elif obj.type == "in":
+                amt = contact.payable_credit
         vals[obj.id] = amt
         return vals
 
