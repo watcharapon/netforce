@@ -18,13 +18,15 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from netforce.model import Model, fields, get_model
+import os
 import csv
 from io import StringIO
-from netforce.database import get_active_db
-import os
 from datetime import *
 from dateutil.relativedelta import *
+from decimal import Decimal
+
+from netforce.model import Model, fields, get_model
+from netforce.database import get_active_db
 
 
 class ImportStatement(Model):
@@ -139,6 +141,7 @@ class ImportStatement(Model):
         if res:
             prev_line = get_model("account.statement.line").browse(res[0])
             prev_bal = prev_line.balance
+            first_bal = Decimal(first_bal)
             if abs(first_bal-prev_bal)>0.001:
                 raise Exception("Invalid balance: previous balance is %.2f" % prev_bal)
         st_vals = {
