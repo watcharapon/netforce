@@ -32,7 +32,7 @@ class Invoice(Model):
     _name = "account.invoice"
     _string = "Invoice"
     _audit_log = True
-    #_key = ["company_id", "number"]
+    _key = ["company_id", "number"]
     _name_field = "number"
     _multi_company = True
     _fields = {
