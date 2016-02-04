@@ -56,6 +56,7 @@ var ColumnsView=NFView.extend({
         this.data.page_title=this.$layout.attr("title")||this.options.string;
         var condition=this.options.condition||[];
         var group_field=this.$layout.attr("group_field");
+        var title_field=this.$layout.attr("title_field");
         if (!group_field) throw("Missing group_field in columns view");
         var title_field=this.$layout.attr("title_field");
         if (!title_field) throw("Missing title field in columns view");
@@ -86,7 +87,7 @@ var ColumnsView=NFView.extend({
                 }
                 var group=groups[group_val];
                 var val=m.get(title_field);
-                var f=get_field(that.options.model,group_field);
+                var f=get_field(that.options.model,title_field);
                 var title_val=render_field_value(val,f);
                 var fields=[];
                 _.each(content_fields,function(n) {
