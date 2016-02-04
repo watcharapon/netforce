@@ -71,6 +71,23 @@ var ColumnsView=NFView.extend({
             field_names: field_names,
             count: true
         };
+
+        if (_.isString(condition)) {
+            var ctx=clean_context(_.extend({},this.context,this.options));
+            condition=eval_json(condition,ctx);
+        }
+        var search_condition=this.search_condition||[];
+        if (_.isString(search_condition)) {
+            search_condition=JSON.parse(search_condition);
+        }
+        if (search_condition.length>0) {
+            if (condition.length>0) {
+                condition=[condition,search_condition];
+            } else {
+                condition=search_condition;
+            }
+        }
+
         rpc_execute(this.options.model,"search_read",[condition],opts,function(err,data) {
             that.collection=new NFCollection(data[0],{name:that.options.model});
             var groups={};
