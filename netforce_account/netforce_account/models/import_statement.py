@@ -139,7 +139,7 @@ class ImportStatement(Model):
         if res:
             prev_line = get_model("account.statement.line").browse(res[0])
             prev_bal = prev_line.balance
-            if first_bal != prev_bal:
+            if abs(first_bal-prev_bal)>0.001:
                 raise Exception("Invalid balance: previous balance is %.2f" % prev_bal)
         st_vals = {
             "account_id": acc_id,
