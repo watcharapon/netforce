@@ -91,7 +91,7 @@ class ReportAgedReceivables(Model):
         date_from_current = d0
         date_to_older = d0 - timedelta(days=period_days * num_periods + 1)
         db = get_connection()
-        q = "SELECT COALESCE(due_date,move_date) AS due_date,p.name as contact_name,p.id as contact_id,l.debit-l.credit AS amount,l.reconcile_id FROM account_move_line l JOIN account_account a ON a.id=l.account_id LEFT JOIN contact p ON p.id=l.contact_id WHERE move_state='posted' AND a.type='receivable' AND a.company_id IN %s AND l.move_date<=%s"
+        q = "SELECT COALESCE(due_date,m.date) AS due_date,p.name as contact_name,p.id as contact_id,l.debit-l.credit AS amount,l.reconcile_id FROM account_move_line l JOIN account_move m ON m.id=l.move_id JOIN account_account a ON a.id=l.account_id LEFT JOIN contact p ON p.id=l.contact_id WHERE m.state='posted' AND a.type='receivable' AND a.company_id IN %s AND m.date<=%s"
         args = [tuple(company_ids), date]
         if contact_id:
             q += "AND l.contact_id=%s"
@@ -161,7 +161,6 @@ class ReportAgedReceivables(Model):
             contact["amount_total"] += r.amount
 
         data["lines"] = list(contacts.values())
-        data["lines"] = [l for l in data["lines"] if abs(l["amount_total"]) > 0.001]
         data["lines"].sort(key=lambda c: c["contact_name"])
         pprint(data)
         return data

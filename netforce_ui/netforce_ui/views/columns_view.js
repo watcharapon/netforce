@@ -56,6 +56,7 @@ var ColumnsView=NFView.extend({
         this.data.page_title=this.$layout.attr("title")||this.options.string;
         var condition=this.options.condition||[];
         var group_field=this.$layout.attr("group_field");
+        var title_field=this.$layout.attr("title_field");
         if (!group_field) throw("Missing group_field in columns view");
         var title_field=this.$layout.attr("title_field");
         if (!title_field) throw("Missing title field in columns view");
@@ -70,6 +71,23 @@ var ColumnsView=NFView.extend({
             field_names: field_names,
             count: true
         };
+
+        if (_.isString(condition)) {
+            var ctx=clean_context(_.extend({},this.context,this.options));
+            condition=eval_json(condition,ctx);
+        }
+        var search_condition=this.search_condition||[];
+        if (_.isString(search_condition)) {
+            search_condition=JSON.parse(search_condition);
+        }
+        if (search_condition.length>0) {
+            if (condition.length>0) {
+                condition=[condition,search_condition];
+            } else {
+                condition=search_condition;
+            }
+        }
+
         rpc_execute(this.options.model,"search_read",[condition],opts,function(err,data) {
             that.collection=new NFCollection(data[0],{name:that.options.model});
             var groups={};
@@ -86,7 +104,7 @@ var ColumnsView=NFView.extend({
                 }
                 var group=groups[group_val];
                 var val=m.get(title_field);
-                var f=get_field(that.options.model,group_field);
+                var f=get_field(that.options.model,title_field);
                 var title_val=render_field_value(val,f);
                 var fields=[];
                 _.each(content_fields,function(n) {

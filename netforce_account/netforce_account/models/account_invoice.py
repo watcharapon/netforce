@@ -552,6 +552,8 @@ class Invoice(Model):
             subtotal=get_model("currency").round(inv.currency_id.id,subtotal)
             tax=get_model("currency").round(inv.currency_id.id,tax)
             vals["amount_subtotal"] = subtotal
+            if inv.taxes:
+                tax=sum(t.tax_amount for t in inv.taxes)
             vals["amount_tax"] = tax
             if inv.tax_type == "tax_in":
                 vals["amount_rounding"] = sum(l.amount for l in inv.lines) - (subtotal + tax)
@@ -744,12 +746,14 @@ class Invoice(Model):
 
     def get_contact_credit(self, ids, context={}):
         obj = self.browse(ids[0])
-        contact = get_model("contact").browse(obj.contact_id.id, context={"currency_id": obj.currency_id.id})
+        amt=0
         vals = {}
-        if obj.type == "out":
-            amt = contact.receivable_credit
-        elif obj.type == "in":
-            amt = contact.payable_credit
+        if obj.contact_id:
+            contact = get_model("contact").browse(obj.contact_id.id, context={"currency_id": obj.currency_id.id})
+            if obj.type == "out":
+                amt = contact.receivable_credit
+            elif obj.type == "in":
+                amt = contact.payable_credit
         vals[obj.id] = amt
         return vals
 
