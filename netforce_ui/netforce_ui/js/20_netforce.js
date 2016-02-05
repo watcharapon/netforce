@@ -1796,6 +1796,10 @@ window.NFCollection=Backbone.Collection.extend({
             that.reset(data,{name:that.name});
             if (cb) cb(err,data);
         });
+    },
+
+    nf_pluck: function(field_name) {
+        return this.filter(function(m) {return m.get(field_name)}).map(function(m) {return m.get(field_name)[0]});
     }
 })
 
