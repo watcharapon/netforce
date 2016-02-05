@@ -168,7 +168,7 @@ class SaleOrderLine(Model):
                 for line in inv.lines:
                     prod_id = line.product_id.id
                     inv_qtys.setdefault(prod_id, 0)
-                    inv_qtys[prod_id] += line.qty
+                    inv_qtys[prod_id] += line.qty or 0
             for line in order.lines:
                 if line.id not in ids:
                     continue
