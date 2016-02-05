@@ -121,9 +121,11 @@ class Currency(Model):
         if cur_from_id == cur_to_id:
             return amt
         if not from_rate and not rate:
-            from_rate = self.get_rate([cur_from_id], date=date, rate_type=rate_type, context=context)
+            if cur_from_id:
+                from_rate = self.get_rate([cur_from_id], date=date, rate_type=rate_type, context=context)
         if not to_rate and not rate:
-            to_rate = self.get_rate([cur_to_id], date=date, rate_type=rate_type, context=context)
+            if cur_to_id:
+                to_rate = self.get_rate([cur_to_id], date=date, rate_type=rate_type, context=context)
         if not from_rate and not rate:
             print("WARNING: missing rate for currency %s" % cur_from_id)
             from_rate = 0
