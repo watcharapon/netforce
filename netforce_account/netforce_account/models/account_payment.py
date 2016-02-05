@@ -228,6 +228,7 @@ class Payment(Model):
                     inv = line.invoice_id
                     cred_amt = 0
                     inv_vat = 0
+                    inv_wht = 0
                     if inv:
                         for alloc in inv.credit_notes:
                             cred_amt += alloc.amount
@@ -247,10 +248,21 @@ class Payment(Model):
                                         if comp.type == "vat":
                                             inv_vat += tax_amt
                                         elif comp.type == "wht":
-                                            wht -= tax_amt
+                                            #wht -= tax_amt
+                                            inv_wht -= tax_amt
                                 else:
                                     base_amt = invline_amt
                                 subtotal += base_amt
+                            if inv.taxes:
+                                inv_vat = 0
+                                inv_wht = 0
+                                for tax in inv.taxes:
+                                    comp=tax.tax_comp_id
+                                    tax_amt=tax.tax_amount*pay_ratio
+                                    if comp.type == "vat":
+                                        inv_vat += tax_amt
+                                    elif comp.type == "wht":
+                                        inv_wht -= tax_amt
                             for alloc in inv.credit_notes:
                                 cred = alloc.credit_id
                                 cred_ratio = alloc.amount / cred.amount_total
@@ -275,7 +287,9 @@ class Payment(Model):
                         elif inv.inv_type == "overpay":
                             subtotal += line.amount
                     inv_vat = get_model("currency").round(obj.currency_id.id, inv_vat)
+                    inv_wht = get_model("currency").round(obj.currency_id.id, inv_wht)
                     vat += inv_vat
+                    wht += inv_wht
                     total += line.amount
                 elif line.type == "claim":  # XXX
                     subtotal += line.amount
