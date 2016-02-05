@@ -30,7 +30,61 @@ class Sequence(Model):
     _audit_log = True
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
-        "type": fields.Selection([["cust_invoice", "Customer Invoice"], ["supp_invoice", "Supplier Invoice"], ["cust_credit", "Customer Credit Note"], ["supp_credit", "Supplier Credit Note"], ["cust_debit", "Customer Debit Note"], ["supp_debit", "Supplier Debit Note"], ["pay_in", "Incoming Payment"], ["pay_out", "Outgoing Payment"], ["transfer", "Transfer"], ["tax_no", "Tax No"], ["wht_no", "WHT No"], ["account_move", "Journal Entry"], ["pick_in", "Goods Receipt"], ["pick_internal", "Goods Transfer"], ["pick_out", "Goods Issue"], ["stock_count", "Stock Count"], ["stock_move", "Stock Movement"], ["stock_lot", "Lot / Serial Number"], ["stock_container", "Container"], ["stock_transform", "Product Transforms"], ["landed_cost", "Landed Costs"], ["shipping_rates", "Shipping Rates"], ["delivery_route","Delivery Routes"], ["sale_quot", "Sales Quotations"], ["sale_order", "Sales Order"], ["sale_return","Sales Return"],["ecom_sale_order", "Ecommerce Sales Order"], ["purchase_order", "Purchase Order"], ["purchase_return","Purchase Return"], ["purchase_request", "Purchase Request"], ["pos_closure", "POS Register Closure"], ["production", "Production Order"], ["bom", "Bill of Material"], ["service_item", "Service Item"], ["job", "Service Order"], ["task", "Task"], ["service_contract", "Service Contract"], ["issue", "Issue"], ["employee", "Employee"], ["payrun", "Payrun"], ["leave_request", "Leave Request"], ["expense", "Expense Claim"], ["fixed_asset", "Fixed Asset"], ["claim", "Product Claims"], ["borrow", "Product Borrowings"], ["contact", "Contact Number"], ["ecom_cart","Cart Number"], ["other", "Other"]], "Type", required=True, search=True),
+        "type": fields.Selection([
+            ["cust_invoice", "Customer Invoice"],
+            ["supp_invoice", "Supplier Invoice"],
+            ["cust_credit", "Customer Credit Note"],
+            ["supp_credit", "Supplier Credit Note"],
+            ["cust_debit", "Customer Debit Note"],
+            ["supp_debit", "Supplier Debit Note"],
+            ["pay_in", "Incoming Payment"],
+            ["pay_out", "Outgoing Payment"],
+            ["transfer", "Transfer"],
+            ["tax_no", "Tax No"],
+            ["wht_no", "WHT No"],
+            ["account_move", "Journal Entry"],
+            ["pick_in", "Goods Receipt"],
+            ["pick_internal", "Goods Transfer"],
+            ["pick_out", "Goods Issue"],
+            ["stock_count", "Stock Count"],
+            ["stock_move", "Stock Movement"],
+            ["stock_lot", "Lot / Serial Number"],
+            ["stock_container", "Container"],
+            ["stock_transform", "Product Transforms"],
+            ["landed_cost", "Landed Costs"],
+            ["shipping_rates", "Shipping Rates"],
+            ["delivery_route","Delivery Routes"],
+            ["sale_quot", "Sales Quotations"],
+            ["sale_order", "Sales Order"],
+            ["sale_return","Sales Return"],
+            ["ecom_sale_order", "Ecommerce Sales Order"],
+            ["purchase_order", "Purchase Order"],
+            ["purchase_return","Purchase Return"],
+            ["purchase_request", "Purchase Request"],
+            ["pos_closure", "POS Register Closure"],
+            ["production", "Production Order"],
+            ["bom", "Bill of Material"],
+            ["service_item", "Service Item"],
+            ["job", "Service Order"],
+            ["task", "Task"],
+            ["service_contract", "Service Contract"],
+            ["issue", "Issue"],
+            ["employee", "Employee"],
+            ["payrun", "Payrun"],
+            ["leave_request", "Leave Request"],
+            ["expense", "Expense Claim"],
+            ["fixed_asset", "Fixed Asset"],
+            ["claim", "Product Claims"],
+            ["borrow", "Product Borrowings"],
+            ["contact", "Contact Number"],
+            ["ecom_cart","Cart Number"],
+            ["other", "Other"],
+
+            # TODO: Sequence type should not hardcode module
+            ["account_bill_in","Supplier Bill Issue"],
+            ["account_bill_out","Customer Bill Issue"],
+
+            ], "Type", required=True, search=True),
         "prefix": fields.Char("Prefix", search=True),
         "padding": fields.Integer("Number Padding"),
         "running": fields.One2Many("sequence.running", "sequence_id", "Running Numbers"),
@@ -54,6 +108,33 @@ class Sequence(Model):
         }
         prefix = template % vals
         return prefix
+
+    def get_number_by_type(self,type,model,context={}):
+
+        sequence_id = self.find_sequence(type=type,context=context)
+        if not sequence_id:
+            return None
+
+        number = self.get_number_by_id(sequence_id,model,context=context)
+        return number
+
+    def get_number_by_id(self,sequence_id,model,context={}):
+
+        assert model, "Model required to search latest sequence"
+
+        # if no seuqence
+        if not sequence_id:
+            raise Exception("[G001] No sequence configured %s" % type)
+            #return None
+        while 1:
+            num = self.get_next_number(sequence_id, context=context)
+            res = get_model(model).search([["number", "=", num]])
+            if not res:
+                return num
+            # set next number
+            self.increment_number(sequence_id, context=context)
+
+        return None
 
     def find_sequence(self, type=None, name=None, context={}):
         if type and name:
