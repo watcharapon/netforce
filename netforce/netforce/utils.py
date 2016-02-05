@@ -610,7 +610,7 @@ sym={
     }
 }
 
-def _num2word(n,lang="en_US"):
+def _num2word(n,l="en_US"):
     number=n
     if number==0:
         return sym[l]["0"] + ""
@@ -642,7 +642,7 @@ def _num2word(n,lang="en_US"):
     else:
         return "N/A"
 
-def num2word(n,lang="th_TH"):
+def num2word(n,l="th_TH"):
     '''
         >>> num2word(-666, 'en_US')
         'MINUS SIX HUNDRED SIXTY SIX BAHT ONLY'
@@ -678,8 +678,7 @@ def num2word(n,lang="th_TH"):
     base=0
     end=0
     number = n
-    print("number", number)
-    if type(n) == type(''):
+    if type(n)  in (type(''),decimal.Decimal):
         number=float(n)
     word = ''
     if type(number) in (int, float):

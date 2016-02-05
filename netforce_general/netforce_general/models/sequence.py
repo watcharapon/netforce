@@ -92,7 +92,9 @@ class Sequence(Model):
             ("account_cheque_move_rs","Cheque Receipt Sale"),
             ("account_cheque_move_pp","Cheque Payment Honor"),
             ("account_cheque_move_pr","Cheque Payment Return"),
-            ("account_cheque_move_pc","Cheque Payment Cancel")
+            ("account_cheque_move_pc","Cheque Payment Cancel"),
+            ("account_advance","Advance Payment"),
+            ("account_advance_clear","Advance Clearing"),
 
             ], "Type", required=True, search=True),
         "prefix": fields.Char("Prefix", search=True),
