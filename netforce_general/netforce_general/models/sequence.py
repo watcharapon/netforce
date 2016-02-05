@@ -83,6 +83,16 @@ class Sequence(Model):
             # TODO: Sequence type should not hardcode module
             ["account_bill_in","Supplier Bill Issue"],
             ["account_bill_out","Customer Bill Issue"],
+            ["account_cheque_in","Cheque Receive"],
+            ["account_cheque_out","Cheque Payment"],
+            ("account_cheque_move_rb","Cheque Receipt Pay-In"),
+            ("account_cheque_move_rp","Cheque Receipt Honor"),
+            ("account_cheque_move_rr","Cheque Receipt Return"),
+            ("account_cheque_move_rc","Cheque Receipt Cancel"),
+            ("account_cheque_move_rs","Cheque Receipt Sale"),
+            ("account_cheque_move_pp","Cheque Payment Honor"),
+            ("account_cheque_move_pr","Cheque Payment Return"),
+            ("account_cheque_move_pc","Cheque Payment Cancel")
 
             ], "Type", required=True, search=True),
         "prefix": fields.Char("Prefix", search=True),
