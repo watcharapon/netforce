@@ -2260,6 +2260,9 @@ class BrowseList(object):  # TODO: optimize for speed
     def __len__(self):
         return len(self.records)
 
+    def __add__(self,other):
+        raise Exception("Not Implemented")
+
     def __iter__(self):
         for obj in self.records:
             yield obj
