@@ -264,6 +264,24 @@ Handlebars.registerHelper("currency",function(v,options) {
     return s;
 });
 
+Handlebars.registerHelper("currency_abs",function(v,options) {
+    var scale;
+    if (options.hash && options.hash.scale!=null) {
+        scale=options.hash.scale;
+    } else {
+        scale=2;
+    }
+    if (typeof(v)!="number") return "";
+    if (v>-0.00001 && v<0.00001) v=0; // XXX
+    if (v==0 && options.hash && options.hash.zero!=null) return options.hash.zero;
+    if (v<0) {
+        var s=format_money(-v,scale);
+    } else {
+        var s=format_money(v,scale);
+    }
+    return s;
+});
+
 Handlebars.registerHelper("fmt_date",function(v,options) {
     return format_date(v,options);
 });
@@ -318,6 +336,14 @@ Handlebars.registerHelper("action",function(options) { // XXX
     var view=view_cls.make_view(action);
     var tag=view.tagName;
     return new Handlebars.SafeString('<'+tag+' id="'+view.cid+'" class="view"></'+tag+'>');
+});
+
+Handlebars.registerHelper("ifgt",function(val1,val2,options) {
+    if (val1>val2) {
+        return options.fn(this);
+    } else {
+        return options.inverse(this);
+    }
 });
 
 Handlebars.registerHelper("ifeq",function(val1,val2,options) {
