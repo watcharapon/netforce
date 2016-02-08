@@ -431,7 +431,7 @@ function format_date(val,options) {
         var year2=year+543;
         val=""+year2+val.substr(4);
     }
-    if (options && options.hash.fmt) {
+    if (options && options.hash && options.hash.fmt) {
         var fmt=options.hash.fmt;
     } else {
         if (ui_params_db && ui_params_db.date_format) {
