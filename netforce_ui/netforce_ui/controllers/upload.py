@@ -28,6 +28,7 @@ class Upload(Controller):
     _path = "/upload"
 
     def post(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
         fname = self.get_argument("filename", None)
         print(">>> upload %s" % fname)
         if self.request.headers.get("Content-Type") == "image/jpeg":
@@ -60,5 +61,9 @@ class Upload(Controller):
             path_thumb3 = os.path.join(fdir, fname5)
             os.system(r"convert -resize 128x128\> '%s' '%s'" % (path, path_thumb3))
         print("<<< upload %s" % fname)
+
+    def options(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Methods", "POST")
 
 Upload.register()
