@@ -25,6 +25,7 @@ class Cart(Model):
         "state": fields.Selection([["draft","Draft"],["confirmed","Confirmed"]],"Status",required=True),
         "delivery_slots": fields.Json("Delivery Slots",function="get_delivery_slots"),
         "payment_methods": fields.Json("Payment Methods",function="get_payment_methods"),
+        "transaction_no": fields.Char("Payment Transaction No."),
     }
     _order="date desc"
 
