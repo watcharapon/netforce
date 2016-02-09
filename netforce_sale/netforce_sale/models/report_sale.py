@@ -67,8 +67,9 @@ class ReportSale(Model):
 
     def sales_per_month(self, context={}):
         db = get_connection()
+        company_id=get_active_company()
         res = db.query(
-            "SELECT to_char(date,'YYYY-MM') AS month,SUM(amount_total_cur) as amount FROM sale_order WHERE state in ('confirmed','done') GROUP BY month")
+            "SELECT to_char(date,'YYYY-MM') AS month,SUM(amount_total_cur) as amount FROM sale_order as o WHERE state in ('confirmed','done') and o.company_id=%s GROUP BY month",company_id)
         amounts = {}
         for r in res:
             amounts[r.month] = r.amount
@@ -82,8 +83,9 @@ class ReportSale(Model):
 
     def sales_per_product(self, context={}):
         db = get_connection()
+        company_id=get_active_company()
         res = db.query(
-            "SELECT p.name,SUM(l.amount_cur) as amount FROM sale_order_line l,sale_order o,product p WHERE p.id=l.product_id AND o.id=l.order_id AND o.state in ('confirmed','done') GROUP BY p.name ORDER BY amount DESC")
+            "SELECT p.name,SUM(l.amount_cur) as amount FROM sale_order_line l,sale_order o,product p WHERE p.id=l.product_id AND o.id=l.order_id AND o.state in ('confirmed','done') and o.company_id=%s GROUP BY p.name ORDER BY amount DESC",company_id)
         data = []
         for r in res[:5]:
             data.append((r.name, r.amount))
@@ -96,8 +98,9 @@ class ReportSale(Model):
 
     def sales_per_product_categ(self, context={}):
         db = get_connection()
+        company_id=get_active_company()
         res = db.query(
-            "SELECT c.name,SUM(l.amount_cur) as amount FROM sale_order_line l,sale_order o,product p,product_categ c,m2m_product_product_categ r WHERE c.id=r.product_categ_id AND p.id=r.product_id AND p.id=l.product_id AND o.id=l.order_id AND o.state in ('confirmed','done') GROUP BY c.name ORDER BY amount DESC")
+            "SELECT c.name,SUM(l.amount_cur) as amount FROM sale_order_line l,sale_order o,product p,product_categ c,m2m_product_product_categ r WHERE c.id=r.product_categ_id AND p.id=r.product_id AND p.id=l.product_id AND o.id=l.order_id AND o.state in ('confirmed','done') and o.company_id=%s GROUP BY c.name ORDER BY amount DESC",company_id)
         data = []
         for r in res[:5]:
             data.append((r.name, r.amount))
@@ -110,8 +113,9 @@ class ReportSale(Model):
 
     def sales_per_customer(self, context={}):
         db = get_connection()
+        company_id=get_active_company()
         res = db.query(
-            "SELECT c.name,SUM(o.amount_total) as amount FROM sale_order o,contact c WHERE c.id=o.contact_id AND o.state in ('confirmed','done') GROUP BY c.name ORDER BY amount DESC")
+            "SELECT c.name,SUM(o.amount_total) as amount FROM sale_order o,contact c WHERE c.id=o.contact_id AND o.state in ('confirmed','done') and o.company_id=%s GROUP BY c.name ORDER BY amount DESC",company_id)
         data = []
         for r in res[:5]:
             data.append((r.name, r.amount))
@@ -283,8 +287,9 @@ class ReportSale(Model):
 
     def opport_stage(self, context={}):
         db = get_connection()
+        company_id=get_active_company()
         res = db.query(
-            "SELECT s.name,SUM(o.amount*o.probability/100) AS amount,COUNT(*) AS num FROM sale_opportunity o,sale_stage s WHERE s.id=o.stage_id AND o.state in ('open','won') GROUP BY s.name")
+            "SELECT s.name,SUM(o.amount*o.probability/100) AS amount,COUNT(*) AS num FROM sale_opportunity o,sale_stage s WHERE s.id=o.stage_id AND o.state in ('open','won') and o.company_id=%s GROUP BY s.name",company_id)
         amounts = {}
         counts = {}
         for r in res:
@@ -300,9 +305,10 @@ class ReportSale(Model):
         return {"value": data}
 
     def expected_revenue(self, context={}):
+        company_id=get_active_company()
         db = get_connection()
         res = db.query(
-            "SELECT date_trunc('month',o.date_close) AS month,SUM(o.amount*o.probability/100),COUNT(*) FROM sale_opportunity o WHERE o.state in ('open','won') GROUP BY month")
+            "SELECT date_trunc('month',o.date_close) AS month,SUM(o.amount*o.probability/100),COUNT(*) FROM sale_opportunity o WHERE o.state in ('open','won') and o.company_id=%s GROUP BY month",company_id)
         amounts = {}
         months = get_future_months(6)
         last_month = "%d-%.2d" % months[-1]
