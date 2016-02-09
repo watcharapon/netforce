@@ -3,6 +3,7 @@ from netforce import access
 from datetime import *
 import time
 from pprint import pprint
+import json
 
 class Cart(Model):
     _name="ecom2.cart"
@@ -23,8 +24,11 @@ class Cart(Model):
         "pay_method_id": fields.Many2One("payment.method","Payment Method"),
         "logs": fields.One2Many("log","related_id","Audit Log"),
         "state": fields.Selection([["draft","Draft"],["confirmed","Confirmed"]],"Status",required=True),
-        "delivery_slots": fields.Json("Delivery Slots",function="get_delivery_slots"),
         "payment_methods": fields.Json("Payment Methods",function="get_payment_methods"),
+        "delivery_delay": fields.Integer("Delivery Delay (Days)",function="get_delivery_delay"),
+        "delivery_slots": fields.Json("Delivery Slots",function="get_delivery_slots"),
+        "delivery_slots_str": fields.Text("Delivery Slots",function="get_delivery_slots_str"),
+        "comments": fields.Text("Comments"),
         "transaction_no": fields.Char("Payment Transaction No."),
     }
     _order="date desc"
@@ -60,50 +64,6 @@ class Cart(Model):
             vals[obj.id]=amt
         return vals
 
-    def get_delivery_slots(self,ids,context={}):
-        obj=self.browse(ids[0])
-        settings=get_model("ecom2.settings").browse(1)
-        max_days=settings.delivery_max_days
-        if not max_days:
-            return []
-        min_hours=settings.delivery_min_hours or 0
-        d_from=date.today()
-        d_to=d_from+timedelta(days=max_days)
-        d=d_from
-        slots=[]
-        for slot in get_model("delivery.slot").search_browse([]):
-            slots.append([slot.id,slot.name,slot.time_from])
-        slot_num_sales={}
-        for sale in get_model("sale.order").search_browse([["date",">=",time.strftime("%Y-%m-%d")]]):
-            k=(sale.due_date,sale.delivery_slot_id.id)
-            slot_num_sales.setdefault(k,0)
-            slot_num_sales[k]+=1
-        slot_caps={}
-        for cap in get_model("delivery.slot.capacity").search_browse([]):
-            k=(cap.slot_id.id,int(cap.weekday))
-            slot_caps[k]=cap.capacity
-        days=[]
-        now=datetime.now()
-        while d<=d_to:
-            ds=d.strftime("%Y-%m-%d")
-            w=d.weekday()
-            day_slots=[]
-            for slot_id,slot_name,from_time in slots:
-                t_from=datetime.strptime(ds+" "+from_time+":00","%Y-%m-%d %H:%M:%S")
-                capacity=slot_caps.get((slot_id,w))
-                num_sales=slot_num_sales.get((ds,slot_id),0)
-                state="avail"
-                if t_from<now or (t_from-now).seconds<min_hours*3600:
-                    state="full"
-                if capacity is not None and num_sales>=capacity:
-                        state="full"
-                day_slots.append([slot_id,slot_name,state,num_sales,capacity])
-            days.append([ds,day_slots])
-            d+=timedelta(days=1)
-        print("days:")
-        pprint(days)
-        return {obj.id: days}
-
     def get_payment_methods(self,ids,context={}):
         res=[]
         for obj in get_model("payment.method").search_browse([]):
@@ -126,6 +86,9 @@ class Cart(Model):
         access.set_active_company(1) # XXX
         order_lines={}
         for line in obj.lines:
+            prod=line.product_id
+            if line.lot_id and line.qty_avail<=0:
+                raise Exception("Lot is out of stock (%s)"%prod.name)
             due_date=line.delivery_date or obj.delivery_date
             ship_address_id=line.ship_address_id.id
             k=(due_date,ship_address_id)
@@ -173,7 +136,7 @@ class Cart(Model):
         obj=self.browse(ids[0])
         line_id=None
         for line in obj.lines:
-            if line.product_id.id==prod_id:
+            if line.product_id.id==prod_id and not line.lot_id:
                 line_id=line.id
                 break
         if line_id:
@@ -207,5 +170,83 @@ class Cart(Model):
         if not line_id:
             raise Exception("Lot not found in cart")
         get_model("ecom2.cart.line").delete([line_id])
+
+    def get_delivery_delay(self,ids,context={}):
+        settings=get_model("ecom2.settings").browse(1)
+        vals={}
+        for obj in self.browse(ids):
+            vals[obj.id]=max(l.delivery_delay for l in obj.lines)
+        return vals
+
+    def get_delivery_slots(self,ids,context={}):
+        obj=self.browse(ids[0])
+        settings=get_model("ecom2.settings").browse(1)
+        max_days=settings.delivery_max_days
+        if not max_days:
+            return []
+        min_hours=settings.delivery_min_hours or 0
+        d_from=date.today()+timedelta(days=obj.delivery_delay)
+        d_to=d_from+timedelta(days=max_days)
+        d=d_from
+        slots=[]
+        for slot in get_model("delivery.slot").search_browse([]):
+            slots.append([slot.id,slot.name,slot.time_from])
+        slot_num_sales={}
+        for sale in get_model("sale.order").search_browse([["date",">=",time.strftime("%Y-%m-%d")]]):
+            k=(sale.due_date,sale.delivery_slot_id.id)
+            slot_num_sales.setdefault(k,0)
+            slot_num_sales[k]+=1
+        slot_caps={}
+        for cap in get_model("delivery.slot.capacity").search_browse([]):
+            k=(cap.slot_id.id,int(cap.weekday))
+            slot_caps[k]=cap.capacity
+        delivery_weekdays=None
+        for line in obj.lines:
+            prod=line.product_id
+            if prod.delivery_weekdays:
+                days=[int(w) for w in prod.delivery_weekdays.split(",")]
+                if delivery_weekdays==None:
+                    delivery_weekdays=days
+                else:
+                    delivery_weekdays=[d for d in delivery_weekdays if d in days]
+        days=[]
+        now=datetime.now()
+        while d<=d_to:
+            ds=d.strftime("%Y-%m-%d")
+            res=get_model("hr.holiday").search([["date","=",ds]])
+            if res:
+                d+=timedelta(days=1)
+                continue
+            w=d.weekday()
+            if w==6 or delivery_weekdays is not None and w not in delivery_weekdays:
+                d+=timedelta(days=1)
+                continue
+            day_slots=[]
+            for slot_id,slot_name,from_time in slots:
+                t_from=datetime.strptime(ds+" "+from_time+":00","%Y-%m-%d %H:%M:%S")
+                capacity=slot_caps.get((slot_id,w))
+                num_sales=slot_num_sales.get((ds,slot_id),0)
+                state="avail"
+                if t_from<now or (t_from-now).seconds<min_hours*3600:
+                    state="full"
+                if capacity is not None and num_sales>=capacity:
+                    state="full"
+                day_slots.append([slot_id,slot_name,state,num_sales,capacity])
+            days.append([ds,day_slots])
+            d+=timedelta(days=1)
+        print("days:")
+        pprint(days)
+        return {obj.id: days}
+
+    def get_delivery_slots_str(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            s=""
+            for d,slots in obj.delivery_slots:
+                s+="- Date: %s\n"%d
+                for slot_id,name,state,num_sales,capacity in slots:
+                    s+="    - %s: %s (%s/%s)\n"%(name,state,num_sales,capacity or "-")
+            vals[obj.id]=s
+        return vals
 
 Cart.register()

@@ -16,7 +16,10 @@ class CartLine(Model):
         "amount": fields.Decimal("Amount",function="get_amount"),
         "delivery_date": fields.Date("Delivery Date"),
         "ship_address_id": fields.Many2One("address","Shipping Address"),
-        "delivery_slot_id": fields.Many2One("delivery.slot","Peferred Delivery Slot"),
+        "delivery_slot_id": fields.Many2One("delivery.slot","Delivery Slot"),
+        "qty_avail": fields.Decimal("Qty In Stock",function="get_qty_avail"),
+        "delivery_delay": fields.Integer("Delivery Delay (Days)",function="get_delivery_delay"),
+        "delivery_weekdays": fields.Char("Delivery Weekdays",function="_get_related",function_context={"path":"product_id.delivery_weekdays"}),
     }
 
     def get_amount(self,ids,context={}):
@@ -29,7 +32,7 @@ class CartLine(Model):
         prod_id=vals["product_id"]
         prod=get_model("product").browse(prod_id)
         vals["uom_id"]=prod.uom_id.id
-        if prod.ecom_select_lot: # XXX: improve this
+        if prod.ecom_select_lot and vals.get("lot_id"): # XXX: improve this
             lot_id=vals["lot_id"]
             lot=get_model("stock.lot").browse(lot_id)
             sale_price=math.ceil((prod.sale_price or 0)*(lot.weight or 0)/1000)
@@ -37,5 +40,28 @@ class CartLine(Model):
         else:
             vals["unit_price"]=prod.sale_price
         return super().create(vals,*args,**kw)
+
+    def get_qty_avail(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            prod=obj.product_id
+            if prod.locations:
+                loc_id=prod.locations[0].location_id.id
+                qty=get_model("stock.balance").get_qty_virt(loc_id,prod.id,obj.lot_id.id) # XXX: speed
+            else:
+                qty=0
+            vals[obj.id]=qty
+        return vals
+
+    def get_delivery_delay(self,ids,context={}):
+        settings=get_model("ecom2.settings").browse(1)
+        vals={}
+        for obj in self.browse(ids):
+            delay=0
+            prod=obj.product_id
+            if obj.qty_avail<=0:
+                delay=max(delay,prod.sale_lead_time_nostock or settings.sale_lead_time_nostock or 0)
+            vals[obj.id]=delay
+        return vals
 
 CartLine.register()
