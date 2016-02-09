@@ -244,4 +244,42 @@ class Contact(Model):
             if not utils.check_email_syntax(obj.email):
                 raise Exception("Invalid email for contact '%s'"%obj.name)
 
+    def find_address(self,ids,addr_vals,context={}):
+        obj=self.browse(ids[0])
+        addr_id=None
+        for addr in obj.addresses:
+            if "address" in addr_vals and addr_vals["address"]!=addr.address:
+                continue
+            if "address2" in addr_vals and addr_vals["address2"]!=addr.address2:
+                continue
+            if "city" in addr_vals and addr_vals["city"]!=addr.city:
+                continue
+            if "postal_code" in addr_vals and addr_vals["postal_code"]!=addr.postal_code:
+                continue
+            if "country_id" in addr_vals and addr_vals["country_id"]!=addr.country_id.id:
+                continue
+            if "province_id" in addr_vals and addr_vals["province_id"]!=addr.province_id.id:
+                continue
+            if "district_id" in addr_vals and addr_vals["district_id"]!=addr.district_id.id:
+                continue
+            if "subdistrict_id" in addr_vals and addr_vals["subdistrict_id"]!=addr.subdistrict_id.id:
+                continue
+            if "phone" in addr_vals and addr_vals["phone"]!=addr.phone:
+                continue
+            if "first_name" in addr_vals and addr_vals["phone"]!=addr.first_name:
+                continue
+            if "last_name" in addr_vals and addr_vals["last_name"]!=addr.last_name:
+                continue
+            addr_id=addr.id
+            break
+        return addr_id
+
+    def add_address(self,ids,addr_vals,context={}):
+        addr_id=self.find_address(ids)
+        if not addr_id:
+            vals=addr_vals.copy()
+            vals["contact_id"]=ids[0]
+            addr_id=get_model("address").create(vals)
+        return addr_id
+
 Contact.register()

@@ -32,6 +32,7 @@ class PaymentMethod(Model):
         "type": fields.Selection([["bank", "Bank Transfer"], ["credit_card", "Credit Card"], ["paypal", "Paypal"],["scb_gateway","SCB Gateway"], ["paysbuy","Paysbuy"]], "Type", search=True),
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "account_id": fields.Many2One("account.account","Account"),
+        # TODO: remove all payment method specific fields
         "paypal_url": fields.Selection([["test", "Test URL"], ["production", "Production URL"]], "Server URL"),
         "paypal_user": fields.Char("Username", size=256),
         "paypal_password": fields.Char("Password", size=256),
@@ -60,7 +61,7 @@ class PaymentMethod(Model):
             return
         inv_id=res[0]
         inv=get_model("account.invoice").browse(inv_id)
-        if currency_id!=inv.currency_id.id:
+        if currency_id and currency_id!=inv.currency_id.id:
             raise Exception("Received invoice payment in wrong currency (pmt: %s, inv: %s)"%(currency_id,inv.currency_id.id))
         method=inv.pay_method_id
         if not method:
@@ -96,7 +97,24 @@ class PaymentMethod(Model):
             "next_url": "/ui#name=payment&mode=form&active_id=%d"%pmt_id,
         }
 
+    def payment_pending(self,context={}):
+        transaction_no=context.get("transaction_no")
+        res=get_model("account.invoice").search([["transaction_no","=",transaction_no]])
+        if not res:
+            return
+        inv_id=res[0]
+        return {
+            "next_url": "/ui#name=view_invoice&active_id=%d"%inv_id,
+        }
+
     def payment_error(self,context={}):
-        pass
+        transaction_no=context.get("transaction_no")
+        res=get_model("account.invoice").search([["transaction_no","=",transaction_no]])
+        if not res:
+            return
+        inv_id=res[0]
+        return {
+            "next_url": "/ui#name=view_invoice&active_id=%d"%inv_id,
+        }
 
 PaymentMethod.register()

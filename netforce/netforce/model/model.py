@@ -330,6 +330,16 @@ class Model(object):
         self.trigger([new_id], "create")
         return new_id
 
+    def copy(self,ids,vals,context={}):
+        for obj in self.browse(ids):
+            create_vals={}
+            for n,f in self._fields.items():
+                if not f.store:
+                    continue
+                create_vals[n]=obj[n]
+            create_vals.update(vals)
+            self.create(create_vals,context=context)
+
     def _expand_condition(self, condition, context={}):
         new_condition = []
         for clause in condition:
