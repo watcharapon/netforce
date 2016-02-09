@@ -59,6 +59,7 @@ class Address(Model):
         "address_text": fields.Text("Address Text", function="get_address_text"),
         "sequence": fields.Decimal("Sequence"),
         "company_id": fields.Many2One("company","Company"),
+        "comments": fields.Text("Comments"),
     }
     _defaults={
         "company_id": lambda *a: access.get_active_company(),

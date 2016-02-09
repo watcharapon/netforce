@@ -21,4 +21,5 @@
     <field name="subdistrict_id" condition='[["district_id","=",district_id]]'/>
     <field name="phone"/>
     <field name="sequence"/>
+    <field name="comments"/>
 </form>
