@@ -2027,6 +2027,18 @@ class Model(object):
             keys.append([k, obj.id, obj.write_time])
         return keys
 
+    def sync_check_keys(self, keys, context={}):
+        res=[]
+        for k in keys:
+            obj_id=self.sync_find_key(k)
+            if obj_id:
+                obj=self.browse(obj_id) # XXX: speed
+                mtime=obj.write_time
+            else:
+                mtime=None
+            res.append((k,m_time))
+        return res
+
     def sync_export(self, ids, context={}):
         # print("Model.sync_export",self._name,ids)
         data = []
