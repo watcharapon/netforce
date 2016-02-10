@@ -29,13 +29,14 @@ class Contact(Model):
     _string = "Contact"
     _audit_log = True
     _export_field = "name"
+    _key = ["code"]
     _fields = {
         "user_id": fields.Many2One("base.user", "User"),
         "type": fields.Selection([["person", "Individual"], ["org", "Organization"]], "Contact Type", required=True, search=True),
         "customer": fields.Boolean("Customer", search=True),
         "supplier": fields.Boolean("Supplier", search=True),
         "name": fields.Char("Name", required=True, search=True, translate=True, size=256),
-        "code": fields.Char("Code", search=True),
+        "code": fields.Char("Code", search=True, required=True),
         "phone": fields.Char("Phone", search=True),
         "fax": fields.Char("Fax"),
         "website": fields.Char("Website"),

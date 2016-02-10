@@ -253,6 +253,10 @@ class Model(object):
             vals["create_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
         if not vals.get("create_uid"):
             vals["create_uid"] = access.get_active_user()
+        if not vals.get("write_time"):
+            vals["write_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        if not vals.get("write_uid"):
+            vals["write_uid"] = access.get_active_user()
         store_fields = [n for n in vals if self._fields[n].store]
         cols = store_fields[:]
         q = "INSERT INTO " + self._table
@@ -2038,7 +2042,7 @@ class Model(object):
                 f = self._fields[n]
                 if not f.store and not isinstance(f, fields.Many2Many):
                     continue
-                if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
+                if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Decimal, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
                     vals[n] = obj[n]
                 elif isinstance(f, fields.Many2One):
                     v = obj[n]
@@ -2103,8 +2107,11 @@ class Model(object):
             try:
                 vals = {}
                 for n, v in rec.items():
-                    f = self._fields[n]
-                    if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
+                    f = self._fields.get(n)
+                    if not f:
+                        print("WARNING: no such field %s in %s"%(n,self._name))
+                        continue
+                    if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Decimal, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
                         vals[n] = v
                     elif isinstance(f, fields.Many2One):
                         if v:

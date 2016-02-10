@@ -23,13 +23,14 @@ class Cart(Model):
         "delivery_slot_id": fields.Many2One("delivery.slot","Peferred Delivery Slot"),
         "pay_method_id": fields.Many2One("payment.method","Payment Method"),
         "logs": fields.One2Many("log","related_id","Audit Log"),
-        "state": fields.Selection([["draft","Draft"],["confirmed","Confirmed"]],"Status",required=True),
+        "state": fields.Selection([["draft","Draft"],["waiting_payment","Waiting Payment"],["paid","Paid"],["canceled","Canceled"]],"Status",required=True),
         "payment_methods": fields.Json("Payment Methods",function="get_payment_methods"),
         "delivery_delay": fields.Integer("Delivery Delay (Days)",function="get_delivery_delay"),
         "delivery_slots": fields.Json("Delivery Slots",function="get_delivery_slots"),
         "delivery_slots_str": fields.Text("Delivery Slots",function="get_delivery_slots_str"),
         "comments": fields.Text("Comments"),
-        "transaction_no": fields.Char("Payment Transaction No."),
+        "transaction_no": fields.Char("Payment Transaction No.",search=True),
+        "currency_id": fields.Many2One("currency","Currency",required=True),
     }
     _order="date desc"
 
@@ -49,10 +50,15 @@ class Cart(Model):
                 return num
             get_model("sequence").increment_number(seq_id, context=context)
 
+    def _get_currency(self,context={}):
+        settings=get_model("settings").browse(1)
+        return settings.currency_id.id
+
     _defaults={
         "date": lambda *a: time.strftime("%Y-%m-%d %H:%M:%S"),
         "number": _get_number,
         "state": "draft",
+        "currency_id": _get_currency,
     }
 
     def get_total(self,ids,context={}):
@@ -73,16 +79,14 @@ class Cart(Model):
             })
         return {ids[0]: res}
 
-    def confirm(self,ids,context={}):
-        obj=self.browse(ids)[0]
-        user_id=context.get("user_id") # XXX: remove this later
+    def waiting_payment(self,ids,context={}):
+        obj=self.browse(ids[0])
+        user_id=context.get("user_id") # XX: remove this
         if user_id:
             user_id=int(user_id)
             user=get_model("base.user").browse(user_id)
-            if user.contact_id: # XXX
+            if user.contact_id:
                 obj.write({"customer_id": user.contact_id.id})
-        if obj.state=="confirmed":
-            raise Exception("Order is already confirmed")
         access.set_active_company(1) # XXX
         order_lines={}
         for line in obj.lines:
@@ -121,11 +125,42 @@ class Cart(Model):
             sale_id=get_model("sale.order").create(vals)
             sale=get_model("sale.order").browse(sale_id)
             sale.confirm()
-        obj.write({"state": "confirmed"})
+        obj.write({"state":"waiting_payment"})
+
+    def payment_received(self,ids,context={}):
+        obj=self.browse(ids)[0]
+        if obj.state!="waiting_payment":
+            raise Exception("Cart is not waiting payment")
+        res=obj.sale_orders.copy_to_invoice()
+        inv_id=res["invoice_id"]
+        inv=get_model("account.invoice").browse(inv_id)
+        inv.write({"related_id":"ecom2.cart,%s"%obj.id})
+        pmt_vals={
+            "type": "in",
+            "pay_type": "invoice",
+            "contact_id": obj.contact_id.id,
+            "account_id": method.account_id.id,
+            "lines": [],
+            "company_id": inv.company_id.id,
+            "transaction_no": transaction_no,
+        }
+        line_vals={
+            "invoice_id": inv_id,
+            "amount": amount,
+        }
+        pmt_vals["lines"].append(("create",line_vals))
+        pmt_id=get_model("account.payment").create(pmt_vals,context={"type": "in"})
+        get_model("account.payment").post([pmt_id])
+        obj.write({"state": "paid"})
+        for sale in obj.sale_orders:
+            for pick in sale.pickings:
+                if pick.state=="pending":
+                    pick.approve()
         return {
             "order_id": sale.id,
             "order_num": sale.number,
         }
+
 
     def to_draft(self,ids,context={}):
         obj=self.browse(ids[0])
@@ -175,15 +210,16 @@ class Cart(Model):
         settings=get_model("ecom2.settings").browse(1)
         vals={}
         for obj in self.browse(ids):
-            vals[obj.id]=max(l.delivery_delay for l in obj.lines)
+            vals[obj.id]=max(l.delivery_delay for l in obj.lines) if obj.lines else 0
         return vals
 
     def get_delivery_slots(self,ids,context={}):
+        print("get_delivery_slots",ids)
         obj=self.browse(ids[0])
         settings=get_model("ecom2.settings").browse(1)
         max_days=settings.delivery_max_days
         if not max_days:
-            return []
+            return {obj.id:[]}
         min_hours=settings.delivery_min_hours or 0
         d_from=date.today()+timedelta(days=obj.delivery_delay)
         d_to=d_from+timedelta(days=max_days)
@@ -248,5 +284,24 @@ class Cart(Model):
                     s+="    - %s: %s (%s/%s)\n"%(name,state,num_sales,capacity or "-")
             vals[obj.id]=s
         return vals
+
+    def pay_online(self,ids,context={}):
+        obj=self.browse(ids[0])
+        method=obj.pay_method_id
+        if not method:
+            raise Exception("Missing payment method for invoice %s"%obj.number)
+        ctx={
+            "amount": obj.amount_total,
+            "currency_id": obj.currency_id.id,
+            "details": "Invoice %s"%obj.number,
+        }
+        res=method.start_payment(context=ctx)
+        if not res:
+            raise Exception("Failed to start online payment for payment method %s"%method.name)
+        transaction_no=res["transaction_no"]
+        obj.write({"transaction_no":transaction_no})
+        return {
+            "next": res["payment_action"],
+        }
 
 Cart.register()

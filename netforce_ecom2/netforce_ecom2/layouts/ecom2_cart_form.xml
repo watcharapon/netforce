@@ -2,7 +2,9 @@
     <head>
         <field name="state"/>
         <button string="Options" dropdown="1">
-            <item string="To Draft" method="to_draft" states="confirmed"/>
+            <item string="To Draft" method="to_draft" states="waiting_payment,canceled"/>
+            <divider/>
+            <item string="Online Payment" method="pay_online"/>
         </button>
     </head>
     <tabs>
@@ -14,6 +16,7 @@
             <field name="ship_address_id" condition='[["contact_id","=",customer_id]]'/>
             <field name="delivery_slot_id"/>
             <field name="bill_address_id" condition='[["contact_id","=",customer_id]]'/>
+            <field name="currency_id"/>
             <field name="pay_method_id"/>
             <field name="delivery_delay"/>
             <field name="lines">
@@ -40,10 +43,14 @@
         </tab>
         <tab string="Other">
             <field name="delivery_slots_str"/>
+            <separator/>
+            <field name="transaction_no"/>
         </tab>
     </tabs>
     <foot>
-        <button string="Confirm Order" method="confirm"/>
+        <button string="Waiting Payment" method="waiting_payment" type="success" icon="arrow-right" states="draft"/>
+        <button string="Payment Received" method="payment_received" type="success" icon="ok" states="waiting_payment"/>
+        <button string="Cancel Order" method="canceled" type="danger" icon="remove" states="waiting_payment,paid" confirm="Are you sure?"/>
     </foot>
     <related>
         <field name="sale_orders"/>
