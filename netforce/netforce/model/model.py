@@ -253,6 +253,10 @@ class Model(object):
             vals["create_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
         if not vals.get("create_uid"):
             vals["create_uid"] = access.get_active_user()
+        if not vals.get("write_time"):
+            vals["write_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        if not vals.get("write_uid"):
+            vals["write_uid"] = access.get_active_user()
         store_fields = [n for n in vals if self._fields[n].store]
         cols = store_fields[:]
         q = "INSERT INTO " + self._table
