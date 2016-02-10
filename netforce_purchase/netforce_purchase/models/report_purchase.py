@@ -18,12 +18,11 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
+from datetime import *
 from netforce.model import Model, fields, get_model
 from netforce.database import get_connection
-import time
-from datetime import *
-from pprint import pprint
 from netforce import database
+from netforce.access import get_active_company
 from netforce.utils import get_file_path
 from . import utils
 
@@ -50,8 +49,9 @@ class ReportPurchase(Model):
 
     def purchases_per_month(self, context={}):
         db = get_connection()
+        company_id=get_active_company()
         res = db.query(
-            "SELECT to_char(date,'YYYY-MM') AS month,SUM(amount_total_cur) as amount FROM purchase_order WHERE state in ('confirmed','done') GROUP BY month")
+            "SELECT to_char(date,'YYYY-MM') AS month,SUM(amount_total_cur) as amount FROM purchase_order as po WHERE po.state in ('confirmed','done') and po.company_id=%s GROUP BY month",company_id)
         amounts = {}
         for r in res:
             amounts[r.month] = r.amount
@@ -65,8 +65,9 @@ class ReportPurchase(Model):
 
     def purchases_per_product(self, context={}):
         db = get_connection()
+        company_id=get_active_company()
         res = db.query(
-            "SELECT p.name,SUM(l.amount_cur) as amount FROM purchase_order_line l,purchase_order o,product p WHERE p.id=l.product_id AND o.id=l.order_id AND o.state in ('confirmed','done') GROUP BY p.name ORDER BY amount DESC")
+            "SELECT p.name,SUM(l.amount_cur) as amount FROM purchase_order_line l,purchase_order o,product p WHERE p.id=l.product_id AND o.id=l.order_id AND o.state in ('confirmed','done') and o.company_id=%s GROUP BY p.name ORDER BY amount DESC",company_id)
         data = []
         for r in res[:5]:
             data.append((r.name, r.amount))
@@ -79,8 +80,9 @@ class ReportPurchase(Model):
 
     def purchases_per_product_categ(self, context={}):
         db = get_connection()
+        company_id=get_active_company()
         res = db.query(
-            "SELECT c.name,SUM(l.amount_cur) as amount FROM purchase_order_line l,purchase_order o,product p,product_categ c,m2m_product_product_categ r WHERE r.product_categ_id=c.id and r.product_id=p.id AND p.id=l.product_id AND o.id=l.order_id AND o.state in ('confirmed','done') GROUP BY c.name ORDER BY amount DESC")
+            "SELECT c.name,SUM(l.amount_cur) as amount FROM purchase_order_line l,purchase_order o,product p,product_categ c,m2m_product_product_categ r WHERE r.product_categ_id=c.id and r.product_id=p.id AND p.id=l.product_id AND o.id=l.order_id AND o.state in ('confirmed','done') and o.company_id=%s GROUP BY c.name ORDER BY amount DESC",company_id)
         data = []
         for r in res[:5]:
             data.append((r.name, r.amount))
@@ -93,8 +95,9 @@ class ReportPurchase(Model):
 
     def purchases_per_supplier(self, context={}):
         db = get_connection()
+        company_id=get_active_company()
         res = db.query(
-            "SELECT p.name,SUM(o.amount_total_cur) as amount FROM purchase_order o,contact p WHERE p.id=o.contact_id AND o.state in ('confirmed','done') GROUP BY p.name ORDER BY amount DESC")
+            "SELECT p.name,SUM(o.amount_total_cur) as amount FROM purchase_order o,contact p WHERE p.id=o.contact_id AND o.state in ('confirmed','done') and o.company_id=%s GROUP BY p.name ORDER BY amount DESC",company_id)
         data = []
         for r in res[:5]:
             data.append((r.name, r.amount))

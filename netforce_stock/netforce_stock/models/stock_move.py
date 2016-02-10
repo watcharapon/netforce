@@ -127,15 +127,15 @@ class Move(Model):
         return res[0]
 
     def _get_number(self, context={}):
-        seq_id = get_model("sequence").find_sequence("stock_move")
+        seq_id = get_model("sequence").find_sequence("stock_move",context=context)
         if not seq_id:
             return None
         while 1:
-            num = get_model("sequence").get_next_number(seq_id)
+            num = get_model("sequence").get_next_number(seq_id,context=context)
             res = self.search([["number", "=", num]])
             if not res:
                 return num
-            get_model("sequence").increment_number(seq_id)
+            get_model("sequence").increment_number(seq_id,context=context)
 
     _defaults = {
         "state": "draft",
