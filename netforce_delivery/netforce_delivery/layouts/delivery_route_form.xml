@@ -17,6 +17,7 @@
             <field name="picking_id"/>
             <field name="contact_id"/>
             <field name="ship_address_id"/>
+            <field name="coordinates"/>
             <field name="delivery_slot_id"/>
             <field name="state"/>
         </list>

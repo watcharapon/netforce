@@ -31,6 +31,7 @@ class Cart(Model):
         "comments": fields.Text("Comments"),
         "transaction_no": fields.Char("Payment Transaction No.",search=True),
         "currency_id": fields.Many2One("currency","Currency",required=True),
+        "invoices": fields.One2Many("account.invoice","related_id","Invoices"),
     }
     _order="date desc"
 
@@ -79,7 +80,7 @@ class Cart(Model):
             })
         return {ids[0]: res}
 
-    def waiting_payment(self,ids,context={}):
+    def confirm(self,ids,context={}):
         obj=self.browse(ids[0])
         user_id=context.get("user_id") # XX: remove this
         if user_id:
@@ -127,18 +128,43 @@ class Cart(Model):
             sale.confirm()
         obj.write({"state":"waiting_payment"})
 
+    def cancel_order(self,ids,context={}):
+        obj=self.browse(ids[0])
+        for sale in obj.sale_orders:
+            if sale.state=="voided":
+                continue
+            for inv in sale.invoices:
+                if inv.state!="voided":
+                    raise Exception("Can not cancel order %s because there are linked invoices"%sale.number)
+            for pick in sale.pickings:
+                if pick.state=="voided":
+                    continue
+                pick.void()
+            sale.void()
+        for inv in obj.invoices:
+            if inv.state!="voided":
+                raise Exception("Can not cancel cart %s because there are linked invoices"%obj.number)
+        obj.write({"state":"canceled"})
+
     def payment_received(self,ids,context={}):
-        obj=self.browse(ids)[0]
+        obj=self.browse(ids[0])
         if obj.state!="waiting_payment":
             raise Exception("Cart is not waiting payment")
         res=obj.sale_orders.copy_to_invoice()
         inv_id=res["invoice_id"]
         inv=get_model("account.invoice").browse(inv_id)
         inv.write({"related_id":"ecom2.cart,%s"%obj.id})
+        inv.post()
+        method=obj.pay_method_id
+        if not method:
+            raise Exception("Missing payment method in cart %s"%obj.number)
+        if not method.account_id:
+            raise Exception("Missing account in payment method %s"%method.name)
+        transaction_no=context.get("transaction_no")
         pmt_vals={
             "type": "in",
             "pay_type": "invoice",
-            "contact_id": obj.contact_id.id,
+            "contact_id": inv.contact_id.id,
             "account_id": method.account_id.id,
             "lines": [],
             "company_id": inv.company_id.id,
@@ -146,7 +172,7 @@ class Cart(Model):
         }
         line_vals={
             "invoice_id": inv_id,
-            "amount": amount,
+            "amount": inv.amount_total,
         }
         pmt_vals["lines"].append(("create",line_vals))
         pmt_id=get_model("account.payment").create(pmt_vals,context={"type": "in"})
@@ -156,11 +182,6 @@ class Cart(Model):
             for pick in sale.pickings:
                 if pick.state=="pending":
                     pick.approve()
-        return {
-            "order_id": sale.id,
-            "order_num": sale.number,
-        }
-
 
     def to_draft(self,ids,context={}):
         obj=self.browse(ids[0])

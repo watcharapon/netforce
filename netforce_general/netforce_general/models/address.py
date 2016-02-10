@@ -60,6 +60,7 @@ class Address(Model):
         "sequence": fields.Decimal("Sequence"),
         "company_id": fields.Many2One("company","Company"),
         "comments": fields.Text("Comments"),
+        "coordinates": fields.Char("Coordinates"),
     }
     _defaults={
         "company_id": lambda *a: access.get_active_company(),

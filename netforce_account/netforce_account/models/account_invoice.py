@@ -337,7 +337,8 @@ class Invoice(Model):
         for obj in self.browse(ids):
             if obj.related_id:
                 for line in obj.lines:
-                    line.write({"related_id":"%s,%d"%(obj.related_id._model,obj.related_id.id)})
+                    if not line.related_id:
+                        line.write({"related_id":"%s,%d"%(obj.related_id._model,obj.related_id.id)})
             obj.check_related()
             if obj.amount_total == 0:
                 raise Exception("Invoice total is zero")

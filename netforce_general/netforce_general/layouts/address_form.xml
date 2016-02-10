@@ -22,4 +22,5 @@
     <field name="phone"/>
     <field name="sequence"/>
     <field name="comments"/>
+    <field name="coordinates"/>
 </form>

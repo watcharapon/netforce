@@ -1,4 +1,3 @@
 <map model="delivery.route.line" coordinates_field="coordinates" title_field="contact_id">
-    <field name="address"/>
-    <field name="items_description"/>
+    <field name="ship_address_id"/>
 </map>

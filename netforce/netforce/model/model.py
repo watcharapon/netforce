@@ -1261,11 +1261,15 @@ class Model(object):
                 n=fnames[-1]
                 val=parent[n]
                 if n!="id":
-                    f=parent_m._fields[n]
-                    if isinstance(f,(fields.Many2One,fields.Reference)):
-                        val = val.id
-                    elif isinstance(f,(fields.One2Many,fields.Many2Many)):
-                        val=[v.id for v in val]
+                    f=parent_m._fields.get(n)
+                    if not f:
+                        val=None
+                    else:
+                        if isinstance(f,(fields.Many2One,fields.Reference)):
+                            val = val.id
+                        elif isinstance(f,(fields.One2Many,fields.Many2Many)):
+                            val=[v.id for v in val]
+                
             vals[obj.id] = val
         return vals
 

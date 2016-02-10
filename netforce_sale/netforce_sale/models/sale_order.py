@@ -498,113 +498,104 @@ class SaleOrder(Model):
 
     def copy_to_invoice(self, ids, context={}):
         print("sale.copy_to_invoice",ids)
-        obj = self.browse(ids[0])
-        company_id=get_active_company()
-        set_active_company(obj.company_id.id) # XXX
-        try:
-            ship_method_ids=[]
-            ship_method_amts={}
-            ship_amt_total=0
-            for line in obj.lines:
-                ship_method_ids.append(line.ship_method_id.id)
-                ship_method_amts.setdefault(line.ship_method_id.id,0)
-                ship_method_amts[line.ship_method_id.id]+=line.amount
-                ship_amt_total+=line.amount
-            ship_method_ids=list(set(ship_method_ids))
-            inv_ids=[]
-            for ship_method_id in ship_method_ids:
-                contact = obj.contact_id
+        inv_vals=None
+        for obj in self.browse(ids):
+            if obj.state!="confirmed":
+                continue
+            if inv_vals is None:
                 inv_vals = {
                     "type": "out",
                     "inv_type": "invoice",
-                    "ref": obj.number,
-                    "related_id": "sale.order,%s" % obj.id,
-                    "contact_id": contact.id,
+                    "contact_id": obj.contact_id.id,
                     "bill_address_id": obj.bill_address_id.id,
                     "currency_id": obj.currency_id.id,
                     "tax_type": obj.tax_type,
                     "pay_method_id": obj.pay_method_id.id,
                     "lines": [],
                     "company_id": obj.company_id.id,
+                    "due_date": obj.due_date,
                 }
-                if contact.sale_journal_id:
-                    inv_vals["journal_id"] = contact.sale_journal_id.id
-                    if contact.sale_journal_id.sequence_id:
-                        inv_vals["sequence_id"] = contact.sale_journal_id.sequence_id.id
-                for line in obj.lines:
-                    if not line.unit_price:
-                        continue
-                    if line.ship_method_id.id!=ship_method_id:
-                        continue
-                    prod = line.product_id
-                    remain_qty = line.qty - line.qty_invoiced
-                    if remain_qty <= 0:
-                        continue
-                    sale_acc_id=None
-                    if prod:
-                        sale_acc_id=prod.sale_account_id.id
-                        if not sale_acc_id and prod.parent_id:
-                            sale_acc_id=prod.parent_id.sale_account_id.id
-                    line_vals = {
-                        "product_id": prod.id,
-                        "description": line.description,
-                        "qty": remain_qty,
-                        "uom_id": line.uom_id.id,
-                        "unit_price": line.unit_price,
-                        "discount": line.discount,
-                        "discount_amount": line.discount_amount,
-                        "account_id": sale_acc_id,
-                        "tax_id": line.tax_id.id,
-                        "amount": line.qty*line.unit_price*(1-(line.discount or Decimal(0))/100)-(line.discount_amount or Decimal(0)),
-                    }
-                    inv_vals["lines"].append(("create", line_vals))
-                    if line.promotion_amount:
-                        prom_acc_id=None
-                        if prod:
-                            prom_acc_id=prod.sale_promotion_account_id.id
-                            if not prom_acc_id and prod.parent_id:
-                                prom_acc_id=prod.parent_id.sale_promotion_account_id.id
-                        if not prom_acc_id:
-                            prom_acc_id=sale_acc_id
-                        line_vals = {
-                            "product_id": prod.id,
-                            "description": "Promotion on product %s"%prod.code,
-                            "account_id": prom_acc_id,
-                            "tax_id": line.tax_id.id,
-                            "amount": -line.promotion_amount,
-                        }
-                        inv_vals["lines"].append(("create", line_vals))
-                for line in obj.used_promotions:
-                    if line.product_id or line.percent:
-                        continue
-                    ratio=ship_method_amts[ship_method_id]/ship_amt_total if ship_amt_total else 0
-                    prom=line.promotion_id
-                    prod = prom.product_id
-                    line_vals = {
-                        "product_id": prod.id,
-                        "description": prom.name,
-                        "account_id": prod and prod.sale_account_id.id or None,
-                        "tax_id": prod and prod.sale_tax_id.id or None,
-                        "amount": -line.amount*ratio,
-                    }
-                    inv_vals["lines"].append(("create", line_vals))
-                if not inv_vals["lines"]:
+                set_active_company(obj.company_id.id) # XXX
+            else:
+                if obj.contact_id.id!=inv_vals["contact_id"]:
+                    raise Exception("Sales orders are for different customers")
+                if obj.bill_address_id.id!=inv_vals["bill_address_id"]:
+                    raise Exception("Sales orders have different billing address")
+                if obj.currency_id.id!=inv_vals["currency_id"]:
+                    raise Exception("Sales orders have different currencies")
+                if obj.tax_type!=inv_vals["tax_type"]:
+                    raise Exception("Sales orders have different tax types")
+                if obj.pay_method_id.id!=inv_vals["pay_method_id"]:
+                    raise Exception("Sales orders have different payment methods")
+                if obj.company_id.id!=inv_vals["company_id"]:
+                    raise Exception("Sales orders are in different companies")
+            for line in obj.lines:
+                if not line.unit_price:
                     continue
-                inv_id = get_model("account.invoice").create(inv_vals, {"type": "out", "inv_type": "invoice"})
-                inv_ids.append(inv_id)
-            if not inv_ids:
-                raise Exception("Nothing to invoice")
-            print("inv_ids",inv_ids)
-            return {
-                "next": {
-                    "name": "view_invoice",
-                    "active_id": inv_ids[0],
-                },
-                "flash": "Invoice created from sales order %s" % obj.number,
-                "invoice_id": inv_ids[0],
-            }
-        finally:
-            set_active_company(company_id)
+                prod = line.product_id
+                remain_qty = line.qty - line.qty_invoiced
+                if remain_qty <= 0:
+                    continue
+                sale_acc_id=None
+                if prod:
+                    sale_acc_id=prod.sale_account_id.id
+                    if not sale_acc_id and prod.parent_id:
+                        sale_acc_id=prod.parent_id.sale_account_id.id
+                line_vals = {
+                    "product_id": prod.id,
+                    "description": line.description,
+                    "qty": remain_qty,
+                    "uom_id": line.uom_id.id,
+                    "unit_price": line.unit_price,
+                    "discount": line.discount,
+                    "discount_amount": line.discount_amount,
+                    "account_id": sale_acc_id,
+                    "tax_id": line.tax_id.id,
+                    "amount": line.qty*line.unit_price*(1-(line.discount or Decimal(0))/100)-(line.discount_amount or Decimal(0)),
+                    "related_id": "sale.order,%d"%obj.id,
+                }
+                inv_vals["lines"].append(("create", line_vals))
+                if line.promotion_amount:
+                    prom_acc_id=None
+                    if prod:
+                        prom_acc_id=prod.sale_promotion_account_id.id
+                        if not prom_acc_id and prod.parent_id:
+                            prom_acc_id=prod.parent_id.sale_promotion_account_id.id
+                    if not prom_acc_id:
+                        prom_acc_id=sale_acc_id
+                    line_vals = {
+                        "product_id": prod.id,
+                        "description": "Promotion on product %s"%prod.code,
+                        "account_id": prom_acc_id,
+                        "tax_id": line.tax_id.id,
+                        "amount": -line.promotion_amount,
+                    }
+                    inv_vals["lines"].append(("create", line_vals))
+            for line in obj.used_promotions:
+                if line.product_id or line.percent:
+                    continue
+                prom=line.promotion_id
+                prod = prom.product_id
+                line_vals = {
+                    "product_id": prod.id,
+                    "description": prom.name,
+                    "account_id": prod and prod.sale_account_id.id or None,
+                    "tax_id": prod and prod.sale_tax_id.id or None,
+                    "amount": -line.amount,
+                }
+                inv_vals["lines"].append(("create", line_vals))
+        if not inv_vals["lines"]:
+            raise Exception("Nothing to invoice")
+        inv_id = get_model("account.invoice").create(inv_vals, {"type": "out", "inv_type": "invoice"})
+        inv=get_model("account.invoice").browse(inv_id)
+        return {
+            "next": {
+                "name": "view_invoice",
+                "active_id": inv_id,
+            },
+            "flash": "Invoice %s created from sales order" % inv.number,
+            "invoice_id": inv_id,
+        }
 
     def get_delivered(self, ids, context={}):
         vals = {}

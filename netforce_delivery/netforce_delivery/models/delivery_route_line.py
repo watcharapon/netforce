@@ -11,6 +11,7 @@ class RouteLine(Model):
         "ship_address_id": fields.Many2One("address","Shipping Address",function="_get_related",function_context={"path":"picking_id.ship_address_id"}),
         "delivery_slot_id": fields.Many2One("delivery.slot","Delivery Slot",function="_get_related",function_context={"path":"picking_id.delivery_slot_id"}),
         "state": fields.Selection([["planned","Planned"],["done","Completed"],["canceled","Canceled"]],"Status",required=True),
+        "coordinates": fields.Char("Coordinates",function="_get_related",function_context={"path":"picking_id.ship_address_id.coordinates"}),
     }
     _order="sequence"
     _defaults={
