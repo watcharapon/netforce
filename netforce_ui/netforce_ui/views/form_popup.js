@@ -58,7 +58,6 @@ var FormPopup=NFView.extend({
     render: function() {
         //log("form_popup.render",this);
         var that=this;
-        this.field_views={};
         var model_name=this.options.model;
         var field_names=[];
         var model_cls=get_model_cls(model_name);
@@ -85,10 +84,6 @@ var FormPopup=NFView.extend({
                     var h=parseInt(that.$form.attr("height"));
                     that.$el.find(".modal-body").height(h);
                 }
-                if (that.options.focus_field) {
-                    var view=that.get_field_view(that.options.focus_field);
-                    view.focus();
-                }
             });
         } else {
             var ctx=clean_context(_.extend({},this.context,this.options));
@@ -105,28 +100,13 @@ var FormPopup=NFView.extend({
                     var h=parseInt(that.$form.attr("height"));
                     that.$el.find(".modal-body").height(h);
                 }
-                if (that.options.focus_field) {
-                    var view=that.get_field_view(that.options.focus_field);
-                    view.focus();
-                }
             });
         }
         return this;
     },
 
-    get_field_view: function(field_name) {
-        var view=this.field_views[field_name];
-        if (!view) {
-            log(this.field_views);
-            throw "Can't find view of field "+field_name;
-        }
-        return view;
-    },
-
-    reload: function(opts) {
+    reload: function() {
         this.active_id=this.model.id;
-        if (!opts) opts={};
-        this.focus_field=opts.focus_field;
         this.render();
     },
 
@@ -240,8 +220,6 @@ var FormPopup=NFView.extend({
                     });
                 }
                 var view=Field.make_view(opts);
-                that.field_views[name]=view;
-                console.log('ok ', name);
                 cell.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
                 line_cols+=span;
             } else if (tag=="separator") {

@@ -334,6 +334,16 @@ class Model(object):
         self.trigger([new_id], "create")
         return new_id
 
+    def copy(self,ids,vals,context={}):
+        for obj in self.browse(ids):
+            create_vals={}
+            for n,f in self._fields.items():
+                if not f.store:
+                    continue
+                create_vals[n]=obj[n]
+            create_vals.update(vals)
+            self.create(create_vals,context=context)
+
     def _expand_condition(self, condition, context={}):
         new_condition = []
         for clause in condition:
@@ -813,8 +823,8 @@ class Model(object):
 
     def read(self, ids, field_names=None, load_m2o=True, get_time=False, context={}):
         #print(">>> READ",self._name,ids,field_names)
-        if not access.check_permission(self._name, "read", ids):
-            raise Exception("Permission denied (read %s, ids=%s)" % (self._name, ",".join([str(x) for x in ids])))
+        #if not access.check_permission(self._name, "read", ids):
+            #raise Exception("Permission denied (read %s, ids=%s)" % (self._name, ",".join([str(x) for x in ids])))
         #print("read perm ok")
         if not ids:
             #print("<<< READ",self._name)
@@ -1231,17 +1241,35 @@ class Model(object):
         path = context.get("path")
         if not path:
             raise Exception("Missing path")
-        fields = path.split(".")
+        fnames = path.split(".")
         vals = {}
-        # i=0
         for obj in self.browse(ids):
-            # print("XXX",i)
-            # i+=1
-            val = obj
-            for field in fields:
-                val = val[field]
-            if isinstance(val, BrowseRecord):
-                val = val.id
+            parent = obj
+            parent_m=get_model(obj._model)
+            for n in fnames[:-1]:
+                f=parent_m._fields[n]
+                if not isinstance(f,(fields.Many2One,fields.Reference)):
+                    raise Exception("Invalid field path for model %s: %s"%(self._name,path))
+                parent = parent[n]
+                if not parent:
+                    parent=None
+                    break
+                parent_m=get_model(parent._model)
+            if not parent:
+                val=None
+            else:
+                n=fnames[-1]
+                val=parent[n]
+                if n!="id":
+                    f=parent_m._fields.get(n)
+                    if not f:
+                        val=None
+                    else:
+                        if isinstance(f,(fields.Many2One,fields.Reference)):
+                            val = val.id
+                        elif isinstance(f,(fields.One2Many,fields.Many2Many)):
+                            val=[v.id for v in val]
+                
             vals[obj.id] = val
         return vals
 
@@ -1341,15 +1369,6 @@ class Model(object):
                             if n not in todo:
                                 v = obj[n]
                                 todo[n] = [v]
-                    elif isinstance(f, fields.Reference):
-                        v = obj[n]
-                        if v:
-                            mr = get_model(v._model)
-                            exp_field = mr.get_export_field()
-                            v = '%s,%s'%(v._model,v.id)
-                        else:
-                            v = None
-                        row[path] = v
                     else:
                         v = obj[n]
                         row[path] = v
@@ -1438,7 +1457,7 @@ class Model(object):
                     elif isinstance(f, fields.Selection):
                         found = None
                         for k, s in f.selection:
-                            if v == s:
+                            if v == s and k!="_group":
                                 found = k
                                 break
                         if found is None:
@@ -1447,15 +1466,6 @@ class Model(object):
                     elif isinstance(f, fields.Date):
                         dt = dateutil.parser.parse(v)
                         v = dt.strftime("%Y-%m-%d")
-                    elif isinstance(f, fields.Reference):
-                        if v:
-                            try:
-                                model_name,rid=v.split(",")
-                                v = "%s,%s" % (model_name,rid)
-                            except:
-                                v = None
-                        else:
-                            v = None
                     elif isinstance(f, fields.Many2One):
                         mr = get_model(f.relation)
                         ctx = {
@@ -1738,7 +1748,7 @@ class Model(object):
         self.write(ids, {"active": False})
 
     def get_export_field(self):
-        try_fields=[self._export_field,self._code_field,self._name_field,"code","name"]
+        try_fields=[self._export_field,self._code_field,"code",self._name_field,"name"]
         for f in try_fields:
             if f and f in self._fields:
                 return f
@@ -2048,10 +2058,8 @@ class Model(object):
                 f = self._fields[n]
                 if not f.store and not isinstance(f, fields.Many2Many):
                     continue
-                if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
+                if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Decimal, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
                     vals[n] = obj[n]
-                elif isinstance(f, fields.Decimal):
-                    vals[n] = obj[n] if obj[n] is None else float(obj[n])
                 elif isinstance(f, fields.Many2One):
                     v = obj[n]
                     if v:
@@ -2115,8 +2123,11 @@ class Model(object):
             try:
                 vals = {}
                 for n, v in rec.items():
-                    f = self._fields[n]
-                    if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Integer, fields.Decimal, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
+                    f = self._fields.get(n)
+                    if not f:
+                        print("WARNING: no such field %s in %s"%(n,self._name))
+                        continue
+                    if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Decimal, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
                         vals[n] = v
                     elif isinstance(f, fields.Many2One):
                         if v:
@@ -2275,9 +2286,6 @@ class BrowseList(object):  # TODO: optimize for speed
 
     def __len__(self):
         return len(self.records)
-
-    def __add__(self,other):
-        raise Exception("Not Implemented")
 
     def __iter__(self):
         for obj in self.records:

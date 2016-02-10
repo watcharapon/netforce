@@ -39,7 +39,6 @@ var NFLayout=NFView.extend({
                     string: $el.attr("string"),
                     action: $el.attr("action"),
                     perm: $el.attr("perm"),
-                    url: $el.attr("url"),
                     perm_check_admin: $el.attr("perm_check_admin"),
                     pkg: $el.attr("pkg"),
                     disabled: $el.attr("disabled")
