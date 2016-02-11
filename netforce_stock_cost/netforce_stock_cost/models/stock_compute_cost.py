@@ -251,8 +251,8 @@ class ComputeCost(Model):
                     use_cost=use_qty*first_price
                     m["qty_in"]+=use_qty
                     m["cost"]+=use_cost
-                    if m["qty_in"]<=m["qty"]:
-                        m["unit_price"]=m["cost"]/m["qty"]
+                    if m["qty_in"]>=m["qty"]:
+                        m["unit_price"]=m["cost"]/m["qty"] if m["qty"] else 0
                         outputs=loc_outputs[loc_id]
                         heapq.heappop(outputs)
                         loc_to=int_locs.get(m["location_to_id"])
