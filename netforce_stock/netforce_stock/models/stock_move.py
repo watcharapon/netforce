@@ -42,6 +42,7 @@ class Move(Model):
         "date": fields.DateTime("Date", required=True, search=True),
         "cost_price_cur": fields.Decimal("Cost Price (Cur)",scale=6), # in picking currency
         "cost_price": fields.Decimal("Cost Price", scale=6),  # in company currency
+        "unit_price": fields.Decimal("Cost Price", scale=6),  # deprecated  change to cost_price
         "cost_amount": fields.Decimal("Cost Amount"), # in company currency
         "state": fields.Selection([("draft", "Draft"), ("pending", "Planned"), ("approved", "Approved"), ("done", "Completed"), ("voided", "Voided")], "Status", required=True),
         "stock_count_id": fields.Many2One("stock.count", "Stock Count"),
@@ -126,15 +127,15 @@ class Move(Model):
         return res[0]
 
     def _get_number(self, context={}):
-        seq_id = get_model("sequence").find_sequence("stock_move")
+        seq_id = get_model("sequence").find_sequence("stock_move",context=context)
         if not seq_id:
             return None
         while 1:
-            num = get_model("sequence").get_next_number(seq_id)
+            num = get_model("sequence").get_next_number(seq_id,context=context)
             res = self.search([["number", "=", num]])
             if not res:
                 return num
-            get_model("sequence").increment_number(seq_id)
+            get_model("sequence").increment_number(seq_id,context=context)
 
     _defaults = {
         "state": "draft",

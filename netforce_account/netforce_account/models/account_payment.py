@@ -114,6 +114,12 @@ class Payment(Model):
                 raise Exception("Payment is empty")
 
     def create(self, vals, **kw):
+        # reset lines
+        pay_type=vals.get('pay_type')
+        for line_type in ["direct","invoice","refund","prepay","overpay","claim"]:
+            line_key='%s_lines'%line_type
+            if line_type!=pay_type and vals.get(line_key):
+                vals[line_key]=[]
         new_id = super().create(vals, **kw)
         self.function_store([new_id])
         return new_id
@@ -122,7 +128,15 @@ class Payment(Model):
         invoice_ids = []
         expense_ids = []
         for obj in self.browse(ids):
+            # reset lines
+            pay_type=vals.get('pay_type') or obj.pay_type
+            for line_type in ["direct","invoice","refund","prepay","overpay","claim"]:
+                line_key='%s_lines'%line_type
+                if line_type!=pay_type and vals.get(line_key):
+                    vals[line_key]=[]
             for line in obj.lines:
+                if line.type!=pay_type:
+                    line.delete()
                 if line.invoice_id:
                     invoice_ids.append(line.invoice_id.id)
                 if line.expense_id:
@@ -228,6 +242,7 @@ class Payment(Model):
                     inv = line.invoice_id
                     cred_amt = 0
                     inv_vat = 0
+                    inv_wht = 0
                     if inv:
                         for alloc in inv.credit_notes:
                             cred_amt += alloc.amount
@@ -247,10 +262,21 @@ class Payment(Model):
                                         if comp.type == "vat":
                                             inv_vat += tax_amt
                                         elif comp.type == "wht":
-                                            wht -= tax_amt
+                                            #wht -= tax_amt
+                                            inv_wht -= tax_amt
                                 else:
                                     base_amt = invline_amt
                                 subtotal += base_amt
+                            if inv.taxes:
+                                inv_vat = 0
+                                inv_wht = 0
+                                for tax in inv.taxes:
+                                    comp=tax.tax_comp_id
+                                    tax_amt=tax.tax_amount*pay_ratio
+                                    if comp.type == "vat":
+                                        inv_vat += tax_amt
+                                    elif comp.type == "wht":
+                                        inv_wht -= tax_amt
                             for alloc in inv.credit_notes:
                                 cred = alloc.credit_id
                                 cred_ratio = alloc.amount / cred.amount_total
@@ -275,7 +301,9 @@ class Payment(Model):
                         elif inv.inv_type == "overpay":
                             subtotal += line.amount
                     inv_vat = get_model("currency").round(obj.currency_id.id, inv_vat)
+                    inv_wht = get_model("currency").round(obj.currency_id.id, inv_wht)
                     vat += inv_vat
+                    wht += inv_wht
                     total += line.amount
                 elif line.type == "claim":  # XXX
                     subtotal += line.amount
