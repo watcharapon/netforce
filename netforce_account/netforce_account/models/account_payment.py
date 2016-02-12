@@ -114,6 +114,12 @@ class Payment(Model):
                 raise Exception("Payment is empty")
 
     def create(self, vals, **kw):
+        # reset lines
+        pay_type=vals.get('pay_type')
+        for line_type in ["direct","invoice","refund","prepay","overpay","claim"]:
+            line_key='%s_lines'%line_type
+            if line_type!=pay_type and vals.get(line_key):
+                vals[line_key]=[]
         new_id = super().create(vals, **kw)
         self.function_store([new_id])
         return new_id
@@ -122,7 +128,15 @@ class Payment(Model):
         invoice_ids = []
         expense_ids = []
         for obj in self.browse(ids):
+            # reset lines
+            pay_type=vals.get('pay_type') or obj.pay_type
+            for line_type in ["direct","invoice","refund","prepay","overpay","claim"]:
+                line_key='%s_lines'%line_type
+                if line_type!=pay_type and vals.get(line_key):
+                    vals[line_key]=[]
             for line in obj.lines:
+                if line.type!=pay_type:
+                    line.delete()
                 if line.invoice_id:
                     invoice_ids.append(line.invoice_id.id)
                 if line.expense_id:
