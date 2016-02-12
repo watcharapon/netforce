@@ -58,8 +58,10 @@ class PaymentMethod(Model):
         pay_type=context.get("type")
         res=get_model("account.invoice").search([["transaction_no","=",transaction_no]])
         if not res:
+            print("Invoice not found for transaction_no=%s"%transaction_no)
             return
         inv_id=res[0]
+        print("Found invoice %d for transaction_no=%s"%(inv_id,transaction_no))
         inv=get_model("account.invoice").browse(inv_id)
         if currency_id and currency_id!=inv.currency_id.id:
             raise Exception("Received invoice payment in wrong currency (pmt: %s, inv: %s)"%(currency_id,inv.currency_id.id))

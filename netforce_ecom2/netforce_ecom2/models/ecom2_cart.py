@@ -55,11 +55,17 @@ class Cart(Model):
         settings=get_model("settings").browse(1)
         return settings.currency_id.id
 
+    def _get_pay_method(self,context={}):
+        res=get_model("payment.method").search([])
+        if res:
+            return res[0]
+
     _defaults={
         "date": lambda *a: time.strftime("%Y-%m-%d %H:%M:%S"),
         "number": _get_number,
         "state": "draft",
         "currency_id": _get_currency,
+        "pay_method_id": _get_pay_method,
     }
 
     def get_total(self,ids,context={}):
