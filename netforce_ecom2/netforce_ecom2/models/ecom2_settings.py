@@ -9,6 +9,7 @@ class Settings(Model):
         "delivery_min_hours": fields.Integer("Delivery Min Hours"),
         "ecom_num_lots": fields.Integer("Number Of Lots To Show On Website"),
         "sale_lead_time_nostock": fields.Integer("Sale Lead Time When Out Of Stock (Days)"),
+        "ecom_return_url": fields.Char("Return URL of ecommerce frontend"),
     }
 
 Settings.register()

@@ -32,6 +32,7 @@ class Cart(Model):
         "transaction_no": fields.Char("Payment Transaction No.",search=True),
         "currency_id": fields.Many2One("currency","Currency",required=True),
         "invoices": fields.One2Many("account.invoice","related_id","Invoices"),
+        "company_id": fields.Many2One("company","Company"),
     }
     _order="date desc"
 
@@ -52,11 +53,21 @@ class Cart(Model):
             get_model("sequence").increment_number(seq_id, context=context)
 
     def _get_currency(self,context={}):
+        res=get_model("company").search([]) # XXX
+        if not res:
+            return
+        company_id=res[0]
+        access.set_active_company(company_id)
         settings=get_model("settings").browse(1)
         return settings.currency_id.id
 
     def _get_pay_method(self,context={}):
         res=get_model("payment.method").search([])
+        if res:
+            return res[0]
+
+    def _get_company(self,context={}):
+        res=get_model("company").search([]) # XXX
         if res:
             return res[0]
 
@@ -66,6 +77,7 @@ class Cart(Model):
         "state": "draft",
         "currency_id": _get_currency,
         "pay_method_id": _get_pay_method,
+        "company_id": _get_company,
     }
 
     def get_total(self,ids,context={}):
@@ -328,7 +340,8 @@ class Cart(Model):
         transaction_no=res["transaction_no"]
         obj.write({"transaction_no":transaction_no})
         return {
-            "next": res["payment_action"],
+            "transaction_no": transaction_no,
+            "next": res.get("payment_action"),
         }
 
 Cart.register()

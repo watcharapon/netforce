@@ -1,4 +1,4 @@
-<form model="ecom2.cart">
+<form model="ecom2.cart" show_company="1">
     <head>
         <field name="state"/>
         <button string="Options" dropdown="1">
@@ -7,6 +7,7 @@
             <item string="Online Payment" method="pay_online"/>
         </button>
     </head>
+    <field name="company_id" invisible="1"/>
     <tabs>
         <tab string="General">
             <field name="number"/>
