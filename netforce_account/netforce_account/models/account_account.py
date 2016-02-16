@@ -236,9 +236,10 @@ class Account(Model):
                 else:
                     acc_rate_type[r["id"]] = "buy"
             bals2 = {}
+            settings = get_model('settings').browse(1)
             for acc_id, vals in bals.items():
-                comp_id = acc_comp[acc_id]
-                comp_currency_id = comp_cur[comp_id]
+                comp_id = acc_comp.get(acc_id)
+                comp_currency_id = comp_cur.get(comp_id) or settings.currency_id.id
                 acc_currency_id = acc_cur[acc_id]
                 rate_type = acc_rate_type[acc_id]
                 bals2[acc_id] = {
