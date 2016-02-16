@@ -253,7 +253,8 @@ Handlebars.registerHelper("currency",function(v,options) {
     } else {
         scale=2;
     }
-    if (typeof(v)!="number") return "";
+    /*if (typeof(v)!="number") return "";*/
+    if (isNaN(v)) return v; // XXX
     if (v>-0.00001 && v<0.00001) v=0; // XXX
     if (v==0 && options.hash && options.hash.zero!=null) return options.hash.zero;
     if (v<0) {

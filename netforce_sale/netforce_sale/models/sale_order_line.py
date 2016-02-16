@@ -34,7 +34,7 @@ class SaleOrderLine(Model):
         "unit_price": fields.Decimal("Unit Price", search=True, required=True, scale=6),
         "tax_id": fields.Many2One("account.tax.rate", "Tax Rate"),
         "amount": fields.Decimal("Amount", function="get_amount", function_multi=True, store=True, function_order=1, search=True),
-        "amount_cur": fields.Decimal("Amount", function="get_amount", function_multi=True, store=True, function_order=1, search=True),
+        "amount_cur": fields.Decimal("Amount Cur", function="get_amount", function_multi=True, store=True, function_order=1, search=True),
         "qty_stock": fields.Decimal("Qty (Stock UoM)"),
         "qty_delivered": fields.Decimal("Delivered Qty", function="get_qty_delivered"),
         "qty_invoiced": fields.Decimal("Invoiced Qty", function="get_qty_invoiced"),
@@ -50,6 +50,7 @@ class SaleOrderLine(Model):
         "discount_amount": fields.Decimal("Disc Amt"),
         "qty_avail": fields.Decimal("Qty In Stock", function="get_qty_avail"),
         "agg_amount": fields.Decimal("Total Amount", agg_function=["sum", "amount"]),
+        "agg_amount_cur": fields.Decimal("Total Amount Cur", agg_function=["sum", "amount_cur"]),
         "agg_qty": fields.Decimal("Total Order Qty", agg_function=["sum", "qty"]),
         "remark": fields.Char("Remark"),
         "ship_method_id": fields.Many2One("ship.method", "Shipping Method"),
@@ -112,11 +113,12 @@ class SaleOrderLine(Model):
                 if prom_amt:
                     amt-=prom_amt
                 order = line.order_id
+                new_cur=get_model("currency").convert(amt, order.currency_id.id, settings.currency_id.id)
                 vals[line.id] = {
                     "amount": round(amt,2),
-                    "amount_cur": get_model("currency").convert(amt, order.currency_id.id, settings.currency_id.id),
                     "amount_discount": disc,
                     "promotion_amount": prom_amt,
+                    "amount_cur": new_cur and new_cur or None,
                 }
         return vals
 
