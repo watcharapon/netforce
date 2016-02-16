@@ -62,7 +62,7 @@ class StockPeriod(Model):
                 raise Exception("Unknown cost price for stock transaction %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
             track_from_id=move.location_from_id.track_id.id
             track_to_id=move.location_to_id.track_id.id
-            amt=round(move.qty*move.unit_price,2) # XXX: uom
+            amt=move.cost_amount or 0
             accounts.setdefault((acc_from_id,track_from_id),0)
             accounts.setdefault((acc_to_id,track_to_id),0)
             accounts[(acc_from_id,track_from_id)]-=amt
