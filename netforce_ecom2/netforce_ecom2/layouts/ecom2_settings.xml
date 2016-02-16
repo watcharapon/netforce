@@ -8,4 +8,6 @@
     <field name="ecom_num_lots"/>
     <newline/>
     <field name="sale_lead_time_nostock"/>
+    <newline/>
+    <field name="ecom_return_url"/>
 </form>

@@ -31,8 +31,13 @@ class PaymentMethod(Model):
                 raise Exception("Received cart payment with wrong method (pmt: %s, cart: %s)"%(pay_type,method.type))
             audit_log("Creating payment for cart %s: transaction_no=%s"%(cart.number,transaction_no))
             cart.payment_received()
+        settings=get_model("ecom2.settings").browse(1)
+        if settings.ecom_return_url:
+            url=settings.ecom_return_url+str(cart_id)
+        else:
+            url="/ui#name=ecom2_cart&mode=form&active_id=%d"%cart_id
         return {
-            "next_url": "/ui#name=ecom2_cart&mode=form&active_id=%d"%cart_id,
+            "next_url": url,
         }
 
     def payment_pending(self,context={}):
@@ -44,8 +49,13 @@ class PaymentMethod(Model):
         if not res:
             return
         cart_id=res[0]
+        settings=get_model("ecom2.settings").browse(1)
+        if settings.ecom_return_url:
+            url=settings.ecom_return_url+str(cart_id)
+        else:
+            url="/ui#name=ecom2_cart&mode=form&active_id=%d"%cart_id
         return {
-            "next_url": "/ui#name=ecom2_cart&mode=form&active_id=%d"%cart_id,
+            "next_url": url,
         }
 
     def payment_error(self,context={}):
@@ -57,8 +67,13 @@ class PaymentMethod(Model):
         if not res:
             return
         cart_id=res[0]
+        settings=get_model("ecom2.settings").browse(1)
+        if settings.ecom_return_url:
+            url=settings.ecom_return_url+str(cart_id)
+        else:
+            url="/ui#name=ecom2_cart&mode=form&active_id=%d"%cart_id
         return {
-            "next_url": "/ui#name=ecom2_cart&mode=form&active_id=%d"%cart_id,
+            "next_url": url,
         }
 
 PaymentMethod.register()
