@@ -282,6 +282,7 @@ class PurchaseOrder(Model):
             "related_id": "purchase.order,%s" % obj.id,
             "contact_id": contact.id,
             "currency_id": obj.currency_id.id,
+            "ship_method_id": obj.ship_method_id.id,
             "lines": [],
         }
         if obj.delivery_date:

@@ -417,10 +417,9 @@ var Button=NFView.extend({
                                     }
                                     var next=that.options.next;
                                     if (!next && data) next=data.next;
-
-                                    var next_url=data.next_url;
-                                    if (next_url){
-                                        window.location.href=next_url;
+                                    
+                                    if (data && data.next_url){
+                                        window.location.href=data.next_url;
                                     }
 
                                     if (next=="_close") {
