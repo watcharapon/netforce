@@ -295,7 +295,19 @@ class SaleOrder(Model):
         for obj in self.browse(ids):
             obj.write({"state": "draft"})
 
+    def onchange_currency(self,context={}):
+        settings=get_model("settings").browse(1)
+        data = context["data"]
+        for line in data["lines"]:
+            if not line:
+                continue
+            amt = (line.get("qty") or 0) * (line.get("unit_price") or 0)
+            new_cur=get_model("currency").convert(amt, int(data.get("currency_id")), settings.currency_id.id)
+            line['amount_cur']=new_cur and new_cur or None
+        return data
+
     def update_amounts(self, context):
+        settings=get_model("settings").browse(1)
         data = context["data"]
         data["amount_subtotal"] = 0
         data["amount_tax"] = 0
@@ -310,6 +322,8 @@ class SaleOrder(Model):
             if line.get("discount_amount"):
                 amt -= line["discount_amount"]
             line["amount"] = amt
+            new_cur=get_model("currency").convert(amt, int(data.get("currency_id")), settings.currency_id.id)
+            line['amount_cur']=new_cur and new_cur or None
             tax_id = line.get("tax_id")
             if tax_id:
                 tax = get_model("account.tax.rate").compute_tax(tax_id, amt, tax_type=tax_type)
