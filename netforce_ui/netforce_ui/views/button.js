@@ -420,6 +420,7 @@ var Button=NFView.extend({
                                     
                                     if (data && data.next_url){
                                         window.location.href=data.next_url;
+                                        return;
                                     }
 
                                     if (next=="_close") {
