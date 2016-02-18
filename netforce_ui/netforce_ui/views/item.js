@@ -72,6 +72,10 @@ var Item=NFView.extend({
         }
         if (this.options.disabled) {
             this.$el.addClass("disabled");
+            this.$el.find('a').css({"color":"#cccccc"});
+        }
+        if(this.options.color){
+            this.$el.find('a').css({"color":this.options.color});
         }
     },
 
