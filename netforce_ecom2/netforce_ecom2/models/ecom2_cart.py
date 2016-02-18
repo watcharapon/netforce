@@ -222,6 +222,23 @@ class Cart(Model):
             if qty!=0:
                 get_model("ecom2.cart.line").create({"cart_id": obj.id, "product_id": prod_id, "qty": qty})
 
+    def set_date_qty(self,ids,due_date,prod_id,qty,context={}):
+        print("Cart.set_date_qty",ids,due_date,prod_id,qty)
+        obj=self.browse(ids[0])
+        line_id=None
+        for line in obj.lines:
+            if line.delivery_date==due_date and line.product_id.id==prod_id and not line.lot_id:
+                line_id=line.id
+                break
+        if line_id:
+            if qty==0:
+                get_model("ecom2.cart.line").delete([line_id])
+            else:
+                get_model("ecom2.cart.line").write([line_id],{"qty":qty})
+        else:
+            if qty!=0:
+                get_model("ecom2.cart.line").create({"cart_id": obj.id, "product_id": prod_id, "qty": qty, "delivery_date": due_date})
+
     def add_lot(self,ids,prod_id,lot_id,context={}):
         print("Cart.add_lot",ids,prod_id,lot_id)
         obj=self.browse(ids[0])
