@@ -54,6 +54,7 @@ class SaleOrderLine(Model):
         "remark": fields.Char("Remark"),
         "ship_method_id": fields.Many2One("ship.method", "Shipping Method"),
         "sequence": fields.Char("Item No."),
+        "due_date": fields.Date("Due Date"),
         "est_cost_amount": fields.Float("Est. Cost Amount",function="get_est_profit",function_multi=True),
         "est_profit_amount": fields.Float("Est. Profit Amount",function="get_est_profit",function_multi=True),
         "est_margin_percent": fields.Float("Est. Margin %",function="get_est_profit",function_multi=True),

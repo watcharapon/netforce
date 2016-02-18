@@ -56,7 +56,7 @@ class SaleOrder(Model):
         "invoice_lines": fields.One2Many("account.invoice.line", "related_id", "Invoice Lines"),
         "invoices": fields.Many2Many("account.invoice", "Invoices", function="get_invoices"),
         "pickings": fields.Many2Many("stock.picking", "Stock Pickings", function="get_pickings"),
-        "is_delivered": fields.Boolean("Delivered", function="get_delivered"),
+        "is_delivered": fields.Boolean("Shipped", function="get_delivered"),
         "is_paid": fields.Boolean("Paid", function="get_paid"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "activities": fields.One2Many("activity", "related_id", "Activities"),

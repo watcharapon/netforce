@@ -60,6 +60,7 @@
                     <field name="lot_id"/>
                     <field name="qty_stock"/>
                     <field name="ship_method_id"/>
+                    <field name="due_date"/>
                     <field name="qty_delivered"/>
                     <field name="est_cost_amount"/>
                     <field name="est_profit_amount"/>
