@@ -4,6 +4,8 @@
     <field name="sequence"/>
     <field name="type"/>
     <field name="account_id"/>
+    <separator/>
+    <field name="instructions"/>
     <related>
         <field name="comments"/>
     </related>

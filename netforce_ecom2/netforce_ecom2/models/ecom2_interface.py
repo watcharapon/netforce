@@ -4,8 +4,8 @@ class EcomInterface(Model):
     _name="ecom2.interface"
     _store=False
 
-    def sign_up(self,first_name,last_name,email,password,context={}):
-        print("EcomInterface.sign_up",first_name,last_name,email,password)
+    def sign_up(self,first_name,last_name,email,password,province_id,postal_code,address,context={}):
+        print("EcomInterface.sign_up",first_name,last_name,email,password,province_id,postal_code,address)
         res=get_model("base.user").search([["email","=",email]])
         if res:
             raise Exception("User already exists with same email")
@@ -31,6 +31,16 @@ class EcomInterface(Model):
             "password": password,
         }
         user_id=get_model("base.user").create(vals)
+        addr_vals = {
+        "first_name" :first_name,
+        "last_name" : last_name,
+        "province_id" : int(province_id),
+        "type" : "billing",
+        "postal_code" : postal_code, 
+        "address" :address,
+        "contact_id":contact_id,
+        }
+        addr = get_model("address").create(addr_vals)
         return {
             "user_id": user_id,
             "contact_id" : contact_id,

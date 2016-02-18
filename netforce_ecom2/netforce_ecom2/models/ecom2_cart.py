@@ -333,12 +333,15 @@ class Cart(Model):
             "amount": obj.amount_total,
             "currency_id": obj.currency_id.id,
             "details": "Invoice %s"%obj.number,
+            "contact_id": obj.customer_id.id,
         }
         res=method.start_payment(context=ctx)
         if not res:
             raise Exception("Failed to start online payment for payment method %s"%method.name)
         transaction_no=res["transaction_no"]
         obj.write({"transaction_no":transaction_no})
+        if res.get("payment_done"):
+            obj.payment_received()
         return {
             "transaction_no": transaction_no,
             "next": res.get("payment_action"),
