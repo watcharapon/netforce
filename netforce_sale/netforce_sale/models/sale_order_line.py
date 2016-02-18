@@ -34,7 +34,7 @@ class SaleOrderLine(Model):
         "unit_price": fields.Decimal("Unit Price", search=True, required=True, scale=6),
         "tax_id": fields.Many2One("account.tax.rate", "Tax Rate"),
         "amount": fields.Decimal("Amount", function="get_amount", function_multi=True, store=True, function_order=1, search=True),
-        "amount_cur": fields.Decimal("Amount Cur", function="get_amount", function_multi=True, store=True, function_order=1, search=True),
+        "amount_cur": fields.Decimal("Amount (Cur)", function="get_amount", function_multi=True, store=True, function_order=1, search=True),
         "qty_stock": fields.Decimal("Qty (Stock UoM)"),
         "qty_delivered": fields.Decimal("Delivered Qty", function="get_qty_delivered"),
         "qty_invoiced": fields.Decimal("Invoiced Qty", function="get_qty_invoiced"),
