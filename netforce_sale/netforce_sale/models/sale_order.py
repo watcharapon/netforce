@@ -91,7 +91,7 @@ class SaleOrder(Model):
         "sequence_id": fields.Many2One("sequence", "Number Sequence"),
         "stock_moves": fields.One2Many("stock.move", "related_id", "Stock Movements"),
         "state_label": fields.Char("Status Label", function="get_state_label"),  # XXX: not needed
-        "ship_tracking": fields.Char("Tracking Numbers", function="get_ship_tracking"),
+        "ship_tracking": fields.Char("Tracking Numbers", function="get_ship_tracking"), # XXX: deprecated
         "job_template_id": fields.Many2One("job.template", "Service Order Template"),
         "jobs": fields.One2Many("job", "related_id", "Service Orders"),
         "agg_amount_total": fields.Decimal("Total Amount", agg_function=["sum", "amount_total"]),
@@ -121,6 +121,8 @@ class SaleOrder(Model):
         "product_id": fields.Many2One("product","Product",store=False,function_search="search_product",search=True),
         "currency_rates": fields.One2Many("custom.currency.rate","related_id","Currency Rates"),
         "delivery_slot_id": fields.Many2One("delivery.slot","Delivery Slot"),
+        "transaction_no": fields.Char("Payment Transaction No.",search=True),
+        "tracking_no": fields.Char("Delivery Tracking No.",search=True),
     }
 
     def _get_number(self, context={}):

@@ -72,7 +72,7 @@
             </field>
             <group span="8">
                 <field name="payment_terms"/>
-                <newline/>
+                <NEwline/>
                 <field name="other_info"/>
             </group>
             <group span="4" columns="1" horizontal="1">
@@ -162,6 +162,10 @@
             <field name="job_template_id"/>
             <newline/>
             <field name="pay_method_id"/>
+            <newline/>
+            <field name="transaction_no"/>
+            <newline/>
+            <field name="tracking_no"/>
             <newline/>
             <field name="create_time"/>
         </tab>
