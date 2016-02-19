@@ -251,7 +251,6 @@ class Product(Model):
             "stock_in_account_id": obj.stock_in_account_id.id,
             "stock_out_account_id": obj.stock_out_account_id.id,
             "bin_location": obj.bin_location,
-            "subbrand": obj.subbrand,
             "sale_company_id": obj.sale_company_id.id,
             "attributes": [],
         }

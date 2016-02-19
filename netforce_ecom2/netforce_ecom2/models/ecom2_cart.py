@@ -109,12 +109,14 @@ class Cart(Model):
         access.set_active_company(1) # XXX
         vals={
             "contact_id": obj.customer_id.id,
-            "ship_address_id": ship_address_id,
+            "ship_address_id": obj.ship_address_id.id,
             "bill_address_id": obj.bill_address_id.id,
             "due_date": obj.delivery_date,
             "lines": [],
             "related_id": "ecom2.cart,%s"%obj.id,
             "delivery_slot_id": obj.delivery_slot_id.id,
+            "pay_method_id": obj.pay_method_id.id,
+            "other_info": obj.comments,
         }
         for line in obj.lines:
             prod=line.product_id
@@ -131,12 +133,17 @@ class Cart(Model):
                 "unit_price": line.unit_price,
                 "location_id": location_id,
                 "lot_id": line.lot_id.id,
+                "due_date": line.delivery_date,
+                "ship_address_id": line.ship_address_id.id,
             }
             vals["lines"].append(("create",line_vals))
         sale_id=get_model("sale.order").create(vals)
         sale=get_model("sale.order").browse(sale_id)
         sale.confirm()
         obj.write({"state":"waiting_payment"})
+        return {
+            "sale_id": sale_id,
+        }
 
     def cancel_order(self,ids,context={}):
         obj=self.browse(ids[0])
