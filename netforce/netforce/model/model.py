@@ -2046,7 +2046,7 @@ class Model(object):
                 mtime=obj.write_time
             else:
                 mtime=None
-            res.append((k,m_time))
+            res.append((k,mtime))
         return res
 
     def sync_export(self, ids, context={}):
