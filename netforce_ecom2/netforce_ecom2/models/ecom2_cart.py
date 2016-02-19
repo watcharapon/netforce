@@ -107,43 +107,35 @@ class Cart(Model):
             if user.contact_id:
                 obj.write({"customer_id": user.contact_id.id})
         access.set_active_company(1) # XXX
-        order_lines={}
+        vals={
+            "contact_id": obj.customer_id.id,
+            "ship_address_id": ship_address_id,
+            "bill_address_id": obj.bill_address_id.id,
+            "due_date": obj.delivery_date,
+            "lines": [],
+            "related_id": "ecom2.cart,%s"%obj.id,
+            "delivery_slot_id": obj.delivery_slot_id.id,
+        }
         for line in obj.lines:
             prod=line.product_id
             if line.lot_id and line.qty_avail<=0:
                 raise Exception("Lot is out of stock (%s)"%prod.name)
-            due_date=line.delivery_date or obj.delivery_date
-            ship_address_id=line.ship_address_id.id
-            k=(due_date,ship_address_id)
-            order_lines.setdefault(k,[]).append(line)
-        for (due_date,ship_address_id),lines in order_lines.items():
-            vals={
-                "contact_id": obj.customer_id.id,
-                "ship_address_id": ship_address_id,
-                "bill_address_id": obj.bill_address_id.id,
-                "due_date": due_date,
-                "lines": [],
-                "related_id": "ecom2.cart,%s"%obj.id,
-                "delivery_slot_id": obj.delivery_slot_id.id,
+            if not prod.locations:
+                raise Exception("Can't find location for product %s"%prod.code)
+            location_id=prod.locations[0].location_id.id
+            line_vals={
+                "product_id": prod.id,
+                "description": prod.description,
+                "qty": line.qty,
+                "uom_id": line.uom_id.id,
+                "unit_price": line.unit_price,
+                "location_id": location_id,
+                "lot_id": line.lot_id.id,
             }
-            for line in lines:
-                prod=line.product_id
-                if not prod.locations:
-                    raise Exception("Can't find location for product %s"%prod.code)
-                location_id=prod.locations[0].location_id.id
-                line_vals={
-                    "product_id": prod.id,
-                    "description": prod.description,
-                    "qty": line.qty,
-                    "uom_id": line.uom_id.id,
-                    "unit_price": line.unit_price,
-                    "location_id": location_id,
-                    "lot_id": line.lot_id.id,
-                }
-                vals["lines"].append(("create",line_vals))
-            sale_id=get_model("sale.order").create(vals)
-            sale=get_model("sale.order").browse(sale_id)
-            sale.confirm()
+            vals["lines"].append(("create",line_vals))
+        sale_id=get_model("sale.order").create(vals)
+        sale=get_model("sale.order").browse(sale_id)
+        sale.confirm()
         obj.write({"state":"waiting_payment"})
 
     def cancel_order(self,ids,context={}):

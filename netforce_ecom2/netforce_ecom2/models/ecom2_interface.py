@@ -4,7 +4,7 @@ class EcomInterface(Model):
     _name="ecom2.interface"
     _store=False
 
-    def sign_up(self,first_name,last_name,email,password,province_id,postal_code,address,context={}):
+    def sign_up(self,first_name,last_name,email,password,province_id,postal_code,address,subdistrict,context={}):
         print("EcomInterface.sign_up",first_name,last_name,email,password,province_id,postal_code,address)
         res=get_model("base.user").search([["email","=",email]])
         if res:
@@ -40,6 +40,9 @@ class EcomInterface(Model):
         "address" :address,
         "contact_id":contact_id,
         }
+        subdistrict_id = int (subdistrict)
+        if subdistrict_id:
+            addr_vals['subdistrict_id'] = subdistrict_id
         addr = get_model("address").create(addr_vals)
         return {
             "user_id": user_id,

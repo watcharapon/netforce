@@ -65,6 +65,7 @@ class SaleOrderLine(Model):
         "agg_act_profit": fields.Decimal("Total Actual Profit", agg_function=["sum", "act_profit_amount"]),
         "production_id": fields.Many2One("production.order","Production Order"),
         "lot_id": fields.Many2One("stock.lot","Lot / Serial Number"),
+        "ship_address_id": fields.Many2One("address", "Shipping Address"),
     }
 
     def create(self, vals, context={}):
