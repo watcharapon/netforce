@@ -131,8 +131,8 @@ class ReportStockSummary(Model):
             if not params.get("show_container"):
                 cont_from_id = -1
                 cont_to_id = -1
-            prod_locs.add((prod_id, lot_id, loc_from_id, cont_from_id))
-            prod_locs.add((prod_id, lot_id, loc_to_id, cont_to_id))
+            prod_locs.add((prod_id, lot_id, loc_from_id, cont_from_id,))
+            prod_locs.add((prod_id, lot_id, loc_to_id, cont_to_id,))
 
         prod_totals={}
         for when in ("open","period","close"):
@@ -168,9 +168,9 @@ class ReportStockSummary(Model):
         for prod_id, lot_id, loc_id, cont_id in prod_locs:
             prod_ids.append(prod_id)
             loc_ids.append(loc_id)
-            if lot_id and (lot_id!=-1 and lot_id):
+            if lot_id and lot_id!=-1:
                 lot_ids.append(lot_id)
-            if cont_id and (lot_id!=-1 and lot_id):
+            if cont_id and cont_id!=-1:
                 cont_ids.append(cont_id)
         prod_ids = list(set(prod_ids))
         loc_ids = list(set(loc_ids))
@@ -225,7 +225,6 @@ class ReportStockSummary(Model):
                 cont = conts[cont_id]
             else:
                 cont = None
-            print('cont',cont)
             prod = prods[prod_id]
             lot = lots[lot_id] if lot_id and lot_id != -1 else None
             tot_open_in = get_sum("open", prod=prod_id, lot=lot_id, loc_to=loc_id, cont_to=cont_id)
