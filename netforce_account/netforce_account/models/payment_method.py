@@ -45,6 +45,7 @@ class PaymentMethod(Model):
         "scb_mid": fields.Char("Merchant ID"),
         "scb_terminal": fields.Char("Terminal ID"),
         "scb_url": fields.Selection([["test", "Test URL"], ["production", "Production URL"]], "Server URL"),
+        "instructions": fields.Text("Payment Instructions"),
     }
     _order = "sequence,name"
 
