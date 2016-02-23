@@ -49,7 +49,12 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                 action: $el.attr("action"),
                 active: i==0,
                 tab_id: _.uniqueId("tab"),
-                tab_layout: $el
+                tab_layout: $el,
+            }
+            var attrs_expr=$el.attr("attrs");
+            if (attrs_expr) {
+                tab.attrs=that.eval_attrs(attrs_expr);
+                alert("x "+attrs_expr+" => "+JSON.stringify(tab.attrs));
             }
             tabs.push(tab);
         });
@@ -321,6 +326,79 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
         } else {
             log("normal tab");
             $(e.target).tab("show");
+        }
+    },
+
+    eval_attrs: function() {
+        var str=this.options.attrs;
+        //log("field_many2one.eval_attrs",this,str);
+        if (!str) return {};
+        var expr=JSON.parse(str);
+        var model=this.context.model;
+        var attrs={};
+        for (var attr in expr) {
+            var conds=expr[attr];
+            if (_.isArray(conds)) {
+                var attr_val=true;
+            } else if (_.isObject(conds)) {
+                var attr_val=conds.value;
+                conds=conds.condition;
+                if (!conds) {
+                    throw "Missing condition in attrs expression: "+str;
+                }
+            } else {
+                throw "Invalid attrs expression: "+str;
+            }
+            for (var i in conds) {
+                var clause=conds[i];
+                var n=clause[0];
+                var op=clause[1];
+                var cons=clause[2];
+                var v=model.get_path_value(n);
+                var clause_v;
+                if (op=="=") {
+                    clause_v=v==cons;
+                } else if (op=="!=") {
+                    clause_v=v!=cons;
+                } else if (op=="in") {
+                    clause_v=_.contains(cons,v);
+                } else if (op=="not in") {
+                    clause_v=!_.contains(cons,v);
+                } else {
+                    throw "Invalid operator: "+op;
+                }
+                if (!clause_v) {
+                    attr_val=false;
+                    break;
+                }
+            }
+            attrs[attr]=attr_val;
+        }
+        //log("==>",attrs);
+        return attrs;
+    },
+
+    listen_attrs: function() {
+        var str=this.options.attrs;
+        //log("field_many2one.listen_attrs",this,str);
+        if (!str) return;
+        var expr=JSON.parse(str);
+        var attrs={};
+        var depends=[];
+        for (var attr in expr) {
+            var conds=expr[attr];
+            for (var i in conds) {
+                var clause=conds[i];
+                var n=clause[0];
+                depends.push(n);
+            }
+        }
+        //log("==> depends",depends);
+        var model=this.context.model;
+        for (var i in depends) {
+            var n=depends[i];
+            //log("...listen "+n);
+            model.on("change:"+n,this.render,this);
         }
     }
 });

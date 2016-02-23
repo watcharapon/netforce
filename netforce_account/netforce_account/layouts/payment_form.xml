@@ -128,7 +128,7 @@
                 </group>
             </group>
         </tab>
-        <tab string="Other Info">
+        <tab string="Other Info" attrs='{"invisible":[["type","!=","in"]]}'>
             <field name="journal_id" onchange="onchange_journal"/>
             <newline/>
             <field name="sequence_id" condition='[["type","in",["pay_in","pay_out"]]]' onchange="onchange_sequence"/>
