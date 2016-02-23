@@ -2044,6 +2044,8 @@ class Model(object):
             if obj_id:
                 obj=self.browse(obj_id) # XXX: speed
                 mtime=obj.write_time
+                if not mtime:
+                    raise Exception("Internal error: missing write_time for %s.%d"%(self._name,obj_id))
             else:
                 mtime=None
             res.append((k,mtime))
