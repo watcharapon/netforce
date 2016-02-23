@@ -21,10 +21,13 @@
 from netforce.model import Model, fields, get_model
 from datetime import *
 from dateutil.relativedelta import *
+from netforce import access
 
 class StockPeriod(Model):
     _name="stock.period"
     _string="Stock Period"
+    _multi_company = True
+    _key = ["company_id", "number"]
     _fields={
         "number": fields.Char("Number",required=True,search=True),
         "date_from": fields.Date("Date From",required=True),
@@ -35,11 +38,13 @@ class StockPeriod(Model):
         "stock_moves": fields.One2Many("stock.move","period_id","Posted Stock Movements"),
         "num_stock_moves": fields.Integer("Number stock movements",function="get_num_stock_moves",function_multi=True),
         "num_posted_stock_moves": fields.Integer("Number posted stock movements",function="get_num_stock_moves",function_multi=True),
+        "company_id": fields.Many2One("company", "Company"),
     }
     _defaults={
         "state": "draft",
         "date_from": lambda *a: date.today().strftime("%Y-%m-01"),
         "date_to": lambda *a: (date.today()+relativedelta(day=31)).strftime("%Y-%m-%d"),
+        "company_id": lambda *a: access.get_active_company(),
     }
 
     def post(self,ids,context={}):
