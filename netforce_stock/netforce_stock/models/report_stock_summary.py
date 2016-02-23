@@ -168,9 +168,9 @@ class ReportStockSummary(Model):
         for prod_id, lot_id, loc_id, cont_id in prod_locs:
             prod_ids.append(prod_id)
             loc_ids.append(loc_id)
-            if lot_id and lot_id!=-1:
+            if lot_id and (lot_id!=-1 and lot_id):
                 lot_ids.append(lot_id)
-            if cont_id and lot_id!=-1:
+            if cont_id and (lot_id!=-1 and lot_id):
                 cont_ids.append(cont_id)
         prod_ids = list(set(prod_ids))
         loc_ids = list(set(loc_ids))
@@ -225,6 +225,7 @@ class ReportStockSummary(Model):
                 cont = conts[cont_id]
             else:
                 cont = None
+            print('cont',cont)
             prod = prods[prod_id]
             lot = lots[lot_id] if lot_id and lot_id != -1 else None
             tot_open_in = get_sum("open", prod=prod_id, lot=lot_id, loc_to=loc_id, cont_to=cont_id)
