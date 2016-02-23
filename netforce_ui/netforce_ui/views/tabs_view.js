@@ -30,6 +30,7 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
         //log("tabs_view.initialize",this);
         NFView.prototype.initialize.call(this,options);
         this.$tabs=this.options.tabs_layout;
+        this.listen_attrs();
     },
 
     render: function() {
@@ -54,7 +55,6 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
             var attrs_expr=$el.attr("attrs");
             if (attrs_expr) {
                 tab.attrs=that.eval_attrs(attrs_expr);
-                alert("x "+attrs_expr+" => "+JSON.stringify(tab.attrs));
             }
             tabs.push(tab);
         });
@@ -329,11 +329,9 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
         }
     },
 
-    eval_attrs: function() {
-        var str=this.options.attrs;
-        //log("field_many2one.eval_attrs",this,str);
-        if (!str) return {};
-        var expr=JSON.parse(str);
+    eval_attrs: function(attrs_expr) {
+        if (!attrs_expr) return {};
+        var expr=JSON.parse(attrs_expr);
         var model=this.context.model;
         var attrs={};
         for (var attr in expr) {
@@ -344,10 +342,10 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                 var attr_val=conds.value;
                 conds=conds.condition;
                 if (!conds) {
-                    throw "Missing condition in attrs expression: "+str;
+                    throw "Missing condition in attrs expression: "+attrs_expr;
                 }
             } else {
-                throw "Invalid attrs expression: "+str;
+                throw "Invalid attrs expression: "+attrs_expr;
             }
             for (var i in conds) {
                 var clause=conds[i];
@@ -379,25 +377,26 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
     },
 
     listen_attrs: function() {
-        var str=this.options.attrs;
-        //log("field_many2one.listen_attrs",this,str);
-        if (!str) return;
-        var expr=JSON.parse(str);
-        var attrs={};
         var depends=[];
-        for (var attr in expr) {
-            var conds=expr[attr];
-            for (var i in conds) {
-                var clause=conds[i];
-                var n=clause[0];
-                depends.push(n);
+        this.$tabs.children().each(function(i) {
+            var $el=$(this);
+            var tag=$el.prop("tagName");
+            if (tag!="tab") throw "Expected 'tab' element";
+            var attrs_expr=$el.attr("attrs");
+            if (!attrs_expr) return;
+            var expr=JSON.parse(attrs_expr);
+            for (var attr in expr) {
+                var conds=expr[attr];
+                for (var i in conds) {
+                    var clause=conds[i];
+                    var n=clause[0];
+                    depends.push(n);
+                }
             }
-        }
-        //log("==> depends",depends);
+        });
         var model=this.context.model;
         for (var i in depends) {
             var n=depends[i];
-            //log("...listen "+n);
             model.on("change:"+n,this.render,this);
         }
     }
