@@ -44,6 +44,9 @@ class TrackCateg(Model):
     }
     _order = "type,code,full_name"
     _constraints = ["_check_cycle"]
+    _defaults={
+        "type": "1",
+    }
 
     def name_search(self, name, condition=[], limit=None, context={}):
         cond = [["or", ["name", "ilike", "%" + name + "%"], ["code", "ilike", "%" + name + "%"]], condition]
