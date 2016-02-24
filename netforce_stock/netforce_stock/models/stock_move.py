@@ -57,7 +57,7 @@ class Move(Model):
         "num_packages": fields.Integer("# Packages"),
         "notes": fields.Text("Notes"),
         "qty2": fields.Decimal("Qty2"),
-        "company_id": fields.Many2One("company", "Company"), # XXX: deprecated
+        "company_id": fields.Many2One("company", "Company"),
         "invoice_id": fields.Many2One("account.invoice", "Invoice"),
         "related_id": fields.Reference([["sale.order", "Sales Order"], ["purchase.order", "Purchase Order"], ["job", "Service Order"], ["account.invoice", "Invoice"], ["pawn.loan", "Loan"]], "Related To"),
         "number": fields.Char("Number", required=True, search=True),

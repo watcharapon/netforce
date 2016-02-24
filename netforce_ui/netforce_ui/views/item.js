@@ -175,7 +175,6 @@ var Item=NFView.extend({
                                 model.trigger("reload");
                                 return;
                             }
-                            model.trigger("reload");
                             if (data && data.flash) {
                                 set_flash("success",data.flash);
                             }
