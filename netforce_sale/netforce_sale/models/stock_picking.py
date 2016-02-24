@@ -44,7 +44,8 @@ class Picking(Model):
         for sale in get_model("sale.order").browse(undeliv_sale_ids):
             if sale.is_delivered:
                 deliv_sale_ids.append(sale.id)
-        get_model("sale.order").trigger(deliv_sale_ids,"delivered")
+        if deliv_sale_ids:
+            get_model("sale.order").trigger(deliv_sale_ids,"delivered")
         return res
 
 Picking.register()

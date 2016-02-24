@@ -48,3 +48,4 @@ from . import sale_event
 from . import seller
 from . import sale_return
 from . import sale_return_line
+from . import payment_method

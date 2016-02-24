@@ -23,7 +23,7 @@ class Cart(Model):
         "delivery_slot_id": fields.Many2One("delivery.slot","Peferred Delivery Slot"),
         "pay_method_id": fields.Many2One("payment.method","Payment Method"),
         "logs": fields.One2Many("log","related_id","Audit Log"),
-        "state": fields.Selection([["draft","Draft"],["waiting_payment","Waiting Payment"],["paid","Paid"],["canceled","Canceled"]],"Status",required=True),
+        "state": fields.Selection([["draft","Draft"],["confirmed","Confirmed"],["canceled","Canceled"]],"Status",required=True),
         "payment_methods": fields.Json("Payment Methods",function="get_payment_methods"),
         "delivery_delay": fields.Integer("Delivery Delay (Days)",function="get_delivery_delay"),
         "delivery_slots": fields.Json("Delivery Slots",function="get_delivery_slots"),
@@ -117,6 +117,7 @@ class Cart(Model):
             "delivery_slot_id": obj.delivery_slot_id.id,
             "pay_method_id": obj.pay_method_id.id,
             "other_info": obj.comments,
+            "ref": obj.comments, # XXX
         }
         for line in obj.lines:
             prod=line.product_id
@@ -140,7 +141,7 @@ class Cart(Model):
         sale_id=get_model("sale.order").create(vals)
         sale=get_model("sale.order").browse(sale_id)
         sale.confirm()
-        obj.write({"state":"waiting_payment"})
+        obj.write({"state":"confirmed"})
         return {
             "sale_id": sale_id,
         }
@@ -339,28 +340,5 @@ class Cart(Model):
                     s+="    - %s: %s (%s/%s)\n"%(name,state,num_sales,capacity or "-")
             vals[obj.id]=s
         return vals
-
-    def pay_online(self,ids,context={}):
-        obj=self.browse(ids[0])
-        method=obj.pay_method_id
-        if not method:
-            raise Exception("Missing payment method for invoice %s"%obj.number)
-        ctx={
-            "amount": obj.amount_total,
-            "currency_id": obj.currency_id.id,
-            "details": "Invoice %s"%obj.number,
-            "contact_id": obj.customer_id.id,
-        }
-        res=method.start_payment(context=ctx)
-        if not res:
-            raise Exception("Failed to start online payment for payment method %s"%method.name)
-        transaction_no=res["transaction_no"]
-        obj.write({"transaction_no":transaction_no})
-        if res.get("payment_done"):
-            obj.payment_received()
-        return {
-            "transaction_no": transaction_no,
-            "next": res.get("payment_action"),
-        }
 
 Cart.register()

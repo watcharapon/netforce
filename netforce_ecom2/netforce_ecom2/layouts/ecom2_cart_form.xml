@@ -3,8 +3,6 @@
         <field name="state"/>
         <button string="Options" dropdown="1">
             <item string="To Draft" method="to_draft" states="canceled"/>
-            <divider/>
-            <item string="Online Payment" method="pay_online"/>
         </button>
     </head>
     <field name="company_id" invisible="1"/>

@@ -1,4 +1,4 @@
-# Copyright (c) 2012-2015 Netforce Co. Ltd.
+# copyright (c) 2012-2015 Netforce Co. Ltd.
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1266,6 +1266,69 @@ class SaleOrder(Model):
             },
             "flash": "Sale Return %s created from sales order %s" % (sale.number, obj.number),
             "order_id": sale_id,
+        }
+
+    def create_invoice_payment(self,ids,context={}):
+        obj=self.browse(ids[0])
+        if obj.is_paid:
+            raise Exception("Sales order %s is alredy paid"%obj.number)
+        if obj.invoices:
+            raise Exception("There are already invoices created for sales order %s"%obj.number)
+        res=obj.copy_to_invoice()
+        inv_id=res["invoice_id"]
+        inv=get_model("account.invoice").browse(inv_id)
+        inv.post()
+        method=obj.pay_method_id
+        if not method:
+            raise Exception("Missing payment method for sales order %s"%obj.number)
+        if not method.account_id:
+            raise Exception("Missing account for payment method %s"%method.name)
+        transaction_no=context.get("transaction_no")
+        pmt_vals={
+            "type": "in",
+            "pay_type": "invoice",
+            "contact_id": inv.contact_id.id,
+            "account_id": method.account_id.id,
+            "lines": [],
+            "company_id": inv.company_id.id,
+            "transaction_no": transaction_no,
+        }
+        line_vals={
+            "invoice_id": inv_id,
+            "amount": inv.amount_total,
+        }
+        pmt_vals["lines"].append(("create",line_vals))
+        pmt_id=get_model("account.payment").create(pmt_vals,context={"type": "in"})
+        get_model("account.payment").post([pmt_id])
+        for pick in obj.pickings: # XXX
+            if pick.state=="pending":
+                pick.approve()
+
+    def pay_online(self,ids,context={}):
+        print("SaleOrder.pay_online",ids)
+        obj=self.browse(ids[0])
+        set_active_company(obj.company_id.id) # XXX
+        method=obj.pay_method_id
+        if not method:
+            raise Exception("Missing payment method for sales order %s"%obj.number)
+        ctx={
+            "amount": obj.amount_total,
+            "currency_id": obj.currency_id.id,
+            "details": "Order %s"%obj.number,
+            "contact_id": obj.contact_id.id,
+            "sale_id": obj.id,
+        }
+        res=method.start_payment(context=ctx)
+        if not res:
+            raise Exception("Failed to start online payment for sales order %s"%obj.number)
+        transaction_no=res["transaction_no"]
+        print("transaction_no: %s"%transaction_no)
+        obj.write({"transaction_no":transaction_no})
+        if res.get("payment_done"):
+            obj.create_invoice_payment()
+        return {
+            "transaction_no": transaction_no,
+            "next": res.get("payment_action"),
         }
 
 SaleOrder.register()
