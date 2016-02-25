@@ -135,7 +135,7 @@ class Payment(Model):
                 if line_type!=pay_type and vals.get(line_key):
                     vals[line_key]=[]
             for line in obj.lines:
-                if line.type!=pay_type:
+                if line.type!=pay_type and line.type!='adjust':
                     line.delete()
                 if line.invoice_id:
                     invoice_ids.append(line.invoice_id.id)
