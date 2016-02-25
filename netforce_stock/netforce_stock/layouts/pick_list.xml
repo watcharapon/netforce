@@ -8,4 +8,5 @@
     <field name="related_id"/>
     <field name="state"/>
     <field name="ship_tracking"/>
+    <field name="ship_state"/>
 </list>

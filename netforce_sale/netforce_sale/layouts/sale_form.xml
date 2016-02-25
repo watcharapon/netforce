@@ -169,7 +169,7 @@
             <newline/>
             <field name="transaction_no"/>
             <newline/>
-            <field name="tracking_no" readonly="0"/>
+            <field name="ship_tracking"/>
             <newline/>
             <field name="create_time"/>
         </tab>

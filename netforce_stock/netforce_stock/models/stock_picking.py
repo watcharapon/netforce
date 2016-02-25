@@ -830,6 +830,7 @@ class Picking(Model):
                 "to_coords": to_coords,
                 "item_desc": item_desc,
                 "delivery_date": delivery_date,
+                "contact_id": obj.contact_id.id,
             }
             if obj.delivery_slot_id:
                 ctx["time_slot"]=obj.delivery_slot_id.name

@@ -122,7 +122,6 @@ class SaleOrder(Model):
         "currency_rates": fields.One2Many("custom.currency.rate","related_id","Currency Rates"),
         "delivery_slot_id": fields.Many2One("delivery.slot","Delivery Slot"),
         "transaction_no": fields.Char("Payment Transaction No.",search=True),
-        "tracking_no": fields.Char("Delivery Tracking No.",search=True),
     }
 
     def _get_number(self, context={}):
@@ -934,9 +933,8 @@ class SaleOrder(Model):
             track_nos = []
             for pick in obj.pickings:
                 if pick.ship_tracking:
-                    if pick.ship_tracking:
-                        track_nos.append(pick.ship_tracking)
-            vals[obj.id] = ",".join(track_nos)
+                    track_nos.append(pick.ship_tracking)
+            vals[obj.id] = ", ".join(track_nos)
         return vals
 
     def get_pickings(self, ids, context={}):
