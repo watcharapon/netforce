@@ -5,12 +5,10 @@
     <field name="journal_id"/>
     <field name="number"/>
     <field name="date"/>
+    <field name="delivery_slot_id"/>
     <field name="contact_id"/>
     <field name="related_id"/>
     <field name="ship_method_id"/>
     <field name="ship_tracking"/>
-    <field name="ship_cost"/>
-    <field name="ship_pay_by"/>
     <field name="state"/>
-    <field name="sequence"/>
 </list>

@@ -812,6 +812,8 @@ class Picking(Model):
 
     def create_delivery_order(self,ids,context={}):
         for obj in self.browse(ids):
+            if obj.ship_tracking:
+                raise Exception("Delivery order already created for picking %s"%obj.number)
             meth=obj.ship_method_id
             if not meth:
                 raise Exception("Missing shipping method for picking %s"%obj.number)
@@ -821,7 +823,7 @@ class Picking(Model):
             to_coords=obj.to_coords
             if not to_coords:
                 raise Exception("Missing destination coordinates for picking %s"%obj.number)
-            item_desc=", ".join(["%s x %s"%(l.product_id.code,l.qty) for l in obj.lines])
+            item_desc=", ".join(["%sx%s"%(int(l.qty),l.product_id.code) for l in obj.lines])
             delivery_date=obj.date[:10] # XXX
             ctx={
                 "from_coords": from_coords,
@@ -836,7 +838,10 @@ class Picking(Model):
                 if not res:
                     raise Exception("No handler found")
                 tracking_no=res["tracking_no"]
-                obj.write({"tracking_no": tracking_no,"ship_state": "wait_pick"})
+                obj.write({"ship_tracking": tracking_no,"ship_state": "wait_pick"})
+                return {
+                    "flash": "Delivery order %s created successfully for picking %s"%(tracking_no,obj.number),
+                }
             except Exception as e:
                 raise Exception("Failed to create delivery order for picking %s: %s"%(obj.number,e))
 
