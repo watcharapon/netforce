@@ -48,6 +48,7 @@ class Location(Model):
         "company_id": fields.Many2One("company", "Company"),
         "contact_id": fields.Many2One("contact", "Contact"),
         "company2_id": fields.Many2One("company", "Company #2"),
+        "address_id": fields.Many2One("address","Address"),
     }
     _order = "name"
     _defaults = {

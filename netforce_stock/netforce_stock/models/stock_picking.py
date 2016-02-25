@@ -67,6 +67,9 @@ class Picking(Model):
         "product_id2": fields.Many2One("product","Product",store=False,function_search="search_product2",search=True), #XXX ICC
         "sequence": fields.Decimal("Sequence",function="_get_related",function_context={"path":"ship_address_id.sequence"}),
         "delivery_slot_id": fields.Many2One("delivery.slot","Delivery Slot"),
+        "ship_state": fields.Selection([["wait_pick","Waiting Pickup"],["in_transit","In Transit"],["delivered","Delivered"]],"Shipping Status"),
+        "from_coords": fields.Char("Source Coordinates",function="get_from_coords"),
+        "to_coords": fields.Char("Destination Coordinates",function="get_to_coords"),
     }
     _order = "date desc,number desc"
 
@@ -782,5 +785,59 @@ class Picking(Model):
         line["cost_price"]=cost_price
         line["cost_amount"]=cost_amount
         return data
+
+    def get_from_coords(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            coords=None
+            for line in obj.lines:
+                loc=line.location_from_id
+                addr=loc.address_id
+                if addr and addr.coordinates:
+                    coords=addr.coordinates
+                    break
+            vals[obj.id]=coords
+        return vals
+
+    def get_to_coords(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            addr=obj.ship_address_id
+            if addr and addr.coordinates:
+                coords=addr.coordinates
+            else:
+                coords=None
+            vals[obj.id]=coords
+        return vals
+
+    def create_delivery_order(self,ids,context={}):
+        for obj in self.browse(ids):
+            meth=obj.ship_method_id
+            if not meth:
+                raise Exception("Missing shipping method for picking %s"%obj.number)
+            from_coords=obj.from_coords
+            if not from_coords:
+                raise Exception("Missing source coordinates for picking %s"%obj.number)
+            to_coords=obj.to_coords
+            if not to_coords:
+                raise Exception("Missing destination coordinates for picking %s"%obj.number)
+            item_desc=", ".join(["%s x %s"%(l.product_id.code,l.qty) for l in obj.lines])
+            delivery_date=obj.date[:10] # XXX
+            ctx={
+                "from_coords": from_coords,
+                "to_coords": to_coords,
+                "item_desc": item_desc,
+                "delivery_date": delivery_date,
+            }
+            if obj.delivery_slot_id:
+                ctx["time_slot"]=obj.delivery_slot_id.name
+            try:
+                res=meth.create_delivery_order(context=ctx)
+                if not res:
+                    raise Exception("No handler found")
+                tracking_no=res["tracking_no"]
+                obj.write({"tracking_no": tracking_no,"ship_state": "wait_pick"})
+            except Exception as e:
+                raise Exception("Failed to create delivery order for picking %s: %s"%(obj.number,e))
 
 Picking.register()

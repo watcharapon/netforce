@@ -33,6 +33,7 @@ class ShipMethod(Model):
         "rates": fields.One2Many("ship.rate", "method_id", "Shipping Rates"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "sequence": fields.Integer("Sequence", required=True),
+        "type": fields.Selection([],"Type"),
         "ship_product_id": fields.Many2One("product","Shipping Product"),
         "exclude_ship_methods": fields.Many2Many("ship.method", "Exclude Shipping Methods", reltable="m2m_ship_method_exclude", relfield="method1_id", relfield_other="method2_id"),
         "active": fields.Boolean("Active"),
@@ -41,5 +42,8 @@ class ShipMethod(Model):
     _defaults = {
         "active": True,
     }
+
+    def create_delivery_order(self,ids,context={}):
+        pass
 
 ShipMethod.register()
