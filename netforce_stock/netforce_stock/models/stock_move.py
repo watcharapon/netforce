@@ -361,7 +361,11 @@ class Move(Model):
         pick_ids=list(set(pick_ids))
         if len(pick_ids)==1:
             vals["related_id"]="stock.picking,%s"%pick_ids[0]
-        move_id=get_model("account.move").create(vals)
+        # sequence number should correspond date
+        context.update({
+            'date': move.date,
+        })
+        move_id=get_model("account.move").create(vals,context=context)
         get_model("account.move").post([move_id])
         get_model("stock.move").write(ids,{"move_id":move_id})
         return move_id
