@@ -1,4 +1,4 @@
-<form model="stock.period" attrs='{"readonly":[["state","=","posted"]]}'>
+<form model="stock.period" attrs='{"readonly":[["state","=","posted"]]}' show_company="1">
     <head>
         <field name="state"/>
         <button string="Options" dropdown="1">
