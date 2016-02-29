@@ -135,7 +135,7 @@ class Payment(Model):
                 if line_type!=pay_type and vals.get(line_key):
                     vals[line_key]=[]
             for line in obj.lines:
-                if line.type!=pay_type:
+                if line.type!=pay_type and line.type!='adjust':
                     line.delete()
                 if line.invoice_id:
                     invoice_ids.append(line.invoice_id.id)
@@ -197,15 +197,6 @@ class Payment(Model):
             get_model("account.invoice").function_store(invoice_ids)
         if expense_ids:
             get_model("hr.expense").function_store(expense_ids)
-        #TODO just tempolary remove this
-        obj=self.browse(ids)[0]
-        return {
-            'next': {
-                'name': 'payment',
-                'mode': 'form',
-                'active_id': obj.id,
-            },
-        }
 
     def do_delete(self, ids, context={}):
         obj = self.browse(ids)[0]
@@ -276,7 +267,8 @@ class Payment(Model):
                                 else:
                                     base_amt = invline_amt
                                 subtotal += base_amt
-                            if inv.taxes:
+                            #if not automatic compute
+                            if not (inv_wht and inv_vat ) and inv.taxes:
                                 inv_vat = 0
                                 inv_wht = 0
                                 for tax in inv.taxes:
@@ -437,7 +429,6 @@ class Payment(Model):
         obj.post()
 
     def post(self, ids, context={}):
-        print("account_payment.post")
         obj = self.browse(ids)[0]
         settings = get_model("settings").browse(1)
         if obj.currency_rate:
@@ -544,8 +535,6 @@ class Payment(Model):
                 }
                 if line.type=="prepay":
                     line_vals["contact_id"]=obj.contact_id.id
-                print("direct")
-                pprint(line_vals)
                 get_model("account.move.line").create(line_vals)
             elif line.type=="invoice":
                 inv = line.invoice_id
@@ -589,8 +578,6 @@ class Payment(Model):
                             line_vals["amount_cur"] = inv_pay_amt
                         else:
                             line_vals["amount_cur"] = -inv_pay_amt
-                    print("invoice")
-                    pprint(line_vals)
                     pay_line_id = get_model("account.move.line").create(line_vals)
                     if inv.reconcile_move_line_id:
                         inv_line_id = inv.reconcile_move_line_id.id
@@ -651,8 +638,6 @@ class Payment(Model):
                         line_vals["debit"] = amt
                     else:
                         line_vals["credit"] = amt
-                    print("overpay")
-                    pprint(line_vals)
                     get_model("account.move.line").create(line_vals)
                 elif inv.inv_type == "prepay":
                     for oline in inv.lines:
@@ -671,8 +656,6 @@ class Payment(Model):
                             line_vals["debit"] = base_amt
                         else:
                             line_vals["credit"] = base_amt
-                        print("prepay")
-                        pprint(line_vals)
                         get_model("account.move.line").create(line_vals)
                         if tax and inv.tax_type != "no_tax":
                             tax_comps = get_model("account.tax.rate").compute_taxes(
@@ -721,8 +704,6 @@ class Payment(Model):
                             line_vals["debit"] = amt
                         else:
                             line_vals["credit"] = -amt
-                        print("tax")
-                        pprint(line_vals)
                         get_model("account.move.line").create(line_vals)
                     elif comp.type == "wht":
                         if comp_id in taxes:
@@ -743,8 +724,6 @@ class Payment(Model):
                     line_vals["debit"] = amt
                 else:
                     line_vals["credit"] = amt
-                print("claim")
-                pprint(line_vals)
                 get_model("account.move.line").create(line_vals)
             elif line.type == "adjust":
                 cur_amt = get_model("currency").convert(
@@ -766,8 +745,6 @@ class Payment(Model):
                     line_vals["debit"] = cur_amt
                 else:
                     line_vals["credit"] = -cur_amt
-                print("adjust")
-                pprint(line_vals)
                 get_model("account.move.line").create(line_vals)
         if total_over > 0:
             contact = obj.contact_id
@@ -790,8 +767,6 @@ class Payment(Model):
                 line_vals["debit"] = total_over
             else:
                 line_vals["credit"] = total_over
-            print("overpay")
-            pprint(line_vals)
             get_model("account.move.line").create(line_vals)
             inv_line_vals = {
                 "description": context.get("overpay_description", ""),
@@ -846,8 +821,6 @@ class Payment(Model):
                 line_vals["debit"] = amt
             else:
                 line_vals["credit"] = -amt
-            print("tax")
-            pprint(line_vals)
             get_model("account.move.line").create(line_vals)
         amt = 0
         move = get_model("account.move").browse(move_id)
@@ -990,7 +963,6 @@ class Payment(Model):
     def repost_payments(self, context={}):  # XXX
         ids = self.search([["state", "=", "posted"]], order="date")
         for obj in self.browse(ids):
-            print("payment %d..." % obj.id)
             if not obj.move_id:
                 raise Exception("No journal entry for payment #%d" % obj.id)
             obj.move_id.delete()
@@ -1089,7 +1061,7 @@ class Payment(Model):
             rate_type = "sell"
         elif data["type"] == "out":
             rate_type = "buy"
-        for inv in get_model("account.invoice").search_browse(cond):
+        for inv in get_model("account.invoice").search_browse(cond,order="number"):
             lines.append({
                 "invoice_id": inv.id,
                 # XXX
