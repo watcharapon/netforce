@@ -23,7 +23,7 @@
             <group form_layout="stacked">
                 <field name="journal_id" span="2" onchange="onchange_journal"/>
                 <field name="number" span="2"/>
-                <field name="date" span="2"/>
+                <field name="date" onchange="onchange_date" span="2"/>
                 <field name="contact_id" span="2" onchange="onchange_contact"/>
                 <field name="currency_id" span="2"/>
                 <newline/>

@@ -100,14 +100,14 @@ class Picking(Model):
         if not seq_id:
             return None
         while 1:
-            num = get_model("sequence").get_next_number(seq_id)
+            num = get_model("sequence").get_next_number(seq_id,context=context)
             user_id = get_active_user()
             set_active_user(1)
             res = self.search([["number", "=", num]])
             set_active_user(user_id)
             if not res:
                 return num
-            get_model("sequence").increment_number(seq_id)
+            get_model("sequence").increment_number(seq_id,context)
 
     def _get_type(self, context={}):
         return context.get("pick_type")
@@ -224,6 +224,7 @@ class Picking(Model):
         ctx = {
             "pick_type": data["type"],
             "journal_id": data["journal_id"],
+            'date': data['date'][0:10],
         }
         data["number"] = self._get_number(ctx)
         for line in data["lines"]:
@@ -231,6 +232,19 @@ class Picking(Model):
                 line["location_from_id"] = journal.location_from_id.id
             if journal.location_to_id:
                 line["location_to_id"] = journal.location_to_id.id
+        return data
+
+    def onchange_date(self, context={}):
+        data = context["data"]
+        journal_id = data["journal_id"]
+        if not journal_id:
+            return
+        ctx = {
+            "pick_type": data["type"],
+            "journal_id": data["journal_id"],
+            'date': data['date'][0:10],
+        }
+        data["number"] = self._get_number(ctx)
         return data
 
     def onchange_product(self, context):
