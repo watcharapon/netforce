@@ -1061,7 +1061,7 @@ class Payment(Model):
             rate_type = "sell"
         elif data["type"] == "out":
             rate_type = "buy"
-        for inv in get_model("account.invoice").search_browse(cond):
+        for inv in get_model("account.invoice").search_browse(cond,order="number"):
             lines.append({
                 "invoice_id": inv.id,
                 # XXX
