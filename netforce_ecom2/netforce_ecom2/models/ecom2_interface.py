@@ -60,4 +60,13 @@ class EcomInterface(Model):
             "user_id": user_id,
         }
 
+    def checkEmail(self,email,context={}):
+        print("EcomInterface.CheckEmail",email)
+        res = get_model("base.user").search_browse([['email','=',email]])
+        if res:
+            print("okay")
+        else: 
+            raise Exception("Email Not Found");
+        return 
+
 EcomInterface.register()
