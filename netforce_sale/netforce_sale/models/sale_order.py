@@ -568,7 +568,7 @@ class SaleOrder(Model):
                         "discount_amount": line.discount_amount,
                         "account_id": sale_acc_id,
                         "tax_id": line.tax_id.id,
-                        "amount": line.qty*line.unit_price*(1-(line.discount or Decimal(0))/100)-(line.discount_amount or Decimal(0)),
+                        "amount": remain_qty*line.unit_price*(1-(line.discount or Decimal(0))/100)-(line.discount_amount or Decimal(0)),
                     }
                     inv_vals["lines"].append(("create", line_vals))
                     if line.promotion_amount:
