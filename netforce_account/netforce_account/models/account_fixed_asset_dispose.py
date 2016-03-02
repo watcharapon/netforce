@@ -28,24 +28,18 @@ class FixedAssetDispose(Model):
         "asset_id": fields.Many2One("account.fixed.asset", "Asset", readonly=True),
         "date": fields.Date("Date", required=True),
         "loss_acc_id": fields.Many2One("account.account", "Loss Account", required=True),
-        'journal_id': fields.Many2One("account.journal","Journal"),
     }
-
-    def _get_journal(self,context={}):
-        res = get_model("account.journal").search([["name", "=", "General"]])
-        if res:
-            return res[0]
 
     _defaults = {
         "date": lambda *a: time.strftime("%Y-%m-%d"),
-        'journal_id': _get_journal,
     }
 
     def dispose(self, ids, context={}):
         obj = self.browse(ids)[0]
-        if not obj.journal_id:
+        settings = get_model("settings").browse(1)
+        if not settings.general_journal_id:
             raise Exception("General journal not found")
-        journal_id = obj.journal_id.id
+        journal_id = settings.general_journal_id.id
         asset = obj.asset_id
         desc = "Dispose fixed asset [%s] %s" % (asset.number, asset.name)
         move_vals = {
