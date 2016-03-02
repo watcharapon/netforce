@@ -423,6 +423,12 @@ class Move(Model):
             "logo": get_file_path(settings.logo),  # XXX: remove when render_odt fixed
         }
 
+    def get_report_data(self,ids=None,context={}):
+        if ids is not None:  # for new templates
+            return super().get_report_data(ids, context=context)
+        ids = context["ids"]
+        return self.get_data(ids,context)
+
     def reverse(self, ids, context={}):
         obj = self.browse(ids)[0]
         vals = {
