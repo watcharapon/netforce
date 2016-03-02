@@ -1,7 +1,7 @@
 <form model="stock.count" attrs='{"readonly":[["state","in",["done","voided"]]]}' show_company="1">
     <head>
         <field name="state"/>
-        <button string="Print PDF" icon="print" action="report_inventory_form"/>
+        <!--<button string="Print PDF" icon="print" action="report_inventory_form"/>-->
         <button string="Options" dropdown="1">
             <item string="Add Lines" method="add_lines" states="draft"/>
             <item string="Update Lines" method="update_lines" states="draft"/>
@@ -22,7 +22,7 @@
             <field name="lines" nolabel="1">
                 <list>
                     <field name="product_id" onchange="onchange_product"/>
-                    <field name="lot_id"/>
+                    <field name="lot_id" create="1"/>
                     <field name="bin_location"/>
                     <field name="prev_qty"/>
                     <field name="prev_cost_price"/>

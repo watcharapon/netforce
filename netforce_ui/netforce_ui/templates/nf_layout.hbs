@@ -59,7 +59,7 @@
                             {{#view "item" string=string perm=perm perm_check_admin=perm_check_admin pkg=pkg dropdown=1 context=context}}
                                 {{#each ../submenu_items context=context}}
                                     {{#ifeq type "item"}}
-                                        {{view "item" string=string action=action action_options=action_options perm=perm perm_check_admin=perm_check_admin pkg=pkg url=url context=context}}
+                                        {{view "item" string=string action=action action_options=action_options perm=perm perm_check_admin=perm_check_admin pkg=pkg url=url color=color context=context}}
                                     {{/ifeq}}
                                     {{#ifeq type "divider"}}
                                         <li class="divider"></li>
@@ -70,14 +70,14 @@
                                 {{/each}}
                             {{/view}}
                         {{else}}
-                            {{view "item" string=string action=action action_options=action_options perm=perm perm_check_admin=perm_check_admin pkg=pkg url=url icon=icon context=context}}
+                            {{view "item" string=string action=action action_options=action_options perm=perm perm_check_admin=perm_check_admin pkg=pkg url=url color=color icon=icon context=context}}
                         {{/if}}
                     {{/each}}
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     {{#view "item" string="Main Menu" icon="home" dropdown="1" context=context}}
                         {{#each ../mainmenu_items context=context}}
-                            {{view "item" string=string action=action url=url perm=perm perm_check_admin=perm_check_admin pkg=pkg disabled=disabled context=context}}
+                            {{view "item" string=string action=action url=url color=color perm=perm perm_check_admin=perm_check_admin pkg=pkg disabled=disabled context=context}}
                         {{/each}}
                     {{/view}}
                 </ul>

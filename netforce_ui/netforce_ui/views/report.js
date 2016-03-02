@@ -377,15 +377,6 @@ var Report=NFView.extend({
                 };
                 var view=Button.make_view(opts);
                 foot.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
-                var opts={
-                    string: "Export XLS",
-                    onclick: function() {
-                        that.export_xls();
-                    },
-                    context: context
-                };
-                var view=Button.make_view(opts);
-                foot.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
             } else {
                 var opts={
                     string: "Run Report",
@@ -549,6 +540,9 @@ var Report=NFView.extend({
         this.model.save({},{
             success: function() {
                 var url="/report_export_xls?model="+that.options.model+"&active_id="+that.model.id+"&template="+that.options.report_template_xls+"&nonce="+(new Date()).getTime();
+                if (that.options.fast_render) { // XXX: temporary
+                    url+="&fast_render=1";
+                }
                 download_url(url);
             },
             error: function(model,err) {
@@ -569,7 +563,10 @@ var Report=NFView.extend({
         }
         this.model.save({},{
             success: function() {
-                var url="/report_export_xls?model="+that.options.model+"&active_id="+that.model.id+"&method=get_report_data_custom&template="+that.options.report_template_xls_custom+"&fast_render=1&nonce="+(new Date()).getTime();
+                var url="/report_export_xls?model="+that.options.model+"&active_id="+that.model.id+"&method=get_report_data_custom&template="+that.options.report_template_xls_custom+"&nonce="+(new Date()).getTime();
+                if (that.options.fast_render) { // XXX: temporary
+                    url+="&fast_render=1";
+                }
                 download_url(url);
             },
             error: function(model,err) {

@@ -417,6 +417,12 @@ var Button=NFView.extend({
                                     }
                                     var next=that.options.next;
                                     if (!next && data) next=data.next;
+                                    
+                                    if (data && data.next_url){
+                                        window.location.href=data.next_url;
+                                        return;
+                                    }
+
                                     if (next=="_close") {
                                         $(".modal").modal("hide");
                                         return;

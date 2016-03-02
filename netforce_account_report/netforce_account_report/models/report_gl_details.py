@@ -149,6 +149,10 @@ class ReportGLDetails(Model):
                     "track_code": line.track_id.code,
                     "track2_code": line.track2_id.code,
                 }
+                if not line_vals['contact_name'] and line.move_id.related_id:
+                    contact=line.move_id.related_id.contact_id
+                    if contact:
+                        line_vals['contact_name']=contact.name
                 debit_total += line.debit or Decimal("0")
                 credit_total += line.credit or Decimal("0")
                 acc_vals["lines"].append(line_vals)

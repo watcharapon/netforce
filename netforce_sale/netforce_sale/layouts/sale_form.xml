@@ -32,7 +32,7 @@
                 <field name="due_date" span="2"/>
                 <field name="is_delivered" span="2"/>
                 <newline/>
-                <field name="currency_id" span="2"/>
+                <field name="currency_id" span="2" onchange="onchange_currency"/>
                 <field name="tax_type" span="2" onchange="update_amounts"/>
                 <field name="price_list_id" span="2"/>
                 <field name="related_id" span="2"/>
@@ -43,6 +43,7 @@
                 <field name="ship_address_id" span="2" condition='[["contact_id","!=",null],["contact_id","=",contact_id]]'/>
                 <field name="delivery_slot_id" span="2"/>
             </group>
+            <newline/>
             <field name="lines" nolabel="1">
                 <list>
                     <field name="sequence"/>

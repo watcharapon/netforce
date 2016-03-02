@@ -80,7 +80,7 @@ class Job(Model):
         "time_start": fields.DateTime("Planned Start Time"),
         "time_stop": fields.DateTime("Planned Stop Time"),
         "location_id": fields.Many2One("stock.location", "Job Location"),
-        "related_id": fields.Reference([["sale.order", "Sales Order"], ["issue", "Issue"]], "Related To"),
+        "related_id": fields.Reference([["sale.order", "Sales Order"], ["rental.order","Rental Order"], ["issue", "Issue"]], "Related To"),
         "lines": fields.One2Many("job.line", "job_id", "Worksheet"),
         "complaints": fields.Text("Complaints"),
         "cause": fields.Text("Cause"),

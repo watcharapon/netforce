@@ -29,6 +29,5 @@
     <field name="act_duty_account_id"/>
     <newline/>
     <field name="stock_cost_auto_compute"/>
-    <newline/>
-    <field name="stock_cost_mode"/>
+    <field name="prevent_validate_neg_stock"/>
 </form>
