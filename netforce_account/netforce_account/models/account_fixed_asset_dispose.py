@@ -29,16 +29,17 @@ class FixedAssetDispose(Model):
         "date": fields.Date("Date", required=True),
         "loss_acc_id": fields.Many2One("account.account", "Loss Account", required=True),
     }
+
     _defaults = {
         "date": lambda *a: time.strftime("%Y-%m-%d"),
     }
 
     def dispose(self, ids, context={}):
         obj = self.browse(ids)[0]
-        res = get_model("account.journal").search([["type", "=", "general"]])
-        if not res:
+        settings = get_model("settings").browse(1)
+        if not settings.general_journal_id:
             raise Exception("General journal not found")
-        journal_id = res[0]
+        journal_id = settings.general_journal_id.id
         asset = obj.asset_id
         desc = "Dispose fixed asset [%s] %s" % (asset.number, asset.name)
         move_vals = {
@@ -47,7 +48,7 @@ class FixedAssetDispose(Model):
             "narration": desc,
         }
         lines = []
-        amt = -asset.price_purchase
+        amt = -asset.price_purchase or 0
         line_vals = {
             "description": desc,
             "account_id": asset.fixed_asset_account_id.id,
