@@ -51,7 +51,7 @@ var SheetLine=NFView.extend({
             if (field.readonly || !perms.perm_write) {
                 f.readonly=true; // XXX
             }
-            if (field.type=="float") {
+            if (field.type=="float" || field.type=="decimal") {
                 f.align="right";
             }
             if (field.required) {
