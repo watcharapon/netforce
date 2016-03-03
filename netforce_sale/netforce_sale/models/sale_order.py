@@ -237,7 +237,7 @@ class SaleOrder(Model):
                     subtotal -= line.amount
             vals["amount_subtotal"] = subtotal
             vals["amount_tax"] = tax
-            vals["amount_total"] = subtotal + tax
+            vals["amount_total"] = (subtotal + tax)
             vals["amount_total_cur"] = get_model("currency").convert(
                 vals["amount_total"], obj.currency_id.id, settings.currency_id.id)
             vals["amount_total_discount"] = discount
