@@ -273,6 +273,8 @@ class ComputeCost(Model):
         for prod_id in prod_ids:
             moves=prod_moves[prod_id]
             for m in moves:
+                if m["qty"]==0: # XXX: don't overwrite LC stock moves
+                    continue
                 if m["unit_price"] is not None:
                     new_cost_amount=m["unit_price"]*m["conv_qty"]
                 else:
