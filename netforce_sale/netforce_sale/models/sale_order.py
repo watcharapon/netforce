@@ -237,7 +237,7 @@ class SaleOrder(Model):
                     subtotal -= line.amount
             vals["amount_subtotal"] = subtotal
             vals["amount_tax"] = tax
-            vals["amount_total"] = subtotal + tax
+            vals["amount_total"] = (subtotal + tax)
             vals["amount_total_cur"] = get_model("currency").convert(
                 vals["amount_total"], obj.currency_id.id, settings.currency_id.id)
             vals["amount_total_discount"] = discount
@@ -1114,8 +1114,9 @@ class SaleOrder(Model):
             cost=0
             for line in obj.track_entries:
                 cost-=line.amount
-            profit=obj.amount_subtotal-cost
-            margin=profit*100/obj.amount_subtotal if obj.amount_subtotal else None
+            subtotal=obj.amount_subtotal or 0
+            profit=subtotal-cost
+            margin=profit*100/obj.subtotal if obj.subtotal else None
             vals[obj.id] = {
                 "act_cost_amount": cost,
                 "act_profit_amount": profit,
