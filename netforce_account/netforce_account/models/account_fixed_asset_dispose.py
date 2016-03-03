@@ -73,7 +73,8 @@ class FixedAssetDispose(Model):
         }
         lines.append(line_vals)
         move_vals["lines"] = [("create", v) for v in lines]
-        move_id = get_model("account.move").create(move_vals)
+        context['date']=obj.date
+        move_id = get_model("account.move").create(move_vals,context=context)
         get_model("account.move").post([move_id])
         asset.write({"state": "sold", "date_dispose": obj.date})
         return {
