@@ -116,11 +116,13 @@ var MultiView=NFView.extend({
                 refer_id: this.options.refer_id, // XXX
                 action_name: this.options.name, // XXX
                 model_string: this.options.model_string,
-                defaults: this.options.defaults,
                 modes: this.modes,
                 focus_field: this.options.focus_field,
                 context: this.context
             };
+            if (this.options.defaults) {
+                opts.defaults=this.options.defaults;
+            }
             if (_.contains(this.modes,"page")) {
                 opts.next_action_options="mode=page";
             } else {
