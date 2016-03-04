@@ -51,7 +51,13 @@ class TrackEntry(Model):
         if not prod_id:
             return
         prod=get_model("product").browse(prod_id)
-        data["unit_price"]=-prod.cost_price
+        price=prod.cost_price
+        track_id=data["track_id"]
+        track=get_model("account.track.categ").browse(track_id)
+        if track.currency_id:
+            settings=get_model("settings").browse(1)
+            price=get_model("currency").convert(price,settings.currency_id.id,track.currency_id.id)
+        data["unit_price"]=-price
         data["qty"]=1
         data["uom_id"]=prod.uom_id.id
         data["amount"]=data["unit_price"]

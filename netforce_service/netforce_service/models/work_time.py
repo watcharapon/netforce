@@ -113,11 +113,16 @@ class WorkTime(Model):
         hour_uom_id=res[0]
         for obj in self.browse(ids):
             obj.write({"state": "approved"})
-            if obj.track_id and obj.cost_amount:
+            amt=obj.cost_amount
+            track=obj.track_id
+            if track and amt:
+                if track.currency_id:
+                    settings=get_model("settings").browse(1)
+                    amt=get_model("currency").convert(amt,settings.currency_id.id,track.currency_id.id)
                 vals={
                     "track_id": obj.track_id.id,
                     "date": obj.date,
-                    "amount": -obj.cost_amount,
+                    "amount": -amt,
                     "product_id": obj.resource_id.product_id.id,
                     "qty": obj.actual_hours or 0,
                     "uom_id": hour_uom_id,
