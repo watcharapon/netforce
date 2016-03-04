@@ -11,7 +11,6 @@
     <field name="date_start" onchange="update_end"/>
     <field name="date_end"/>
     <field name="due_date"/>
-    <field name="resource_id"/>
     <separator/>
     <field name="project_id"/>
     <field name="milestone_id" condition='[["project_id","=",project_id]]'/>
@@ -25,6 +24,18 @@
     <field name="state"/>
     <field name="done_date"/>
     <related>
+        <field name="assignments">
+            <list>
+                <field name="resource_id"/>
+                <field name="description"/>
+                <field name="est_hours"/>
+            </list>
+            <form>
+                <field name="resource_id"/>
+                <field name="description"/>
+                <field name="est_hours"/>
+            </form>
+        </field>
         <field name="depends">
             <list>
                 <field name="prev_task_id"/>

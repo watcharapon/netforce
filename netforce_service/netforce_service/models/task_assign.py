@@ -18,32 +18,21 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from . import project
-from . import service_item
-from . import job
-from . import job_item
-from . import job_part
-from . import job_cost
-from . import task
-from . import task_assign
-from . import task_depend
-from . import task_list
-from . import job_template
-from . import task_template
-from . import task_list_template
-from . import work_time
-from . import work_type
-from . import fault_code
-from . import service_type
-from . import time_sheet
-from . import service_resource
-from . import skill_level
-from . import service_resource_alloc
-from . import job_part_template
-from . import job_template_line
-from . import job_line
-from . import report_service_time
-from . import service_create_quot
-from . import service_application
-from . import project_milestone
-from . import create_task_list
+from netforce.model import Model, fields, get_model, clear_cache
+from netforce.database import get_connection
+from datetime import *
+import time
+from netforce import access
+
+class TaskAssign(Model):
+    _name = "task.assign"
+    _string = "Task Assignment"
+    _fields = {
+        "task_id": fields.Many2One("task","Task",required=True,search=True),
+        "resource_id": fields.Many2One("service.resource","Assigned To",required=True,search=True),
+        "description": fields.Text("Description"),
+        "est_hours": fields.Decimal("Est. Workload (hours)"),
+    }
+    _order = "id"
+
+TaskAssign.register()
