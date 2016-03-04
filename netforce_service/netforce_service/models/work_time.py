@@ -27,6 +27,7 @@ import datetime
 class WorkTime(Model):
     _name = "work.time"
     _string = "Work Time"
+    _name_field="date"
     _fields = {
         "resource_id": fields.Many2One("service.resource", "Resource", required=True, search=True, on_delete="cascade"),
         "resource_type": fields.Selection([["person","Person"],["machine","Machine"]],"Resource Type",function="_get_related",function_search="_search_related",function_context={"path":"resource_id.type"},search=True),
@@ -51,6 +52,7 @@ class WorkTime(Model):
         "track_entries": fields.One2Many("account.track.entry","related_id","Tracking Entries"),
         "track_id": fields.Many2One("account.track.categ","Tracking",function="get_track_categ"),
         "cost_amount": fields.Decimal("Cost Amount",function="get_cost_amount"),
+        "invoice_id": fields.Many2One("account.invoice","Invoice"),
     }
     _order = "date,resource_id.name"
 
@@ -163,5 +165,52 @@ class WorkTime(Model):
             amt=(prod.cost_price or 0)*(obj.actual_hours or 0)
             vals[obj.id]=amt
         return vals
+
+    def copy_to_invoice(self,ids,context={}):
+        inv_vals = {
+            "type": "out",
+            "inv_type": "invoice",
+            "lines": [],
+        }
+        for obj in self.browse(ids):
+            if obj.invoice_id:
+                raise Exception("Invoice already created for work time %s"%obj.id)
+            project=obj.project_id 
+            contact=project.contact_id
+            if inv_vals.get("contact_id"):
+                if contact.id!=inv_vals["contact_id"]:
+                    raise Exception("Different contacts")
+            else:
+                inv_vals["contact_id"]=contact.id
+            resource=obj.resource_id
+            prod=resource.product_id
+            if not prod:
+                raise Exception("Missing product for work time %d"%obj.id)
+            if not prod.sale_account_id:
+                raise Exception("Missing sales account in product %s"%prod.code)
+            line_vals = {
+                "product_id": prod.id,
+                "description": obj.description or "/",
+                "qty": line.bill_hours or 0,
+                "uom_id": prod.uom_id.id,
+                "unit_price": prod.sale_price or 0,
+                "account_id": prod.sale_account_id.id,
+                "tax_id": prod.sale_tax_id.id if prod else None,
+                "amount": (line.bill_hours or 0)*(prod.sale_price or 0),
+                "related_id": "work.time,%s"%obj.id,
+            }
+            inv_vals["lines"].append(("create", line_vals))
+        if not inv_vals["lines"]:
+            raise Exception("Nothing to invoice")
+        inv_id = get_model("account.invoice").create(inv_vals, {"type": "out", "inv_type": "invoice"})
+        self.write(ids,{"invoice_id": inv_id})
+        inv = get_model("account.invoice").browse(inv_id)
+        return {
+            "next": {
+                "name": "view_invoice",
+                "active_id": inv_id,
+            },
+            "flash": "Invoice %s created from work time" % inv.number,
+        }
 
 WorkTime.register()

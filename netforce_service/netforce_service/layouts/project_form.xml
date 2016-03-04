@@ -4,6 +4,8 @@
         <button string="Options" dropdown="1">
             <item string="Create Actual Cost Tracking Code" method="create_track"/>
             <item string="Create Estimate Cost Tracking Code" method="create_est_track"/>
+            <divider/>
+            <item string="Copy" method="copy"/>
         </button>
     </head>
     <tabs string="General">

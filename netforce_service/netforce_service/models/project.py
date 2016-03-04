@@ -59,4 +59,43 @@ class Project(Model):
         "state": "in_progress",
     }
 
+    def copy(self,ids,context={}):
+        obj=self.browse(ids[0])
+        vals={
+            "name": obj.name,
+            "number": obj.number,
+            "contact_id": obj.contact_id.id,
+            "start_date": obj.start_date,
+            "end_date": obj.end_date,
+            "description": description,
+            "resources": [("set",[r.id for r in obj.resources])],
+        }
+        new_proj_id=self.create(vals,context=context)
+        new_proj=self.browse(new_proj_id)
+        track=obj.track_id
+        if track:
+            vals={
+                "name": track.name, # XXX
+                "type": track.type, 
+                "code": track.code, # XXX
+            }
+            new_track_id=get_model("account.track.categ").create(vals)
+            new_proj.write({"track_id":new_track_id})
+            for subtrack in track.sub_tracks:
+                vals={
+                    "parent_id": new_track_id,
+                    "name": subtrack.name, 
+                    "type": subtrack.type, 
+                    "code": subtrack.code, 
+                }
+                get_model("account.track.categ").create(vals)
+        return {
+            "next": {
+                "name": "project",
+                "mode": "form",
+                "active_id": new_proj_id,
+            },
+            "flash": "New project copied from %s"%obj.name,
+        }
+
 Project.register()
