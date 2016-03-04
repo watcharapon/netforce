@@ -45,6 +45,8 @@ class TrackEntry(Model):
 
     def onchange_product(self,context={}):
         data=context.get("data",{})
+        print("#"*80)
+        print("ID",data.get("id"))
         prod_id=data["product_id"]
         if not prod_id:
             return

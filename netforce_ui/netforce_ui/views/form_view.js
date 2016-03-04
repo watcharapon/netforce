@@ -212,7 +212,7 @@ var FormView=NFView.extend({
                 });
             });
         } else {
-            var ctx=clean_context(_.extend({},this.context,this.options));
+            var ctx=clean_context(_.extend({},this.context,this.options)); // TODO: don't add this.options
             if (this.options.defaults) {
                 ctx.defaults=this.options.defaults;
             }
