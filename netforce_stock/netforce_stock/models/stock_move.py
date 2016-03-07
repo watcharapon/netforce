@@ -58,7 +58,7 @@ class Move(Model):
         "num_packages": fields.Integer("# Packages"),
         "notes": fields.Text("Notes"),
         "qty2": fields.Decimal("Qty2"),
-        "company_id": fields.Many2One("company", "Company"), # XXX: deprecated
+        "company_id": fields.Many2One("company", "Company"),
         "invoice_id": fields.Many2One("account.invoice", "Invoice"),
         "related_id": fields.Reference([["sale.order", "Sales Order"], ["purchase.order", "Purchase Order"], ["job", "Service Order"], ["account.invoice", "Invoice"], ["pawn.loan", "Loan"]], "Related To"),
         "number": fields.Char("Number", required=True, search=True),
@@ -356,10 +356,16 @@ class Move(Model):
             "date": post_date,
             "lines": [("create",vals) for vals in lines],
         }
+        if move.related_id:
+            vals['related_id']='%s,%s'%(move.related_id._model,move.related_id.id)
         pick_ids=list(set(pick_ids))
         if len(pick_ids)==1:
             vals["related_id"]="stock.picking,%s"%pick_ids[0]
-        move_id=get_model("account.move").create(vals)
+        # sequence number should correspond date
+        context.update({
+            'date': move.date,
+        })
+        move_id=get_model("account.move").create(vals,context=context)
         get_model("account.move").post([move_id])
         get_model("stock.move").write(ids,{"move_id":move_id})
         return move_id

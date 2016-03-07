@@ -104,11 +104,27 @@ class Transform(Model):
 
     def void(self, ids, context={}):
         obj = self.browse(ids)[0]
+        obj.void_acc_move()
         obj.stock_moves.delete()
         obj.write({"state": "voided"})
 
+    def void_acc_move(self,ids,context={}):
+        print("void_acc_move ...")
+        for id in ids:
+            for acc_move in get_model("account.move").search_browse([['related_id','=','stock.transform,%s'%id]]):
+                acc_move.void()
+        print("done!")
+
+    def set_draft_acc_move(self,ids,context={}):
+        print("set_draft_acc_move ...")
+        for id in ids:
+            for acc_move in get_model("account.move").search_browse([['related_id','=','stock.transform,%s'%id]]):
+                acc_move.to_draft()
+        print("done!")
+
     def to_draft(self, ids, context={}):
         obj = self.browse(ids)[0]
+        obj.set_draft_acc_move()
         obj.stock_moves.delete()
         obj.write({"state": "draft"})
 

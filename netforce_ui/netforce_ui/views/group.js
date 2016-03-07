@@ -139,6 +139,7 @@ var Group=NFView.extend({
                                     onfocus: $el2.attr("onfocus"),
                                     search_mode: $el2.attr("search_mode"),
                                     scale: $el2.attr("scale"),
+                                    create: $el2.attr("create"),
                                     attrs: $el2.attr("attrs")
                                 });
                             });

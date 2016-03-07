@@ -77,12 +77,12 @@ class SaleOrder(Model):
         "production_orders": fields.One2Many("production.order", "sale_id", "Production Orders"),
         "other_info": fields.Text("Other Information"),
         "costs": fields.One2Many("sale.cost", "sale_id", "Costs"),
-        "est_cost_total": fields.Decimal("Estimated Cost Total", function="get_profit", function_multi=True, store=True),
-        "est_profit": fields.Decimal("Estimated Profit", function="get_profit", function_multi=True, store=True),
-        "est_profit_percent": fields.Decimal("Estimated Profit Percent", function="get_profit", function_multi=True, store=True),
-        "act_cost_total": fields.Decimal("Actual Cost Total", function="get_profit", function_multi=True, store=True),
-        "act_profit": fields.Decimal("Actual Profit", function="get_profit", function_multi=True, store=True),
-        "act_profit_percent": fields.Decimal("Actual Profit Percent", function="get_profit", function_multi=True, store=True),
+        "est_cost_total": fields.Decimal("Estimated Cost Total", function="get_profit", function_multi=True, store=True), # XXX: deprecated
+        "est_profit": fields.Decimal("Estimated Profit", function="get_profit", function_multi=True, store=True), # XXX: deprecated
+        "est_profit_percent": fields.Decimal("Estimated Profit Percent", function="get_profit", function_multi=True, store=True), # XXX: deprecated
+        "act_cost_total": fields.Decimal("Actual Cost Total", function="get_profit", function_multi=True, store=True), # XXX: deprecated
+        "act_profit": fields.Decimal("Actual Profit", function="get_profit", function_multi=True, store=True), # XXX: deprecated
+        "act_profit_percent": fields.Decimal("Actual Profit Percent", function="get_profit", function_multi=True, store=True), # XXX: deprecated
         "company_id": fields.Many2One("company", "Company"),
         "production_status": fields.Json("Production", function="get_production_status"),
         "overdue": fields.Boolean("Overdue", function="get_overdue", function_search="search_overdue"),
@@ -96,8 +96,8 @@ class SaleOrder(Model):
         "jobs": fields.One2Many("job", "related_id", "Service Orders"),
         "agg_amount_total": fields.Decimal("Total Amount", agg_function=["sum", "amount_total"]),
         "agg_amount_subtotal": fields.Decimal("Total Amount w/o Tax", agg_function=["sum", "amount_subtotal"]),
-        "agg_est_profit": fields.Decimal("Total Estimated Profit", agg_function=["sum", "est_profit"]),
-        "agg_act_profit": fields.Decimal("Total Actual Profit", agg_function=["sum", "act_profit"]),
+        "agg_est_profit": fields.Decimal("Total Estimated Profit", agg_function=["sum", "est_profit_amount"]),
+        "agg_act_profit": fields.Decimal("Total Actual Profit", agg_function=["sum", "act_profit_amount"]),
         "year": fields.Char("Year", sql_function=["year", "date"]),
         "quarter": fields.Char("Quarter", sql_function=["quarter", "date"]),
         "month": fields.Char("Month", sql_function=["month", "date"]),
@@ -106,12 +106,12 @@ class SaleOrder(Model):
         "sale_channel_id": fields.Many2One("sale.channel", "Sales Channel",search=True),
         "related_id": fields.Reference([["sale.quot", "Quotation"], ["ecom.cart", "Ecommerce Cart"], ["purchase.order", "Purchase Order"]], "Related To"),
         "est_costs": fields.One2Many("sale.cost","sale_id","Costs"),
-        "est_cost_amount": fields.Float("Est. Cost Amount", function="get_est_profit", function_multi=True),
-        "est_profit_amount": fields.Float("Est. Profit Amount", function="get_est_profit", function_multi=True),
-        "est_margin_percent": fields.Float("Est. Margin %", function="get_est_profit", function_multi=True),
-        "act_cost_amount": fields.Float("Act. Cost Amount", function="get_act_profit", function_multi=True),
-        "act_profit_amount": fields.Float("Act. Profit Amount", function="get_act_profit", function_multi=True),
-        "act_margin_percent": fields.Float("Act. Margin %", function="get_act_profit", function_multi=True),
+        "est_cost_amount": fields.Float("Est. Cost Amount", function="get_est_profit", function_multi=True, store=True),
+        "est_profit_amount": fields.Float("Est. Profit Amount", function="get_est_profit", function_multi=True, store=True),
+        "est_margin_percent": fields.Float("Est. Margin %", function="get_est_profit", function_multi=True, store=True),
+        "act_cost_amount": fields.Float("Act. Cost Amount", function="get_act_profit", function_multi=True, store=True),
+        "act_profit_amount": fields.Float("Act. Profit Amount", function="get_act_profit", function_multi=True, store=True),
+        "act_margin_percent": fields.Float("Act. Margin %", function="get_act_profit", function_multi=True, store=True),
         "track_id": fields.Many2One("account.track.categ","Tracking Code"),
         "track_entries": fields.One2Many("account.track.entry",None,"Tracking Entries",function="get_track_entries",function_write="write_track_entries"),
         "track_balance": fields.Decimal("Tracking Balance",function="_get_related",function_context={"path":"track_id.balance"}),
@@ -237,7 +237,7 @@ class SaleOrder(Model):
                     subtotal -= line.amount
             vals["amount_subtotal"] = subtotal
             vals["amount_tax"] = tax
-            vals["amount_total"] = subtotal + tax
+            vals["amount_total"] = (subtotal + tax)
             vals["amount_total_cur"] = get_model("currency").convert(
                 vals["amount_total"], obj.currency_id.id, settings.currency_id.id)
             vals["amount_total_discount"] = discount
@@ -568,7 +568,7 @@ class SaleOrder(Model):
                         "discount_amount": line.discount_amount,
                         "account_id": sale_acc_id,
                         "tax_id": line.tax_id.id,
-                        "amount": line.qty*line.unit_price*(1-(line.discount or Decimal(0))/100)-(line.discount_amount or Decimal(0)),
+                        "amount": remain_qty*line.unit_price*(1-(line.discount or Decimal(0))/100)-(line.discount_amount or Decimal(0)),
                     }
                     inv_vals["lines"].append(("create", line_vals))
                     if line.promotion_amount:
@@ -1114,8 +1114,9 @@ class SaleOrder(Model):
             cost=0
             for line in obj.track_entries:
                 cost-=line.amount
-            profit=obj.amount_subtotal-cost
-            margin=profit*100/obj.amount_subtotal if obj.amount_subtotal else None
+            subtotal=obj.amount_subtotal or 0
+            profit=subtotal-cost
+            margin=profit*100/obj.subtotal if obj.subtotal else None
             vals[obj.id] = {
                 "act_cost_amount": cost,
                 "act_profit_amount": profit,

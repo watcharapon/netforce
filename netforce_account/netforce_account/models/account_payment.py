@@ -135,7 +135,7 @@ class Payment(Model):
                 if line_type!=pay_type and vals.get(line_key):
                     vals[line_key]=[]
             for line in obj.lines:
-                if line.type!=pay_type:
+                if line.type!=pay_type and line.type!='adjust':
                     line.delete()
                 if line.invoice_id:
                     invoice_ids.append(line.invoice_id.id)
@@ -1061,7 +1061,7 @@ class Payment(Model):
             rate_type = "sell"
         elif data["type"] == "out":
             rate_type = "buy"
-        for inv in get_model("account.invoice").search_browse(cond):
+        for inv in get_model("account.invoice").search_browse(cond,order="number"):
             lines.append({
                 "invoice_id": inv.id,
                 # XXX
