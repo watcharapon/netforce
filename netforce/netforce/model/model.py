@@ -1670,6 +1670,8 @@ class Model(object):
             out={"data":res}
         def _fill_m2o(m, vals):
             for k, v in vals.items():
+                if k=="id":
+                    continue
                 if not v:
                     continue
                 f = m._fields[k]

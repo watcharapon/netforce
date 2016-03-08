@@ -73,6 +73,9 @@ var Form=NFView.extend({
                 } else {
                     data=res;
                 }
+                if (_.has(data,"id")) {
+                    delete data.id;
+                }
                 if (field_attrs) {
                     that.set_field_attrs(field_attrs);
                 }
