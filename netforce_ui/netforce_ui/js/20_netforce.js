@@ -1371,7 +1371,7 @@ function get_model_cls(name) { // XXX
 }
 
 function get_field(model_name,field_name) {
-    if (field_name=='id') return
+    if (field_name=='id') return {};
     var models=nf_models;
     var model=models[model_name];
     if (!model) throw "Model not found: "+model_name;
@@ -1532,7 +1532,7 @@ window.NFModel=Backbone.Model.extend({
         for (var n in vals) {
             var v=vals[n];
             var f=this.get_field(n);
-            if (!f) continue
+            if (_.isEmpty(f)) continue;
             if (f.type=="many2one") {
                 if (_.isNumber(v)) {
                     var old_v=this.get(n);
