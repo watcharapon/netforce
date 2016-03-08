@@ -1532,7 +1532,7 @@ window.NFModel=Backbone.Model.extend({
         for (var n in vals) {
             var v=vals[n];
             var f=this.get_field(n);
-            if (!f) continue
+            if (_.isEmpty(f)) continue;
             if (f.type=="many2one") {
                 if (_.isNumber(v)) {
                     var old_v=this.get(n);
