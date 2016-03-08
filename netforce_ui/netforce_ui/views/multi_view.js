@@ -119,6 +119,9 @@ var MultiView=NFView.extend({
                 modes: this.modes,
                 context: this.context
             };
+            if (this.options.defaults) {
+                opts.defaults=this.options.defaults;
+            };
             if (_.contains(this.modes,"page")) {
                 opts.next_action_options="mode=page";
             } else {

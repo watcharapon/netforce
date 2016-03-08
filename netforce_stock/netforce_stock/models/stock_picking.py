@@ -215,18 +215,52 @@ class Picking(Model):
         self.onchange_journal(context=context)
         return data
 
+    def update_number(self,data):
+        journal_id = data["journal_id"]
+        if not journal_id:
+            return data
+        journal=get_model("stock.journal").browse(journal_id)
+        sequence=journal.sequence_id
+        if not sequence:
+            return data
+        prefix=sequence.prefix
+        if not prefix:
+            return data
+        ctx={
+            "pick_type": data["type"],
+            "journal_id": journal_id,
+            'date': data['date'][0:10],
+        }
+        number=data['number']
+        if not number:
+            data["number"] = self._get_number(context=ctx)
+        else:
+            prefix=get_model("sequence").get_prefix(prefix,context=ctx)
+            date_format=False
+            for p in ['m','y','Y']:
+                p2='%('+p+')s'
+                if p2 in sequence.prefix:
+                    date_format=True
+                    break
+            if not date_format:
+                return data
+            pick_id=data.get('id')
+            if pick_id:
+                pick=self.browse(pick_id)
+                if prefix in pick.number:
+                    data['number']=pick.number
+                    return data
+            if prefix not in number:
+                data["number"] = self._get_number(context=ctx)
+        return data
+
     def onchange_journal(self, context={}):
         data = context["data"]
         journal_id = data["journal_id"]
         if not journal_id:
             return
         journal = get_model("stock.journal").browse(journal_id)
-        ctx = {
-            "pick_type": data["type"],
-            "journal_id": data["journal_id"],
-            'date': data['date'][0:10],
-        }
-        data["number"] = self._get_number(ctx)
+        data = self.update_number(data)
         for line in data["lines"]:
             if journal.location_from_id:
                 line["location_from_id"] = journal.location_from_id.id
@@ -236,15 +270,7 @@ class Picking(Model):
 
     def onchange_date(self, context={}):
         data = context["data"]
-        journal_id = data["journal_id"]
-        if not journal_id:
-            return
-        ctx = {
-            "pick_type": data["type"],
-            "journal_id": data["journal_id"],
-            'date': data['date'][0:10],
-        }
-        data["number"] = self._get_number(ctx)
+        data = self.update_number(data)
         return data
 
     def onchange_product(self, context):

@@ -225,11 +225,15 @@ class Job(Model):
             prod = line.product_id
             if prod.type not in ("stock", "consumable"):
                 continue
+            prod_loc_id=None
+            if prod.locations:
+                prod_loc_id=prod.locations[0].location_id
             line_vals = {
                 "product_id": prod.id,
                 "qty": line.qty,
                 "uom_id": line.uom_id.id,
-                "location_from_id": prod.location_id.id or wh_loc_id,
+                #"location_from_id": prod.location_id.id or wh_loc_id,
+                "location_from_id": prod_loc_id.id or wh_loc_id,
                 "location_to_id": obj.location_id.id or cust_loc_id,
             }
             vals["lines"].append(("create", line_vals))
