@@ -18,20 +18,21 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from netforce.model import Model, fields, get_model
+from netforce.model import Model, fields, get_model, clear_cache
+from netforce.database import get_connection
+from datetime import *
+import time
+from netforce import access
 
-
-class CreditWizardLine(Model):
-    _name = "account.credit.wizard.line"
-    _transient = True
+class TaskAssign(Model):
+    _name = "task.assign"
+    _string = "Task Assignment"
     _fields = {
-        "wiz_id": fields.Many2One("account.credit.wizard", "Wizard", required=True, on_delete="cascade"),
-        "move_line_id": fields.Many2One("account.move.line", "Account Entry", required=True, readonly=True, on_delete="cascade"),
-        "move_id": fields.Many2One("account.move", "Journal Entry", required=True, readonly=True, on_delete="cascade"),
-        "date": fields.Date("Date", readonly=True),
-        "account_id": fields.Many2One("account.account", "Account", required=True, readonly=True, on_delete="cascade"),
-        "amount_credit_remain": fields.Decimal("Outstanding Credit", readonly=True),
-        "amount": fields.Decimal("Amount"),
+        "task_id": fields.Many2One("task","Task",required=True,search=True),
+        "resource_id": fields.Many2One("service.resource","Assigned To",required=True,search=True),
+        "description": fields.Text("Description"),
+        "est_hours": fields.Decimal("Est. Workload (hours)"),
     }
+    _order = "id"
 
-CreditWizardLine.register()
+TaskAssign.register()

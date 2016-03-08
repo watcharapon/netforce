@@ -54,7 +54,7 @@ class Task(Model):
         "duration": fields.Integer("Duration (Days)",required=True),
         "due_date": fields.Date("Due Date"),
         "done_date": fields.Date("Completion Date"),
-        "resource_id": fields.Many2One("service.resource","Assigned To"),
+        "resource_id": fields.Many2One("service.resource","Assigned To"), # XXX: deprecated
         "documents": fields.One2Many("document", "related_id", "Documents"),
         "emails": fields.One2Many("email.message", "related_id", "Emails"),
         "comments": fields.Text("Comments"),
@@ -64,6 +64,7 @@ class Task(Model):
         "depends": fields.One2Many("task.depend","task_id","Task Dependencies"),
         "related_id": fields.Reference([["job","Job"]],"Related To"),
         "depends_json": fields.Text("Task Dependencies (String)",function="get_depends_json"),
+        "assignments": fields.One2Many("task.assign","task_id","Assignments"),
     }
     _order = "priority,id"
 

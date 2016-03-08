@@ -58,6 +58,7 @@ var Form=NFView.extend({
         } else {
             var model=this.context.model;
             var vals=model.get_vals();
+            if (model.id) vals.id=model.id;
             var ctx={
                 "data": vals,
                 "path": path
@@ -71,6 +72,9 @@ var Form=NFView.extend({
                     alert_msg=res.alert;
                 } else {
                     data=res;
+                }
+                if (_.has(data,"id")) {
+                    delete data.id;
                 }
                 if (field_attrs) {
                     that.set_field_attrs(field_attrs);

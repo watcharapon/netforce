@@ -7,8 +7,10 @@
     </template>
     <field name="lines" nolabel="1">
         <list>
-            <field name="credit_id" action="view_invoice"/>
+            <field name="move_line_id" invisible="1"/>
+            <field name="move_id"/>
             <field name="date"/>
+            <field name="account_id"/>
             <field name="amount_credit_remain"/>
             <field name="amount" onchange="update_amounts"/>
         </list>

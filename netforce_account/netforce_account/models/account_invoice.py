@@ -64,11 +64,11 @@ class Invoice(Model):
         "amount_rounding": fields.Decimal("Rounding", function="get_amount", function_multi=True, store=True),
         "qty_total": fields.Decimal("Total Quantity", function="get_qty_total"),
         "attachment": fields.File("Attachment"),
-        "payments": fields.One2Many("account.payment.line", "invoice_id", "Payments", condition=[["payment_id.state", "=", "posted"]]),
+        "payments": fields.One2Many("account.payment.line", "invoice_id", "Payments", condition=[["payment_id.state", "=", "posted"]]), # XXX: deprecated
         "move_id": fields.Many2One("account.move", "Journal Entry"),
-        "reconcile_move_line_id": fields.Many2One("account.move.line", "Reconcile Item"),
-        "credit_alloc": fields.One2Many("account.credit.alloc", "credit_id", "Credit Allocation"),
-        "credit_notes": fields.One2Many("account.credit.alloc", "invoice_id", "Credit Notes"),
+        "reconcile_move_line_id": fields.Many2One("account.move.line", "Reconcile Item"), # XXX: deprecated
+        "credit_alloc": fields.One2Many("account.credit.alloc", "credit_id", "Credit Allocation"), # XXX: deprecated
+        "credit_notes": fields.One2Many("account.credit.alloc", "invoice_id", "Credit Notes"), # XXX: deprecated
         "currency_rate": fields.Decimal("Currency Rate", scale=6),
         "payment_id": fields.Many2One("account.payment", "Payment"),
         "related_id": fields.Reference([["sale.order", "Sales Order"], ["purchase.order", "Purchase Order"], ["production.order","Production Order"], ["project", "Project"], ["job", "Service Order"], ["service.contract", "Service Contract"]], "Related To"),
@@ -93,6 +93,7 @@ class Invoice(Model):
         "month": fields.Char("Month", sql_function=["month", "date"]),
         "week": fields.Char("Week", sql_function=["week", "date"]),
         "transaction_no": fields.Char("Transaction ID",search=True),
+        "payment_entries": fields.One2Many("account.move.line",None,"Payment Entries",function="get_payment_entries"),
     }
     _order = "date desc,number desc"
 
@@ -515,12 +516,8 @@ class Invoice(Model):
         obj = self.browse(ids)[0]
         if obj.state not in ("draft", "waiting_payment"):
             raise Exception("Invalid invoice state")
-        if obj.payments:
-            raise Exception("Can't void invoice because there are related payments")
-        if obj.credit_alloc:
-            raise Exception("Can't void invoice because there are credit allocations")
-        if obj.credit_notes:
-            raise Exception("Can't void invoice because there are linked credit notes")
+        if obj.payment_entries:
+            raise Exception("Can't void invoice because there are still related payment entries")
         if obj.move_id:
             obj.move_id.void()
             obj.move_id.delete()
@@ -568,30 +565,22 @@ class Invoice(Model):
             vals["amount_total_cur"] = get_model("currency").convert(
                 vals["amount_total"], inv.currency_id.id, settings.currency_id.id, round=True, rate=inv.currency_rate)
             vals["amount_credit_total"] = vals["amount_total"]
-            paid = 0
-            for pmt in inv.payments:
-                if pmt.payment_id.id == inv.payment_id.id:
-                    continue
-                if inv.type == pmt.type:
-                    paid -= pmt.amount_currency
+            paid_amt = 0
+            for pmt in inv.payment_entries:
+                if inv.type == "in":
+                    paid_amt -= pmt.debit # TODO: currency
                 else:
-                    paid += pmt.amount_currency
-            vals["amount_paid"] = paid
+                    paid_amt += pmt.credit # TODO: currency
+            vals["amount_paid"] = paid_amt
             if inv.inv_type in ("invoice", "debit"):
-                cred_amt = 0
-                for alloc in inv.credit_notes:
-                    cred_amt += alloc.amount
-                vals["amount_due"] = vals["amount_total"] - paid - cred_amt
-                vals["amount_paid"] = paid + cred_amt  # TODO: check this doesn't break anything...
+                vals["amount_due"] = vals["amount_total"] - paid_amt
             elif inv.inv_type in ("credit", "prepay", "overpay"):
                 cred_amt = 0
-                for alloc in inv.credit_alloc:
-                    cred_amt += alloc.amount
-                for pmt in inv.payments:
-                    if pmt.payment_id.type == inv.type:
-                        cred_amt += pmt.amount
+                for pmt in inv.payment_entries:
+                    if inv.type=="in":
+                        cred_amt += pmt.credit # TODO: currency
                     else:
-                        cred_amt -= pmt.amount  # XXX: check this
+                        cred_amt += pmt.debit # TODO: currency
                 vals["amount_credit_remain"] = vals["amount_total"] - cred_amt
                 vals["amount_due"] = -vals["amount_credit_remain"]
             vals["amount_due_cur"] = get_model("currency").convert(
@@ -970,87 +959,6 @@ class Invoice(Model):
         elif obj.type == "in":
             return "supp_invoice_form"
 
-    def get_report_data(self, ids=None, context={}):  # XXX: deprecated
-        print("invoice.get_report_data")
-        if ids is not None:  # for new templates
-            return super().get_report_data(ids, context=context)
-        ids = context["ids"]
-        print("ids", ids, type(ids))
-        inv_id = ids[0]
-        inv = get_model("account.invoice").browse(inv_id)
-        dbname = database.get_active_db()
-        company = inv.company_id
-        settings = get_model("settings").browse(1)
-        comp_addr = settings.get_address_str()
-        comp_name = company.name
-        comp_phone = settings.phone
-        comp_fax = settings.fax
-        comp_tax_no = settings.tax_no
-        contact = inv.contact_id
-        cust_addr = contact.get_address_str()
-        cust_name = contact.name
-        cust_fax = contact.fax
-        cust_phone = contact.phone
-        cust_tax_no = contact.tax_no
-        data = {
-            "comp_name": comp_name,
-            "comp_addr": comp_addr,
-            "comp_phone": comp_phone or "-",
-            "comp_fax": comp_fax or "-",
-            "comp_tax_no": comp_tax_no or "-",
-            "cust_name": cust_name,
-            "cust_addr": cust_addr,
-            "cust_phone": cust_phone or "-",
-            "cust_fax": cust_fax or "-",
-            "cust_tax_no": cust_tax_no or "-",
-            "date": inv.date or "-",
-            "due_date": inv.due_date or "-",
-            "number": inv.number or "-",
-            "ref": inv.ref or "-",
-            "memo": inv.memo or "",
-            "lines": [],
-        }
-        if settings.logo:
-            data["logo"] = get_file_path(settings.logo)
-        for line in inv.lines:
-            data["lines"].append({
-                "description": line.description,
-                "code": line.product_id.code,
-                "qty": line.qty,
-                "uom": line.uom_id.name,
-                "unit_price": line.unit_price,
-                "discount": line.discount,
-                "tax_rate": line.tax_id.rate,
-                "amount": line.amount,
-            })
-        is_cash = 'No'
-        is_cheque = 'No'
-        for obj in inv.payments:
-            account_type = obj.payment_id.account_id.type
-            if account_type in ("bank", "cash"):
-                is_cash = 'Yes'
-            if account_type in ("cheque"):
-                is_cheque = 'Yes'
-        data.update({
-            "amount_subtotal": inv.amount_subtotal,
-            "amount_discount": inv.amount_discount,
-            "amount_tax": inv.amount_tax,
-            "amount_total": inv.amount_total,
-            "amount_paid": inv.amount_paid,
-            "payment_terms": inv.related_id.payment_terms or "-",
-            "is_cash": is_cash,
-            "is_cheque": is_cheque,
-            "currency_code": inv.currency_id.code,
-            "tax_rate": get_model("currency").round(inv.currency_id.id,inv.amount_tax * 100 / inv.amount_subtotal) if inv.amount_subtotal else 0,
-            "qty_total": inv.qty_total,
-            "memo": inv.memo,
-        })
-        if inv.credit_alloc:
-            data.update({
-                "original_inv_subtotal": inv.credit_alloc[0].invoice_id.amount_subtotal,
-            })
-        return data
-
     def onchange_journal(self, context={}):
         data = context["data"]
         journal_id = data["journal_id"]
@@ -1087,5 +995,19 @@ class Invoice(Model):
         return {
             "next": res["payment_action"],
         }
+
+    def get_payment_entries(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            line_ids=[]
+            if obj.move_id:
+                inv_line=obj.move_id.lines[0]
+                rec=inv_line.reconcile_id
+                if rec:
+                    for line in rec.lines:
+                        if line.id!=inv_line.id:
+                            line_ids.append(line.id)
+            vals[obj.id]=line_ids
+        return vals
 
 Invoice.register()

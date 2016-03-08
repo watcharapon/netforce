@@ -38,6 +38,7 @@
             <field name="track_id"/>
             <field name="track2_id"/>
             <field name="amount_cur"/>
+            <field name="reconcile_id"/>
         </list>
     </field>
     <group offset="8" span="4">

@@ -171,28 +171,16 @@ class Contact(Model):
         print("currency_id", currency_id)
         vals = {}
         for obj in self.browse(ids):
-            out_credit = 0
-            in_credit = 0
-            for inv in obj.invoices:
-                if inv.state != "waiting_payment":
-                    continue
-                if inv.inv_type not in ("credit", "prepay", "overpay"):
-                    continue
-                if currency_id and inv.currency_id.id != currency_id:
-                    continue
-                if inv.type == "out":
-                    if currency_id:
-                        out_credit += inv.amount_credit_remain or 0
-                    else:
-                        out_credit += inv.amount_credit_remain_cur or 0
-                elif inv.type == "in":
-                    if currency_id:
-                        in_credit += inv.amount_credit_remain or 0
-                    else:
-                        in_credit += inv.amount_credit_remain_cur or 0
+            ctx={
+                "contact_id": obj.id,
+            }
+            r_credit = 0
+            p_credit = 0
+            for acc in get_model("account.account").search_browse([["type","=","cust_deposit"]],context=ctx):
+                r_credit-=acc.balance
             vals[obj.id] = {
-                "receivable_credit": out_credit,
-                "payable_credit": in_credit,
+                "receivable_credit": r_credit,
+                "payable_credit": p_credit, # TODO
             }
         return vals
 

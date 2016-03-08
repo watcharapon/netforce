@@ -25,6 +25,7 @@ from . import job_item
 from . import job_part
 from . import job_cost
 from . import task
+from . import task_assign
 from . import task_depend
 from . import task_list
 from . import job_template
