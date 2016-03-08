@@ -70,10 +70,10 @@ class TrackCateg(Model):
     def get_full_name(self, ids, context={}):
         vals = {}
         for obj in self.browse(ids):
-            names = [obj.name]
+            names = [obj.name or ""]
             p = obj.parent_id
             while p:
-                names.append(p.name)
+                names.append(p.name or "")
                 p = p.parent_id
             full_name = " / ".join(reversed(names))
             vals[obj.id] = full_name
