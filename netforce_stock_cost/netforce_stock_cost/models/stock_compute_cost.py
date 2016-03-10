@@ -98,7 +98,7 @@ class ComputeCost(Model):
             locations[loc.id]={}
         db=get_connection()
         print("reading...")
-        q="SELECT m.id,m.date,m.product_id,p.cost_method,p.uom_id as prod_uom_id,m.qty,m.uom_id,m.cost_amount,m.location_from_id,m.location_to_id,m.move_id FROM stock_move m,product p WHERE p.cost_method='average' AND p.type='stock' AND p.id=m.product_id AND m.state='done'"
+        q="SELECT m.id,m.date,m.product_id,p.cost_method,p.uom_id as prod_uom_id,m.qty,m.uom_id,m.cost_amount,m.location_from_id,m.location_to_id,m.move_id,m.move_id FROM stock_move m,product p WHERE p.cost_method='average' AND p.type='stock' AND p.id=m.product_id AND m.state='done'"
         args=[]
         product_ids=context.get("product_ids")
         if product_ids:
@@ -120,6 +120,7 @@ class ComputeCost(Model):
                 "cost_amount": r.cost_amount or 0,
                 "loc_from_id": r.location_from_id,
                 "loc_to_id": r.location_to_id,
+                "move_id": r.move_id,
             }
             prod_moves.setdefault(prod_id,[]).append(move)
         prod_ids=sorted(prod_moves.keys())
@@ -150,6 +151,8 @@ class ComputeCost(Model):
             moves=prod_moves[prod_id]
             for m in moves:
                 if m["cost_amount"]!=m["old_cost_amount"]:
+                    if m["move_id"]:
+                        raise Exception("Failed to change cost amount of stock movement %s because it is posted already"%m["id"])
                     cost_price=m["cost_amount"]/m["conv_qty"] if m["conv_qty"] else 0
                     db.execute("UPDATE stock_move SET cost_amount=%s, cost_price=%s WHERE id=%s",m["cost_amount"],cost_price,m["id"])
         if prod_ids:
