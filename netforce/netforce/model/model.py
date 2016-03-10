@@ -1345,6 +1345,15 @@ class Model(object):
                             if n not in todo:
                                 v = obj[n]
                                 todo[n] = [v]
+                    elif isinstance(f, fields.Reference):
+                        v = obj[n]
+                        if v:
+                            mr = get_model(v._model)
+                            exp_field = mr.get_export_field()
+                            v = '%s,%s'%(v._model,v[exp_field])
+                        else:
+                            v = None
+                        row[path] = v
                     elif isinstance(f, fields.Selection):
                         v = obj[n]
                         if v:
@@ -1466,6 +1475,22 @@ class Model(object):
                     elif isinstance(f, fields.Date):
                         dt = dateutil.parser.parse(v)
                         v = dt.strftime("%Y-%m-%d")
+                    elif isinstance(f, fields.Reference):
+                        if v:
+                            try:
+                                model_name,value = v.split(",")
+                                mr = get_model(model_name)
+                                exp_field = mr.get_export_field()
+                                res = mr.search([[exp_field,'=',value]])
+                                if res:
+                                    rid = res[0]
+                                    v = "%s,%s" % (model_name,rid) #XXX
+                                else:
+                                    v = None
+                            except:
+                                v = None
+                        else:
+                            v = None
                     elif isinstance(f, fields.Many2One):
                         mr = get_model(f.relation)
                         ctx = {
@@ -1670,6 +1695,8 @@ class Model(object):
             out={"data":res}
         def _fill_m2o(m, vals):
             for k, v in vals.items():
+                if k=='id':
+                    continue
                 if not v:
                     continue
                 f = m._fields[k]
