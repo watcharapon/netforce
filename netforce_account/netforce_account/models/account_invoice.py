@@ -94,6 +94,7 @@ class Invoice(Model):
         "week": fields.Char("Week", sql_function=["week", "date"]),
         "transaction_no": fields.Char("Transaction ID",search=True),
         "payment_entries": fields.One2Many("account.move.line",None,"Payment Entries",function="get_payment_entries"),
+        "journal_date": fields.Date("Journal Date"),
     }
     _order = "date desc,number desc"
 
@@ -390,7 +391,7 @@ class Invoice(Model):
             move_vals = {
                 "journal_id": journal_id,
                 "number": obj.number,
-                "date": obj.date,
+                "date": obj.journal_date or obj.date,
                 "ref": obj.ref,
                 "narration": desc,
                 "related_id": "account.invoice,%s" % obj.id,
@@ -436,6 +437,7 @@ class Invoice(Model):
                     "contact_id": contact.id,
                     "invoice_id": obj.id,
                     "tax_no": tax.tax_no,
+                    "tax_date": obj.date,
                 }
                 lines.append(line_vals)
             t02 = time.time()
