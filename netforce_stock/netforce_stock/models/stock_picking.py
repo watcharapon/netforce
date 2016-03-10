@@ -782,7 +782,7 @@ class Picking(Model):
                 currency_rate = rate_from / rate_to
         obj.write({"currency_rate":currency_rate})
 
-    def update_cost_price(self, context):
+    def update_line_cost_price(self, context):
         data = context["data"]
         path = context["path"]
         line = get_data_path(data, path, parent=True)
@@ -816,6 +816,30 @@ class Picking(Model):
         cost_amount=cost_price*qty
         line["cost_price"]=cost_price
         line["cost_amount"]=cost_amount
+        return data
+
+    def update_cost_price(self,context={}):
+        data=context['data']
+        currency_rate=data['currency_rate']
+        settings=get_model("settings").browse(1)
+        for line in data['lines']:
+            cost_price_cur=line.get("cost_price_cur") or 0
+            cost_price=get_model("currency").convert(cost_price_cur,data['currency_id'],settings.currency_id.id,rate=currency_rate)
+            cost_amount=cost_price*(line['qty'] or 0)
+            line["cost_price"]=cost_price
+            line["cost_amount"]=cost_amount
+        return data
+
+    def onchange_currency(self,context={}):
+        data=context['data']
+        currency_rate=get_model("currency").get_rate([data['currency_id']],date=data['date'],rate_type='buy',context=context) or 1
+        data['currency_rate']=currency_rate
+        data=self.update_cost_price(context)
+        return data
+
+    def onchange_rate(self,context={}):
+        data=context['data']
+        data=self.update_cost_price(context)
         return data
 
 Picking.register()
