@@ -129,9 +129,6 @@ var FieldMany2One=NFView.extend({
             that.disable_blur=true;
             NFView.prototype.render.call(that);
             that.disable_blur=false;
-            if (that.data.required && !that.data.readonly) {
-                that.show_required();
-            }
             if (that.data.required) {
                 model.set_required(name);
             } else {
@@ -194,10 +191,6 @@ var FieldMany2One=NFView.extend({
             this.data.value_name="";
             do_render();
         }
-    },
-
-    show_required: function() {
-        this.$el.find(".label-text").append(" <span style='color:#e32'></span>");
     },
 
     btn_mousedown: function(e) {
