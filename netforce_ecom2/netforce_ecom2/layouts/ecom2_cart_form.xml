@@ -30,6 +30,7 @@
                     <field name="delivery_date"/>
                     <field name="ship_address_id" condition='[["contact_id","=",customer_id]]'/>
                     <field name="delivery_slot_id"/>
+                    <field name="packaging_id"/>
                     <field name="qty_avail"/>
                     <field name="delivery_delay"/>
                     <field name="delivery_weekdays"/>

@@ -60,13 +60,55 @@ class EcomInterface(Model):
             "user_id": user_id,
         }
 
-    def checkEmail(self,email,context={}):
-        print("EcomInterface.CheckEmail",email)
-        res = get_model("base.user").search_browse([['email','=',email]])
+    def checkEmail(self,login,context={}):
+        print("EcomInterface.CheckEmail",login)
+        res = get_model("base.user").search_browse([['login','=',login]])
         if res:
-            print("okay")
+            id = res[0].id
+            reset_code = res.password_reset(id)
+            vals = {
+            "body":"Please click the link to reset the code: http://localhost/reset_password?code=%s"%reset_code,
+            "from_addr":"demo@netforce.com",
+            "subject" : "Paleo Reset Code",
+            "type": "out",
+            "state":"to_send",
+            "to_addrs":login,
+            "mailbox_id":1,
+            }
+            get_model('email.message').create(vals)            
         else: 
             raise Exception("Email Not Found");
         return 
 
+    def set_new_password(self,reset_code,new_password,context={}):
+        print("EcomInterface.set_new_password",reset_code,new_password) 
+        res = get_model("base.user").search([["password_reset_code","=",reset_code]])
+        if not res:
+            raise Exception("Can not find user")
+        user = get_model("base.user").browse(res[0])
+        user.write({"password": new_password})
+
+    def add_request_product_groups(self,contact_id,prod_group_id,context={}):
+        print("Ecom2Interface.add_request_product_group",contact_id,prod_group_id)
+        #contact_id=context.get("contact_id")
+        contact=get_model("contact").browse(contact_id)
+        contact.write({"request_product_groups":[("add",[prod_group_id])]})
+
+    def remove_request_product_groups(self,contact_id,prod_group_id,context={}):
+        print("Ecom2Interface.remove_request_product_group",contact_id,prod_group_id)
+        #contact_id=context.get("contact_id")
+        contact=get_model("contact").browse(contact_id)
+        contact.write({"request_product_groups":[("remove",[prod_group_id])]})
+
+    def add_exclude_product_groups(self,contact_id,prod_group_id,context={}):
+        print("Ecom2Interface.exclude_product_groups",contact_id,prod_group_id)
+        #contact_id=context.get("contact_id")
+        contact=get_model("contact").browse(contact_id)
+        contact.write({"exclude_product_groups":[("add",[prod_group_id])]})
+
+    def remove_exclude_product_groups(self,contact_id,prod_group_id,context={}):
+        print("Ecom2Interface.remove_request_product_group",contact_id,prod_group_id)
+        #contact_id=context.get("contact_id")
+        contact=get_model("contact").browse(contact_id)
+        contact.write({"exclude_product_groups":[("remove",[prod_group_id])]})
 EcomInterface.register()

@@ -61,11 +61,6 @@ class Cart(Model):
         settings=get_model("settings").browse(1)
         return settings.currency_id.id
 
-    def _get_pay_method(self,context={}):
-        res=get_model("payment.method").search([])
-        if res:
-            return res[0]
-
     def _get_company(self,context={}):
         res=get_model("company").search([]) # XXX
         if res:
@@ -76,7 +71,6 @@ class Cart(Model):
         "number": _get_number,
         "state": "draft",
         "currency_id": _get_currency,
-        "pay_method_id": _get_pay_method,
         "company_id": _get_company,
     }
 

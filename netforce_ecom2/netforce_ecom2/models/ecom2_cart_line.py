@@ -20,6 +20,7 @@ class CartLine(Model):
         "qty_avail": fields.Decimal("Qty In Stock",function="get_qty_avail"),
         "delivery_delay": fields.Integer("Delivery Delay (Days)",function="get_delivery_delay"),
         "delivery_weekdays": fields.Char("Delivery Weekdays",function="_get_related",function_context={"path":"product_id.delivery_weekdays"}),
+        "packaging_id": fields.Many2One("stock.packaging","Packaging"),
     }
 
     def get_amount(self,ids,context={}):
