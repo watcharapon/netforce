@@ -90,6 +90,7 @@ class CreditWizard(Model):
                 "date": obj.date,
                 "narration": desc,
                 "lines": [],
+                "related_id": "account.invoice,%d"%inv.id,
             }
             move_id = get_model("account.move").create(move_vals)
             if inv.type == "in":
@@ -121,16 +122,6 @@ class CreditWizard(Model):
             inv_line_id=inv.move_id.lines[0].id
             get_model("account.move.line").reconcile([inv_line_id,line1_id])
             get_model("account.move.line").reconcile([cred_move_line.id,line2_id])
-            vals = {
-                "invoice_id": obj.invoice_id.id,
-                "amount": line.amount,
-                "credit_move_id": cred_move_line.move_id.id,
-                "move_id": move_id,
-            }
-            related=cred_move_line.move_id.related_id
-            if related and related._model=="account.invoice":
-                vals["credit_id"]=related.id # XXX: simplify this
-            get_model("account.credit.alloc").create(vals)
         return {
             "next": {
                 "name": "view_invoice",

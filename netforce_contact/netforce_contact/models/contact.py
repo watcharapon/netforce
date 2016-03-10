@@ -178,6 +178,8 @@ class Contact(Model):
             p_credit = 0
             for acc in get_model("account.account").search_browse([["type","=","cust_deposit"]],context=ctx):
                 r_credit-=acc.balance
+            for acc in get_model("account.account").search_browse([["type","=","sup_deposit"]],context=ctx):
+                p_credit+=acc.balance
             vals[obj.id] = {
                 "receivable_credit": r_credit,
                 "payable_credit": p_credit, # TODO

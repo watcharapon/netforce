@@ -34,7 +34,7 @@ class Payment(Model):
     _key = ["company_id", "number"]
     _fields = {
         "type": fields.Selection([["out", "Paid"], ["in", "Received"]], "Payment Type", required=True, search=True),
-        "pay_type": fields.Selection([["direct", "Direct Payment"], ["invoice", "Invoice Payment"], ["prepay", "Prepayment"], ["overpay", "Overpayment"], ["claim", "Expense Claim Payment"], ["adjust", "Adjustment"]], "Payment Subtype", required=True, search=True),
+        "pay_type": fields.Selection([["direct", "Direct Payment"], ["invoice", "Invoice Payment"], ["claim", "Expense Claim Payment"], ["adjust", "Adjustment"]], "Payment Subtype", required=True, search=True),
         "contact_id": fields.Many2One("contact", "Contact", search=True),
         "date": fields.Date("Date", required=True, search=True),
         "ref": fields.Char("Ref", search=True, size=256),  # not used any more
@@ -518,6 +518,7 @@ class Payment(Model):
                     "credit": amt < 0 and -amt or 0,
                     "track_id": line.track_id.id,
                     "track2_id": line.track2_id.id,
+                    "contact_id": obj.contact_id.id,
                 }
                 if line.type=="prepay":
                     line_vals["contact_id"]=obj.contact_id.id
