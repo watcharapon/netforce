@@ -371,6 +371,11 @@ class SaleOrder(Model):
             line["tax_id"] = prod.sale_tax_id.id
         if prod.location_id:
             line["location_id"] = prod.location_id.id
+        elif prod.locations:
+            line["location_id"] = prod.locations[0].location_id.id
+            for loc in prod.locations:
+                if loc.stock_qty:
+                    line['location_id']=prod.location_id.id
         data = self.update_amounts(context)
         return data
 
