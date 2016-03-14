@@ -150,6 +150,7 @@ class Settings(Model):
     }
     _defaults = {
         "package": "free",
+        "stock_cost_mode": "periodic",
     }
 
     def get_address_str(self, ids, context={}):
