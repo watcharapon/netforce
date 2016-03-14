@@ -37,7 +37,7 @@ class Invoice(Model):
     _multi_company = True
     _fields = {
         "type": fields.Selection([["out", "Receivable"], ["in", "Payable"]], "Type", required=True),
-        "inv_type": fields.Selection([["invoice", "Invoice"], ["credit", "Credit Note"], ["debit", "Debit Note"], ["prepay", "Prepayment"], ["overpay", "Overpayment"]], "Subtype", required=True, search=True),
+        "inv_type": fields.Selection([["invoice", "Invoice"], ["credit", "Credit Note"], ["debit", "Debit Note"]], "Subtype", required=True, search=True),
         "number": fields.Char("Number", search=True),
         "ref": fields.Char("Ref", size=256, search=True),
         "memo": fields.Char("Memo", size=1024, search=True),
@@ -94,6 +94,7 @@ class Invoice(Model):
         "week": fields.Char("Week", sql_function=["week", "date"]),
         "transaction_no": fields.Char("Transaction ID",search=True),
         "payment_entries": fields.One2Many("account.move.line",None,"Payment Entries",function="get_payment_entries"),
+        "journal_date": fields.Date("Journal Date"),
     }
     _order = "date desc,number desc"
 
@@ -390,7 +391,7 @@ class Invoice(Model):
             move_vals = {
                 "journal_id": journal_id,
                 "number": obj.number,
-                "date": obj.date,
+                "date": obj.journal_date or obj.date,
                 "ref": obj.ref,
                 "narration": desc,
                 "related_id": "account.invoice,%s" % obj.id,
@@ -436,6 +437,7 @@ class Invoice(Model):
                     "contact_id": contact.id,
                     "invoice_id": obj.id,
                     "tax_no": tax.tax_no,
+                    "tax_date": obj.date,
                 }
                 lines.append(line_vals)
             t02 = time.time()
@@ -527,6 +529,8 @@ class Invoice(Model):
         obj = self.browse(ids)[0]
         if obj.state != "waiting_payment":
             raise Exception("Invalid status")
+        if obj.payment_entries:
+            raise Exception("There are still payment entries for this invoice")
         if obj.move_id:
             obj.move_id.void()
             obj.move_id.delete()
@@ -568,7 +572,7 @@ class Invoice(Model):
             paid_amt = 0
             for pmt in inv.payment_entries:
                 if inv.type == "in":
-                    paid_amt -= pmt.debit # TODO: currency
+                    paid_amt += pmt.debit # TODO: currency
                 else:
                     paid_amt += pmt.credit # TODO: currency
             vals["amount_paid"] = paid_amt

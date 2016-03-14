@@ -61,7 +61,7 @@ class MoveLine(Model):
         "is_account_reconciled": fields.Boolean("Is Reconciled?", function="_is_account_reconciled"),
         "empty_contact": fields.Boolean("Empty Contact", store=False, function_search="_search_empty_contact", search=True),
         "tax_no": fields.Char("Tax No."),
-        "tax_date": fields.Date("Tax Date"),
+        "tax_date": fields.Date("Tax Invoice Date"),
         "sequence": fields.Integer("Sequence"),
         "amount_cur": fields.Decimal("Currency Amt"),
     }
