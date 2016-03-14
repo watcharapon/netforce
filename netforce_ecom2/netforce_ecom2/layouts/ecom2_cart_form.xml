@@ -2,7 +2,7 @@
     <head>
         <field name="state"/>
         <button string="Options" dropdown="1">
-            <item string="To Draft" method="to_draft" states="canceled"/>
+            <item string="To Draft" method="to_draft" states="confirmed"/>
         </button>
     </head>
     <field name="company_id" invisible="1"/>

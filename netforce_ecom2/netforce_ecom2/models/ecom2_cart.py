@@ -15,6 +15,7 @@ class Cart(Model):
         "date": fields.DateTime("Date Created",required=True,search=True),
         "customer_id": fields.Many2One("contact","Customer",search=True),
         "lines": fields.One2Many("ecom2.cart.line","cart_id","Lines"),
+        "ship_amount_details": fields.Json("Shipping Amount Details",function="get_ship_amount_details"),
         "amount_ship": fields.Decimal("Shipping Amount",function="get_amount_ship"),
         "amount_total": fields.Decimal("Total Amount",function="get_total"),
         "sale_orders": fields.One2Many("sale.order","related_id","Sales Orders"),
@@ -77,8 +78,8 @@ class Cart(Model):
         "company_id": _get_company,
     }
 
-    def get_amount_ship(self,ids,context={}):
-        print("get_amount_ship",ids)
+    def get_ship_amount_details(self,ids,context={}):
+        print("get_ship_amount_details",ids)
         vals={}
         for obj in self.browse(ids):
             delivs=[]
@@ -90,14 +91,26 @@ class Cart(Model):
                     continue
                 delivs.append((date,meth_id,addr_id))
             delivs=list(set(delivs))
-            print("delivs",delivs)
-            ship_amt=0
+            details=[]
             for date,meth_id,addr_id in delivs:
                 ctx={
                     "ship_address_id": addr_id,
                 }
                 meth=get_model("ship.method").browse(meth_id,context=ctx)
-                ship_amt+=meth.ship_amount or 0
+                details.append({
+                    "ship_method_id": meth.id,
+                    "ship_amount": meth.ship_amount,
+                })
+            vals[obj.id]=details
+        return vals
+
+    def get_amount_ship(self,ids,context={}):
+        print("get_amount_ship",ids)
+        vals={}
+        for obj in self.browse(ids):
+            ship_amt=0
+            for d in obj.ship_amount_details:
+                ship_amt+=d["ship_amount"]
             vals[obj.id]=ship_amt
         return vals
 
@@ -157,6 +170,21 @@ class Cart(Model):
                 "lot_id": line.lot_id.id,
                 "due_date": line.delivery_date,
                 "ship_address_id": line.ship_address_id.id,
+            }
+            vals["lines"].append(("create",line_vals))
+        for ship in obj.ship_amount_details:
+            meth_id=ship["ship_method_id"]
+            amount=ship["ship_amount"]
+            meth=get_model("ship.method").browse(meth_id)
+            prod=meth.product_id
+            if not prod:
+                raise Exception("Missing product in shipping method %s"%meth.name)
+            line_vals={
+                "product_id": prod.id,
+                "description": prod.description,
+                "qty": 1,
+                "uom_id": prod.uom_id.id,
+                "unit_price": amount,
             }
             vals["lines"].append(("create",line_vals))
         sale_id=get_model("sale.order").create(vals)
