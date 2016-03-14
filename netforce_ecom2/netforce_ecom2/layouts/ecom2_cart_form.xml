@@ -26,22 +26,26 @@
                     <field name="unit_price"/>
                     <field name="qty"/>
                     <field name="uom_id"/>
-                    <field name="amount"/>
                     <field name="delivery_date"/>
-                    <field name="ship_address_id" condition='[["contact_id","=",customer_id]]'/>
+                    <field name="ship_method_id"/>
+                    <field name="ship_address_id" condition='[["contact_id","=",parent.customer_id]]'/>
                     <field name="delivery_slot_id"/>
                     <field name="packaging_id"/>
                     <field name="qty_avail"/>
                     <field name="delivery_delay"/>
                     <field name="delivery_weekdays"/>
+                    <field name="amount"/>
                 </list>
             </field>
+            <field name="amount_ship"/>
             <field name="amount_total"/>
             <field name="state"/>
             <newline/>
             <field name="comments"/>
         </tab>
         <tab string="Other">
+            <field name="voucher_id"/>
+            <separator/>
             <field name="delivery_slots_str"/>
             <separator/>
             <field name="transaction_no"/>

@@ -4,3 +4,4 @@ from . import ecom2_interface
 from . import ecom2_settings
 from . import contact
 from . import sale_order
+from . import ecom2_voucher

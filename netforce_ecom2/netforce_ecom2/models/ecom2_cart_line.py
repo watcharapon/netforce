@@ -21,6 +21,16 @@ class CartLine(Model):
         "delivery_delay": fields.Integer("Delivery Delay (Days)",function="get_delivery_delay"),
         "delivery_weekdays": fields.Char("Delivery Weekdays",function="_get_related",function_context={"path":"product_id.delivery_weekdays"}),
         "packaging_id": fields.Many2One("stock.packaging","Packaging"),
+        "ship_method_id": fields.Many2One("ship.method","Shipping Method"),
+    }
+
+    def get_ship_method(self,context={}):
+        res=get_model("ship.method").search([],order="sequence")
+        if res:
+            return res[0]
+
+    _defaults={
+        "ship_method_id": get_ship_method,
     }
 
     def get_amount(self,ids,context={}):

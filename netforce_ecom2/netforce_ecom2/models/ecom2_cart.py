@@ -15,6 +15,7 @@ class Cart(Model):
         "date": fields.DateTime("Date Created",required=True,search=True),
         "customer_id": fields.Many2One("contact","Customer",search=True),
         "lines": fields.One2Many("ecom2.cart.line","cart_id","Lines"),
+        "amount_ship": fields.Decimal("Shipping Amount",function="get_amount_ship"),
         "amount_total": fields.Decimal("Total Amount",function="get_total"),
         "sale_orders": fields.One2Many("sale.order","related_id","Sales Orders"),
         "delivery_date": fields.Date("Delivery Date"),
@@ -33,6 +34,8 @@ class Cart(Model):
         "currency_id": fields.Many2One("currency","Currency",required=True),
         "invoices": fields.One2Many("account.invoice","related_id","Invoices"),
         "company_id": fields.Many2One("company","Company"),
+        "voucher_id": fields.Many2One("ecom2.voucher","Voucher"),
+        "ship_addresses": fields.Json("Shipping Addresses",function="get_ship_addresses"),
     }
     _order="date desc"
 
@@ -74,13 +77,37 @@ class Cart(Model):
         "company_id": _get_company,
     }
 
+    def get_amount_ship(self,ids,context={}):
+        print("get_amount_ship",ids)
+        vals={}
+        for obj in self.browse(ids):
+            delivs=[]
+            for line in obj.lines:
+                date=line.delivery_date
+                meth_id=line.ship_method_id.id
+                addr_id=line.ship_address_id.id or line.cart_id.ship_address_id.id
+                if not date or not meth_id or not addr_id:
+                    continue
+                delivs.append((date,meth_id,addr_id))
+            delivs=list(set(delivs))
+            print("delivs",delivs)
+            ship_amt=0
+            for date,meth_id,addr_id in delivs:
+                ctx={
+                    "ship_address_id": addr_id,
+                }
+                meth=get_model("ship.method").browse(meth_id,context=ctx)
+                ship_amt+=meth.ship_amount or 0
+            vals[obj.id]=ship_amt
+        return vals
+
     def get_total(self,ids,context={}):
         vals={}
         for obj in self.browse(ids):
             amt=0
             for line in obj.lines:
                 amt+=line.amount
-            vals[obj.id]=amt
+            vals[obj.id]=amt+obj.amount_ship
         return vals
 
     def get_payment_methods(self,ids,context={}):
@@ -334,5 +361,27 @@ class Cart(Model):
                     s+="    - %s: %s (%s/%s)\n"%(name,state,num_sales,capacity or "-")
             vals[obj.id]=s
         return vals
+
+    def get_ship_addresses(self,ids,context={}):
+        obj=self.browse(ids[0])
+        settings=get_model("ecom2.settings").browse(1)
+        contact=obj.customer_id
+        addrs=[]
+        if contact:
+            for a in contact.addresses:
+                addr_vals={
+                    "id": a.id,
+                    "name": a.address,
+                    "ship_amount": 123,
+                }
+                addrs.append(addr_vals)
+        for a in settings.extra_ship_addresses:
+            addr_vals={
+                "id": a.id,
+                "name": a.company+", "+a.address,
+                "ship_amount": 0,
+            }
+            addrs.append(addr_vals)
+        return {obj.id: addrs}
 
 Cart.register()

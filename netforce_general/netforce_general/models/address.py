@@ -61,6 +61,8 @@ class Address(Model):
         "company_id": fields.Many2One("company","Company"),
         "comments": fields.Text("Comments"),
         "coordinates": fields.Char("Coordinates"),
+        "mobile": fields.Char("Mobile"),
+        "name": fields.Char("Address Name"),
     }
     _defaults={
         "company_id": lambda *a: access.get_active_company(),
