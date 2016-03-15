@@ -1,7 +1,0 @@
-<list model="ecom2.voucher">
-    <field name="code"/>
-    <field name="name"/>
-    <field name="fixed_discount"/>
-    <field name="min_order_amount"/>
-    <field name="state"/>
-</list>

@@ -49,3 +49,4 @@ from . import seller
 from . import sale_return
 from . import sale_return_line
 from . import payment_method
+from . import sale_voucher
