@@ -30,7 +30,9 @@
     <newline/>
     <field name="min_order_amount"/>
     <field name="max_orders_per_customer"/>
+    <separator string="Config"/>
+    <field name="product_id"/>
     <related>
-        <field name="carts"/>
+        <field name="sale_orders"/>
     </related>
 </form>

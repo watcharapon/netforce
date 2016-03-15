@@ -35,8 +35,10 @@ class Cart(Model):
         "currency_id": fields.Many2One("currency","Currency",required=True),
         "invoices": fields.One2Many("account.invoice","related_id","Invoices"),
         "company_id": fields.Many2One("company","Company"),
-        "voucher_id": fields.Many2One("ecom2.voucher","Voucher"),
+        "voucher_id": fields.Many2One("sale.voucher","Voucher"),
         "ship_addresses": fields.Json("Shipping Addresses",function="get_ship_addresses"),
+        "amount_voucher": fields.Decimal("Voucher Amount",function="get_amount_voucher",function_multi=True),
+        "voucher_error_message": fields.Text("Voucher Error Message",function="get_amount_voucher",function_multi=True),
     }
     _order="date desc"
 
@@ -120,7 +122,7 @@ class Cart(Model):
             amt=0
             for line in obj.lines:
                 amt+=line.amount
-            vals[obj.id]=amt+obj.amount_ship
+            vals[obj.id]=amt+obj.amount_ship-obj.amount_voucher
         return vals
 
     def get_payment_methods(self,ids,context={}):
@@ -411,5 +413,50 @@ class Cart(Model):
             }
             addrs.append(addr_vals)
         return {obj.id: addrs}
+
+    def apply_voucher_code(self,ids,voucher_code,context={}):
+        obj=self.browse(ids[0])
+        res=get_model("sale.voucher").search([["code","=",voucher_code]])
+        if not res:
+            raise Exception("Invalid voucher code")
+        voucher_id=res[0]
+        obj.write({"voucher_id":voucher_id})
+
+    def clear_voucher(self,ids,context={}):
+        obj=self.browse(ids[0])
+        obj.write({"voucher_id":None})
+
+    def get_amount_voucher(self,ids,context={}):
+        print("get_amount_voucher",ids)
+        vals={}
+        for obj in self.browse(ids):
+            voucher=obj.voucher_id
+            if voucher:
+                ctx={
+                    "contact_id": obj.customer_id.id,
+                    "amount_total": 0,
+                    "products": [],
+                }
+                for line in obj.lines:
+                    ctx["amount_total"]+=line.amount
+                    ctx["products"].append({
+                        "product_id": line.product_id.id,
+                        "unit_price": line.unit_price,
+                        "qty": line.qty,
+                        "uom_id": line.uom_id.id,
+                        "amount": line.amount,
+                    })
+                ctx["amount_total"]+=obj.amount_ship
+                res=voucher.apply_voucher(context=ctx)
+                disc_amount=res.get("discount_amount",0)
+                error_message=res.get("error_message")
+            else:
+                disc_amount=0
+                error_message=None
+            vals[obj.id]={
+                "amount_voucher": disc_amount,
+                "voucher_error_message": error_message,
+            }
+        return vals
 
 Cart.register()

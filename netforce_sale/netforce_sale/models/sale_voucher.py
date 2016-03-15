@@ -1,4 +1,5 @@
 from netforce.model import Model,fields,get_model
+import time
 
 class Voucher(Model):
     _name="sale.voucher"
@@ -15,7 +16,6 @@ class Voucher(Model):
         "credit_amount": fields.Decimal("Credit Amount"),
         "refer_credit_amount": fields.Decimal("Credit Amount For Referring Customer"),
         "min_order_amount": fields.Decimal("Min Order Amount"),
-        "carts": fields.One2Many("ecom2.cart","voucher_id","Carts"),
         "state": fields.Selection([["active","Active"],["inactive","Inactive"]],"Status",required=True),
         "max_orders_per_customer": fields.Integer("Max Orders Per Customer"),
         "new_customer": fields.Boolean("New Customers Only"),
@@ -25,9 +25,50 @@ class Voucher(Model):
         "customer_id": fields.Many2One("contact","Customer"),
         "description": fields.Text("Description"),
         "expire_date": fields.Date("Expiration Date"),
+        "carts": fields.One2Many("ecom2.cart","voucher_id","Carts"),
+        "sale_orders": fields.One2Many("sale.order","voucher_id","Sales Orders"),
+        "product_id": fields.Many2One("product","Configuration Product",required=True),
     }
     _defaults={
         "state": "active",
     }
+
+    def apply_voucher(self,ids,context={}):
+        print("$"*80)
+        print("voucher.apply_coupon",ids)
+        obj=self.browse(ids[0])
+        contact_id=context.get("contact_id")
+        print("contact_id",contact_id)
+        amount_total=context.get("amount_total")
+        print("amount_total",amount_total)
+        products=context.get("products")
+        print("products",products)
+        date=time.strftime("%Y-%m-%d")
+        try:
+            if obj.expire_date and date>obj.expire_date:
+                raise Exception("This voucher is expired.")
+            if obj.contact_id and contact_id!=obj.contact_id.id:
+                raise Exception("This voucher can not apply to this customer.")
+            if obj.min_order_amount and (amount_total is None or amount_total<obj.min_order_amount):
+                raise Exception("Order total is insufficient to use this voucher.")
+            if obj.new_customer:
+                res=get_model("sale.order").search([["contact_id","=",contact_id]])
+                if res:
+                    raise Exception("This voucher can only be used by new customers.")
+            if obj.max_orders_per_customer:
+                res=get_model("sale.order").search([["contact_id","=",contact_id],["voucher_id","=",obj.id]])
+                if len(res)>=obj.max_orders_per_customer:
+                    raise Exception("The maximum usage limit has been reached for this voucher")
+            disc_amt=0
+            if obj.benefit_type=="fixed_discount_order":
+                disc_amt=obj.discount_amount
+            return {
+                "discount_amount": disc_amt,
+            }
+        except Exception as e:
+            return {
+                "discount_amount": 0,
+                "error_message": str(e),
+            }
 
 Voucher.register()
