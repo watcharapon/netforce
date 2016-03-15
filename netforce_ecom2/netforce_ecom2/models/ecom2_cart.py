@@ -23,6 +23,7 @@ class Cart(Model):
         "ship_address_id": fields.Many2One("address","Shipping Address"),
         "bill_address_id": fields.Many2One("address","Billing Address"),
         "delivery_slot_id": fields.Many2One("delivery.slot","Peferred Delivery Slot"),
+        "ship_method_id": fields.Many2One("ship.method","Shipping Method"),
         "pay_method_id": fields.Many2One("payment.method","Payment Method"),
         "logs": fields.One2Many("log","related_id","Audit Log"),
         "state": fields.Selection([["draft","Draft"],["confirmed","Confirmed"],["canceled","Canceled"]],"Status",required=True),
@@ -30,6 +31,7 @@ class Cart(Model):
         "delivery_delay": fields.Integer("Delivery Delay (Days)",function="get_delivery_delay"),
         "delivery_slots": fields.Json("Delivery Slots",function="get_delivery_slots"),
         "delivery_slots_str": fields.Text("Delivery Slots",function="get_delivery_slots_str"),
+        "date_delivery_slots": fields.Json("Date Delivery Slots",function="get_date_delivery_slots"),
         "comments": fields.Text("Comments"),
         "transaction_no": fields.Char("Payment Transaction No.",search=True),
         "currency_id": fields.Many2One("currency","Currency",required=True),
@@ -72,12 +74,18 @@ class Cart(Model):
         if res:
             return res[0]
 
+    def _get_ship_method(self,context={}):
+        res=get_model("ship.method").search([])
+        if res:
+            return res[0]
+
     _defaults={
         "date": lambda *a: time.strftime("%Y-%m-%d %H:%M:%S"),
         "number": _get_number,
         "state": "draft",
         "currency_id": _get_currency,
         "company_id": _get_company,
+        "ship_method_d": _get_ship_method,
     }
 
     def get_ship_amount_details(self,ids,context={}):
@@ -392,6 +400,23 @@ class Cart(Model):
             vals[obj.id]=s
         return vals
 
+    def get_date_delivery_slots(self,ids,context={}):
+        print("get_date_delivery_slots",ids)
+        obj=self.browse(ids[0])
+        slots=[]
+        for slot in get_model("delivery.slot").search_browse([]):
+            slots.append([slot.id,slot.name])
+        dates=[]
+        for line in obj.lines:
+            d=line.delivery_date
+            if d:
+                dates.append(d)
+        dates=list(set(dates))
+        date_slots={}
+        for d in dates:
+            date_slots[d]=slots # TODO: use capacity?
+        return {obj.id: date_slots}
+
     def get_ship_addresses(self,ids,context={}):
         obj=self.browse(ids[0])
         settings=get_model("ecom2.settings").browse(1)
@@ -402,8 +427,14 @@ class Cart(Model):
                 addr_vals={
                     "id": a.id,
                     "name": a.address,
-                    "ship_amount": 123,
                 }
+                if obj.ship_method_id: # TODO: handle general case for different shipping methods per order
+                    meth_id=obj.ship_method_id.id
+                    ctx={"ship_address_id": a.id}
+                    meth=get_model("ship.method").browse(meth_id,context=ctx)
+                    addr_vals["ship_amount"]=meth.ship_amount
+                else:
+                    addr_vals["ship_amount"]=0
                 addrs.append(addr_vals)
         for a in settings.extra_ship_addresses:
             addr_vals={
@@ -458,5 +489,12 @@ class Cart(Model):
                 "voucher_error_message": error_message,
             }
         return vals
+
+    def update_date_delivery(self,ids,date,vals,context={}):
+        print("cart.update_date_delivery",ids,date,vals)
+        obj=self.browse(ids[0])
+        for line in obj.lines:
+            if line.delivery_date==date:
+                line.write(vals)
 
 Cart.register()
