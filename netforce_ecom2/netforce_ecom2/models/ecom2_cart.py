@@ -440,8 +440,14 @@ class Cart(Model):
             addr_vals={
                 "id": a.id,
                 "name": a.company+", "+a.address,
-                "ship_amount": 0,
             }
+            if obj.ship_method_id:
+                meth_id=obj.ship_method_id.id
+                ctx={"ship_address_id": a.id}
+                meth=get_model("ship.method").browse(meth_id,context=ctx)
+                addr_vals["ship_amount"]=meth.ship_amount
+            else:
+                addr_vals["ship_amount"]=0
             addrs.append(addr_vals)
         return {obj.id: addrs}
 

@@ -40,9 +40,10 @@ class EcomInterface(Model):
         "address" :address,
         "contact_id":contact_id,
         }
-        subdistrict_id = int (subdistrict)
-        if subdistrict_id:
-            addr_vals['subdistrict_id'] = subdistrict_id
+        if subdistrict:
+            subdistrict_id = int (subdistrict)
+            if subdistrict_id:
+                addr_vals['subdistrict_id'] = subdistrict_id
         addr = get_model("address").create(addr_vals)
         return {
             "user_id": user_id,

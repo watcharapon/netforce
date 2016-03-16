@@ -39,6 +39,7 @@
                 </list>
             </field>
             <field name="amount_ship"/>
+            <field name="amount_voucher"/>
             <field name="amount_total"/>
             <field name="state"/>
             <newline/>
