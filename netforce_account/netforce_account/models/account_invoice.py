@@ -21,6 +21,7 @@
 from netforce.model import Model, fields, get_model
 from netforce.utils import get_data_path
 import time
+from decimal import Decimal
 from netforce import config
 from netforce import database
 from pprint import pprint
@@ -639,7 +640,7 @@ class Invoice(Model):
                     data["amount_tax"] += tax_amt
             else:
                 base_amt = amt
-            data["amount_subtotal"] += base_amt
+            data["amount_subtotal"] += Decimal(base_amt)
         if tax_type == "tax_in":
             data["amount_rounding"] = sum(
                 l.get("amount") or 0 for l in data["lines"] if l) - (data["amount_subtotal"] + data["amount_tax"])
