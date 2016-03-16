@@ -42,6 +42,7 @@ class StatementLine(Model):
         "state": "not_reconciled",
         "spent": 0,
         "received": 0,
+        'balance': 0,
     }
 
     def get_reconcile_lines(self, ids):
