@@ -84,7 +84,7 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                 var name=$el.attr("name");
                 var model=context.model;
                 var field=model.get_field(name);
-                if (field.type=="one2many") {
+                if (field && field.type=="one2many") {
                     default_span=12;
                 } else {
                     default_span=6;
