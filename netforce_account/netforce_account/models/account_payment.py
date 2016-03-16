@@ -268,7 +268,7 @@ class Payment(Model):
                                     base_amt = invline_amt
                                 subtotal += base_amt
                             #if not automatic compute
-                            if not (inv_wht and inv_vat ) and inv.taxes:
+                            if inv.taxes:
                                 inv_vat = 0
                                 inv_wht = 0
                                 for tax in inv.taxes:
