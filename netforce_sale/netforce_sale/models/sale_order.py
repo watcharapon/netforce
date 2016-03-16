@@ -376,6 +376,7 @@ class SaleOrder(Model):
             for loc in prod.locations:
                 if loc.stock_qty:
                     line['location_id']=prod.location_id.id
+                    break
         data = self.update_amounts(context)
         return data
 
