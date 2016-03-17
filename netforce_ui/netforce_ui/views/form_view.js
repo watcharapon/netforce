@@ -354,6 +354,7 @@ var FormView=NFView.extend({
                     count: $el.attr("count")||1,
                     password: $el.attr("password"),
                     size: $el.attr("size"),
+                    click_action: $el.attr("click_action"),
                     selection: $el.attr("selection"),
                     attrs: $el.attr("attrs"),
                     width: $el.attr("width"),
