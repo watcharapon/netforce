@@ -282,6 +282,8 @@ class Invoice(Model):
                 rate_from = obj.currency_id.get_rate(date=obj.date)
                 if not rate_from:
                     raise Exception("Missing currency rate for %s" % obj.currency_id.code)
+                if not settings.currency_id:
+                    raise Exception("Missing default currency in Financial Settings")
                 rate_to = settings.currency_id.get_rate(date=obj.date)
                 if not rate_to:
                     raise Exception("Missing currency rate for %s" % settings.currency_id.code)
