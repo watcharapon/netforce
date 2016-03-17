@@ -150,7 +150,6 @@ var Group=NFView.extend({
                                 noadd: $el.attr("noadd"),
                                 context: params.context
                             }
-                            if (opts2.default_count==5) alert("x");
                             var view=Sheet.make_view(opts2);
                             html="<div id=\""+view.cid+"\" class=\"view\"></div>";
                             return html;
