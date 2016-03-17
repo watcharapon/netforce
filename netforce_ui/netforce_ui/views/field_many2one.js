@@ -76,6 +76,14 @@ var FieldMany2One=NFView.extend({
             }
             action.active_id=id;
             this.data.link_url="#"+obj_to_qs(action);
+        } else if (value && this.options.click_action) {
+            var id;
+            if (_.isArray(value)) {
+                id=value[0];
+            } else {
+                id=value;
+            }
+            this.data.link_url="#name="+this.options.click_action+"&active_id="+id;
         } else if (value && !this.options.nolink) {
             var id;
             if (_.isArray(value)) {
