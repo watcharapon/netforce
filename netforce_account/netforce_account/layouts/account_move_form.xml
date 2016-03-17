@@ -1,11 +1,7 @@
 <form model="account.move" attrs='{"readonly":[["state","!=","draft"]]}' show_company="1">
     <head>
         <field name="state"/>
-        <button string="Print" icon="print" dropdown="1">
-            <item string="PDF" action="report_journal_entry" action_options="convert=pdf"/>
-            <item string="ODT" action="report_journal_entry"/>
-            <item string="Select Template" action="print_select_template" action_options="report_action=report_journal_entry&amp;template_type=account_move"/>
-        </button>
+        <button string="Print" icon="print" action="report_account_move_form"/>
         <button string="Options" dropdown="1">
             <item string="Reverse" method="reverse"/>
             <item string="Void" method="void" confirm="Are you sure you want to void this journal entry?"/>

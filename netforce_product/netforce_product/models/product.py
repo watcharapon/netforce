@@ -35,7 +35,7 @@ class Product(Model):
     _audit_log = True
     _key = ["code","state","company_id"]
     _order = "code,name"
-    _export_name_field = "code"
+    _export_field = "code"
     _history = True
     _fields = {
         "name": fields.Char("Name", required=True, search=True, translate=True, size=256),
@@ -247,7 +247,6 @@ class Product(Model):
             "stock_in_account_id": obj.stock_in_account_id.id,
             "stock_out_account_id": obj.stock_out_account_id.id,
             "bin_location": obj.bin_location,
-            "subbrand": obj.subbrand,
             "sale_company_id": obj.sale_company_id.id,
             "attributes": [],
         }

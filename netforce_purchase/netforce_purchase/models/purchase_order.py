@@ -191,6 +191,7 @@ class PurchaseOrder(Model):
         return res
 
     def update_amounts(self, context):
+        settings=get_model("settings").browse(1)
         data = context["data"]
         data["amount_subtotal"] = 0
         data["amount_tax"] = 0
@@ -200,6 +201,8 @@ class PurchaseOrder(Model):
                 continue
             amt = Decimal(((line.get("qty") or 0) * (line.get("unit_price") or 0)) - (line.get("discount_amount") or 0))
             line["amount"] = amt
+            new_cur=get_model("currency").convert(amt, int(data.get("currency_id")), settings.currency_id.id)
+            line['amount_cur']=new_cur and new_cur or None
             tax_id = line.get("tax_id")
             if tax_id:
                 tax = get_model("account.tax.rate").compute_tax(tax_id, amt, tax_type=tax_type)
@@ -282,6 +285,7 @@ class PurchaseOrder(Model):
             "related_id": "purchase.order,%s" % obj.id,
             "contact_id": contact.id,
             "currency_id": obj.currency_id.id,
+            "ship_method_id": obj.ship_method_id.id,
             "lines": [],
         }
         if obj.delivery_date:
@@ -542,5 +546,16 @@ class PurchaseOrder(Model):
             if obj.state in ("confirmed", "done"):
                 raise Exception("Can not delete purchase order in this status")
         super().delete(ids, **kw)
+
+    def onchange_currency(self,context={}):
+        settings=get_model("settings").browse(1)
+        data = context["data"]
+        for line in data["lines"]:
+            if not line:
+                continue
+            amt = (line.get("qty") or 0) * (line.get("unit_price") or 0)
+            new_cur=get_model("currency").convert(amt, int(data.get("currency_id")), settings.currency_id.id)
+            line['amount_cur']=new_cur and new_cur or None
+        return data
 
 PurchaseOrder.register()

@@ -32,13 +32,15 @@ class TrackCateg(Model):
         "name": fields.Char("Name", required=True),
         "parent_id": fields.Many2One("account.track.categ", "Parent"),
         "full_name": fields.Char("Full Name", function="get_full_name", search=True, store=True),
-        "code": fields.Char("Code", required=True),
+        "code": fields.Char("Code", required=True,search=True),
         "description": fields.Text("Description"),
-        "type": fields.Selection([["1", "Primary"], ["2", "Secondary"]], "Type", required=True),
+        "type": fields.Selection([["1", "Primary"], ["2", "Secondary"]], "Type", required=True,search=True),
         "documents": fields.One2Many("document", "related_id", "Documents"),
         "track_entries": fields.One2Many("account.track.entry","track_id","Tracking Entries"),
         "balance": fields.Decimal("Tracking Balance",function="get_balance"),
         "sub_tracks": fields.One2Many("account.track.categ","parent_id","Sub Tracking Categories"),
+        "self_id": fields.Many2One("account.track.categ","Tracking Category",function="_get_related",function_context={"path":"id"}), # XXX: for some UI stuff
+        "currency_id": fields.Many2One("currency","Currency"),
     }
     _order = "type,code,full_name"
     _constraints = ["_check_cycle"]
@@ -68,10 +70,10 @@ class TrackCateg(Model):
     def get_full_name(self, ids, context={}):
         vals = {}
         for obj in self.browse(ids):
-            names = [obj.name]
+            names = [obj.name or ""]
             p = obj.parent_id
             while p:
-                names.append(p.name)
+                names.append(p.name or "")
                 p = p.parent_id
             full_name = " / ".join(reversed(names))
             vals[obj.id] = full_name

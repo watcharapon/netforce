@@ -31,12 +31,38 @@ class Account(Model):
     _string = "Account"
     _audit_log = True
     _key = ["code", "company_id"]
-    _export_name_field = "code"
+    _export_field = "code"
     _multi_company = True
     _fields = {
         "code": fields.Char("Account Code", required=True, search=True, index=True),
         "name": fields.Char("Account Name", size=256, required=True, search=True, translate=True),
-        "type": fields.Selection([["_group", "Assets"], ["cash", "Cash"], ["cheque", "Cheque"], ["bank", "Bank Account"], ["receivable", "Receivable"], ["cur_asset", "Current Asset"], ["fixed_asset", "Fixed Asset"], ["noncur_asset", "Non-current Asset"], ["_group", "Liabilities"], ["payable", "Payable"], ["cust_deposit", "Customer Deposit"], ["cur_liability", "Current Liability"], ["noncur_liability", "Non-current Liability"], ["equity", "Equity"], ["_group", "Equity"], ["_group", "Expenses"], ["cost_sales", "Cost of Sales"], ["expense", "Expense"], ["other_expense", "Other Expense"], ["_group", "Income"], ["revenue", "Revenue"], ["other_income", "Other Income"], ["_group", "Other"], ["view", "View"], ["other", "Other"]], "Type", required=True, search=True, index=True),
+        "type": fields.Selection([
+            ["_group", "Assets"],
+            ["cash", "Cash"],
+            ["cheque", "Cheque"],
+            ["bank", "Bank Account"],
+            ["receivable", "Receivable"],
+            ["cur_asset", "Current Asset"],
+            ["fixed_asset", "Fixed Asset"],
+            ["noncur_asset", "Non-current Asset"],
+            ["_group", "Liabilities"],
+            ["payable", "Payable"],
+            ["cust_deposit", "Customer Deposit"],
+            ["cur_liability", "Current Liability"],
+            ["noncur_liability", "Non-current Liability"],
+            ["equity", "Equity"],
+            ["_group", "Equity"],
+            ["_group", "Expenses"],
+            ["cost_sales", "Cost of Sales"],
+            ["expense", "Expense"],
+            ["other_expense", "Other Expense"],
+            ["_group", "Income"],
+            ["revenue", "Revenue"],
+            ["other_income", "Other Income"],
+            ["_group", "Other"],
+            ["view", "View"],
+            ["other", "Other"]], "Type", required=True, search=True, index=True),
+
         "parent_id": fields.Many2One("account.account", "Parent", condition=[["type", "=", "view"]]),
         "bank_type": fields.Selection([["bank", "Bank Account"], ["credit_card", "Credit Card"], ["paypal", "Paypal"]], "Bank Type"),
         "description": fields.Text("Description"),
@@ -210,9 +236,10 @@ class Account(Model):
                 else:
                     acc_rate_type[r["id"]] = "buy"
             bals2 = {}
+            settings = get_model('settings').browse(1)
             for acc_id, vals in bals.items():
-                comp_id = acc_comp[acc_id]
-                comp_currency_id = comp_cur[comp_id]
+                comp_id = acc_comp.get(acc_id)
+                comp_currency_id = comp_cur.get(comp_id) or settings.currency_id.id
                 acc_currency_id = acc_cur[acc_id]
                 rate_type = acc_rate_type[acc_id]
                 bals2[acc_id] = {

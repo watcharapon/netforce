@@ -253,6 +253,10 @@ class Model(object):
             vals["create_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
         if not vals.get("create_uid"):
             vals["create_uid"] = access.get_active_user()
+        if not vals.get("write_time"):
+            vals["write_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        if not vals.get("write_uid"):
+            vals["write_uid"] = access.get_active_user()
         store_fields = [n for n in vals if self._fields[n].store]
         cols = store_fields[:]
         q = "INSERT INTO " + self._table
@@ -329,6 +333,16 @@ class Model(object):
         self.audit_log("create", {"id": new_id, "vals": vals})
         self.trigger([new_id], "create")
         return new_id
+
+    def copy(self,ids,vals,context={}):
+        for obj in self.browse(ids):
+            create_vals={}
+            for n,f in self._fields.items():
+                if not f.store:
+                    continue
+                create_vals[n]=obj[n]
+            create_vals.update(vals)
+            self.create(create_vals,context=context)
 
     def _expand_condition(self, condition, context={}):
         new_condition = []
@@ -809,8 +823,8 @@ class Model(object):
 
     def read(self, ids, field_names=None, load_m2o=True, get_time=False, context={}):
         #print(">>> READ",self._name,ids,field_names)
-        if not access.check_permission(self._name, "read", ids):
-            raise Exception("Permission denied (read %s, ids=%s)" % (self._name, ",".join([str(x) for x in ids])))
+        #if not access.check_permission(self._name, "read", ids):
+            #raise Exception("Permission denied (read %s, ids=%s)" % (self._name, ",".join([str(x) for x in ids])))
         #print("read perm ok")
         if not ids:
             #print("<<< READ",self._name)
@@ -1227,17 +1241,35 @@ class Model(object):
         path = context.get("path")
         if not path:
             raise Exception("Missing path")
-        fields = path.split(".")
+        fnames = path.split(".")
         vals = {}
-        # i=0
         for obj in self.browse(ids):
-            # print("XXX",i)
-            # i+=1
-            val = obj
-            for field in fields:
-                val = val[field]
-            if isinstance(val, BrowseRecord):
-                val = val.id
+            parent = obj
+            parent_m=get_model(obj._model)
+            for n in fnames[:-1]:
+                f=parent_m._fields[n]
+                if not isinstance(f,(fields.Many2One,fields.Reference)):
+                    raise Exception("Invalid field path for model %s: %s"%(self._name,path))
+                parent = parent[n]
+                if not parent:
+                    parent=None
+                    break
+                parent_m=get_model(parent._model)
+            if not parent:
+                val=None
+            else:
+                n=fnames[-1]
+                val=parent[n]
+                if n!="id":
+                    f=parent_m._fields.get(n)
+                    if not f:
+                        val=None
+                    else:
+                        if isinstance(f,(fields.Many2One,fields.Reference)):
+                            val = val.id
+                        elif isinstance(f,(fields.One2Many,fields.Many2Many)):
+                            val=[v.id for v in val]
+                
             vals[obj.id] = val
         return vals
 
@@ -1313,6 +1345,15 @@ class Model(object):
                             if n not in todo:
                                 v = obj[n]
                                 todo[n] = [v]
+                    elif isinstance(f, fields.Reference):
+                        v = obj[n]
+                        if v:
+                            mr = get_model(v._model)
+                            exp_field = mr.get_export_field()
+                            v = '%s,%s'%(v._model,v[exp_field])
+                        else:
+                            v = None
+                        row[path] = v
                     elif isinstance(f, fields.Selection):
                         v = obj[n]
                         if v:
@@ -1425,7 +1466,7 @@ class Model(object):
                     elif isinstance(f, fields.Selection):
                         found = None
                         for k, s in f.selection:
-                            if v == s:
+                            if v == s and k!="_group":
                                 found = k
                                 break
                         if found is None:
@@ -1434,6 +1475,22 @@ class Model(object):
                     elif isinstance(f, fields.Date):
                         dt = dateutil.parser.parse(v)
                         v = dt.strftime("%Y-%m-%d")
+                    elif isinstance(f, fields.Reference):
+                        if v:
+                            try:
+                                model_name,value = v.split(",")
+                                mr = get_model(model_name)
+                                exp_field = mr.get_export_field()
+                                res = mr.search([[exp_field,'=',value]])
+                                if res:
+                                    rid = res[0]
+                                    v = "%s,%s" % (model_name,rid) #XXX
+                                else:
+                                    v = None
+                            except:
+                                v = None
+                        else:
+                            v = None
                     elif isinstance(f, fields.Many2One):
                         mr = get_model(f.relation)
                         ctx = {
@@ -1638,6 +1695,8 @@ class Model(object):
             out={"data":res}
         def _fill_m2o(m, vals):
             for k, v in vals.items():
+                if k=='id':
+                    continue
                 if not v:
                     continue
                 f = m._fields[k]
@@ -2005,6 +2064,18 @@ class Model(object):
             keys.append([k, obj.id, obj.write_time])
         return keys
 
+    def sync_check_keys(self, keys, context={}):
+        res=[]
+        for k in keys:
+            obj_id=self.sync_find_key(k)
+            if obj_id:
+                obj=self.browse(obj_id) # XXX: speed
+                mtime=obj.write_time
+            else:
+                mtime=None
+            res.append((k,m_time))
+        return res
+
     def sync_export(self, ids, context={}):
         # print("Model.sync_export",self._name,ids)
         data = []
@@ -2014,10 +2085,8 @@ class Model(object):
                 f = self._fields[n]
                 if not f.store and not isinstance(f, fields.Many2Many):
                     continue
-                if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
+                if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Decimal, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
                     vals[n] = obj[n]
-                elif isinstance(f, fields.Decimal):
-                    vals[n] = obj[n] if obj[n] is None else float(obj[n])
                 elif isinstance(f, fields.Many2One):
                     v = obj[n]
                     if v:
@@ -2081,8 +2150,11 @@ class Model(object):
             try:
                 vals = {}
                 for n, v in rec.items():
-                    f = self._fields[n]
-                    if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Integer, fields.Decimal, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
+                    f = self._fields.get(n)
+                    if not f:
+                        print("WARNING: no such field %s in %s"%(n,self._name))
+                        continue
+                    if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Decimal, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
                         vals[n] = v
                     elif isinstance(f, fields.Many2One):
                         if v:

@@ -80,7 +80,7 @@ class Job(Model):
         "time_start": fields.DateTime("Planned Start Time"),
         "time_stop": fields.DateTime("Planned Stop Time"),
         "location_id": fields.Many2One("stock.location", "Job Location"),
-        "related_id": fields.Reference([["sale.order", "Sales Order"], ["issue", "Issue"]], "Related To"),
+        "related_id": fields.Reference([["sale.order", "Sales Order"], ["rental.order","Rental Order"], ["issue", "Issue"]], "Related To"),
         "lines": fields.One2Many("job.line", "job_id", "Worksheet"),
         "complaints": fields.Text("Complaints"),
         "cause": fields.Text("Cause"),
@@ -225,11 +225,14 @@ class Job(Model):
             prod = line.product_id
             if prod.type not in ("stock", "consumable"):
                 continue
+            prod_loc_id=None
+            if prod.locations:
+                prod_loc_id=prod.locations[0].location_id
             line_vals = {
                 "product_id": prod.id,
                 "qty": line.qty,
                 "uom_id": line.uom_id.id,
-                "location_from_id": prod.location_id.id or wh_loc_id,
+                "location_from_id": prod_loc_id and prod_loc_id.id or wh_loc_id,
                 "location_to_id": obj.location_id.id or cust_loc_id,
             }
             vals["lines"].append(("create", line_vals))

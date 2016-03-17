@@ -2,6 +2,23 @@
     <li>
         <a href="#">{{bread_string}}</a>
     </li>
+    <div class="pull-right">
+        {{#if start_url}}
+            <a href="{{start_url}}">&laquo; Start</a>
+        {{/if}}
+        {{#if prev_url}}
+            <a href="{{prev_url}}">&lsaquo; Prev</a>
+        {{/if}}
+        {{#if count}}
+            <span style="margin:5px;color:#666">{{record_index_p1}} /  {{count}}</span>
+        {{/if}}
+        {{#if next_url}}
+            <a href="{{next_url}}">Next &rsaquo;</a>
+        {{/if}}
+        {{#if end_url}}
+            <a href="{{end_url}}">End &raquo;</a>
+        {{/if}}
+    </div>
 </ol>
 <div class="page-header nf-page-header">
     {{#if show_company}}

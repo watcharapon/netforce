@@ -76,6 +76,14 @@ var FieldMany2One=NFView.extend({
             }
             action.active_id=id;
             this.data.link_url="#"+obj_to_qs(action);
+        } else if (value && this.options.click_action) {
+            var id;
+            if (_.isArray(value)) {
+                id=value[0];
+            } else {
+                id=value;
+            }
+            this.data.link_url="#name="+this.options.click_action+"&active_id="+id;
         } else if (value && !this.options.nolink) {
             var id;
             if (_.isArray(value)) {
@@ -113,7 +121,7 @@ var FieldMany2One=NFView.extend({
         //log("XXXXXXXXXXXXXXXXXX",required);
         if (required && !this.data.readonly) {
             this.$el.addClass("nf-required-field");
-        /*this.data.required=true;*/
+            this.data.required=true;
         } else {
             this.data.required=false;
         }
@@ -129,9 +137,6 @@ var FieldMany2One=NFView.extend({
             that.disable_blur=true;
             NFView.prototype.render.call(that);
             that.disable_blur=false;
-            if (that.data.required && !that.data.readonly) {
-                that.show_required();
-            }
             if (that.data.required) {
                 model.set_required(name);
             } else {
@@ -194,10 +199,6 @@ var FieldMany2One=NFView.extend({
             this.data.value_name="";
             do_render();
         }
-    },
-
-    show_required: function() {
-        this.$el.find(".label-text").append(" <span style='color:#e32'>*</span>");
     },
 
     btn_mousedown: function(e) {

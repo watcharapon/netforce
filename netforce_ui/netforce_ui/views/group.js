@@ -139,6 +139,7 @@ var Group=NFView.extend({
                                     onfocus: $el2.attr("onfocus"),
                                     search_mode: $el2.attr("search_mode"),
                                     scale: $el2.attr("scale"),
+                                    create: $el2.attr("create"),
                                     attrs: $el2.attr("attrs")
                                 });
                             });
@@ -149,7 +150,6 @@ var Group=NFView.extend({
                                 noadd: $el.attr("noadd"),
                                 context: params.context
                             }
-                            if (opts2.default_count==5) alert("x");
                             var view=Sheet.make_view(opts2);
                             html="<div id=\""+view.cid+"\" class=\"view\"></div>";
                             return html;

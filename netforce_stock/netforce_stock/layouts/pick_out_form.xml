@@ -25,7 +25,7 @@
             <group form_layout="stacked">
                 <field name="journal_id" span="2" onchange="onchange_journal"/>
                 <field name="number" span="2"/>
-                <field name="date" span="2"/>
+                <field name="date" onchange="onchange_date" span="2"/>
                 <field name="contact_id" span="2" onchange="onchange_contact"/>
                 <field name="ship_address_id" span="2" condition='[["contact_id","=",contact_id]]'/>
                 <field name="delivery_slot_id" span="2"/>

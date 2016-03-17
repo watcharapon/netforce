@@ -251,8 +251,8 @@ class ComputeCost(Model):
                     use_cost=use_qty*first_price
                     m["qty_in"]+=use_qty
                     m["cost"]+=use_cost
-                    if m["qty_in"]<=m["qty"]:
-                        m["unit_price"]=m["cost"]/m["qty"]
+                    if m["qty_in"]>=m["qty"]:
+                        m["unit_price"]=m["cost"]/m["qty"] if m["qty"] else 0
                         outputs=loc_outputs[loc_id]
                         heapq.heappop(outputs)
                         loc_to=int_locs.get(m["location_to_id"])
@@ -273,6 +273,8 @@ class ComputeCost(Model):
         for prod_id in prod_ids:
             moves=prod_moves[prod_id]
             for m in moves:
+                if m["qty"]==0: # XXX: don't overwrite LC stock moves
+                    continue
                 if m["unit_price"] is not None:
                     new_cost_amount=m["unit_price"]*m["conv_qty"]
                 else:

@@ -21,6 +21,7 @@
 from netforce.model import Model, fields, get_model
 from netforce.utils import get_data_path
 import time
+from decimal import Decimal
 from netforce import config
 from netforce import database
 from pprint import pprint
@@ -525,6 +526,8 @@ class Invoice(Model):
         obj = self.browse(ids)[0]
         if obj.state != "waiting_payment":
             raise Exception("Invalid status")
+        if obj.credit_notes:
+            raise Exception("There are still payment entries for this invoice")
         if obj.move_id:
             obj.move_id.void()
             obj.move_id.delete()
@@ -552,6 +555,8 @@ class Invoice(Model):
             subtotal=get_model("currency").round(inv.currency_id.id,subtotal)
             tax=get_model("currency").round(inv.currency_id.id,tax)
             vals["amount_subtotal"] = subtotal
+            if inv.taxes:
+                tax=sum(t.tax_amount for t in inv.taxes)
             vals["amount_tax"] = tax
             if inv.tax_type == "tax_in":
                 vals["amount_rounding"] = sum(l.amount for l in inv.lines) - (subtotal + tax)
@@ -635,13 +640,40 @@ class Invoice(Model):
                     data["amount_tax"] += tax_amt
             else:
                 base_amt = amt
-            data["amount_subtotal"] += base_amt
+            data["amount_subtotal"] += Decimal(base_amt)
         if tax_type == "tax_in":
             data["amount_rounding"] = sum(
                 l.get("amount") or 0 for l in data["lines"] if l) - (data["amount_subtotal"] + data["amount_tax"])
         else:
             data["amount_rounding"] = 0
         data["amount_total"] = data["amount_subtotal"] + data["amount_tax"] + data["amount_rounding"]
+
+        paid = 0
+        for pmt in data['payments']:
+            if pmt['payment_id'] == data['payment_id']:
+                continue
+            if data['type'] == pmt['type']:
+                paid -= pmt['amount_currency']
+            else:
+                paid += pmt['amount_currency']
+        if data['inv_type'] in ("invoice", "debit"):
+            cred_amt = 0
+            for alloc in data['credit_notes']:
+                cred_amt += alloc['amount']
+            data["amount_due"] = data["amount_total"] - paid - cred_amt
+            data["amount_paid"] = paid + cred_amt
+        elif data['inv_type'] in ("credit", "prepay", "overpay"):
+            cred_amt = 0
+            for alloc in data['credit_alloc']:
+                cred_amt += alloc['amount']
+            for pmt in data['payments']:
+                payment=get_model("account.payment").browse(pmt['payment_id'])
+                if payment.type == data['type']:
+                    cred_amt += pmt['amount']
+                else:
+                    cred_amt -= pmt['amount']
+            data["amount_credit_remain"] = data["amount_total"] - cred_amt
+            data["amount_due"] = -data["amount_credit_remain"]
         return data
 
     def onchange_product(self, context):
@@ -744,12 +776,14 @@ class Invoice(Model):
 
     def get_contact_credit(self, ids, context={}):
         obj = self.browse(ids[0])
-        contact = get_model("contact").browse(obj.contact_id.id, context={"currency_id": obj.currency_id.id})
+        amt=0
         vals = {}
-        if obj.type == "out":
-            amt = contact.receivable_credit
-        elif obj.type == "in":
-            amt = contact.payable_credit
+        if obj.contact_id:
+            contact = get_model("contact").browse(obj.contact_id.id, context={"currency_id": obj.currency_id.id})
+            if obj.type == "out":
+                amt = contact.receivable_credit
+            elif obj.type == "in":
+                amt = contact.payable_credit
         vals[obj.id] = amt
         return vals
 

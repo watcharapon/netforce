@@ -28,7 +28,7 @@ class TaxComponent(Model):
         "name": fields.Char("Name", required=True),
         "compound": fields.Boolean("Compound"),
         "rate": fields.Decimal("Rate", required=True),
-        "account_id": fields.Many2One("account.account", "Account", multi_company=True),
+        "account_id": fields.Many2One("account.account", "Account", multi_company=True,required=True),
         "type": fields.Selection([["vat", "VAT"], ["vat_exempt", "VAT Exempt"], ["vat_defer", "Deferred VAT"], ["wht", "Withholding Tax"]], "Tax Type"),
         "trans_type": fields.Selection([["out", "Sale"], ["in", "Purchase"]], "Transaction Type"),
         "description": fields.Text("Description"),

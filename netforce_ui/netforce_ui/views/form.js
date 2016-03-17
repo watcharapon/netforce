@@ -58,6 +58,7 @@ var Form=NFView.extend({
         } else {
             var model=this.context.model;
             var vals=model.get_vals();
+            if (model.id) vals.id=model.id;
             var ctx={
                 "data": vals,
                 "path": path

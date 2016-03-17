@@ -64,7 +64,6 @@ var MultiView=NFView.extend({
                 model_string: this.options.model_string,
                 offset: this.options.offset,
                 modes: this.modes,
-                focus_field: this.focus_field,
                 context: this.context
             };
             if (_.contains(this.modes,"page")) {
@@ -117,7 +116,6 @@ var MultiView=NFView.extend({
                 action_name: this.options.name, // XXX
                 model_string: this.options.model_string,
                 modes: this.modes,
-                focus_field: this.options.focus_field,
                 context: this.context
             };
             if (this.options.defaults) {
@@ -232,7 +230,7 @@ var MultiView=NFView.extend({
         view.on("click_item",function(opts) {
             var action={
                 name: that.options.name,
-                active_id: opts.active_id
+                active_id: opts.active_id,
             };
             if (_.contains(this.modes,"page")) {
                 action.mode="page";

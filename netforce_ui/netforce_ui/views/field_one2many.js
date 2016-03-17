@@ -42,6 +42,11 @@ var FieldOne2Many=NFView.extend({
         var attrs=this.eval_attrs();
         if (attrs.readonly) ctx.readonly=true;
         if (attrs.noadd) ctx.noadd=true;
+        if (attrs.invisible) {
+            this.$el.hide();
+        } else {
+            this.$el.show();
+        }
         var view_opts={
             "model": relation,
             "template": this.options.inner||this.options.template,
@@ -67,11 +72,6 @@ var FieldOne2Many=NFView.extend({
                 }
             }
             view_opts.data=vals;
-        }
-        if (this.options.invisible || attrs.invisible) {
-            this.$el.hide()
-        } else {
-            this.$el.show()
         }
         var view_cls=get_view_cls("collection_view");
         var view=view_cls.make_view(view_opts);

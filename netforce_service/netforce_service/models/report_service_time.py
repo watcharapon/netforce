@@ -54,7 +54,6 @@ class ReportServiceTime(Model):
             weeks.append(d.strftime("%Y-%m-%d"))
             d -= timedelta(days=7)
             i += 1
-        print("weeks", weeks)
         lines = []
         for proj_id, proj in projects.items():
             line = {
@@ -72,7 +71,7 @@ class ReportServiceTime(Model):
                 line["weeks"].append(vals)
             for w, vals in proj["weeks"].items():
                 line["total_actual_hours"] += vals["actual_hours"]
-                line["total_bill_hours"] += vals["bill_hours"]
+                line["total_bill_hours"] += vals["bill_hours"] or 0
                 if w < weeks[-1]:
                     line["older"]["actual_hours"] += vals["actual_hours"]
                     line["older"]["bill_hours"] += vals["bill_hours"]
@@ -80,7 +79,6 @@ class ReportServiceTime(Model):
         data = {
             "lines": lines,
         }
-        print("data", data)
         return data
 
     def get_resource_time(self, context={}):
@@ -110,7 +108,6 @@ class ReportServiceTime(Model):
             weeks.append(d.strftime("%Y-%m-%d"))
             d -= timedelta(days=7)
             i += 1
-        print("weeks", weeks)
         lines = []
         for resource_id, resource in resources.items():
             line = {
@@ -137,7 +134,6 @@ class ReportServiceTime(Model):
         data = {
             "lines": lines,
         }
-        print("data", data)
         return data
 
 ReportServiceTime.register()

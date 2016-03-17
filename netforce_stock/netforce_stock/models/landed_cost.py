@@ -105,7 +105,7 @@ class LandedCost(Model):
                 inv_amt=alloc.amount
                 var_amt=0
             else:
-                ratio=alloc.qty_stock_lc/alloc.qty_stock_gr
+                ratio=min(alloc.qty_stock_lc/alloc.qty_stock_gr,1) if alloc.qty_stock_gr else 0 # XXX
                 inv_amt=alloc.amount*ratio
                 var_amt=alloc.amount*(1-ratio)
             if inv_amt:
@@ -138,17 +138,20 @@ class LandedCost(Model):
                 "credit": amt<0 and -amt or 0,
             }
             vals["lines"].append(("create",line_vals))
-        move_id=get_model("account.move").create(vals)
-        get_model("account.move").post([move_id])
-        obj.write({"move_id":move_id, "state": "posted"})
-        move_ids=[]
+        account_move_id=get_model("account.move").create(vals)
+        get_model("account.move").post([account_move_id])
+        obj.write({"move_id":account_move_id, "state": "posted"})
+        stock_move_ids=[]
         for line in obj.cost_allocs:
             move=line.move_id
             if not move.qty:
                 raise Exception("Missing qty in stock movement %s"%move.number)
-            ratio=line.qty_stock_lc/line.qty_stock_gr
+            ratio=min(line.qty_stock_lc/line.qty_stock_gr,1) if line.qty_stock_gr else 0
+            journal_id=settings.landed_cost_journal_id.id
+            if not journal_id:
+                raise Exception("Missing landed cost journal")
             vals={
-                "journal_id": settings.landed_cost_journal_id.id,
+                "journal_id": journal_id,
                 "date": obj.date,
                 "related_id": "landed.cost,%s"%obj.id,
                 "ref": obj.number,
@@ -159,10 +162,11 @@ class LandedCost(Model):
                 "location_to_id": move.location_to_id.id,
                 "cost_price": 0,
                 "cost_amount": line.amount*ratio,
+                "move_id": account_move_id,
             }
-            move_id=get_model("stock.move").create(vals)
-            move_ids.append(move_id)
-        get_model("stock.move").set_done(move_ids)
+            stock_move_id=get_model("stock.move").create(vals)
+            stock_move_ids.append(stock_move_id)
+        get_model("stock.move").set_done(stock_move_ids,context={"no_post": True})
 
     def to_draft(self,ids,context={}):
         obj=self.browse(ids[0])
@@ -262,7 +266,7 @@ class LandedCost(Model):
             if obj.alloc_type=="amount":
                 alloc_amt=obj.alloc_amount*(line.cost_amount or 0)/total_amt
             elif obj.alloc_type=="qty":
-                alloc_amt=obj.alloc_amount*line.qty/total_qty
+                alloc_amt=obj.alloc_amount*line.qty/total_qty if total_qty else 0
             vals={
                 obj.alloc_cost_type: alloc_amt,
             }

@@ -1,0 +1,9 @@
+<form model="create.task.list" title="Create Task List">
+    <field name="template_id"/>
+    <newline/>
+    <field name="project_id"/>
+    <field name="milestone_id"/>
+    <foot replace="1">
+        <button string="Create Task List" method="create_task_list" type="primary"/>
+    </foot>
+</form>
