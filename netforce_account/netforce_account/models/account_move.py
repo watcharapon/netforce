@@ -49,6 +49,7 @@ class Move(Model):
         "company_id": fields.Many2One("company", "Company"),
         "track_entries": fields.One2Many("account.track.entry","move_id","Tracking Entries"),
         "difference" : fields.Float("Difference",function="get_difference",function_multi=True),
+        "verified": fields.Boolean("Verified",search=True),
     }
 
     def _get_journal(self, context={}):
