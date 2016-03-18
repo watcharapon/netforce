@@ -91,7 +91,7 @@ var FieldMany2One=NFView.extend({
             } else {
                 id=value;
             }
-            var action=find_details_action(field.relation,id);
+            var action=find_related_action(field.relation,id) || find_details_action(field.relation,id);
             if (action) {
                 this.data.link_url="#"+obj_to_qs(action);
             }

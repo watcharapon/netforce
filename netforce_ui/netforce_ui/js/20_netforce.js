@@ -555,7 +555,7 @@ function field_value(name,context,link,target,m2o_link,click_action,show_image,s
                         active_id: id
                     };
                 } else {
-                    action=find_details_action(field.relation,id);
+                    action=find_related_action(field.relation,id) || find_details_action(field.relation,id);
                     log("######################",field.relation,action);
                 }
                 if (action) {
@@ -1872,6 +1872,32 @@ function find_action(options) {
         }
     }
     return found_action;
+}
+
+function find_related_action(model,active_id){
+    log("find_related_action",model,active_id);
+    var action_name=null;
+    var actions=nf_actions;
+    for (var name in actions) {
+        var action=actions[name];
+        if (action.related_action && action.model==model){
+            action_name=name;
+            break
+        }
+    }
+    if (!action_name) return null;
+    var action=get_action(action_name);
+    var modes=(action.modes||"list,form").split(",");
+    var a={
+        name: action_name,
+        active_id: active_id
+    };
+    if (_.contains(modes,"page")) {
+        a.mode="page";
+    } else if (_.contains(modes,"form")) {
+        a.mode="form";
+    }
+    return a;
 }
 
 function find_details_action(model,active_id) {
