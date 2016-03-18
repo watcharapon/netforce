@@ -105,7 +105,7 @@ class LandedCost(Model):
                 inv_amt=alloc.amount
                 var_amt=0
             else:
-                ratio=min(alloc.qty_stock_lc/alloc.qty_stock_gr,1)
+                ratio=min(alloc.qty_stock_lc/alloc.qty_stock_gr,1) if alloc.qty_stock_gr else 0 # XXX
                 inv_amt=alloc.amount*ratio
                 var_amt=alloc.amount*(1-ratio)
             if inv_amt:
@@ -146,7 +146,7 @@ class LandedCost(Model):
             move=line.move_id
             if not move.qty:
                 raise Exception("Missing qty in stock movement %s"%move.number)
-            ratio=min(line.qty_stock_lc/line.qty_stock_gr,1)
+            ratio=min(line.qty_stock_lc/line.qty_stock_gr,1) if line.qty_stock_gr else 0
             journal_id=settings.landed_cost_journal_id.id
             if not journal_id:
                 raise Exception("Missing landed cost journal")
@@ -266,7 +266,7 @@ class LandedCost(Model):
             if obj.alloc_type=="amount":
                 alloc_amt=obj.alloc_amount*(line.cost_amount or 0)/total_amt
             elif obj.alloc_type=="qty":
-                alloc_amt=obj.alloc_amount*line.qty/total_qty
+                alloc_amt=obj.alloc_amount*line.qty/total_qty if total_qty else 0
             vals={
                 obj.alloc_cost_type: alloc_amt,
             }

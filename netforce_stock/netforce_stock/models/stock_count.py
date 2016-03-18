@@ -95,7 +95,7 @@ class StockCount(Model):
             "flash": "Stock count lines updated",
         }
 
-    def add_lines(self, ids, context={}):
+    def add_lines(self, ids, context={}): # FIXME: prev_qty
         print("stock_count.add_lines")
         obj = self.browse(ids)[0]
         loc_id = obj.location_id.id
@@ -154,18 +154,37 @@ class StockCount(Model):
             return {}
         prod = get_model("product").browse(prod_id)
         lot_id = line.get("lot_id")
-        qty = get_model("stock.balance").get_qty_phys(loc_id, prod_id, lot_id)
-        unit_price = get_model("stock.balance").get_unit_price(loc_id, prod_id)
+        key=(prod.id,lot_id,loc_id,None)
+        ctx={"date_to":data["date"]}
+        bals=get_model("stock.balance").compute_key_balances([key],context=ctx)[key]
+        qty=bals[0]
+        amt=bals[1]
+        unit_price=amt/qty if qty else 0
         line["bin_location"] = prod.bin_location
         line["prev_qty"] = qty
+        line["prev_cost_amount"] = amt
         line["prev_cost_price"] = unit_price
         line["new_qty"] = qty
         line["unit_price"] = unit_price
         line["uom_id"] = prod.uom_id.id
         return data
 
+    def update_prev_qtys(self,ids,context={}):
+        obj=self.browse(ids[0])
+        for line in obj.lines:
+            ctx={"date_to":obj.date}
+            key=(line.product_id.id,line.lot_id.id,obj.location_id.id,None)
+            bals=get_model("stock.balance").compute_key_balances([key],context=ctx)[key]
+            qty=bals[0]
+            amt=bals[1]
+            line.write({
+                "prev_qty": qty,
+                "prev_cost_amount": amt,
+            })
+
     def validate(self, ids, context={}):
-        obj = self.browse(ids)[0]
+        self.update_prev_qtys(ids,context=context)
+        obj = self.browse(ids[0])
         settings = get_model("settings").browse(1)
         res = get_model("stock.location").search([["type", "=", "inventory"]])
         if not res:
