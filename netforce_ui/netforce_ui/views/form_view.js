@@ -371,6 +371,7 @@ var FormView=NFView.extend({
                     create: $el.attr("create"),
                     search_mode: $el.attr("search_mode"),
                     method: $el.attr("method"),
+                    string: $el.attr("string"),
                     form_layout: form_layout,
                     context: ctx
                 };
