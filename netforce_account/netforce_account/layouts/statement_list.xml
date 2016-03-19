@@ -1,6 +1,6 @@
 <list model="account.statement" colors='{"#cfc":[["state","=","reconciled"]]}'>
     <top replace="1">
-        <button string="New Statement" action="statement" action_options='{"mode":"form"}' icon="plus-sign"/>
+        <button string="New Statement" perm_crud="create" action="statement" action_options='{"mode":"form"}' icon="plus-sign"/>
         <button string="Import" action="import_statement" icon="download"/>
     </top>
     <field name="account_id"/>

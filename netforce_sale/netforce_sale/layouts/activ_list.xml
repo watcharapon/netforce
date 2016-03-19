@@ -1,6 +1,6 @@
 <list model="activity" action="view_activity" colors='{"due_date,#f00":[["overdue","=",true]],"#9f9":[["state","=","done"]]}'>
     <top replace="1">
-        <button string="New Activity" icon="plus-sign" dropdown="1">
+        <button string="New Activity" perm_crud="create" icon="plus-sign" dropdown="1">
             <item string="Task" action="activ" action_options="mode=form&amp;context.activ_type=task"/>
             <item string="Event" action="activ" action_options="mode=form&amp;context.activ_type=event"/>
             <item string="Meeting" action="activ" action_options="mode=form&amp;context.activ_type=meeting"/>

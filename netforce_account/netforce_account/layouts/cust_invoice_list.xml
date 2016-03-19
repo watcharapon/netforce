@@ -1,8 +1,8 @@
 <list model="account.invoice" action="view_invoice">
     <top replace="1">
-        <button string="New Invoice" action="cust_invoice" action_options='{"mode":"form","form_view_xml":"cust_invoice_form","defaults":{"type":"out","inv_type":"invoice"}}' icon="plus-sign"/>
-        <button string="New Credit Note" action="cust_invoice" action_options='{"mode":"form","form_view_xml":"cust_credit_form","defaults":{"type":"out","inv_type":"credit"}}' icon="plus-sign"/>
-        <button string="New Debit Note" action="cust_invoice" action_options='{"mode":"form","form_view_xml":"cust_debit_form","defaults":{"type":"out","inv_type":"debit"}}' icon="plus-sign"/>
+        <button string="New Invoice" perm_crud="create" action="cust_invoice" action_options='{"mode":"form","form_view_xml":"cust_invoice_form","defaults":{"type":"out","inv_type":"invoice"}}' icon="plus-sign"/>
+        <button string="New Credit Note" perm_crud="create" action="cust_invoice" action_options='{"mode":"form","form_view_xml":"cust_credit_form","defaults":{"type":"out","inv_type":"credit"}}' icon="plus-sign"/>
+        <button string="New Debit Note" perm_crud="create" action="cust_invoice" action_options='{"mode":"form","form_view_xml":"cust_debit_form","defaults":{"type":"out","inv_type":"debit"}}' icon="plus-sign"/>
         <button string="Import" action="import_data" action_options='{"import_model":"account.invoice","next":"cust_invoice"}' icon="download"/>
     </top>
     <head>
