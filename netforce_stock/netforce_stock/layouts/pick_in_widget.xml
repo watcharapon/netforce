@@ -1,6 +1,6 @@
 <list model="stock.picking" action="pick_in" action_options="mode=form" priority="20">
     <head>
-        <button string="New Goods Receipt" icon="plus-sign" action="pick_in" action_options="mode=form" noselect="1"/>
+        <button string="New Goods Receipt" perm_model="stock.picking,create" icon="plus-sign" action="pick_in" action_options="mode=form" noselect="1"/>
     </head>
     <field name="number"/>
     <field name="ref"/>
