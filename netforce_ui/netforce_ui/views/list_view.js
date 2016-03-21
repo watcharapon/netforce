@@ -302,7 +302,6 @@ var ListView=NFView.extend({
                     icon: $el.attr("icon"),
                     perm: $el.attr("perm"),
                     perm_model: $el.attr("perm_model"),
-                    perm_crud: $el.attr("perm_crud"),
                     confirm: $el.attr("confirm"),
                     context: context
                 };
@@ -365,7 +364,6 @@ var ListView=NFView.extend({
                     icon: $el.attr("icon"),
                     perm: $el.attr("perm"),
                     perm_model: $el.attr("perm_model"),
-                    perm_crud: $el.attr("perm_crud"),
                     dropdown: $el.attr("dropdown"),
                     context: context
                 };

@@ -1,6 +1,6 @@
 <list model="purchase">
     <head>
-        <button string="New Purchase Order" perm_crud="create" icon="plus-sign" action="purchase" action_options="mode=form" noselect="1"/>
+        <button string="New Purchase Order" perm_model="purchase,create" icon="plus-sign" action="purchase" action_options="mode=form" noselect="1"/>
     </head>
     <field name="number"/>
     <field name="ref"/>

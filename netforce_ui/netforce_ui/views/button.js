@@ -74,7 +74,6 @@ var Button=NFView.extend({
             });
         }
         var perm_model=this.options.perm_model;
-        var perm_crud=this.options.perm_crud;
         if (this.options.perm) {
             this.has_perm=false;
             this.$el.hide();
@@ -84,19 +83,21 @@ var Button=NFView.extend({
                     this.$el.show();
                 }
             }
-        }else if (perm_crud && typeof(perm_crud)==typeof('')) {
-            var model=perm_model || this.context.model_name;
-            var perms=perm_crud.split(",");
-            var all_perm=[];
-            for(var i=0; i<perms.length;i++){
-                var perm=perms[i];
-                all_perm.push(check_model_permission(model,perm));
-            }
-            this.has_perm=all_perm ? _.contains(all_perm,true) : true;
-            if (!this.check_visible()) {
-                this.$el.hide();
-            } else {
-                this.$el.show();
+        }else if (perm_model && typeof(perm_model)==typeof('')) {
+            var perms=perm_model.split(",");
+            if (perms.length>1){
+                var model=perms[0];
+                var all_perm=[];
+                for(var i=1; i<perms.length;i++){
+                    var perm=perms[i];
+                    all_perm.push(check_model_permission(model,perm));
+                }
+                this.has_perm=all_perm ? _.contains(all_perm,true) : true;
+                if (!this.check_visible()) {
+                    this.$el.hide();
+                } else {
+                    this.$el.show();
+                }
             }
         } else {
             this.has_perm=true;
