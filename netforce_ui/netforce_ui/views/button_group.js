@@ -41,22 +41,13 @@ var ButtonGroup=NFView.extend({
             this.data.btn_size="xs";
         }
         this.data.btn_type=this.options.type||"default";
-        NFView.prototype.render.call(this);
-        if (this.options.pull) {
-            this.$el.addClass("pull-"+this.options.pull);
-        }
-        if (this.options.align) {
-            this.$el.find("ul").addClass("pull-"+this.options.align);
-        }
-
         var perm_model=this.options.perm_model;
         if (this.options.perm) {
-            this.has_perm=false;
-            this.$el.hide();
+            this.data.show=true;
             if (check_other_permission(this.options.perm)) {
                 this.has_perm=true;
-                if (this.check_visible()) {
-                    this.$el.show();
+                if (!this.check_visible()) {
+                    this.data.show=false;
                 }
             }
         }else if (perm_model && typeof(perm_model)==typeof('')) {
@@ -70,18 +61,25 @@ var ButtonGroup=NFView.extend({
                 }
                 this.has_perm=all_perm ? _.contains(all_perm,true) : true;
                 if (!this.check_visible()) {
-                    this.$el.hide();
+                    this.data.show=false;
                 } else {
-                    this.$el.show();
+                    this.data.show=true;
                 }
             }
         } else {
             this.has_perm=true;
             if (!this.check_visible()) {
-                this.$el.hide();
+                this.data.show=false;
             } else {
-                this.$el.show();
+                this.data.show=true;
             }
+        }
+        NFView.prototype.render.call(this);
+        if (this.options.pull) {
+            this.$el.addClass("pull-"+this.options.pull);
+        }
+        if (this.options.align) {
+            this.$el.find("ul").addClass("pull-"+this.options.align);
         }
     },
 
