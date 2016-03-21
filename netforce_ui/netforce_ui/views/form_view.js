@@ -553,6 +553,8 @@ var FormView=NFView.extend({
                     icon: $el.attr("icon"),
                     states: $el.attr("states"),
                     perm: $el.attr("perm"),
+                    perm_model: $el.attr("perm_model") || that.options.model,
+                    perm_crud: $el.attr("perm_crud"),
                     attrs: $el.attr("attrs"),
                     context: context
                 };
@@ -657,6 +659,8 @@ var FormView=NFView.extend({
                     icon: $el.attr("icon"),
                     states: $el.attr("states"),
                     perm: $el.attr("perm"),
+                    perm_model: $el.attr("perm_model")  || that.options.model,
+                    perm_crud: $el.attr("perm_crud"),
                     attrs: $el.attr("attrs"),
                     split: $el.attr("split"),
                     confirm: $el.attr("confirm"),
@@ -690,6 +694,8 @@ var FormView=NFView.extend({
                                 next: $el2.attr("next"),
                                 confirm: $el2.attr("confirm"),
                                 perm: $el2.attr("perm"),
+                                perm_model: $el2.attr("perm_model") || that.options.model,
+                                perm_crud: $el2.attr("perm_crud"),
                                 context: context
                             }
                             if (that.active_id) {
@@ -762,6 +768,8 @@ var FormView=NFView.extend({
                     dropdown: $el.attr("dropdown"),
                     align: "right",
                     perm: $el.attr("perm"),
+                    perm_model: $el.attr("perm_model") || that.options.model,
+                    perm_crud: $el.attr("perm_crud"),
                     context: context
                 };
                 if (that.active_id) {
@@ -782,6 +790,8 @@ var FormView=NFView.extend({
                                 states: $el2.attr("states"),
                                 confirm: $el2.attr("confirm"),
                                 perm: $el2.attr("perm"),
+                                perm_model: $el2.attr("perm_model") || that.options.model,
+                                perm_crud: $el2.attr("perm_crud"),
                                 context: context
                             }
                             if (that.active_id) { // XXX: deprecated
