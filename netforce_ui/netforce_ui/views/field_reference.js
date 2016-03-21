@@ -61,7 +61,7 @@ var FieldReference=NFView.extend({
             var res=val.split(",");
             var relation=res[0];
             var id=res[1];
-            var action=find_related_action(relation,id) || find_details_action(relation,id);
+            var action=find_details_action(relation,id);
             if (action) {
                 this.data.link_url="#"+obj_to_qs(action);
             } else {
