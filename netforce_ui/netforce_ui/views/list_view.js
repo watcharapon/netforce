@@ -232,7 +232,7 @@ var ListView=NFView.extend({
         var html=$("<div/>");
         if ((this.options.show_full || this.options.show_search) && !this.$list.attr("no_search")) { // XXX
             if (_.isEmpty(this.options.search_condition)) {
-                html.append('<button type="button" class="btn btn-sm btn-default pull-right search-btn" style="white-space:nowrap;"><i class="icon-search"></i> Search</button>');
+                html.append('<button type="button" class="btn btn-sm btn-default pull-right search-btn" style="white-space:nowrap;"><i class="icon-search"></i> '+ translate("Search")+"</button>");
             }
         }
         if (this.options.show_full||this.options.show_default_buttons) { // XXX

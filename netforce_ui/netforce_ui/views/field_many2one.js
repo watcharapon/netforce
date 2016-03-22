@@ -367,7 +367,8 @@ var FieldMany2One=NFView.extend({
             if (!cur_text) {
                 var mr=get_model(this.relation);
                 if (mr.string) {
-                    var item=$('<li data-value="_create_link"><a href="#" style="font-weight:bold">New '+mr.string+'</a></li>');
+                    var new_item=translate('New '+mr.string);
+                    var item=$('<li data-value="_create_link"><a href="#" style="font-weight:bold">'+new_item+'</a></li>');
                     items=[item[0]].concat(items);
                 }
             }
