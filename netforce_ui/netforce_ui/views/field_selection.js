@@ -43,7 +43,7 @@ var FieldSelection=NFView.extend({
         var name=this.options.name;
         this.$el.addClass("field-"+name);
         var model=this.context.model;
-        var value=model.get(name);
+        var value=translate(model.get(name));
         this.data.value=value;
         var field=model.get_field(name);
         if (!this.selection) {
