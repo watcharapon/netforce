@@ -1664,7 +1664,7 @@ window.NFModel=Backbone.Model.extend({
                 if(t!='number' && _.isEmpty(v)){
                     errors[n]="Missing value";
                     ok=false;
-                }else if(t=='number' && v==0){
+                }else if(t=='number' && v==null){
                     errors[n]="Missing value";
                     ok=false;
                 }
