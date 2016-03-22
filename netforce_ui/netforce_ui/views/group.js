@@ -110,6 +110,7 @@ var Group=NFView.extend({
                     condition: $el.attr("condition"),
                     perm: $el.attr("perm"),
                     pkg: $el.attr("pkg"),
+                    mode: $el.attr("mode"),
                     link: $el.attr("link"),
                     view: $el.attr("view"),
                     strong: $el.attr("strong"),

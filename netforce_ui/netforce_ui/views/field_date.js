@@ -50,6 +50,9 @@ var FieldDate=NFView.extend({
         this.data.value=val;
         var field=model.get_field(name);
         this.data.string=field.string;
+        if (this.options.string) {
+            this.data.string=this.options.string;
+        }
         this.data.readonly=field.readonly||this.options.readonly||this.context.readonly;
         var attrs=this.eval_attrs();
         if (attrs.readonly!==undefined) {

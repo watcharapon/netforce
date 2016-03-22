@@ -1,6 +1,6 @@
 <list model="sale.order">
     <head>
-        <button string="New Sales Order" action="sale" action_options="mode=form" icon="plus-sign" noselect="1"/>
+        <button string="New Sales Order" perm_model="sale.order,create" action="sale" action_options="mode=form" icon="plus-sign" noselect="1"/>
     </head>
     <field name="number"/>
     <field name="ref"/>
