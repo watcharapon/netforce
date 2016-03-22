@@ -28,6 +28,7 @@ class StockPeriod(Model):
     _string="Stock Period"
     _multi_company = True
     _key = ["company_id", "number"]
+    _name_field="number"
     _fields={
         "number": fields.Char("Number",required=True,search=True),
         "date_from": fields.Date("Date From",required=True),
@@ -89,6 +90,7 @@ class StockPeriod(Model):
             "narration": desc,
             "date": obj.date_to,
             "lines": [("create",vals) for vals in lines],
+            'related_id': 'stock.period,%s'%obj.id,
         }
         from pprint import pprint
         pprint(vals)
