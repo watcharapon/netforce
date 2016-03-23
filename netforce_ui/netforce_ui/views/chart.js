@@ -26,7 +26,7 @@ var Chart=NFView.extend({
     render: function() {
         //log("chart.render",this);
         var that=this;
-        var data=this.options.data||this.context.value||this.context.data.value;
+        var data=this.options.data||this.context.value|| this.context.data && this.context.data.value;
         if (!data) {
             log("WARNING","No chart data");
             return this;

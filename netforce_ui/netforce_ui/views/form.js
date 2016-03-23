@@ -66,6 +66,11 @@ var Form=NFView.extend({
             var that=this;
             rpc_execute(model.name,"call_onchange",[method],{context: ctx},function(err,res) {
                 var data, field_attrs, alert_msg;
+                if (err){
+                    set_flash('error',err.message);
+                    render_flash();
+                    return;
+                }
                 if (res.data || res.field_attrs || res.alert) {
                     data=res.data;
                     field_attrs=res.field_attrs;

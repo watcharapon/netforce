@@ -73,12 +73,29 @@ var Button=NFView.extend({
                 that.$el.show();
             });
         }
+        var perm_model=this.options.perm_model;
         if (this.options.perm) {
             this.has_perm=false;
             this.$el.hide();
             if (check_other_permission(this.options.perm)) {
                 this.has_perm=true;
                 if (this.check_visible()) {
+                    this.$el.show();
+                }
+            }
+        }else if (perm_model && typeof(perm_model)==typeof('')) {
+            var perms=perm_model.split(",");
+            if (perms.length>1){
+                var model=perms[0];
+                var all_perm=[];
+                for(var i=1; i<perms.length;i++){
+                    var perm=perms[i];
+                    all_perm.push(check_model_permission(model,perm));
+                }
+                this.has_perm=all_perm ? _.contains(all_perm,true) : true;
+                if (!this.check_visible()) {
+                    this.$el.hide();
+                } else {
                     this.$el.show();
                 }
             }

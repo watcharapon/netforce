@@ -583,7 +583,7 @@ function field_value(name,context,link,target,m2o_link,click_action,show_image,s
             for (var i in field.selection) {
                 var v=field.selection[i];
                 if (v[0]==val) {
-                    val=v[1];
+                    val=translate(v[1]);
                     break;
                 }
             }
@@ -1659,9 +1659,15 @@ window.NFModel=Backbone.Model.extend({
             var required=this.required_fields[n];
             var v=this.get(n);
             //log("n",n,"req",required,"v",v);
-            if (required && !v && v!=0) {
-                errors[n]="Missing value";
-                ok=false;
+            if (required){
+                var t=typeof(v);
+                if(t!='number' && _.isEmpty(v)){
+                    errors[n]="Missing value";
+                    ok=false;
+                }else if(t=='number' && v==null){
+                    errors[n]="Missing value";
+                    ok=false;
+                }
             }
             if (f.type=="one2many") {
                 if (v instanceof NFCollection) {
