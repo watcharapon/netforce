@@ -11,6 +11,7 @@
     <separator/>
     <field name="actual_hours"/>
     <field name="bill_hours"/>
+    <field name="sale_price"/>
     <separator string="Costing"/>
     <field name="track_id"/>
     <field name="cost_amount"/>

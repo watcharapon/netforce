@@ -13,4 +13,5 @@
     <field name="total_credit"/>
     <field name="difference"/>
     <field name="state"/>
+    <field name="verified"/>
 </list>

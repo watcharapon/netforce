@@ -21,6 +21,7 @@
 from netforce.model import Model, fields, get_model
 from netforce.utils import get_data_path
 import time
+from decimal import Decimal
 from netforce import config
 from netforce import database
 from pprint import pprint
@@ -281,6 +282,8 @@ class Invoice(Model):
                 rate_from = obj.currency_id.get_rate(date=obj.date)
                 if not rate_from:
                     raise Exception("Missing currency rate for %s" % obj.currency_id.code)
+                if not settings.currency_id:
+                    raise Exception("Missing default currency in Financial Settings")
                 rate_to = settings.currency_id.get_rate(date=obj.date)
                 if not rate_to:
                     raise Exception("Missing currency rate for %s" % settings.currency_id.code)
@@ -639,13 +642,40 @@ class Invoice(Model):
                     data["amount_tax"] += tax_amt
             else:
                 base_amt = amt
-            data["amount_subtotal"] += base_amt
+            data["amount_subtotal"] += Decimal(base_amt)
         if tax_type == "tax_in":
             data["amount_rounding"] = sum(
                 l.get("amount") or 0 for l in data["lines"] if l) - (data["amount_subtotal"] + data["amount_tax"])
         else:
             data["amount_rounding"] = 0
         data["amount_total"] = data["amount_subtotal"] + data["amount_tax"] + data["amount_rounding"]
+
+        paid = 0
+        for pmt in data['payments']:
+            if pmt['payment_id'] == data['payment_id']:
+                continue
+            if data['type'] == pmt['type']:
+                paid -= pmt['amount_currency']
+            else:
+                paid += pmt['amount_currency']
+        if data['inv_type'] in ("invoice", "debit"):
+            cred_amt = 0
+            for alloc in data['credit_notes']:
+                cred_amt += alloc['amount']
+            data["amount_due"] = data["amount_total"] - paid - cred_amt
+            data["amount_paid"] = paid + cred_amt
+        elif data['inv_type'] in ("credit", "prepay", "overpay"):
+            cred_amt = 0
+            for alloc in data['credit_alloc']:
+                cred_amt += alloc['amount']
+            for pmt in data['payments']:
+                payment=get_model("account.payment").browse(pmt['payment_id'])
+                if payment.type == data['type']:
+                    cred_amt += pmt['amount']
+                else:
+                    cred_amt -= pmt['amount']
+            data["amount_credit_remain"] = data["amount_total"] - cred_amt
+            data["amount_due"] = -data["amount_credit_remain"]
         return data
 
     def onchange_product(self, context):

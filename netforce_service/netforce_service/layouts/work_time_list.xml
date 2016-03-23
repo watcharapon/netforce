@@ -10,5 +10,6 @@
     <field name="description"/>
     <field name="actual_hours"/>
     <field name="bill_hours"/>
+    <field name="sale_price"/>
     <field name="state"/>
 </list>

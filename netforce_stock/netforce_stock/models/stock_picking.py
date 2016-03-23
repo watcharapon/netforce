@@ -63,7 +63,7 @@ class Picking(Model):
         "landed_costs": fields.Many2Many("landed.cost","Landed Costs",function="get_landed_costs"),
         "messenger_id": fields.Many2One("messenger","Messenger"),
         "avail_messengers": fields.Many2Many("messenger","Available Messengers"),
-        "currency_rate": fields.Decimal("Currency Rate"),
+        "currency_rate": fields.Decimal("Currency Rate",scale=6),
         "product_id2": fields.Many2One("product","Product",store=False,function_search="search_product2",search=True), #XXX ICC
         "sequence": fields.Decimal("Sequence",function="_get_related",function_context={"path":"ship_address_id.sequence"}),
         "delivery_slot_id": fields.Many2One("delivery.slot","Delivery Slot"),

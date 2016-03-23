@@ -192,30 +192,37 @@ class Move(Model):
         obj = self.browse(ids[0])
         if obj.picking_id:
             pick = obj.picking_id
-            if pick.type == "in":
-                next = {
-                    "name": "pick_in",
-                    "mode": "form",
-                    "active_id": pick.id,
-                }
-            elif pick.type == "out":
-                next = {
-                    "name": "pick_out",
-                    "mode": "form",
-                    "active_id": pick.id,
-                }
-            elif pick.type == "internal":
-                next = {
-                    "name": "pick_internal",
-                    "mode": "form",
-                    "active_id": pick.id,
-                }
+            next=pick.view_picking()['next']
         elif obj.stock_count_id:
             next = {
                 "name": "stock_count",
                 "mode": "form",
                 "active_id": obj.stock_count_id.id,
             }
+        elif obj.related_id:
+            rel=obj.related_id
+            name=rel._model
+            action_name=''
+            if name=='stock.picking':
+                action_name='view_picking'
+            elif name=='sale.order':
+                action_name='sale'
+            elif name=='stock.count':
+                action_name='stock_count'
+            elif name=='purchase.order':
+                action_name='purchase'
+            elif name=='account.invoice':
+                action_name='view_invoice'
+            elif name=='account.payment':
+                action_name='payment'
+            else:
+                pass
+            if action_name:
+                next={
+                    'name': action_name,
+                    'mode': 'form',
+                    'active_id': rel.id,
+                }
         else:
             raise Exception("Invalid stock move")
         return {"next": next}

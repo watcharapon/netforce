@@ -73,8 +73,8 @@ class ReportServiceTime(Model):
                 line["total_actual_hours"] += vals["actual_hours"]
                 line["total_bill_hours"] += vals["bill_hours"] or 0
                 if w < weeks[-1]:
-                    line["older"]["actual_hours"] += vals["actual_hours"]
-                    line["older"]["bill_hours"] += vals["bill_hours"]
+                    line["older"]["actual_hours"] += vals["actual_hours"] or 0
+                    line["older"]["bill_hours"] += vals["bill_hours"] or 0
             lines.append(line)
         data = {
             "lines": lines,

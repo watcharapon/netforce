@@ -26,6 +26,9 @@ class ShareAccess(Model):
     _name = "share.access"
     _string = "Sharing Setting"
     _order = "model_id"
+    _audit_log = True
+    _name_field="model_id" #XXX
+
     _fields = {
         "model_id": fields.Many2One("model", "Model", required=True, search=True),
         "default_access": fields.Selection([["private", "Private"], ["public_ro", "Public Read Only"], ["public_rw", "Public Read/Write"], ["custom", "Custom Filter"]], "Default Access", required=True, search=True),
@@ -45,6 +48,14 @@ class ShareAccess(Model):
         "active": True,
     }
     _order = "model_id,description"
+
+    def name_get(self, ids, context={}):
+        vals = []
+        for obj in self.browse(ids):
+            selections=dict(self._fields['default_access'].selection)
+            name = "[%s] %s" % (obj.model_id.string, selections[obj.default_access])
+            vals.append((obj.id, name))
+        return vals
 
     def _get_profile_names(self, ids, context={}):
         vals = {}
