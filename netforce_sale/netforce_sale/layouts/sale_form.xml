@@ -86,6 +86,7 @@
             </group>
         </tab>
         <tab string="Promotions">
+            <field name="voucher_id"/>
             <separator string="Promotions"/>
             <field name="used_promotions" nolabel="1">
                 <list>

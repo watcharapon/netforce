@@ -33,6 +33,7 @@ class ProductGroup(Model):
         "filter_products": fields.Many2Many("product","Products",function="get_filter_products"),
         "image": fields.File("Image"),
         "company_id": fields.Many2One("company","Company"),
+        "description" :fields.Text("Description"),
     }
     _order = "name"
 

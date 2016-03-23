@@ -4,6 +4,7 @@
     <field name="parent_id"/>
     <field name="image"/>
     <field name="company_id"/>
+    <field name="description"/>
     <group span="12" form_layout="stacked">
         <field name="products" span="12"/>
     </group>

@@ -122,6 +122,7 @@ class SaleOrder(Model):
         "currency_rates": fields.One2Many("custom.currency.rate","related_id","Currency Rates"),
         "delivery_slot_id": fields.Many2One("delivery.slot","Delivery Slot"),
         "transaction_no": fields.Char("Payment Transaction No.",search=True),
+        "voucher_id": fields.Many2One("sale.voucher","Voucher"),
     }
 
     def _get_number(self, context={}):

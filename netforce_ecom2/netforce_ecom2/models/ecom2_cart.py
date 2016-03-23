@@ -15,12 +15,15 @@ class Cart(Model):
         "date": fields.DateTime("Date Created",required=True,search=True),
         "customer_id": fields.Many2One("contact","Customer",search=True),
         "lines": fields.One2Many("ecom2.cart.line","cart_id","Lines"),
+        "ship_amount_details": fields.Json("Shipping Amount Details",function="get_ship_amount_details"),
+        "amount_ship": fields.Decimal("Shipping Amount",function="get_amount_ship"),
         "amount_total": fields.Decimal("Total Amount",function="get_total"),
         "sale_orders": fields.One2Many("sale.order","related_id","Sales Orders"),
         "delivery_date": fields.Date("Delivery Date"),
         "ship_address_id": fields.Many2One("address","Shipping Address"),
         "bill_address_id": fields.Many2One("address","Billing Address"),
         "delivery_slot_id": fields.Many2One("delivery.slot","Peferred Delivery Slot"),
+        "ship_method_id": fields.Many2One("ship.method","Shipping Method"),
         "pay_method_id": fields.Many2One("payment.method","Payment Method"),
         "logs": fields.One2Many("log","related_id","Audit Log"),
         "state": fields.Selection([["draft","Draft"],["confirmed","Confirmed"],["canceled","Canceled"]],"Status",required=True),
@@ -28,11 +31,16 @@ class Cart(Model):
         "delivery_delay": fields.Integer("Delivery Delay (Days)",function="get_delivery_delay"),
         "delivery_slots": fields.Json("Delivery Slots",function="get_delivery_slots"),
         "delivery_slots_str": fields.Text("Delivery Slots",function="get_delivery_slots_str"),
+        "date_delivery_slots": fields.Json("Date Delivery Slots",function="get_date_delivery_slots"),
         "comments": fields.Text("Comments"),
         "transaction_no": fields.Char("Payment Transaction No.",search=True),
         "currency_id": fields.Many2One("currency","Currency",required=True),
         "invoices": fields.One2Many("account.invoice","related_id","Invoices"),
         "company_id": fields.Many2One("company","Company"),
+        "voucher_id": fields.Many2One("sale.voucher","Voucher"),
+        "ship_addresses": fields.Json("Shipping Addresses",function="get_ship_addresses"),
+        "amount_voucher": fields.Decimal("Voucher Amount",function="get_amount_voucher",function_multi=True),
+        "voucher_error_message": fields.Text("Voucher Error Message",function="get_amount_voucher",function_multi=True),
     }
     _order="date desc"
 
@@ -66,13 +74,55 @@ class Cart(Model):
         if res:
             return res[0]
 
+    def _get_ship_method(self,context={}):
+        res=get_model("ship.method").search([])
+        if res:
+            return res[0]
+
     _defaults={
         "date": lambda *a: time.strftime("%Y-%m-%d %H:%M:%S"),
         "number": _get_number,
         "state": "draft",
         "currency_id": _get_currency,
         "company_id": _get_company,
+        "ship_method_d": _get_ship_method,
     }
+
+    def get_ship_amount_details(self,ids,context={}):
+        print("get_ship_amount_details",ids)
+        vals={}
+        for obj in self.browse(ids):
+            delivs=[]
+            for line in obj.lines:
+                date=line.delivery_date
+                meth_id=line.ship_method_id.id
+                addr_id=line.ship_address_id.id or line.cart_id.ship_address_id.id
+                if not date or not meth_id or not addr_id:
+                    continue
+                delivs.append((date,meth_id,addr_id))
+            delivs=list(set(delivs))
+            details=[]
+            for date,meth_id,addr_id in delivs:
+                ctx={
+                    "ship_address_id": addr_id,
+                }
+                meth=get_model("ship.method").browse(meth_id,context=ctx)
+                details.append({
+                    "ship_method_id": meth.id,
+                    "ship_amount": meth.ship_amount,
+                })
+            vals[obj.id]=details
+        return vals
+
+    def get_amount_ship(self,ids,context={}):
+        print("get_amount_ship",ids)
+        vals={}
+        for obj in self.browse(ids):
+            ship_amt=0
+            for d in obj.ship_amount_details:
+                ship_amt+=d["ship_amount"]
+            vals[obj.id]=ship_amt
+        return vals
 
     def get_total(self,ids,context={}):
         vals={}
@@ -80,7 +130,7 @@ class Cart(Model):
             amt=0
             for line in obj.lines:
                 amt+=line.amount
-            vals[obj.id]=amt
+            vals[obj.id]=amt+obj.amount_ship-obj.amount_voucher
         return vals
 
     def get_payment_methods(self,ids,context={}):
@@ -130,6 +180,21 @@ class Cart(Model):
                 "lot_id": line.lot_id.id,
                 "due_date": line.delivery_date,
                 "ship_address_id": line.ship_address_id.id,
+            }
+            vals["lines"].append(("create",line_vals))
+        for ship in obj.ship_amount_details:
+            meth_id=ship["ship_method_id"]
+            amount=ship["ship_amount"]
+            meth=get_model("ship.method").browse(meth_id)
+            prod=meth.product_id
+            if not prod:
+                raise Exception("Missing product in shipping method %s"%meth.name)
+            line_vals={
+                "product_id": prod.id,
+                "description": prod.description,
+                "qty": 1,
+                "uom_id": prod.uom_id.id,
+                "unit_price": amount,
             }
             vals["lines"].append(("create",line_vals))
         sale_id=get_model("sale.order").create(vals)
@@ -334,5 +399,108 @@ class Cart(Model):
                     s+="    - %s: %s (%s/%s)\n"%(name,state,num_sales,capacity or "-")
             vals[obj.id]=s
         return vals
+
+    def get_date_delivery_slots(self,ids,context={}):
+        print("get_date_delivery_slots",ids)
+        obj=self.browse(ids[0])
+        slots=[]
+        for slot in get_model("delivery.slot").search_browse([]):
+            slots.append([slot.id,slot.name])
+        dates=[]
+        for line in obj.lines:
+            d=line.delivery_date
+            if d:
+                dates.append(d)
+        dates=list(set(dates))
+        date_slots={}
+        for d in dates:
+            date_slots[d]=slots # TODO: use capacity?
+        return {obj.id: date_slots}
+
+    def get_ship_addresses(self,ids,context={}):
+        obj=self.browse(ids[0])
+        settings=get_model("ecom2.settings").browse(1)
+        contact=obj.customer_id
+        addrs=[]
+        if contact:
+            for a in contact.addresses:
+                addr_vals={
+                    "id": a.id,
+                    "name": a.address,
+                }
+                if obj.ship_method_id: # TODO: handle general case for different shipping methods per order
+                    meth_id=obj.ship_method_id.id
+                    ctx={"ship_address_id": a.id}
+                    meth=get_model("ship.method").browse(meth_id,context=ctx)
+                    addr_vals["ship_amount"]=meth.ship_amount
+                else:
+                    addr_vals["ship_amount"]=0
+                addrs.append(addr_vals)
+        for a in settings.extra_ship_addresses:
+            addr_vals={
+                "id": a.id,
+                "name": a.company+", "+a.address,
+            }
+            if obj.ship_method_id:
+                meth_id=obj.ship_method_id.id
+                ctx={"ship_address_id": a.id}
+                meth=get_model("ship.method").browse(meth_id,context=ctx)
+                addr_vals["ship_amount"]=meth.ship_amount
+            else:
+                addr_vals["ship_amount"]=0
+            addrs.append(addr_vals)
+        return {obj.id: addrs}
+
+    def apply_voucher_code(self,ids,voucher_code,context={}):
+        obj=self.browse(ids[0])
+        res=get_model("sale.voucher").search([["code","=",voucher_code]])
+        if not res:
+            raise Exception("Invalid voucher code")
+        voucher_id=res[0]
+        obj.write({"voucher_id":voucher_id})
+
+    def clear_voucher(self,ids,context={}):
+        obj=self.browse(ids[0])
+        obj.write({"voucher_id":None})
+
+    def get_amount_voucher(self,ids,context={}):
+        print("get_amount_voucher",ids)
+        vals={}
+        for obj in self.browse(ids):
+            voucher=obj.voucher_id
+            if voucher:
+                ctx={
+                    "contact_id": obj.customer_id.id,
+                    "amount_total": 0,
+                    "products": [],
+                }
+                for line in obj.lines:
+                    ctx["amount_total"]+=line.amount
+                    ctx["products"].append({
+                        "product_id": line.product_id.id,
+                        "unit_price": line.unit_price,
+                        "qty": line.qty,
+                        "uom_id": line.uom_id.id,
+                        "amount": line.amount,
+                    })
+                ctx["amount_total"]+=obj.amount_ship
+                res=voucher.apply_voucher(context=ctx)
+                disc_amount=res.get("discount_amount",0)
+                error_message=res.get("error_message")
+            else:
+                disc_amount=0
+                error_message=None
+            vals[obj.id]={
+                "amount_voucher": disc_amount,
+                "voucher_error_message": error_message,
+            }
+        return vals
+
+    def update_date_delivery(self,ids,date,vals,context={}):
+        print("cart.update_date_delivery",ids,date,vals)
+        obj=self.browse(ids[0])
+        for line in obj.lines:
+            if line.delivery_date==date:
+                line.write(vals)
 
 Cart.register()

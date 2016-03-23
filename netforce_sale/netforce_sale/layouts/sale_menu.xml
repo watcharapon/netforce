@@ -14,6 +14,7 @@
         <item string="Coupon Masters" action="coupon_master"/>
         <item string="Coupons" action="coupon"/>
         <item string="Events" action="sale_event"/>
+        <item string="Vouchers" action="sale_voucher"/>
     </item>
     <item string="Reports">
         <item string="Leads Analysis" action="lead_analysis"/>

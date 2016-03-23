@@ -161,6 +161,8 @@ var FieldInteger=NFView.extend({
                     clause_v=v!=cons;
                 } else if (op=="in") {
                     clause_v=_.contains(cons,v);
+                } else if (op=="not in") {
+                    clause_v=!_.contains(cons,v);
                 } else {
                     throw "Invalid operator: "+op;
                 }
