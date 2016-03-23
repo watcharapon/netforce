@@ -261,7 +261,15 @@ class Move(Model):
             self.post(ids,context=context)
         self.update_lots(ids,context=context)
         self.set_reference(ids,context=context)
+        self.check_periods(ids,context=context)
         print("<<<  stock_move.set_done")
+
+    def check_periods(self,ids,context={}):
+        for obj in self.browse(ids):
+            d=obj.date[:10]
+            res=get_model("stock.period").search([["date_from","<=",d],["date_to",">=",d]],["state","=","posted"])
+            if res:
+                raise Exception("Failed to validate stock movement because stock period already posted")
 
     def set_reference(self,ids,context={}):
         for obj in self.browse(ids):
