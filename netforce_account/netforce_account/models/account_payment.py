@@ -1089,9 +1089,11 @@ class Payment(Model):
             rate_type = "buy"
         lines = []
         for exp in get_model("hr.expense").search_browse([["employee_id", "=", employee_id]]):
+            if not exp.amount_due:
+                continue
             lines.append({
                 "expense_id": exp.id,
-                "amount": get_model("currency").convert(exp.amount_total, exp.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type),
+                "amount": get_model("currency").convert(exp.amount_due, exp.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type),
             })
         data["claim_lines"] = lines
         data = self.update_amounts(context)
