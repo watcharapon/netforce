@@ -24,10 +24,10 @@
             <field name="amount"/>
         </list>
     </field>
-    <group offset="8" span="4">
-        <field name="amount_subtotal" span="4"/>
-        <field name="amount_tax" span="4"/>
-        <field name="amount_total" span="4"/>
+    <group offset="8" span="4" columns="1">
+        <field name="amount_subtotal"/>
+        <field name="amount_tax"/>
+        <field name="amount_total"/>
         <field name="credit_alloc">
             <fields>
                 <field name="invoice_id"/>
@@ -63,7 +63,7 @@
                 {{/each}}
             </template>
         </field>
-        <field name="amount_credit_remain" span="4" states="waiting_payment,paid"/>
+        <field name="amount_credit_remain" states="waiting_payment,paid"/>
     </group>
     <field name="type" invisible="1"/>
     <field name="inv_type" invisible="1"/>
