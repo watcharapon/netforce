@@ -618,8 +618,14 @@ var Button=NFView.extend({
                             exec_action(action);
                         }
                     });*/ // XXX: check this...
-                    action.refer_id=this.context.model.id;
-                    exec_action(action);
+                    if (!this.context.model.check_required()) {
+                        set_flash("error","Some required fields are missing");
+                        render_flash();
+                        return;
+                    }else{
+                        action.refer_id=this.context.model.id;
+                        exec_action(action);
+                    }
                 } else {
                     exec_action(action); // XXX: parent_context
                 }
