@@ -262,22 +262,10 @@ class Payment(Model):
                                         if comp.type == "vat":
                                             inv_vat += tax_amt
                                         elif comp.type == "wht":
-                                            #wht -= tax_amt
                                             inv_wht -= tax_amt
                                 else:
                                     base_amt = invline_amt
                                 subtotal += base_amt
-                            #if not automatic compute
-                            if not (inv_wht and inv_vat ) and inv.taxes:
-                                inv_vat = 0
-                                inv_wht = 0
-                                for tax in inv.taxes:
-                                    comp=tax.tax_comp_id
-                                    tax_amt=tax.tax_amount*pay_ratio
-                                    if comp.type == "vat":
-                                        inv_vat += tax_amt
-                                    elif comp.type == "wht":
-                                        inv_wht -= tax_amt
                             for alloc in inv.credit_notes:
                                 cred = alloc.credit_id
                                 cred_ratio = alloc.amount / cred.amount_total

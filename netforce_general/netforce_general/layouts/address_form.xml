@@ -5,14 +5,6 @@
     <field name="company"/>
     <field name="address"/>
     <field name="address2"/>
-    <field name="unit_no" attrs='{"invisible": [["type","!=","reporting"]]}'/>
-    <field name="floor" attrs='{"invisible": [["type","!=","reporting"]]}'/>
-    <field name="bldg_name" attrs='{"invisible": [["type","!=","reporting"]]}'/>
-    <field name="bldg_no" attrs='{"invisible": [["type","!=","reporting"]]}'/>
-    <field name="village" attrs='{"invisible": [["type","!=","reporting"]]}'/>
-    <field name="soi" attrs='{"invisible": [["type","!=","reporting"]]}'/>
-    <field name="moo" attrs='{"invisible": [["type","!=","reporting"]]}'/>
-    <field name="street" attrs='{"invisible": [["type","!=","reporting"]]}'/>
     <field name="city"/>
     <field name="postal_code"/>
     <field name="country_id"/>
@@ -21,4 +13,12 @@
     <field name="subdistrict_id" condition='[["district_id","=",district_id]]'/>
     <field name="phone"/>
     <field name="sequence"/>
+    <field name="unit_no" attrs='{"invisible": [["type","!=","reporting"]]}'/>
+    <field name="floor" attrs='{"invisible": [["type","!=","reporting"]]}'/>
+    <field name="bldg_name" attrs='{"invisible": [["type","!=","reporting"]]}'/>
+    <field name="bldg_no" attrs='{"invisible": [["type","!=","reporting"]]}'/>
+    <field name="village" attrs='{"invisible": [["type","!=","reporting"]]}'/>
+    <field name="soi" attrs='{"invisible": [["type","!=","reporting"]]}'/>
+    <field name="moo" attrs='{"invisible": [["type","!=","reporting"]]}'/>
+    <field name="street" attrs='{"invisible": [["type","!=","reporting"]]}'/>
 </form>

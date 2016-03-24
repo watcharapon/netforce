@@ -25,7 +25,8 @@
                 <field name="number" span="2"/>
                 <field name="date" onchange="onchange_date" span="2"/>
                 <field name="contact_id" span="2" onchange="onchange_contact"/>
-                <field name="currency_id" span="2"/>
+                <field name="currency_id" onchange="onchange_currency" span="2"/>
+                <field name="currency_rate" onchange="onchange_rate" span="2"/>
                 <newline/>
                 <field name="container_id" span="2" onchange="onchange_container"/>
                 <field name="ref" span="2"/>
@@ -34,11 +35,11 @@
             <field name="lines" nolabel="1">
                 <list>
                     <field name="product_id" onchange="onchange_product"/>
-                    <field name="qty" onchange="update_cost_price"/>
+                    <field name="qty" onchange="update_line_cost_price"/>
                     <field name="uom_id"/>
                     <field name="location_from_id" condition='[["type","!=","internal"]]'/>
                     <field name="location_to_id" condition='[["type","=","internal"]]'/>
-                    <field name="cost_price_cur" onchange="update_cost_price"/>
+                    <field name="cost_price_cur" onchange="update_line_cost_price"/>
                     <field name="cost_price" readonly="1"/>
                     <field name="cost_amount" readonly="1"/>
                     <field name="qty2"/>
@@ -64,9 +65,6 @@
             <separator string="Complete Transaction"/>
             <field name="done_approved_by_id"/>
             <button string="Approve" icon="ok" method="approve_done" confirm="Are you sure?" perm="stock_approve_done"/>
-        </tab>
-        <tab string="Other">
-            <field name="currency_rate" onchange="update_cost_price"/>
         </tab>
     </tabs>
     <field name="company_id" invisible="1"/>

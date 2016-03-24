@@ -51,6 +51,16 @@ class ResourceAlloc(Model):
     }
     _order = "time_start,resource_id.name"
 
+    def default_get(self,field_names=None,context={},**kw):
+        defaults=context.get('defaults', {})
+        data=context.get('data',{})
+        vals={
+            'time_start': data.get('time_start'),
+            'time_stop': data.get('time_stop'),
+            'job_id': defaults.get('job_id'),
+        }
+        return vals
+
     _constraints = ["check_overlap"]
 
     def check_overlap(self, ids, context={}):

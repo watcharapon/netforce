@@ -7,7 +7,7 @@
             <group attrs='{"invisible": [["type","!=","org"]]}'>
                 <field name="name" attrs='{"required":[["type","=","org"]]}'/>
                 <field name="fax"/>
-                <field name="code"/>
+                <field name="code" required="1"/>
                 <field name="website"/>
                 <field name="phone"/>
                 <field name="email" email="1"/>

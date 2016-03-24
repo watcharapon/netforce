@@ -192,6 +192,7 @@ var ListView=NFView.extend({
                 that.data.context.data=data;
                 that.data.context.collection=that.collection;
                 that.data.context.model=null; // XXX
+                that.data.context.model_name=model_name;
                 if (that.$list.attr("group_fields")) {
                     that.data.group_fields=that.$list.attr("group_fields").split(",");
                 }
@@ -231,7 +232,7 @@ var ListView=NFView.extend({
         var html=$("<div/>");
         if ((this.options.show_full || this.options.show_search) && !this.$list.attr("no_search")) { // XXX
             if (_.isEmpty(this.options.search_condition)) {
-                html.append('<button type="button" class="btn btn-sm btn-default pull-right search-btn" style="white-space:nowrap;"><i class="icon-search"></i> Search</button>');
+                html.append('<button type="button" class="btn btn-sm btn-default pull-right search-btn" style="white-space:nowrap;"><i class="icon-search"></i> '+ translate("Search")+"</button>");
             }
         }
         if (this.options.show_full||this.options.show_default_buttons) { // XXX
@@ -300,6 +301,7 @@ var ListView=NFView.extend({
                     next: $el.attr("next"),
                     icon: $el.attr("icon"),
                     perm: $el.attr("perm"),
+                    perm_model: $el.attr("perm_model"),
                     confirm: $el.attr("confirm"),
                     context: context
                 };
@@ -348,6 +350,7 @@ var ListView=NFView.extend({
             var $el=$(this);
             var tag=$el.prop("tagName");
             if (tag=="button") {
+                context.model_name=that.options.model;
                 var opts={
                     string: $el.attr("string"),
                     model: that.options.model,
@@ -360,6 +363,7 @@ var ListView=NFView.extend({
                     next: $el.attr("next"),
                     icon: $el.attr("icon"),
                     perm: $el.attr("perm"),
+                    perm_model: $el.attr("perm_model"),
                     dropdown: $el.attr("dropdown"),
                     context: context
                 };

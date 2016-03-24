@@ -354,6 +354,7 @@ var FormView=NFView.extend({
                     count: $el.attr("count")||1,
                     password: $el.attr("password"),
                     size: $el.attr("size"),
+                    click_action: $el.attr("click_action"),
                     selection: $el.attr("selection"),
                     attrs: $el.attr("attrs"),
                     width: $el.attr("width"),
@@ -371,6 +372,7 @@ var FormView=NFView.extend({
                     create: $el.attr("create"),
                     search_mode: $el.attr("search_mode"),
                     method: $el.attr("method"),
+                    string: $el.attr("string"),
                     form_layout: form_layout,
                     context: ctx
                 };
@@ -387,6 +389,7 @@ var FormView=NFView.extend({
                                         name: $el2.attr("name"),
                                         condition: $el2.attr("condition")||$el2.attr("condition"), // XXX
                                         readonly: $el2.attr("readonly"),
+                                        required: $el2.attr("required"),
                                         onchange: $el2.attr("onchange"),
                                         onfocus: $el2.attr("onfocus"),
                                         create: $el2.attr("create"),
@@ -551,6 +554,7 @@ var FormView=NFView.extend({
                     icon: $el.attr("icon"),
                     states: $el.attr("states"),
                     perm: $el.attr("perm"),
+                    perm_model: $el.attr("perm_model"),
                     attrs: $el.attr("attrs"),
                     context: context
                 };
@@ -648,18 +652,28 @@ var FormView=NFView.extend({
                     string: $el.attr("string"),
                     method: $el.attr("method"),
                     action: $el.attr("action"),
+                    next: $el.attr("next"),
                     action_context: $el.attr("action_context"),
                     size: $el.attr("size")||"large",
                     type: $el.attr("type"),
-                    next: $el.attr("next"),
                     icon: $el.attr("icon"),
                     states: $el.attr("states"),
                     perm: $el.attr("perm"),
+                    perm_model: $el.attr("perm_model"),
                     attrs: $el.attr("attrs"),
                     split: $el.attr("split"),
                     confirm: $el.attr("confirm"),
                     context: context
                 };
+                if (opts['method']=='_save') {
+                        opts['next']=function() {
+                            var action={name:that.next_action,active_id:that.model.id,form_view_xml:that.options.view_xml};
+                            if (that.next_action_options) {
+                                _.extend(action,qs_to_obj(that.next_action_options));
+                            }
+                            exec_action(action);
+                        };
+                }
                 if (that.active_id) {
                     opts.action_options="refer_id="+that.active_id;
                 }
@@ -676,8 +690,10 @@ var FormView=NFView.extend({
                                 action_options: $el2.attr("action_options"),
                                 action_context: $el2.attr("action_context"),
                                 states: $el2.attr("states"),
+                                next: $el2.attr("next"),
                                 confirm: $el2.attr("confirm"),
                                 perm: $el2.attr("perm"),
+                                perm_model: $el2.attr("perm_model"),
                                 context: context
                             }
                             if (that.active_id) {
@@ -750,6 +766,7 @@ var FormView=NFView.extend({
                     dropdown: $el.attr("dropdown"),
                     align: "right",
                     perm: $el.attr("perm"),
+                    perm_model: $el.attr("perm_model"),
                     context: context
                 };
                 if (that.active_id) {
@@ -770,6 +787,7 @@ var FormView=NFView.extend({
                                 states: $el2.attr("states"),
                                 confirm: $el2.attr("confirm"),
                                 perm: $el2.attr("perm"),
+                                perm_model: $el2.attr("perm_model"),
                                 context: context
                             }
                             if (that.active_id) { // XXX: deprecated

@@ -51,6 +51,9 @@ var FieldBoolean=NFView.extend({
         this.data.value=model.get(name);
         var field=model.get_field(name);
         this.data.string=field.string;
+        if (this.options.string) {
+            this.data.string=this.options.string;
+        }
         var readonly=field.readonly||this.options.readonly||this.context.readonly;
         var form_layout=this.options.form_layout||"stacked";
         this.data.horizontal=form_layout=="horizontal";

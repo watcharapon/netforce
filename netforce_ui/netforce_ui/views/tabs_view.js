@@ -84,7 +84,7 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                 var name=$el.attr("name");
                 var model=context.model;
                 var field=model.get_field(name);
-                if (field.type=="one2many") {
+                if (field && field.type=="one2many") {
                     default_span=12;
                 } else {
                     default_span=6;
@@ -156,6 +156,7 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                                     name: $el2.attr("name"),
                                     condition: $el2.attr("condition"),
                                     readonly: $el2.attr("readonly"),
+                                    required: $el2.attr("required"),
                                     onchange: $el2.attr("onchange"),
                                     onfocus: $el2.attr("onfocus"),
                                     create: $el2.attr("create"),
@@ -211,9 +212,11 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                     opts.raw=true;
                     opts.count=0;
                 }
-                var view=Field.make_view(opts);
-                cell.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
-                col+=span;
+                if(name!='id'){
+                    var view=Field.make_view(opts);
+                    cell.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
+                    col+=span;
+                }
             } else if (tag=="separator") {
                 var span=$el.attr("span")
                 if (span) cols=parseInt(span);

@@ -367,6 +367,8 @@ class SaleQuot(Model):
                 "unit_price": line.unit_price,
                 "discount": line.discount,
                 "tax_id": line.tax_id.id,
+                'amount': line.amount,
+                'sequence': line.sequence,
             }
             vals["lines"].append(("create", line_vals))
         new_id = self.create(vals, context=context)

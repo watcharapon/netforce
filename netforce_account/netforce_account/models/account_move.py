@@ -49,6 +49,7 @@ class Move(Model):
         "company_id": fields.Many2One("company", "Company"),
         "track_entries": fields.One2Many("account.track.entry","move_id","Tracking Entries"),
         "difference" : fields.Float("Difference",function="get_difference",function_multi=True),
+        "verified": fields.Boolean("Verified",search=True),
     }
 
     def _get_journal(self, context={}):
@@ -422,6 +423,12 @@ class Move(Model):
             "pages": pages,
             "logo": get_file_path(settings.logo),  # XXX: remove when render_odt fixed
         }
+
+    def get_report_data(self,ids=None,context={}):
+        if ids is not None:  # for new templates
+            return super().get_report_data(ids, context=context)
+        ids = context["ids"]
+        return self.get_data(ids,context)
 
     def reverse(self, ids, context={}):
         obj = self.browse(ids)[0]
