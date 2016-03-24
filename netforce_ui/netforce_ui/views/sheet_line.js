@@ -136,6 +136,7 @@ var SheetLine=NFView.extend({
             string: fld.string,
             condition: fld.condition,
             readonly: fld.readonly,
+            required: fld.required,
             action: fld.action,
             attrs: fld.attrs,
             create: fld.create,
