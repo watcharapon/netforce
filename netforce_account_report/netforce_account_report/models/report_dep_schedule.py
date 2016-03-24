@@ -53,7 +53,7 @@ class ReportDepSchedule(Model):
         track_id = params.get("track_id")
         track2_id = params.get("track2_id")
         assets = {}
-        cond = [["state", "=", "registered"],["purchase_date","<=",date_to]]
+        cond = [["state", "=", "registered"],["date_purchase","<=",date_to]]
         if track_id:
             cond.append(["track_id", "=", track_id])
         if track2_id:
