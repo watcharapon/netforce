@@ -153,7 +153,7 @@ var ButtonGroup=NFView.extend({
             e.stopPropagation();
         }
         var model=this.context.model;
-        if(model._disable_save){
+        if(model && model._disable_save){
            setTimeout(function(){
                 if (model._disable_save) {
                     set_flash("error","Failed to save data, please try again");
