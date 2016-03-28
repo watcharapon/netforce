@@ -64,8 +64,15 @@ var Form=NFView.extend({
                 "path": path
             }
             var that=this;
+            model._disable_save=true;
             rpc_execute(model.name,"call_onchange",[method],{context: ctx},function(err,res) {
+                delete model._disable_save;
                 var data, field_attrs, alert_msg;
+                if (err){
+                    set_flash('error',err.message);
+                    render_flash();
+                    return;
+                }
                 if (res.data || res.field_attrs || res.alert) {
                     data=res.data;
                     field_attrs=res.field_attrs;

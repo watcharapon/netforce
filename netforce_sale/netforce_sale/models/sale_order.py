@@ -924,6 +924,7 @@ class SaleOrder(Model):
 
     def onchange_sequence(self, context={}):
         data = context["data"]
+        context['date'] = data['date']
         seq_id = data["sequence_id"]
         if not seq_id:
             return None

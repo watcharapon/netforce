@@ -1,8 +1,8 @@
 <list model="account.invoice" action="view_invoice">
     <top replace="1">
-        <button string="New Invoice" action="supp_invoice" action_options='{"mode":"form","form_view_xml":"supp_invoice_form","defaults":{"type":"in","inv_type":"invoice"}}' icon="plus-sign"/>
-        <button string="New Credit Note" action="supp_invoice" action_options='{"mode":"form","form_view_xml":"supp_credit_form","defaults":{"type":"in","inv_type":"credit"}}' icon="plus-sign"/>
-        <button string="New Debit Note" action="supp_invoice" action_options='{"mode":"form","form_view_xml":"supp_debit_form","defaults":{"type":"in","inv_type":"debit"}}' icon="plus-sign"/>
+        <button string="New Invoice" perm_model="account.invoice,create" action="supp_invoice" action_options='{"mode":"form","form_view_xml":"supp_invoice_form","defaults":{"type":"in","inv_type":"invoice"}}' icon="plus-sign"/>
+        <button string="New Credit Note" perm_model="account.invoice,create" action="supp_invoice" action_options='{"mode":"form","form_view_xml":"supp_credit_form","defaults":{"type":"in","inv_type":"credit"}}' icon="plus-sign"/>
+        <button string="New Debit Note" perm_model="account.invoice,create" action="supp_invoice" action_options='{"mode":"form","form_view_xml":"supp_debit_form","defaults":{"type":"in","inv_type":"debit"}}' icon="plus-sign"/>
         <button string="Import" action="import_data" action_options='{"import_model":"account.invoice","next":"supp_invoice"}' icon="download"/>
     </top>
     <field name="number"/>
