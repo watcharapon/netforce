@@ -953,7 +953,8 @@ class Invoice(Model):
                     "dep_exp_account_id": ass_type.dep_exp_account_id.id,
                     "invoice_id": obj.id,
                 }
-                get_model("account.fixed.asset").create(vals)
+                context['date']=obj.date
+                get_model("account.fixed.asset").create(vals,context)
 
     def delete_alloc(self, context={}):
         alloc_id = context["alloc_id"]

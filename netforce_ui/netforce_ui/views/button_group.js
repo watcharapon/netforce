@@ -24,7 +24,7 @@ var ButtonGroup=NFView.extend({
     _name: "button_group",
     className: "btn-group",
     events: {
-        "click .main-btn": "click"
+        "click .main-btn": "pre_click"
     },
 
     render: function() {
@@ -137,6 +137,35 @@ var ButtonGroup=NFView.extend({
         }
         //log("==>",attrs);
         return attrs;
+    },
+
+    pre_click: function(e) {
+        log("button click",this);
+        var that=this;
+        if (this.options.onclick) {
+            this.options.onclick();
+            e.preventDefault();
+            return;
+        }
+        if (this.loading) return;
+        if (this.options.method || this.options.action) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        var model=this.context.model;
+        if(model && model._disable_save){
+           setTimeout(function(){
+                if (model._disable_save) {
+                    set_flash("error","Failed to save data, please try again");
+                    render_flash();
+                    return;
+                }else{
+                    that.click(e);
+                }
+           },NF_TIMEOUT*1000)
+        }else{
+            that.click(e);
+        }
     },
 
     click: function(e) {

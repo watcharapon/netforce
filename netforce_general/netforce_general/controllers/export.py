@@ -78,8 +78,8 @@ class Export(Controller): # TODO: cleanup
                 ctx.update(action_vals["context"])
             action_vals["context"]=ctx
             self.clear_flash()
-            type=action_vals.get("type","view")
-            if type=="export":
+            action_type=action_vals.get("type","view")
+            if action_type=="export":
                 print("XXX export")
                 model=action_vals["model"]
                 m=get_model(model)
@@ -90,10 +90,10 @@ class Export(Controller): # TODO: cleanup
                     ids=[int(x) for x in ids.split(",")]
                 else:
                     condition=action_vals.get("condition")
+                    print("condition",condition)
+                    condition=json.loads(condition)
                     if condition:
-                        print("condition",condition)
-                        condition=json.loads(condition)
-                        ids=m.search(condition)
+                        ids=m.search(condition,context={'active_test': False})
                     else:
                         ids=m.search([]) # XXX
                 ctx=action_vals.copy()

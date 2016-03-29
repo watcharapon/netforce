@@ -705,6 +705,7 @@ class Model(object):
                            company_id, self._name, tuple(multico_fields), tuple(ids))
             val_ids = {}
             rec_ids = {}
+            user_id = access.get_active_user()
             for r in res:
                 val_ids.setdefault(r.field, []).append(r.id)
                 rec_ids.setdefault(r.field, []).append(r.record_id)
@@ -724,12 +725,14 @@ class Model(object):
                         raise Exception("Multicompany field not yet implemented: %s" % n)
                 ids2 = val_ids.get(n)
                 if ids2:
-                    db.execute("UPDATE field_value SET value=%s WHERE id in %s", val, tuple(ids2))
+                    write_time=time.strftime("%Y-%m-%d %H:%M:%S")
+                    db.execute("UPDATE field_value SET value=%s, write_time=%s, write_uid=%s WHERE id in %s", val, write_time, user_id, tuple(ids2))
                 ids3 = rec_ids.get(n, [])
                 ids4 = list(set(ids) - set(ids3))
                 for rec_id in ids4:
-                    db.execute("INSERT INTO field_value (company_id,model,field,record_id,value) VALUES (%s,%s,%s,%s,%s)",
-                               company_id, self._name, n, rec_id, val)
+                    create_time=time.strftime("%Y-%m-%d %H:%M:%S")
+                    db.execute("INSERT INTO field_value (create_time,create_uid,company_id,model,field,record_id,value) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                               create_time,user_id,company_id, self._name, n, rec_id, val)
         for n in vals:
             f = self._fields[n]
             if f.function_write:

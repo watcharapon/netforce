@@ -41,6 +41,7 @@ class StockPeriod(Model):
         "num_posted_stock_moves": fields.Integer("Number posted stock movements",function="get_num_stock_moves",function_multi=True),
         "company_id": fields.Many2One("company", "Company"),
     }
+    _order="date_from,id"
     _defaults={
         "state": "draft",
         "date_from": lambda *a: date.today().strftime("%Y-%m-01"),
@@ -56,14 +57,10 @@ class StockPeriod(Model):
             prod=move.product_id
             acc_from_id=move.location_from_id.account_id.id
             if not acc_from_id:
-                acc_from_id=prod.stock_in_account_id.id
-            if not acc_from_id:
-                raise Exception("Missing input account for stock transaction %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
+                raise Exception("Missing account for location '%s'"%move.location_from_id.name)
             acc_to_id=move.location_to_id.account_id.id
             if not acc_to_id:
-                acc_to_id=prod.stock_out_account_id.id
-            if not acc_to_id:
-                raise Exception("Missing output account for stock transaction %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
+                raise Exception("Missing account for location '%s'"%move.location_to_id.name)
             if move.cost_price is None:
                 raise Exception("Unknown cost price for stock transaction %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
             track_from_id=move.location_from_id.track_id.id
@@ -129,5 +126,5 @@ class StockPeriod(Model):
                 "num_posted_stock_moves": num_posted_stock_moves,
             }
         return vals
-            
+
 StockPeriod.register()
