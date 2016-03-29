@@ -718,6 +718,13 @@ class Payment(Model):
                     line.amount, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
                 tax_base = get_model("currency").convert(
                     line.tax_base or 0, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
+                tax_no=''
+                comp=line.tax_comp_id
+                if comp:
+                    if comp.type in ('vat'):
+                        tax_no = get_model("account.invoice").gen_tax_no(context={"date": obj.date})
+                    elif comp.type in ('wht'):
+                        tax_no = get_model("account.payment").gen_wht_no(context={"date": obj.date})
                 line_vals = {
                     "move_id": move_id,
                     "description": desc,
@@ -726,6 +733,7 @@ class Payment(Model):
                     "tax_base": tax_base,
                     "track_id": line.track_id.id,
                     "contact_id": obj.contact_id.id,
+                    'tax_no': tax_no,
                 }
                 if obj.type == "in":
                     cur_amt = -cur_amt
