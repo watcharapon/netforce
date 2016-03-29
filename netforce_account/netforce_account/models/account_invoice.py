@@ -874,6 +874,7 @@ class Invoice(Model):
                 "active_id": new_id,
             },
             "flash": msg,
+            "invoice_id": new_id,
         }
 
     def view_journal_entry(self, ids, context={}):
