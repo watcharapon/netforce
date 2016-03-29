@@ -157,6 +157,7 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                                     condition: $el2.attr("condition"),
                                     readonly: $el2.attr("readonly"),
                                     required: $el2.attr("required"),
+                                    invisible: $el2.attr("invisible"),
                                     onchange: $el2.attr("onchange"),
                                     onfocus: $el2.attr("onfocus"),
                                     create: $el2.attr("create"),
