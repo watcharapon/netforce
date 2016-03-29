@@ -79,6 +79,7 @@ var InlineForm=NFView.extend({
             });
         } else {
             var ctx={
+                data:that.options.parent_data,
                 defaults: {}
             };
             var f=get_field(model_name,that.relfield);

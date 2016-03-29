@@ -25,7 +25,7 @@ var Button=NFView.extend({
     tagName: "button",
     className: "btn",
     events: {
-        "click": "click"
+        "click": "pre_click"
     },
 
     initialize: function(options) {
@@ -142,6 +142,35 @@ var Button=NFView.extend({
         this.$el.removeClass("disabled");
         this.render();
         this.loading=false;
+    },
+
+    pre_click: function(e) {
+        log("button click",this);
+        var that=this;
+        if (this.options.onclick) {
+            this.options.onclick();
+            e.preventDefault();
+            return;
+        }
+        if (this.loading) return;
+        if (this.options.method || this.options.action) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        var model=this.context.model;
+        if(model && model._disable_save){
+           setTimeout(function(){
+                if (model._disable_save) {
+                    set_flash("error","Failed to save data, please try again");
+                    render_flash();
+                    return;
+                }else{
+                    that.click(e);
+                }
+           },NF_TIMEOUT*1000)
+        }else{
+            that.click(e);
+        }
     },
 
     click: function(e) {
@@ -618,8 +647,14 @@ var Button=NFView.extend({
                             exec_action(action);
                         }
                     });*/ // XXX: check this...
-                    action.refer_id=this.context.model.id;
-                    exec_action(action);
+                    if (!this.context.model.check_required()) {
+                        set_flash("error","Some required fields are missing");
+                        render_flash();
+                        return;
+                    }else{
+                        action.refer_id=this.context.model.id;
+                        exec_action(action);
+                    }
                 } else {
                     exec_action(action); // XXX: parent_context
                 }
