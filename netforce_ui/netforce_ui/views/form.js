@@ -33,6 +33,8 @@ var Form=NFView.extend({
     },
 
     render: function() {
+        log("#########################################");
+        log("Form.render");
         var ctx=_.clone(this.data.context);
         var model=this.context.model;
         this.$el.data({active_id: model.id}); // XXX

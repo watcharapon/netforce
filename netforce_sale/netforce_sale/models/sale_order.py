@@ -468,7 +468,7 @@ class SaleOrder(Model):
             prod = line.product_id
             if not prod:
                 continue
-            if prod.type not in ("stock", "consumable"):
+            if prod.type not in ("stock", "consumable", "bundle"):
                 continue
             if line.qty <= 0:
                 continue
@@ -485,8 +485,22 @@ class SaleOrder(Model):
                 "related_id": "sale.order,%s" % obj.id,
             }
             pick_vals[picking_key]["lines"].append(("create", line_vals))
+            if prod.type=="bundle":
+                if not prod.components:
+                    raise Exception("No components for bundle product %s"%prod.code)
+                for comp in prod.components:
+                    comp_prod=comp.component_id
+                    line_vals = {
+                        "product_id": comp_prod.id,
+                        "qty": qty_remain*comp.qty,
+                        "uom_id": comp_prod.uom_id.id,
+                        "location_from_id": line.location_id.id or wh_loc_id,
+                        "location_to_id": cust_loc_id,
+                        "related_id": "sale.order,%s" % obj.id,
+                    }
+                    pick_vals[picking_key]["lines"].append(("create", line_vals))
         for picking_key, picking_value in pick_vals.items():
-            if not picking_value["lines"]: Exception("Nothing left to deliver")
+            if not picking_value["lines"]:Exception("Nothing left to deliver")
             pick_id = get_model("stock.picking").create(picking_value, context={"pick_type": "out"})
             pick = get_model("stock.picking").browse(pick_id)
         return {

@@ -571,20 +571,28 @@ class Invoice(Model):
             vals["amount_credit_total"] = vals["amount_total"]
             paid_amt = 0
             for pmt in inv.payment_entries:
-                if inv.type == "in":
-                    paid_amt += pmt.debit # TODO: currency
+                if pmt.amount_cur is not None:
+                    pmt_amt=abs(pmt.amount_cur)
                 else:
-                    paid_amt += pmt.credit # TODO: currency
+                    if inv.type == "in":
+                        pmt_amt=pmt.debit
+                    else:
+                        pmt_amt=pmt.credit
+                paid_amt+=pmt_amt
             vals["amount_paid"] = paid_amt
             if inv.inv_type in ("invoice", "debit"):
                 vals["amount_due"] = vals["amount_total"] - paid_amt
             elif inv.inv_type in ("credit", "prepay", "overpay"):
                 cred_amt = 0
                 for pmt in inv.payment_entries:
-                    if inv.type=="in":
-                        cred_amt += pmt.credit # TODO: currency
+                    if pmt.amount_cur is not None:
+                        pmt_amt=abs(pmt.amount_cur)
                     else:
-                        cred_amt += pmt.debit # TODO: currency
+                        if inv.type == "in":
+                            pmt_amt=pmt.credit
+                        else:
+                            pmt_amt=pmt.debit
+                    cred_amt += pmt_amt
                 vals["amount_credit_remain"] = vals["amount_total"] - cred_amt
                 vals["amount_due"] = -vals["amount_credit_remain"]
             vals["amount_due_cur"] = get_model("currency").convert(

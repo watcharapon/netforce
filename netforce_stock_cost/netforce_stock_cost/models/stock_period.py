@@ -55,14 +55,10 @@ class StockPeriod(Model):
             prod=move.product_id
             acc_from_id=move.location_from_id.account_id.id
             if not acc_from_id:
-                acc_from_id=prod.stock_in_account_id.id
-            if not acc_from_id:
-                raise Exception("Missing input account for stock transaction %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
+                raise Exception("Missing account for location '%s'"%move.location_from_id.name)
             acc_to_id=move.location_to_id.account_id.id
             if not acc_to_id:
-                acc_to_id=prod.stock_out_account_id.id
-            if not acc_to_id:
-                raise Exception("Missing output account for stock transaction %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
+                raise Exception("Missing account for location '%s'"%move.location_to_id.name)
             if move.unit_price is None:
                 raise Exception("Unknown cost price for stock transaction %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
             track_from_id=move.location_from_id.track_id.id

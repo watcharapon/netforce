@@ -73,7 +73,8 @@ var FormView=NFView.extend({
     },
 
     render: function() {
-        //log("form_view.render",this);
+        log("#########################################");
+        log("form_view.render",this);
         var that=this;
         this.field_views={};
         var model_name=this.options.model;
