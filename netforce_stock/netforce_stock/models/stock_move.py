@@ -267,7 +267,7 @@ class Move(Model):
     def check_periods(self,ids,context={}):
         for obj in self.browse(ids):
             d=obj.date[:10]
-            res=get_model("stock.period").search([["date_from","<=",d],["date_to",">=",d]],["state","=","posted"])
+            res=get_model("stock.period").search([["date_from","<=",d],["date_to",">=",d],["state","=","posted"]])
             if res:
                 raise Exception("Failed to validate stock movement because stock period already posted")
 

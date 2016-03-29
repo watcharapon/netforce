@@ -202,7 +202,6 @@ class Picking(Model):
             obj.write({"state":"done","done_by_id":user_id},context=context)
             obj.set_currency_rate()
         self.check_order_qtys(ids)
-        self.create_bundle_pickings(ids)
         self.trigger(ids,"done")
 
     def check_order_qtys(self, ids, context={}):
@@ -555,46 +554,6 @@ class Picking(Model):
             lines.append(line_vals)
         data["lines"] = lines
         return data
-
-    def create_bundle_pickings(self, ids, context={}):
-        for obj in self.browse(ids):
-            pick_vals = {
-                "type": obj.type,
-                "journal_id": obj.journal_id.id,
-                "date": obj.date,
-                "contact_id": obj.contact_id.id,
-                "ship_address_id": obj.ship_address_id.id,
-                "ref": obj.ref,
-                "related_id": "stock.picking,%d" % obj.id,
-                "lines": [],
-            }
-            for move in obj.lines:
-                prod = move.product_id
-                if prod.type != "bundle":
-                    continue
-                res = get_model("bom").search([["product_id", "=", prod.id]])
-                if not res:
-                    raise Exception("BoM not found for bundle product %s" % prod.code)
-                bom_id = res[0]
-                bom = get_model("bom").browse(bom_id)
-                qty = get_model("uom").convert(move.qty, move.uom_id.id, bom.uom_id.id)
-                ratio = qty / bom.qty
-                for comp in bom.lines:
-                    line_vals = {
-                        "product_id": comp.product_id.id,
-                        "qty": comp.qty * ratio,
-                        "uom_id": comp.uom_id.id,
-                        "location_from_id": move.location_from_id.id,
-                        "location_to_id": move.location_to_id.id,
-                        "lot_id": move.lot_id.id,
-                        "packaging_id": move.packaging_id.id,
-                        "num_packages": move.num_packages,
-                        "notes": move.notes,
-                    }
-                    pick_vals["lines"].append(("create", line_vals))
-            if pick_vals["lines"]:
-                pick_id = get_model("stock.picking").create(pick_vals, context={"pick_type": obj.type})
-                get_model("stock.picking").set_done([pick_id])
 
     def approve_done(self, ids, context={}):
         obj = self.browse(ids)[0]
