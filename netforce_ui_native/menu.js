@@ -13,10 +13,12 @@ import React, {
   View
 } from 'react-native';
 
+var cheerio=require("cheerio");
+
 var RPC=require("./RPC");
 var utils=require("./utils");
-
 var Button=require("./button");
+var UIParams=require("./ui_params");
 
 class Menu extends Component {
     constructor(props) {
@@ -25,29 +27,12 @@ class Menu extends Component {
     }
 
     componentDidMount() {
-        AsyncStorage.getItem("login",(err,login)=>{
-            this.setState({login});
-        });
     }
 
   render() {
-    var actions=[
-        {title: "Logout"},
-    ];
+      var layout=UIParams.get_layout(this.props.layout);
+      var $layout=cheerio.load(layout.layout);
     return <View>
-        {function() {
-            if (!this.state.login) return;
-            return <View style={{padding:10}}>
-                <Text>Welcome, {this.state.login}.</Text>
-            </View>
-        }.bind(this)()}
-        <View style={{paddingTop:10}}>
-            <Button onPress={this.click_link.bind(this,{name:"times"})}>
-                <View style={{height:50,alignItems:"center",justifyContent:"center",backgroundColor:"#aaa"}}>
-                    <Text style={{color:"#fff"}}>Work Time</Text>
-                </View>
-            </Button>
-        </View>
         <View style={{paddingTop:10}}>
             <Button onPress={this.click_link.bind(this,{name:"settings"})}>
                 <View style={{height:50,alignItems:"center",justifyContent:"center",backgroundColor:"#aaa"}}>
@@ -56,18 +41,6 @@ class Menu extends Component {
             </Button>
         </View>
     </View>
-  }
-
-  click_link(action) {
-      this.props.navigator.push(action);
-  }
-
-  action_selected(pos) {
-    AsyncStorage.setItem("user_id",null);
-    AsyncStorage.setItem("login",null);
-    if (pos==0) {
-        this.click_link({name:"login"});
-    }
   }
 }
 

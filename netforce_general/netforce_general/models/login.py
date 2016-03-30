@@ -171,6 +171,7 @@ class Login(Model):
                     "type": "url",
                     "url": "/ui#name=%s" % action,
                 },
+                "login_action": action,
             }
         finally:
             set_active_user(user_id)

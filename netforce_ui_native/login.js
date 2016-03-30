@@ -12,6 +12,7 @@ import React, {
 
 var RPC=require("./RPC");
 var Button=require("./button");
+var UIParams=require("./ui_params");
 
 class Login extends Component {
     constructor(props) {
@@ -22,7 +23,8 @@ class Login extends Component {
     componentDidMount() {
         AsyncStorage.getItem("db_list",function(err,res) {
             var db_list=JSON.parse(res)||[];
-            this.setState({db_list:db_list});
+            var dbname=db_list.length>0?db_list[0].dbname:null;
+            this.setState({db_list:db_list,dbname:dbname});
         }.bind(this));
     }
 
@@ -61,17 +63,48 @@ class Login extends Component {
         </View>
     }
 
-  login() {
-      try {
-        if (!this.state.login) throw "Missing login"; 
-        if (!this.state.password) throw "Missing password"; 
-      } catch (e) {
-          alert("Error: "+e);
-          return;
-      }
-      this.props.navigator.push({
-          name: "menu",
-      });
+    login() {
+        try {
+            if (!this.state.dbname) throw "Missing database"; 
+            if (!this.state.login) throw "Missing login"; 
+            if (!this.state.password) throw "Missing password"; 
+        } catch (e) {
+            alert("Error: "+e);
+            return;
+        }
+        AsyncStorage.getItem("db_list",function(err,res) {
+            var db_list=JSON.parse(res)||[];
+            var db_vals=db_list.find(function(obj) {return obj.dbname==this.state.dbname}.bind(this));
+            var base_url=db_vals.protocol+"://"+db_vals.hostname+":"+db_vals.port;
+            RPC.set_base_url(base_url);
+             var ctx={
+                  data: {
+                      db_name: this.state.dbname,
+                      login: this.state.login,
+                      password: this.state.password,
+                  }
+              };
+              RPC.execute("login","login",[],{context:ctx},function(err,res) {
+                  if (err) {
+                      alert("Failed to login: "+err.message);
+                      return;
+                  }
+                  var user_id=res.cookies.user_id;
+                  var user_name=res.cookies.user_name;
+                  var company_name=res.cookies.company_name;
+                  AsyncStorage.setItem("user_id",""+user_id);
+                  AsyncStorage.setItem("user_name",user_name);
+                  AsyncStorage.setItem("company_name",company_name);
+                  var login_action={name:"action",action:"main_menu_mobile"};
+                  UIParams.load_ui_params(function(err) {
+                      if (err) {
+                          alert("Failed to load UI params: "+err);
+                          return;
+                      }
+                      this.navigator.push(login_action);
+                  }.bind(this));
+              }.bind(this));
+        }.bind(this));
   }
 
   manage_db() {

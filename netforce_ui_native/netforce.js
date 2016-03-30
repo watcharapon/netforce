@@ -22,6 +22,7 @@ var Menu=require("./menu");
 var List=require("./list");
 var Form=require("./form");
 var Page=require("./page");
+var UIParams=require("./ui_params");
 
 var _nav;
 
@@ -32,8 +33,6 @@ class Netforce extends Component {
 
     render_scene(route,navigator) {
         _nav=navigator;
-        if (!navigator.scene_no) navigator.scene_no=1;
-        else navigator.scene_no+=1;
         return <View style={{ flex: 1, }}>
             <NavBar navigator={navigator}/>
             {function() {
@@ -44,6 +43,17 @@ class Netforce extends Component {
                     return <DBList navigator={navigator}/>
                 } else if (route.name=="db_form") {
                     return <DBForm navigator={navigator} index={route.index}/>
+                } else if (route.name=="action") {
+                    var action=UIParams.get_action(route.action);
+                    if (action.view=="menu_mobile") {
+                        return <Menu layout={action.layout}/>
+                    } else if (action.view=="list_mobile") {
+                        return <List model={action.model} layout={action.layout}/>
+                    } else if (action.view=="form_mobile") {
+                        return <Form model={action.model} layout={action.layout} active_id={action.active_id}/>
+                    } else if (action.view=="page_mobile") {
+                        return <Page model={action.model} layout={action.layout} active_id={action.active_id}/>
+                    }
                 } else {
                     alert("Invalid route: "+route.name);
                 }

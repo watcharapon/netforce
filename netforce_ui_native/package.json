@@ -5,6 +5,7 @@
     "start": "node node_modules/react-native/local-cli/cli.js start"
   },
   "dependencies": {
+    "cheerio": "^0.20.0",
     "react-native": "^0.20.0",
     "react-native-image-picker": "^0.18.3",
     "react-native-maps": "^0.3.0",

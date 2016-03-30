@@ -1,0 +1,4 @@
+<menu_mobile>
+    <item string="Expenses" action="expense_mobile"/>
+    <item string="Work Time" action="work_time_mobile"/>
+</menu_mobile>
