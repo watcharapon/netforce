@@ -16,6 +16,8 @@ import React, {
 
 var NavBar=require("./navbar");
 var Login=require("./login");
+var DBList=require("./db_list");
+var DBForm=require("./db_form");
 var Menu=require("./menu");
 var List=require("./list");
 var Form=require("./form");
@@ -38,6 +40,10 @@ class Netforce extends Component {
                 if (!route) route={name:"login"};
                 if (route.name=="login") {
                     return <Login navigator={navigator}/>
+                } else if (route.name=="db_list") {
+                    return <DBList navigator={navigator}/>
+                } else if (route.name=="db_form") {
+                    return <DBForm navigator={navigator} index={route.index}/>
                 } else {
                     alert("Invalid route: "+route.name);
                 }

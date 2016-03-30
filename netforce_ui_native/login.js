@@ -5,7 +5,7 @@ import React, {
   StyleSheet,
   Text,
   TextInput,
-  Navigator,
+  Picker,
   AsyncStorage,
   View
 } from 'react-native';
@@ -16,35 +16,50 @@ var Button=require("./button");
 class Login extends Component {
     constructor(props) {
         super(props);
-        this.state = {login:"",password:"",dbname:null};
+        this.state = {login:"",password:"",dbname:null,db_list:[]};
     }
 
-  render() {
-    return <View>
-        <Text>
-            Database:
-        </Text>
-        <Picker selectedValue={this.state.dbname} onValueChange={(dbname) => this.setState({dbname})}> 
-            <Picker.Item label="test1" value="test1"/>
-            <Picker.Item label="test2" value="test2"/>
-        </Picker>
-        <Text>
-            Username:
-        </Text>
-        <TextInput style={{height:40, borderColor: 'gray', borderWidth: 1}} value={this.state.login} onChangeText={(login)=>this.setState({login})}/>
-        <Text>
-            Password:
-        </Text>
-        <TextInput style={{height:40, borderColor: 'gray', borderWidth: 1}} secureTextEntry={true} value={this.state.password} onChangeText={(password)=>this.setState({password})}/>
-        <View style={{paddingTop:5}}>
-            <Button onPress={this.login.bind(this)}>
-                <View style={{height:50,backgroundColor:"#37b",alignItems:"center",justifyContent:"center"}}>
-                    <Text style={{color:"#fff"}}>Login</Text>
-                </View>
-            </Button>
+    componentDidMount() {
+        AsyncStorage.getItem("db_list",function(err,res) {
+            var db_list=JSON.parse(res)||[];
+            this.setState({db_list:db_list});
+        }.bind(this));
+    }
+
+    render() {
+        return <View>
+            <Text>
+                Database:
+            </Text>
+            <Picker selectedValue={this.state.dbname} onValueChange={(dbname) => this.setState({dbname})}> 
+                {this.state.db_list.map(function(obj,i) {
+                    return <Picker.Item label={obj.dbname} value={obj.dbname} key={i}/>
+                }.bind(this))}
+            </Picker>
+            <Text>
+                Username:
+            </Text>
+            <TextInput style={{height:40, borderColor: 'gray', borderWidth: 1}} value={this.state.login} onChangeText={(login)=>this.setState({login})}/>
+            <Text>
+                Password:
+            </Text>
+            <TextInput style={{height:40, borderColor: 'gray', borderWidth: 1}} secureTextEntry={true} value={this.state.password} onChangeText={(password)=>this.setState({password})}/>
+            <View style={{paddingTop:5}}>
+                <Button onPress={this.login.bind(this)}>
+                    <View style={{height:50,backgroundColor:"#37b",alignItems:"center",justifyContent:"center"}}>
+                        <Text style={{color:"#fff"}}>Login</Text>
+                    </View>
+                </Button>
+            </View>
+            <View style={{paddingTop:5}}>
+                <Button onPress={this.manage_db.bind(this)}>
+                    <View style={{height:50,backgroundColor:"#ccc",alignItems:"center",justifyContent:"center"}}>
+                        <Text style={{color:"#fff"}}>Manage Databases</Text>
+                    </View>
+                </Button>
+            </View>
         </View>
-    </View>
-  }
+    }
 
   login() {
       try {
@@ -57,6 +72,10 @@ class Login extends Component {
       this.props.navigator.push({
           name: "menu",
       });
+  }
+
+  manage_db() {
+      this.props.navigator.push({name:"db_list"});
   }
 
   click_link(action) {

@@ -37,7 +37,11 @@ class Navbar extends Component {
     }
 
     go_back() {
+        var routes=this.props.navigator.getCurrentRoutes();
+        var route=routes[routes.length-2];
+        if (route==null) route={name:"login"};
         this.props.navigator.pop();
+        this.props.navigator.replace(route);
     }
 }
 
