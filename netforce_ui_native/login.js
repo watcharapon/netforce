@@ -17,7 +17,7 @@ var UIParams=require("./ui_params");
 class Login extends Component {
     constructor(props) {
         super(props);
-        this.state = {login:"",password:"",dbname:null,db_list:[]};
+        this.state = {login:"",password:"",dbname:null,db_list:[],loading:true};
     }
 
     componentDidMount() {
@@ -27,9 +27,15 @@ class Login extends Component {
             this.setState({db_list:db_list,dbname:dbname});
         }.bind(this));
         AsyncStorage.getItem("user_id",function(err,res) {
-            if (!res) return;
+            if (!res) {
+                this.setState({loading:false});
+                return;
+            }
             AsyncStorage.getItem("ui_params",function(err,res) {
-                if (!res) return;
+                if (!res) {
+                    this.setState({loading:false});
+                    return;
+                }
                 UIParams.set_ui_params(JSON.parse(res));
                 var login_action={name:"action",action:"main_menu_mobile"};
                 this.props.navigator.replace(login_action);
@@ -38,6 +44,7 @@ class Login extends Component {
     }
 
     render() {
+        if (this.state.loading) return <Text>Loading...</Text>
         return <View>
             <Text>
                 Database:
@@ -95,7 +102,7 @@ class Login extends Component {
               };
               RPC.execute("login","login",[],{context:ctx},function(err,res) {
                   if (err) {
-                      alert("ERROR: "+err.message);
+                      alert("Error: "+err.message);
                       return;
                   }
                   var user_id=res.cookies.user_id;
@@ -107,7 +114,7 @@ class Login extends Component {
                   var login_action={name:"action",action:"main_menu_mobile"};
                   UIParams.load_ui_params(function(err) {
                       if (err) {
-                          alert("ERROR: "+err);
+                          alert("Error: "+err);
                           return;
                       }
                       this.props.navigator.replace(login_action);

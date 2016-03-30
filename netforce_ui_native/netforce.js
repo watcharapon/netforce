@@ -28,6 +28,11 @@ var UIParams=require("./ui_params");
 var _nav;
 
 class Netforce extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {};
+    }
+
     render() {
         return <Navigator renderScene={this.render_scene.bind(this)}/>
     }
