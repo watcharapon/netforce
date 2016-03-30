@@ -109,6 +109,8 @@ class Job(Model):
         "track_id": fields.Many2One("account.track.categ","Tracking Code"),
         "track_entries": fields.One2Many("account.track.entry",None,"Tracking Entries",function="get_track_entries",function_write="write_track_entries"),
         "track_balance": fields.Decimal("Tracking Balance",function="_get_related",function_context={"path":"track_id.balance"}),
+        "agg_total_cost": fields.Decimal("Total Cost", agg_function=["sum", "total_cost"]),
+        "agg_total_sell": fields.Decimal("Total Selling", agg_function=["sum", "total_sell"]),
     }
     _order = "number"
     _sql_constraints = [
