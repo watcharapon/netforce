@@ -40,8 +40,9 @@ class Navbar extends Component {
         var routes=this.props.navigator.getCurrentRoutes();
         var route=routes[routes.length-2];
         if (route==null) route={name:"login"};
+        route=Object.assign({},route);
+        this.props.navigator.replacePrevious(route);
         this.props.navigator.pop();
-        this.props.navigator.replace(route);
     }
 }
 
