@@ -1,4 +1,6 @@
 <menu_mobile>
-    <item string="Expenses" action="expense_mobile"/>
     <item string="Work Time" action="work_time_mobile"/>
+    <item string="Expenses" action="expense_mobile"/>
+    <item string="Inventory" action="stock_mobile"/>
+    <item string="Logout" action="_logout"/>
 </menu_mobile>

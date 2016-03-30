@@ -5,11 +5,11 @@
     "start": "node node_modules/react-native/local-cli/cli.js start"
   },
   "dependencies": {
-    "cheerio": "^0.20.0",
     "react-native": "^0.20.0",
     "react-native-image-picker": "^0.18.3",
     "react-native-maps": "^0.3.0",
     "react-native-navbar": "git+https://github.com/react-native-fellowship/react-native-navbar.git",
-    "react-native-scrollable-tab-view": "^0.3.7"
+    "react-native-scrollable-tab-view": "^0.3.7",
+    "xmldom": "^0.1.22"
   }
 }

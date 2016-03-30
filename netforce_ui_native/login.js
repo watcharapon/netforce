@@ -26,6 +26,15 @@ class Login extends Component {
             var dbname=db_list.length>0?db_list[0].dbname:null;
             this.setState({db_list:db_list,dbname:dbname});
         }.bind(this));
+        AsyncStorage.getItem("user_id",function(err,res) {
+            if (!res) return;
+            AsyncStorage.getItem("ui_params",function(err,res) {
+                if (!res) return;
+                UIParams.set_ui_params(JSON.parse(res));
+                var login_action={name:"action",action:"main_menu_mobile"};
+                this.props.navigator.replace(login_action);
+            }.bind(this));
+        }.bind(this));
     }
 
     render() {
@@ -86,7 +95,7 @@ class Login extends Component {
               };
               RPC.execute("login","login",[],{context:ctx},function(err,res) {
                   if (err) {
-                      alert("Failed to login: "+err.message);
+                      alert("ERROR: "+err.message);
                       return;
                   }
                   var user_id=res.cookies.user_id;
@@ -98,10 +107,10 @@ class Login extends Component {
                   var login_action={name:"action",action:"main_menu_mobile"};
                   UIParams.load_ui_params(function(err) {
                       if (err) {
-                          alert("Failed to load UI params: "+err);
+                          alert("ERROR: "+err);
                           return;
                       }
-                      this.navigator.push(login_action);
+                      this.props.navigator.replace(login_action);
                   }.bind(this));
               }.bind(this));
         }.bind(this));

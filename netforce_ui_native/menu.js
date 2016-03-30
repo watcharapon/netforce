@@ -13,7 +13,7 @@ import React, {
   View
 } from 'react-native';
 
-var cheerio=require("cheerio");
+var DOMParser = require('xmldom').DOMParser;
 
 var RPC=require("./RPC");
 var utils=require("./utils");
@@ -29,19 +29,48 @@ class Menu extends Component {
     componentDidMount() {
     }
 
-  render() {
-      var layout=UIParams.get_layout(this.props.layout);
-      var $layout=cheerio.load(layout.layout);
-    return <View>
-        <View style={{paddingTop:10}}>
-            <Button onPress={this.click_link.bind(this,{name:"settings"})}>
-                <View style={{height:50,alignItems:"center",justifyContent:"center",backgroundColor:"#aaa"}}>
-                    <Text style={{color:"#fff"}}>Settings</Text>
-                </View>
-            </Button>
+    render() {
+        console.log("Menu.render");
+        var layout=UIParams.get_layout(this.props.layout);
+        var doc=new DOMParser().parseFromString(layout.layout);
+        var root_el=doc.documentElement;
+        var items=[];
+        for (var i=0; i<root_el.childNodes.length; i++) {
+            var el=root_el.childNodes.item(i);
+            if (el.nodeType!=1) continue;
+            var item={
+                string: el.getAttribute("string"),
+                action: el.getAttribute("action"),
+            };
+            items.push(item);
+        }
+        return <View>
+            <View style={{paddingTop:10}}>
+                {items.map(function(item,i) {
+                    return <Button onPress={this.press_item.bind(this,item)} key={i}>
+                        <View style={{height:50,alignItems:"center",justifyContent:"center",backgroundColor:"#aaa",marginTop:10}}>
+                            <Text style={{color:"#fff"}}>{item.string}</Text>
+                        </View>
+                    </Button>
+                }.bind(this))}
+            </View>
         </View>
-    </View>
-  }
+    }
+
+    press_item(item) {
+        console.log("press_item",item);
+        if (item.action=="_logout") {
+            AsyncStorage.removeItem("user_id",function(err) {
+                if (err) {
+                    alert("Failed to logout");
+                    return;
+                }
+                this.props.navigator.resetTo({name:"login"});
+            }.bind(this));
+            return;
+        }
+        this.props.navigator.push({name:"action",action:item.action});
+    }
 }
 
 module.exports=Menu;

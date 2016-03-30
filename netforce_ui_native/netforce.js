@@ -11,6 +11,7 @@ import React, {
   StatusBar,
   Platform,
   BackAndroid,
+  AsyncStorage,
   View
 } from 'react-native';
 
@@ -46,13 +47,13 @@ class Netforce extends Component {
                 } else if (route.name=="action") {
                     var action=UIParams.get_action(route.action);
                     if (action.view=="menu_mobile") {
-                        return <Menu layout={action.layout}/>
+                        return <Menu navigator={navigator} layout={action.layout}/>
                     } else if (action.view=="list_mobile") {
-                        return <List model={action.model} layout={action.layout}/>
+                        return <List navigator={navigator} model={action.model} layout={action.layout}/>
                     } else if (action.view=="form_mobile") {
-                        return <Form model={action.model} layout={action.layout} active_id={action.active_id}/>
+                        return <Form navigator={navigator} model={action.model} layout={action.layout} active_id={action.active_id}/>
                     } else if (action.view=="page_mobile") {
-                        return <Page model={action.model} layout={action.layout} active_id={action.active_id}/>
+                        return <Page navigator={navigator} model={action.model} layout={action.layout} active_id={action.active_id}/>
                     }
                 } else {
                     alert("Invalid route: "+route.name);
