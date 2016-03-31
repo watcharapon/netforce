@@ -520,6 +520,7 @@ class SaleQuot(Model):
     def onchange_sequence(self, context={}):
         data = context["data"]
         seq_id = data["sequence_id"]
+        context['date']=data['date']
         if not seq_id:
             return None
         while 1:
