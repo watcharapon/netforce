@@ -46,13 +46,11 @@ class NotifPaysbuy(BaseController):
             cart=get_model("ecom.cart").browse(cart_id)
             if method:
                 cart.update_paysbuy_method(method)
-                db = database.get_connection()
-                db.commit()
             if result.startswith("00") and not cart.is_paid:
                 set_active_user(1)
                 set_active_company(1)
                 cart.import_paysbuy_payment()  # Inquiry Doublecheck
-                db.commit()
+            db.commit()
         except Exception as e:
             db = get_connection()
             db.rollback
