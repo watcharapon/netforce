@@ -226,18 +226,18 @@ class Payment(Model):
                     tax_comp=line.tax_comp_id
                     #tax=line.tax_id or tax_comp.tax_rate_id # tax_id is hided
                     tax=tax_comp.tax_rate_id
+                    amt=line.amount or 0
                     if tax:
-                        amt=line.amount or 0
                         factor=-1
                         if tax_comp.type in ('vat'):
                             vat += amt *factor
                         elif tax_comp.type in ('wht'):
                             wht += amt * factor
                     else:
-                        subtotal += line.amount
+                        subtotal += amt
                     if obj.tax_type == "tax_in":
-                        subtotal += line.amount
-                    total+=line.amount
+                        subtotal += amt
+                    total+=amt
                 elif line.type=="invoice":
                     inv = line.invoice_id
                     cred_amt = 0
@@ -366,6 +366,23 @@ class Payment(Model):
                         subtotal += base_amt
                 inv_vat = get_model("currency").round(currency_id, inv_vat)
                 vat += inv_vat
+            for line in data["adjust_lines"]:
+                tax_comp_id=line.get('tax_comp_id')
+                tax=None
+                amt=line.get('amount',0)
+                if tax_comp_id:
+                    tax_comp=get_model('account.tax.component').browse(tax_comp_id)
+                    tax=tax_comp.tax_rate_id
+                if tax:
+                    factor=-1
+                    if tax_comp.type in ('vat'):
+                        vat += amt *factor
+                    elif tax_comp.type in ('wht'):
+                        wht += amt * factor
+                else:
+                    subtotal += amt
+                if data['tax_type'] == "tax_in":
+                    subtotal += amt
         elif pay_type == "prepay":
             for line in data["prepay_lines"]:
                 if not line:
@@ -1200,20 +1217,20 @@ class Payment(Model):
         self.onchange_sequence(context=context)
         return data
 
-    def update_adjust_amount(self, context={}):
+    def update_adjust(self, context={}):
         data = context["data"]
         path = context['path']
         line = get_data_path(data,path,parent=True)
         if line['tax_base'] and line['tax_comp_id']:
             tax_comp=get_model("account.tax.component").browse(line['tax_comp_id'])
             rate=(tax_comp.rate or 0)/100
+            tax_base=line['tax_base'] or 0
+            amt=line.get('amount',0)
             factor=1
-            amt=line['amount'] or 0
-            if not amt:
-                line['amount']=(line['tax_base']*rate)
-            elif amt<0:
+            if amt and amt < 0:
                 factor=-1
-                line['amount']=(line['tax_base']*rate)*factor
+            line['amount']=tax_base*rate*factor
+        data=self.update_amounts(context)
         return data
 
     def onchange_sequence(self, context={}):
