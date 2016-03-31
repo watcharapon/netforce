@@ -213,6 +213,8 @@ class Invoice(Model):
         sale_ids = []
         purch_ids = []
         for inv in self.browse(ids):
+            if inv.inv_type == "prepay" and inv.type == "out" and "can_delete" not in context:
+                raise Exception("Can't delete invoice with Prepayment. Please delete by using To Draft option in payment.")
             if inv.inv_type not in ("prepay", "overpay"):
                 if inv.state not in ("draft", "waiting_approval", "voided"):
                     raise Exception("Can't delete invoice with this status")

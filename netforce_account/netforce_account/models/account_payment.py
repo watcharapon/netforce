@@ -911,9 +911,10 @@ class Payment(Model):
 
     def delete_credit_invoices(self, ids, context={}):  # XXX: improve/simplify this
         obj = self.browse(ids)[0]
+        context["can_delete"]=True
         for inv in obj.credit_invoices:
             inv.void()
-            inv.delete()
+            inv.delete(context)
 
     def onchange_account(self, context):
         data = context["data"]
