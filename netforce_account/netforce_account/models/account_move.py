@@ -126,6 +126,14 @@ class Move(Model):
         get_model("account.move.line").function_store(line_ids)
         if rec_ids:
             get_model("account.reconcile").function_store(rec_ids)
+            move_ids=[]
+            for rec in get_model("account.reconcile").browse(rec_ids):
+                for line in rec.lines:
+                    move_ids.append(line.move_id.id)
+            move_ids=list(set(move_ids))
+            inv_ids=get_model("account.invoice").search([["move_id","in",move_ids]])
+            if inv_ids:
+                get_model("account.invoice").function_store(inv_ids) # XXX: check this
         get_model("field.cache").clear_cache(model="account.account")
 
     def delete(self, ids, **kw):

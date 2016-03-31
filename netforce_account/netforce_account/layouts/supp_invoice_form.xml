@@ -61,7 +61,11 @@
                                     Less <a href="#name=journal_entry&amp;mode=form&amp;active_id={{move_id.0.}}">{{move_id.1.}}</a>
                                 </label>
                                 <div class="col-md-8" style="text-align:right">
-                                    {{currency debit}}
+                                    {{#if amount_cur}}
+                                        {{currency amount_cur}}
+                                    {{else}}
+                                        {{currency debit}}
+                                    {{/if}}
                                 </div>
                             </div>
                         {{/each}}
