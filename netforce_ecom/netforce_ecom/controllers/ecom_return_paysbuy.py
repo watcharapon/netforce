@@ -30,7 +30,7 @@ class ReturnPaysbuy(Controller):
     _path = "/ecom_return_paysbuy"
 
     def post(self):
-        try:
+        with database.Transaction():
             print("POST ARGUMENT >>>>>>>>>>>>>>>>>>>")
             print(self.request.body)
             f = open("paysbuy_return", "a")
@@ -48,32 +48,25 @@ class ReturnPaysbuy(Controller):
             result = self.get_argument("result", None)
             method = self.get_argument("method", None)
             cart = get_model("ecom.cart").browse(cart_id)
+            f = open("record_return", "a")
+            x= "cart_id:" +str(cart_id)
+            x+= "\nrestut:" +result
+            f.write(x)
+            f.close()
             if method:
                 access.set_active_user(1)
                 access.set_active_company(1)
                 cart.update_paysbuy_method(method)
-                db = database.get_connection()
-                db.commit()
             if result.startswith("00"): # received payment already
                 if not cart.is_paid:
                     access.set_active_user(1)
                     access.set_active_company(1)
                     cart.import_paysbuy_payment()
-                    db = database.get_connection()
-                    db.commit()
                 self.redirect("/ecom_order_confirmed?cart_id=%s" % cart_id)
             elif result.startswith("02"): # will receive payment later
                 self.redirect("/ecom_order_confirmed?cart_id=%s" % cart_id)
             else:
                 cart.cancel_order()
-                db = database.get_connection()
-                db.commit()
-                #self.set_cookie("cart_id", str(cart_id))
                 self.redirect("/ecom_order_cancelled?cart_id=%s" % cart_id)
-        except Exception as e:
-            db = database.get_connection()
-            db.rollback
-            import traceback
-            traceback.print_exc()
-
+                self.redirect("/ecom_order_cancelled?cart_id=%s" % cart_id)
 ReturnPaysbuy.register()
