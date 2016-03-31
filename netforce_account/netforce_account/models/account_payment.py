@@ -1062,7 +1062,7 @@ class Payment(Model):
             if data["currency_rate"]:
                 amount = inv.amount_due/data["currency_rate"]
             else:
-                amount = get_model("currency").convert(inv.amount_due, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type),
+                amount = get_model("currency").convert(inv.amount_due, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type)
             lines.append({
                 "invoice_id": inv.id,
                 # XXX
@@ -1204,27 +1204,6 @@ class Payment(Model):
         data["number"] = num
         return data
 
-    def onchange_currency(self, context={}):
-        data = context["data"]
-        #if "currency_rate" in data and data["currency_rate"]:
-            #return data
-        #if data["type"] == "in":
-            #rate_type = "sell"
-        #elif data["type"] == "out":
-            #rate_type = "buy"
-        #for line in data["invoice_lines"]:
-            #inv = get_model("account.invoice").browse(line["invoice_id"])
-            #line["amount"] = get_model("currency").convert(inv.amount_due, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type)
-        data = self.update_invoice_line(context)
-        data = self.update_amounts(context)
-        return data
-
-    def onchange_currency_rate(self, context={}):
-        data = context["data"]
-        data = self.update_invoice_line(context)
-        data = self.update_amounts(context)
-        return data
-
     def update_invoice_line(self, context={}):
         data = context["data"]
         if data["type"] == "in":
@@ -1237,6 +1216,7 @@ class Payment(Model):
                 line["amount"] = inv.amount_due/data["currency_rate"]
             else:
                 line["amount"] = get_model("currency").convert(inv.amount_due, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type)
+        data = self.update_amounts(context)
         return data
 
 Payment.register()
