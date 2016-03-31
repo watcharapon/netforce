@@ -145,7 +145,10 @@ class WorkTime(Model):
     def get_track_categ(self,ids,context={}):
         vals={}
         for obj in self.browse(ids):
-            track_id=obj.project_id.track_id.id
+            track_id=None
+            project_id=obj.project_id
+            if project_id and project_id.track_id:
+                track_id=project_id.track_id.id
             rel=obj.related_id
             if rel.track_id:
                 track_id=rel.track_id.id
