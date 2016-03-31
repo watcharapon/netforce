@@ -52,6 +52,7 @@ class WorkTime(Model):
         "track_id": fields.Many2One("account.track.categ","Tracking",function="get_track_categ"),
         "cost_amount": fields.Decimal("Cost Amount",function="get_cost_amount"),
         #"agg_cost_amount": fields.Decimal("Cost Amount", agg_function=["sum", "cost_amount"]),
+        "sale_price": fields.Decimal("Hourly Rate"),
     }
     _order = "date,resource_id.name"
 

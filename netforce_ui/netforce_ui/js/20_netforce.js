@@ -20,6 +20,8 @@
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+NF_TIMEOUT=1; // seconds
+
 window.log=function() {
     if (this.console) {
         console.log(Array.prototype.slice.call(arguments));

@@ -27,15 +27,15 @@ class TrackEntry(Model):
     _name = "account.track.entry"
     _string = "Tracking Entries"
     _fields = {
-        "track_id": fields.Many2One("account.track.categ", "Tracking Category",required=True,on_delete="cascade"),
-        "date": fields.Date("Date",required=True),
+        "track_id": fields.Many2One("account.track.categ", "Tracking Category",required=True,on_delete="cascade",search=True),
+        "date": fields.Date("Date",required=True,search=True),
         "amount": fields.Decimal("Amount",required=True),
-        "product_id": fields.Many2One("product","Product"),
+        "product_id": fields.Many2One("product","Product",search=True),
         "description": fields.Text("Description"),
         "qty": fields.Decimal("Qty"),
         "uom_id": fields.Many2One("uom","UoM"),
         "related_id": fields.Reference([["account.invoice","Invoice"],["stock.picking","Stock Picking"],["work.time","Work Time"],["hr.expense","Expense Claim"]],"Related To"),
-        "move_id": fields.Many2One("account.move","Journal Entry"),
+        "move_id": fields.Many2One("account.move","Journal Entry",search=True),
     }
     _order = "date desc,id desc"
     _defaults={

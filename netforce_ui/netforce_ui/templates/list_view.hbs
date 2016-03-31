@@ -1,6 +1,6 @@
 {{#if options.show_full}}
     <div class="page-header nf-page-header">
-        <h1>{{options.string}}</h1>
+        <h1>{{t options.string}}</h1>
     </div>
     {{view "inline_help" action=options.action_name context=context}}
     {{view "flash" context=context}}
@@ -11,7 +11,7 @@
         <ul class="nav nav-tabs nf-nav-tabs">
             {{#each ../tabs context=context}}
                 <li data-tab="{{tab_no}}">
-                    <a href="#">{{string}}</a>
+                    <a href="#">{{t string}}</a>
                 </li>
             {{/each}}
         </ul>

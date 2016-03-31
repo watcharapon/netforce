@@ -262,22 +262,10 @@ class Payment(Model):
                                         if comp.type == "vat":
                                             inv_vat += tax_amt
                                         elif comp.type == "wht":
-                                            #wht -= tax_amt
                                             inv_wht -= tax_amt
                                 else:
                                     base_amt = invline_amt
                                 subtotal += base_amt
-                            #if not automatic compute
-                            if inv.taxes:
-                                inv_vat = 0
-                                inv_wht = 0
-                                for tax in inv.taxes:
-                                    comp=tax.tax_comp_id
-                                    tax_amt=tax.tax_amount*pay_ratio
-                                    if comp.type == "vat":
-                                        inv_vat += tax_amt
-                                    elif comp.type == "wht":
-                                        inv_wht -= tax_amt
                             for alloc in inv.credit_notes:
                                 cred = alloc.credit_id
                                 cred_ratio = alloc.amount / cred.amount_total
@@ -730,6 +718,13 @@ class Payment(Model):
                     line.amount, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
                 tax_base = get_model("currency").convert(
                     line.tax_base or 0, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
+                tax_no=''
+                comp=line.tax_comp_id
+                if comp:
+                    if comp.type in ('vat'):
+                        tax_no = get_model("account.invoice").gen_tax_no(context={"date": obj.date})
+                    elif comp.type in ('wht'):
+                        tax_no = get_model("account.payment").gen_wht_no(context={"date": obj.date})
                 line_vals = {
                     "move_id": move_id,
                     "description": desc,
@@ -738,6 +733,7 @@ class Payment(Model):
                     "tax_base": tax_base,
                     "track_id": line.track_id.id,
                     "contact_id": obj.contact_id.id,
+                    'tax_no': tax_no,
                 }
                 if obj.type == "in":
                     cur_amt = -cur_amt
@@ -1062,10 +1058,15 @@ class Payment(Model):
         elif data["type"] == "out":
             rate_type = "buy"
         for inv in get_model("account.invoice").search_browse(cond,order="number"):
+            amount = 0
+            if data["currency_rate"]:
+                amount = inv.amount_due/data["currency_rate"]
+            else:
+                amount = get_model("currency").convert(inv.amount_due, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type),
             lines.append({
                 "invoice_id": inv.id,
                 # XXX
-                "amount": get_model("currency").convert(inv.amount_due, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type),
+                "amount": amount,
             })
         data["invoice_lines"] = lines
         data = self.update_amounts(context)
@@ -1201,6 +1202,41 @@ class Payment(Model):
         data = context["data"]
         num = self._get_number(context={"type": data["type"], "date": data["date"], "sequence_id": data["sequence_id"]})
         data["number"] = num
+        return data
+
+    def onchange_currency(self, context={}):
+        data = context["data"]
+        #if "currency_rate" in data and data["currency_rate"]:
+            #return data
+        #if data["type"] == "in":
+            #rate_type = "sell"
+        #elif data["type"] == "out":
+            #rate_type = "buy"
+        #for line in data["invoice_lines"]:
+            #inv = get_model("account.invoice").browse(line["invoice_id"])
+            #line["amount"] = get_model("currency").convert(inv.amount_due, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type)
+        data = self.update_invoice_line(context)
+        data = self.update_amounts(context)
+        return data
+
+    def onchange_currency_rate(self, context={}):
+        data = context["data"]
+        data = self.update_invoice_line(context)
+        data = self.update_amounts(context)
+        return data
+
+    def update_invoice_line(self, context={}):
+        data = context["data"]
+        if data["type"] == "in":
+            rate_type = "sell"
+        elif data["type"] == "out":
+            rate_type = "buy"
+        for line in data["invoice_lines"]:
+            inv = get_model("account.invoice").browse(line["invoice_id"])
+            if "currency_rate" in data and data["currency_rate"]:
+                line["amount"] = inv.amount_due/data["currency_rate"]
+            else:
+                line["amount"] = get_model("currency").convert(inv.amount_due, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type)
         return data
 
 Payment.register()

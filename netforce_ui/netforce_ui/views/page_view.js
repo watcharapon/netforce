@@ -735,6 +735,7 @@ var PageView=NFView.extend({
             var view_id=$(this).attr("id");
             //log("render sub",view_id);
             var view=get_view_inst(view_id);
+            view.options.show_pagination=true;
             view.render();
             $(this).replaceWith(view.$el);
             that.subviews[view_id]=view;
