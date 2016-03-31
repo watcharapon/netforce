@@ -521,7 +521,10 @@ class Payment(Model):
                     "track_id": line.track_id.id,
                     "track2_id": line.track2_id.id,
                 }
-                if line.type=="prepay" or line.account_id.type not in ["cost_sales","expense","other_expense","revenue","other_income","view","other"]: #account group 1 and 2
+                if line.type=="prepay" or line.account_id.type not in ["cost_sales","expense","other_expense","revenue","other_income","view","other"]:
+                    # For case 'Contact A loan from other Contacts and he/she wants to pay that amount by using direct payment'.
+                    # need to put a contact for account group 1 and 2 so that all account move lines can be classified by contact in Report General Ledger.
+                    # also, they can trace, reconcile, clear all amount for each contact easily.
                     line_vals["contact_id"]=obj.contact_id.id
                 get_model("account.move.line").create(line_vals)
             elif line.type=="invoice":
