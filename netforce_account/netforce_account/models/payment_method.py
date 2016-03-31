@@ -50,7 +50,7 @@ class PaymentMethod(Model):
     _order = "sequence,name"
 
     def start_payment(self,ids,context={}):
-        pass
+        print("PaymentMethod.start_payment")
 
     def payment_received(self,context={}):
         transaction_no=context.get("transaction_no")
