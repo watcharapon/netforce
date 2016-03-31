@@ -521,7 +521,7 @@ class Payment(Model):
                     "track_id": line.track_id.id,
                     "track2_id": line.track2_id.id,
                 }
-                if line.type=="prepay":
+                if line.type=="prepay" or line.account_id.type not in ["cost_sales","expense","other_expense","revenue","other_income","view","other"]: #account group 1 and 2
                     line_vals["contact_id"]=obj.contact_id.id
                 get_model("account.move.line").create(line_vals)
             elif line.type=="invoice":
