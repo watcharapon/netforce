@@ -223,19 +223,19 @@ class Payment(Model):
             wht = 0
             for line in obj.lines:
                 if line.type in ("direct", "prepay", "overpay", "adjust"):
-                    if line.tax_id:
-                        line_vat = get_model("account.tax.rate").compute_tax(
-                            line.tax_id.id, line.amount, tax_type=obj.tax_type)
-                        line_wht = get_model("account.tax.rate").compute_tax(
-                            line.tax_id.id, line.amount, tax_type=obj.tax_type, wht=True)
+                    tax_comp=line.tax_comp_id
+                    #tax=line.tax_id or tax_comp.tax_rate_id # tax_id is hided
+                    tax=tax_comp.tax_rate_id
+                    if tax:
+                        amt=line.amount or 0
+                        factor=-1
+                        if tax_comp.type in ('vat'):
+                            vat += amt *factor
+                        elif tax_comp.type in ('wht'):
+                            wht += amt * factor
                     else:
-                        line_vat = 0
-                        line_wht = 0
-                    vat += line_vat
-                    wht += line_wht
+                        subtotal += line.amount
                     if obj.tax_type == "tax_in":
-                        subtotal += line.amount - line_vat
-                    else:
                         subtotal += line.amount
                     total+=line.amount
                 elif line.type=="invoice":
@@ -457,6 +457,7 @@ class Payment(Model):
                 raise Exception("Disbursements journal not found")
         if not obj.number:
             raise Exception("Missing payment number")
+        wht_no=''
         move_vals = {
             "journal_id": journal_id,
             "number": obj.number,
@@ -723,8 +724,12 @@ class Payment(Model):
                 if comp:
                     if comp.type in ('vat'):
                         tax_no = get_model("account.invoice").gen_tax_no(context={"date": obj.date})
-                    elif comp.type in ('wht'):
-                        tax_no = get_model("account.payment").gen_wht_no(context={"date": obj.date})
+                    elif comp.type in ('wht') and obj.type!='in':
+                        if not wht_no:
+                            tax_no = get_model("account.payment").gen_wht_no(context={"date": obj.date})
+                            wht_no=tax_no
+                        else:
+                            tax_no=wht_no
                 line_vals = {
                     "move_id": move_id,
                     "description": desc,
@@ -732,6 +737,7 @@ class Payment(Model):
                     "tax_comp_id": line.tax_comp_id.id,
                     "tax_base": tax_base,
                     "track_id": line.track_id.id,
+                    "track2_id": line.track2_id.id,
                     "contact_id": obj.contact_id.id,
                     'tax_no': tax_no,
                 }
@@ -781,7 +787,8 @@ class Payment(Model):
                 "account_id": account_id,
             }
             inv_id = get_model("account.invoice").create(inv_vals)
-        wht_no = get_model("account.payment").gen_wht_no(context={"date": obj.date})
+        if not wht_no:
+            wht_no = get_model("account.payment").gen_wht_no(context={"date": obj.date})
         for comp_id, tax_vals in sorted(taxes.items()):
             comp = get_model("account.tax.component").browse(comp_id)
             acc_id = comp.account_id.id
@@ -1191,6 +1198,22 @@ class Payment(Model):
         else:
             data["sequence_id"] = None
         self.onchange_sequence(context=context)
+        return data
+
+    def update_adjust_amount(self, context={}):
+        data = context["data"]
+        path = context['path']
+        line = get_data_path(data,path,parent=True)
+        if line['tax_base'] and line['tax_comp_id']:
+            tax_comp=get_model("account.tax.component").browse(line['tax_comp_id'])
+            rate=(tax_comp.rate or 0)/100
+            factor=1
+            amt=line['amount'] or 0
+            if not amt:
+                line['amount']=(line['tax_base']*rate)
+            elif amt<0:
+                factor=-1
+                line['amount']=(line['tax_base']*rate)*factor
         return data
 
     def onchange_sequence(self, context={}):

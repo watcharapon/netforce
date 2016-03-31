@@ -46,8 +46,8 @@
                         <field name="adjust_lines" nolabel="1" count="5">
                             <list>
                                 <field name="account_id" condition='[["type","!=","view"],["company_id","=",parent.company_id]]'/>
-                                <field name="tax_comp_id"/>
-                                <field name="tax_base"/>
+                                <field name="tax_comp_id" onchange="update_adjust_amount"/>
+                                <field name="tax_base" onchange="update_adjust_amount"/>
                                 <field name="track_id"/>
                                 <field name="track2_id"/>
                                 <field name="amount" onchange="update_amounts"/>
