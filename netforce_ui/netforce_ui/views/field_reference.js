@@ -122,6 +122,7 @@ var FieldReference=NFView.extend({
             that.$menu
                 .on('click', $.proxy(that.menu_click, that))
                 .on('mouseenter', 'li', $.proxy(that.menu_mouseenter, that));
+            that.$el.find("a.help").tooltip();
         }
         if (value) {
             if (_.isArray(value)) {
