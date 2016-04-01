@@ -133,4 +133,9 @@ dependencies {
     compile "com.facebook.react:react-native:0.20.+"
     compile project(':react-native-maps')
     compile project(':react-native-image-picker')
+    compile project(':reactdate')
+    compile project(':react-native-vector-icons')
 }
+
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+

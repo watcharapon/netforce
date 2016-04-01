@@ -27,8 +27,8 @@ module.exports.load_ui_params=function(cb) {
 
 module.exports.get_action=function(name) {
     console.log("get_action",name);
-    if (!name) throw "Missing action name";
     if (!_ui_params) throw "UI params not loaded";
+    if (!name) throw "Missing action name";
     var action=_ui_params.actions[name];
     if (!action) throw "Action not found: "+name;
     return action;
@@ -36,9 +36,30 @@ module.exports.get_action=function(name) {
 
 module.exports.get_layout=function(name) {
     console.log("get_layout",name);
-    if (!name) throw "Missing layout name";
     if (!_ui_params) throw "UI params not loaded";
+    if (!name) throw "Missing layout name";
     var layout=_ui_params.layouts[name];
     if (!layout) throw "Layout not found: "+name;
     return layout;
+}
+
+module.exports.get_model=function(model) {
+    console.log("get_model",model);
+    if (!_ui_params) throw "UI params not loaded";
+    if (!model) throw "Missing model name";
+    var m=_ui_params.models[model];
+    if (!m) throw "Model not found: "+model;
+    return m;
+}
+
+module.exports.get_field=function(model,field_name) {
+    console.log("get_field",model,field_name);
+    if (!_ui_params) throw "UI params not loaded";
+    if (!model) throw "Missing model name";
+    if (!field_name) throw "Missing field name";
+    var m=_ui_params.models[model];
+    if (!m) throw "Model not found: "+model;
+    var f=m.fields[field_name];
+    if (!f) throw "Field not found: "+field_name;
+    return f;
 }

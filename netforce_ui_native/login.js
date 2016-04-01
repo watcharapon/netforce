@@ -26,19 +26,26 @@ class Login extends Component {
             var dbname=db_list.length>0?db_list[0].dbname:null;
             this.setState({db_list:db_list,dbname:dbname});
         }.bind(this));
-        AsyncStorage.getItem("user_id",function(err,res) {
+        AsyncStorage.getItem("base_url",function(err,res) {
             if (!res) {
                 this.setState({loading:false});
                 return;
             }
-            AsyncStorage.getItem("ui_params",function(err,res) {
+            RPC.set_base_url(res);
+            AsyncStorage.getItem("user_id",function(err,res) {
                 if (!res) {
                     this.setState({loading:false});
                     return;
                 }
-                UIParams.set_ui_params(JSON.parse(res));
-                var login_action={name:"action",action:"main_menu_mobile"};
-                this.props.navigator.replace(login_action);
+                AsyncStorage.getItem("ui_params",function(err,res) {
+                    if (!res) {
+                        this.setState({loading:false});
+                        return;
+                    }
+                    UIParams.set_ui_params(JSON.parse(res));
+                    var login_action={name:"action",action:"main_menu_mobile"};
+                    this.props.navigator.replace(login_action);
+                }.bind(this));
             }.bind(this));
         }.bind(this));
     }
@@ -111,6 +118,7 @@ class Login extends Component {
                   AsyncStorage.setItem("user_id",""+user_id);
                   AsyncStorage.setItem("user_name",user_name);
                   AsyncStorage.setItem("company_name",company_name);
+                  AsyncStorage.setItem("base_url",base_url);
                   var login_action={name:"action",action:"main_menu_mobile"};
                   UIParams.load_ui_params(function(err) {
                       if (err) {
