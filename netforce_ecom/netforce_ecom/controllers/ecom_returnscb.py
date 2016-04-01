@@ -32,27 +32,24 @@ class ReturnSCB(Controller):
 
     def post(self):
         print("POST >>>>>>>>>>>>>>>>>>>")
-        cart_id = int(self.get_argument("cart_id"))
-        cart = get_model("ecom.cart").browse(cart_id)
-        website=cart.website_id
-        base_url=(website.url or "").strip()
-        if base_url.endswith("/"):
-            base_url=base_url[:-1]
-        response = self.get_argument("response")
-        if response != "approved":
-            cart.cancel_order()
-            db = database.get_connection()
-            db.commit()
-            #self.set_cookie("cart_id", str(cart_id))
-            self.redirect(base_url+"/ecom_order_cancelled?cart_id=%s" % cart_id)
-            return
-        if not cart.is_paid:
-            access.set_active_user(1)
-            access.set_active_company(1)
-            cart.import_scb_payment()
-            db = database.get_connection()
-            db.commit()
-        self.redirect(base_url+"/ecom_order_confirmed?cart_id=%s" % cart_id)
+        with database.Transaction():
+            cart_id = int(self.get_argument("cart_id"))
+            cart = get_model("ecom.cart").browse(cart_id)
+            website=cart.website_id
+            base_url=(website.url or "").strip()
+            if base_url.endswith("/"):
+                base_url=base_url[:-1]
+            response = self.get_argument("response")
+            if response == "declined":
+                cart.cancel_order()
+                #self.set_cookie("cart_id", str(cart_id))
+                self.redirect(base_url+"/ecom_order_cancelled?cart_id=%s" % cart_id)
+                return
+            if not cart.is_paid:
+                access.set_active_user(1)
+                access.set_active_company(1)
+                cart.import_scb_payment()
+            self.redirect(base_url+"/ecom_order_confirmed?cart_id=%s" % cart_id)
 
     def get(self):  # XXX: SCB use GET
         print("GET >>>>>>>>>>>>>>>>>>>")

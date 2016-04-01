@@ -1321,9 +1321,14 @@ class SaleOrder(Model):
         print("SaleOrder.pay_online",ids)
         obj=self.browse(ids[0])
         set_active_company(obj.company_id.id) # XXX
-        method=obj.pay_method_id
-        if not method:
-            raise Exception("Missing payment method for sales order %s"%obj.number)
+        pay_method_id=context.get("pay_method_id")
+        if pay_method_id:
+            method=get_model("payment.method").browse(pay_method_id)
+            obj.write({"pay_method_id":method.id})
+        else:
+            method=obj.pay_method_id
+            if not method:
+                raise Exception("Missing payment method for sales order %s"%obj.number)
         ctx={
             "amount": obj.amount_total,
             "currency_id": obj.currency_id.id,
@@ -1343,5 +1348,8 @@ class SaleOrder(Model):
             "transaction_no": transaction_no,
             "next": res.get("payment_action"),
         }
+
+    def payment_received(self,ids,context={}):
+        print("SaleOrder.payment_received",ids)
 
 SaleOrder.register()

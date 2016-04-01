@@ -4,47 +4,49 @@ class EcomInterface(Model):
     _name="ecom2.interface"
     _store=False
 
-    def sign_up(self,first_name,last_name,email,password,province_id,postal_code,address,subdistrict,context={}):
-        print("EcomInterface.sign_up",first_name,last_name,email,password,province_id,postal_code,address)
-        res=get_model("base.user").search([["email","=",email]])
+    def sign_up(self,vals,context={}):
+        print("EcomInterface.sign_up",vals,context)
+        res=get_model("base.user").search([["email","=",vals["email"]]])
         if res:
             raise Exception("User already exists with same email")
-        res=get_model("contact").search([["email","=",email]])
+        res=get_model("contact").search([["email","=",vals["email"]]])
         if res:
             raise Exception("Contact already exists with same email")
-        vals={
-            "first_name": first_name,
-            "last_name": last_name,
-            "email": email,
+        cont_vals={
+            "first_name": vals["first_name"],
+            "last_name": vals["last_name"],
+            "email": vals["email"],
         }
-        contact_id=get_model("contact").create(vals)
-        contact=get_model("contact").browse(contact_id)
+        contact_id=get_model("contact").create(cont_vals)
         res=get_model("profile").search([["code","=","ECOM_CUSTOMER"]])
         if not res:
             raise Exception("Customer user profile not found")
         profile_id=res[0]
-        vals={
-            "name": "%s %s"%(first_name,last_name),
-            "login": email,
+        user_vals={
+            "name": "%s %s"%(vals["first_name"],vals["last_name"]),
+            "login": vals["email"],
             "profile_id": profile_id,
             "contact_id": contact_id,
-            "password": password,
+            "password": vals["password"],
         }
-        user_id=get_model("base.user").create(vals)
+        user_id=get_model("base.user").create(user_vals)
         addr_vals = {
-        "first_name" :first_name,
-        "last_name" : last_name,
-        "province_id" : int(province_id),
-        "type" : "billing",
-        "postal_code" : postal_code, 
-        "address" :address,
-        "contact_id":contact_id,
+            "first_name": vals["first_name"],
+            "last_name": vals["last_name"],
+            "province_id": vals["province_id"],
+            "type": "billing",
+            "postal_code" : vals["postal_code_id"], 
+            "address": vals["address"],
+            "contact_id": contact_id,
+            "mobile":vals["mobile"],
+            "instructions_messenger" :vals['messenger'],
         }
-        if subdistrict:
-            subdistrict_id = int (subdistrict)
+        if vals.get("subdistrict_id"):
+            subdistrict_id = vals["subdistrict_id"]
             if subdistrict_id:
                 addr_vals['subdistrict_id'] = subdistrict_id
-        addr = get_model("address").create(addr_vals)
+        get_model("address").create(addr_vals)
+        get_model("contact").trigger([contact_id],"ecom_sign_up")
         return {
             "user_id": user_id,
             "contact_id" : contact_id,
@@ -59,6 +61,7 @@ class EcomInterface(Model):
         contact=user.contact_id
         return {
             "user_id": user_id,
+            "contact_id": contact.id,
         }
 
     def checkEmail(self,login,context={}):
@@ -112,4 +115,5 @@ class EcomInterface(Model):
         #contact_id=context.get("contact_id")
         contact=get_model("contact").browse(contact_id)
         contact.write({"exclude_product_groups":[("remove",[prod_group_id])]})
+
 EcomInterface.register()

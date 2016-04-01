@@ -201,6 +201,7 @@ class Cart(Model):
         sale=get_model("sale.order").browse(sale_id)
         sale.confirm()
         obj.write({"state":"confirmed"})
+        obj.trigger("confirm_order")
         return {
             "sale_id": sale_id,
         }
@@ -502,5 +503,9 @@ class Cart(Model):
         for line in obj.lines:
             if line.delivery_date==date:
                 line.write(vals)
+
+    def empty_cart(self,ids,context={}):
+        obj=self.browse(ids[0])
+        obj.write({"lines":[("delete_all",)]})
 
 Cart.register()
