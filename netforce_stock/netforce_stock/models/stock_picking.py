@@ -39,7 +39,7 @@ class Picking(Model):
         "contact_id": fields.Many2One("contact", "Contact", search=True),
         "date": fields.DateTime("Date", required=True, search=True),
         "state": fields.Selection([("draft", "Draft"), ("pending", "Planned"), ("approved", "Approved"), ("done", "Completed"), ("voided", "Voided")], "Status", required=True),
-        "lines": fields.One2Many("stock.move", "picking_id", "Lines"),
+        "lines": fields.One2Many("stock.move", "picking_id", "Stock Movements"),
         "move_id": fields.Many2One("account.move", "Journal Entry"),
         "product_id": fields.Many2One("product", "Product", store=False, function_search="search_product"),
         "comments": fields.One2Many("message", "related_id", "Comments"),

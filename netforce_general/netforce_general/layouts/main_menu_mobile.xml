@@ -1,7 +1,7 @@
-<menu_mobile>
+<menu_mobile title="Main Menu">
     <item string="Timesheets" action="work_time_mobile"/>
     <item string="Expenses" action="expense_mobile"/>
-    <item string="Inventory" action="stock_mobile"/>
+    <item string="Inventory" action="stock_menu_mobile"/>
     <item string="Sales" action="sale_mobile"/>
     <item string="Logout" action="_logout"/>
 </menu_mobile>

@@ -45,7 +45,10 @@ class Menu extends Component {
             items.push(item);
         }
         return <View>
-            <View style={{paddingTop:10}}>
+            <View style={{alignItems:"center",marginTop:10}}>
+                <Text style={{fontWeight:"bold"}}>{root_el.getAttribute("title")}</Text>
+            </View>
+            <View>
                 {items.map(function(item,i) {
                     return <Button onPress={this.press_item.bind(this,item)} key={i}>
                         <View style={{height:50,alignItems:"center",justifyContent:"center",backgroundColor:"#aaa",marginTop:10}}>

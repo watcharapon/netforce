@@ -37,7 +37,8 @@ class List extends Component {
     }
 
     componentDidMount() {
-        var layout=UIParams.get_layout("work_time_list_mobile");
+        var layout_name=this.props.layout||"work_time_list_mobile";
+        var layout=UIParams.get_layout(layout_name);
         this.layout_doc=new dom().parseFromString(layout.layout);
         this.load_data();
     }
@@ -125,7 +126,9 @@ class List extends Component {
             view: "form_mobile",
             model: this.props.model,
             active_id: active_id,
+            context: this.props.context,
         }
+        if (this.props.form_layout) action.layout=this.props.form_layout;
         this.props.navigator.push({name:"action",action:action});
     }
 
@@ -133,7 +136,9 @@ class List extends Component {
         var action={
             view: "form_mobile",
             model: this.props.model,
+            context: this.props.context,
         }
+        if (this.props.form_layout) action.layout=this.props.form_layout;
         this.props.navigator.push({name:"action",action:action});
     }
 }

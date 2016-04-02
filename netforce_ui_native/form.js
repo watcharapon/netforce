@@ -11,6 +11,7 @@ import React, {
   TextInput,
   Navigator,
   AsyncStorage,
+  ScrollView,
   View
 } from 'react-native';
 
@@ -33,6 +34,7 @@ var FieldDate=require("./field_date");
 var FieldDateTime=require("./field_datetime");
 var FieldSelect=require("./field_select");
 var FieldMany2One=require("./field_many2one");
+var FieldOne2Many=require("./field_one2many");
 
 class Form extends Component {
     constructor(props) {
@@ -41,7 +43,8 @@ class Form extends Component {
     }
 
     componentDidMount() {
-        var layout=UIParams.get_layout("work_time_form_mobile");
+        var layout_name=this.props.layout||"work_time_form_mobile";
+        var layout=UIParams.get_layout(layout_name);
         this.layout_doc=new dom().parseFromString(layout.layout);
         this.load_data();
     }
@@ -49,14 +52,24 @@ class Form extends Component {
     load_data() {
         console.log("Form.load_data");
         var cond=this.props.condition||[];
-        var field_nodes=xpath.select("//field", this.layout_doc);
+        var root_el=this.layout_doc.documentElement;
+        var field_nodes=xpath.select("field", root_el);
         var fields=[];
         field_nodes.forEach(function(el) {
             fields.push(el.getAttribute("name"));
         });
         console.log("fields",fields);
+        //alert("fields "+JSON.stringify(fields))
+        var ctx={};
+        if (this.props.context) {
+            if (typeof(this.props.context)=="string") {
+                ctx=JSON.parse(this.props.context);
+            } else if (typeof(this.props.context)=="object") {
+                ctx=this.props.context;
+            }
+        }
         if (this.props.active_id) {
-            RPC.execute(this.props.model,"read",[[this.props.active_id],fields],{},function(err,data) {
+            RPC.execute(this.props.model,"read",[[this.props.active_id],fields],{context:ctx},function(err,data) {
                 if (err) {
                     alert("ERROR: "+err);
                     return;
@@ -66,7 +79,7 @@ class Form extends Component {
                 });
             }.bind(this));
         } else {
-            RPC.execute(this.props.model,"default_get",[fields],{},function(err,data) {
+            RPC.execute(this.props.model,"default_get",[fields],{context:ctx},function(err,data) {
                 if (err) {
                     alert("ERROR: "+err);
                     return;
@@ -115,6 +128,12 @@ class Form extends Component {
                     field_component=<FieldSelect model={this.props.model} name={name} data={this.state.data}/>
                 } else if (f.type=="many2one") {
                     field_component=<FieldMany2One navigator={this.props.navigator} model={this.props.model} name={name} data={this.state.data}/>
+                } else if (f.type=="one2many") {
+                    var res=xpath.select("list",el);
+                    var list_layout_el=res.length>0?res[0]:null;
+                    var res=xpath.select("form",el);
+                    var form_layout_el=res.length>0?res[0]:null;
+                    field_component=<FieldOne2Many navigator={this.props.navigator} model={this.props.model} name={name} data={this.state.data} list_layout_el={list_layout_el} form_layout_el={form_layout_el}/>
                 } else {
                     throw "Invalid field type: "+f.type;
                 }
@@ -128,7 +147,7 @@ class Form extends Component {
             }
         }.bind(this))}
         rows.push(<View style={{flexDirection:"row", justifyContent: "space-between"}} key={rows.length}>{cols}</View>);
-        return <View style={{flex:1}}>
+        return <ScrollView style={{flex:1}}>
             <View>
                 {rows}
             </View>
@@ -149,7 +168,7 @@ class Form extends Component {
                     </Button>
                 </View>
             }.bind(this)()}
-        </View>
+        </ScrollView>
     }
 
     get_change_vals() {

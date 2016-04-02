@@ -24,6 +24,7 @@ var List=require("./list");
 var Form=require("./form");
 var Page=require("./page");
 var SearchM2O=require("./search_m2o");
+var FormO2M=require("./form_o2m");
 var UIParams=require("./ui_params");
 
 var _nav;
@@ -65,14 +66,18 @@ class Netforce extends Component {
                     if (action.view=="menu_mobile") {
                         return <Menu navigator={navigator} layout={action.layout}/>
                     } else if (action.view=="list_mobile") {
-                        return <List navigator={navigator} model={action.model} title={action.title} layout={action.layout}/>
+                        return <List navigator={navigator} model={action.model} title={action.title} layout={action.layout} form_layout={action.form_layout} context={action.context}/>
                     } else if (action.view=="form_mobile") {
-                        return <Form navigator={navigator} model={action.model} layout={action.layout} active_id={action.active_id}/>
+                        return <Form navigator={navigator} model={action.model} layout={action.layout} active_id={action.active_id} context={action.context}/>
                     } else if (action.view=="page_mobile") {
                         return <Page navigator={navigator} model={action.model} layout={action.layout} active_id={action.active_id}/>
+                    } else {
+                        alert("Invalid view type: "+action.view);
                     }
                 } else if (route.name=="search_m2o") {
                     return <SearchM2O navigator={navigator} model={route.model} on_select={route.on_select}/>
+                } else if (route.name=="form_o2m") {
+                    return <FormO2M navigator={navigator} model={route.model} layout_el={route.layout_el} on_save={route.on_save} on_delete={route.on_delete} data={route.data} index={route.index}/>
                 } else {
                     alert("Invalid route: "+route.name);
                 }
