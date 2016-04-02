@@ -69,21 +69,25 @@ class Form extends Component {
             }
         }
         if (this.props.active_id) {
-            RPC.execute(this.props.model,"read",[[this.props.active_id],fields],{context:ctx},function(err,data) {
+            RPC.execute(this.props.model,"read",[[this.props.active_id],fields],{context:ctx},function(err,res) {
                 if (err) {
                     alert("ERROR: "+err);
                     return;
                 }
+                var data=res[0];
+                data._orig_data=Object.assign({},data);
                 this.setState({
-                    data: data[0],
+                    data: data,
                 });
             }.bind(this));
         } else {
-            RPC.execute(this.props.model,"default_get",[fields],{context:ctx},function(err,data) {
+            RPC.execute(this.props.model,"default_get",[fields],{context:ctx},function(err,res) {
                 if (err) {
                     alert("ERROR: "+err);
                     return;
                 }
+                var data=res;
+                data._orig_data=Object.assign({},data);
                 this.setState({
                     data: data,
                 });
@@ -171,25 +175,70 @@ class Form extends Component {
         </ScrollView>
     }
 
-    get_change_vals() {
+    get_change_vals(data,model) {
         console.log("get_change_vals");
-        var vals={};
-        for (var name in this.state.data) {
+        var change={};
+        for (var name in data) {
             if (name=="id") continue;
-            var v=this.state.data[name];
-            var f=UIParams.get_field(this.props.model,name);
-            if (v!=null) {
-                if (f.type=="many2one") {
-                    v=v[0];
-                }
+            if (name=="_orig_data") continue;
+            var v=data[name];
+            var orig_v;
+            if (data.id) {
+                if (!data._orig_data) throw "Missing _orig_data";
+                orig_v=data._orig_data[name];
+            } else {
+                orig_v=null;
             }
-            vals[name]=v;
+            var f=UIParams.get_field(model,name);
+            if (f.type=="char") {
+                if (v!=orig_v) change[name]=v;
+            } else if (f.type=="text") {
+                if (v!=orig_v) change[name]=v;
+            } else if (f.type=="integer") {
+                if (v!=orig_v) change[name]=v;
+            } else if (f.type=="float") {
+                if (v!=orig_v) change[name]=v;
+            } else if (f.type=="decimal") {
+                if (v!=orig_v) change[name]=v;
+            } else if (f.type=="select") {
+                if (v!=orig_v) change[name]=v;
+            } else if (f.type=="many2one") {
+                var v1=v?v[0]:null;
+                var v2=orig_v?orig_v[0]:null;
+                if (v1!=v2) change[name]=v1;
+            } else if (f.type=="one2many") {
+                var ops=[];
+                var new_ids={};
+                v.forEach(function(rdata) {
+                    if (typeof(rdata)!="object") throw "Invalid O2M data";
+                    var rchange=this.get_change_vals(rdata,f.relation);
+                    if (Object.keys(rchange).length>0) {
+                        if (rdata.id) {
+                            ops.push(["write",[rdata.id],rchange]);
+                        } else {
+                            ops.push(["create",rchange]);
+                        }
+                    }
+                    if (rdata.id) new_ids[rdata.id]=true;
+                }.bind(this));
+                var del_ids=[];
+                orig_v.forEach(function(id) {
+                    if (!new_ids[id]) del_ids.push(id);
+                }.bind(this));
+                if (del_ids.length>0) ops.push(["delete",del_ids]);
+                if (ops.length>0) change[name]=ops;
+            }
         }
-        return vals;
+        return change;
     }
 
     press_save() {
-        var vals=this.get_change_vals();
+        var vals=this.get_change_vals(this.state.data,this.props.model);
+        //alert("vals "+JSON.stringify(vals));
+        if (Object.keys(vals).length==0) {
+            alert("There are no changes to save.");
+            return;
+        }
         var ctx={};
         if (this.props.active_id) {
             RPC.execute(this.props.model,"write",[[this.props.active_id],vals],{context:ctx},function(err,new_id) {
