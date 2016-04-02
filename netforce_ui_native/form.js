@@ -207,6 +207,7 @@ class Form extends Component {
                 var v2=orig_v?orig_v[0]:null;
                 if (v1!=v2) change[name]=v1;
             } else if (f.type=="one2many") {
+                if (orig_v==null) orig_v=[];
                 var ops=[];
                 var new_ids={};
                 v.forEach(function(rdata) {
@@ -240,6 +241,13 @@ class Form extends Component {
             return;
         }
         var ctx={};
+        if (this.props.context) {
+            if (typeof(this.props.context)=="string") {
+                ctx=JSON.parse(this.props.context);
+            } else if (typeof(this.props.context)=="object") {
+                ctx=this.props.context;
+            }
+        }
         if (this.props.active_id) {
             RPC.execute(this.props.model,"write",[[this.props.active_id],vals],{context:ctx},function(err,new_id) {
                 if (err) {
