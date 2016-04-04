@@ -820,6 +820,8 @@ class Picking(Model):
 
     def update_cost_price(self,context={}):
         data=context['data']
+        if data['type']!='in':
+            return data
         currency_rate=data['currency_rate']
         settings=get_model("settings").browse(1)
         for line in data['lines']:
