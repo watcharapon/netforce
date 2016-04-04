@@ -1,0 +1,5 @@
+<action>
+    <field name="title">Time Sheets</field>
+    <field name="view">list_mobile</field>
+    <field name="model">work.time</field>
+</action>

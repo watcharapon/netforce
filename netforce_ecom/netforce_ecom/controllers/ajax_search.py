@@ -33,8 +33,17 @@ class AjaxSearch(BaseController):
         db = get_connection()
         try:
             keyword = self.get_argument("keyword")
-            domain = [["or",["name","ilike",keyword],["description","ilike",keyword],["code","ilike",keyword]],["parent_id","=",None],["is_published","=",True]]
+            domain = [["parent_id","=",None],["is_published","=",True]]
+            print(keyword.split())
+            for word in keyword.split():
+                domain.append(["or",["name","ilike",word],["description","ilike",word]])
+            print("Domain is")
+            print(domain)
             result = get_model("product").search_browse(domain)
+            print ("result")
+            print (result)
+            for r in result:
+                print(r)
             #if not result:
                 #raise Exception("Product not found")
             products = []
