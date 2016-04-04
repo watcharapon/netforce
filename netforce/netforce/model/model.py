@@ -1981,8 +1981,8 @@ class Model(object):
                         r[n]=[rvals[v] for v in r[n]]
         return res
 
-    def search_read_path(self, condition, field_paths, context={}):
-        ids=self.search(condition,context=context)
+    def search_read_path(self, condition, field_paths, context={}, **kw):
+        ids=self.search(condition,context=context,**kw)
         return self.read_path(ids,field_paths,context=context)
 
     def save_data(self,data,context={}):

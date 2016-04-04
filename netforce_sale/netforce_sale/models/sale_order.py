@@ -1332,6 +1332,7 @@ class SaleOrder(Model):
         ctx={
             "amount": obj.amount_total,
             "currency_id": obj.currency_id.id,
+            "order_number": obj.number,
             "details": "Order %s"%obj.number,
             "contact_id": obj.contact_id.id,
             "sale_id": obj.id,

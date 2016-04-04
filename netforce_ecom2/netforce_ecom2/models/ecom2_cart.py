@@ -120,7 +120,7 @@ class Cart(Model):
         for obj in self.browse(ids):
             ship_amt=0
             for d in obj.ship_amount_details:
-                ship_amt+=d["ship_amount"]
+                ship_amt+=d["ship_amount"] or 0
             vals[obj.id]=ship_amt
         return vals
 
@@ -321,6 +321,56 @@ class Cart(Model):
         if not line_id:
             raise Exception("Lot not found in cart")
         get_model("ecom2.cart.line").delete([line_id])
+
+    def add_product(self,ids,prod_id,context={}):
+        print("Cart.add_product",ids,prod_id)
+        obj=self.browse(ids[0])
+        exclude_lot_ids=[]
+        for line in obj.lines:
+            if line.lot_id:
+                exclude_lot_ids.append(line.lot_id.id)
+        res=get_model("stock.balance").search([["product_id","=",prod_id],["lot_id","!=",None],["qty_virt",">",0],["lot_id","not in",exclude_lot_ids]],order="lot_id.received_date")
+        if res:
+            bal_id=res[0]
+            bal=get_model("stock.balance").browse(bal_id)
+            lot_id=bal.lot_id.id
+            get_model("ecom2.cart.line").create({
+                "cart_id": obj.id,
+                "product_id": prod_id,
+                "lot_id": lot_id,
+                "qty": 1
+            })
+        else:
+            found_line=None
+            for line in obj.lines:
+                if line.product_id.id==prod_id and not line.lot_id:
+                    found_line=line
+                    break
+            if found_line:
+                found_line.write({"qty":found_line.qty+1})
+            else:
+                get_model("ecom2.cart.line").create({"cart_id": obj.id, "product_id": prod_id, "qty": 1})
+
+    def remove_product(self,ids,prod_id,context={}):
+        print("Cart.remove_product",ids,prod_id)
+        obj=self.browse(ids[0])
+        del_line=None
+        max_date=None
+        for line in obj.lines:
+            if line.product_id.id!=prod_id:
+                continue
+            lot=line.lot_id
+            if lot:
+                d=lot.received_date or "1900-01-01"
+                if max_date is None or d>max_date:
+                    max_date=d
+                    del_line=line
+            else:
+                del_line=line
+                break
+        if not del_line:
+            raise Exception("No cart line found to remove")
+        del_line.delete()
 
     def get_delivery_delay(self,ids,context={}):
         settings=get_model("ecom2.settings").browse(1)
