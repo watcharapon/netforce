@@ -152,6 +152,7 @@ var Group=NFView.extend({
                                 readonly: $el.attr("readonly")||that.options.readonly,
                                 default_count: $el.attr("count")||1,
                                 noadd: $el.attr("noadd"),
+                                noremove: $el.attr("noremove"),
                                 context: params.context
                             }
                             var view=Sheet.make_view(opts2);
