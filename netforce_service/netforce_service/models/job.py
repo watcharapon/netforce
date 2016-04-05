@@ -80,7 +80,7 @@ class Job(Model):
         "time_start": fields.DateTime("Planned Start Time"),
         "time_stop": fields.DateTime("Planned Stop Time"),
         "location_id": fields.Many2One("stock.location", "Job Location"),
-        "related_id": fields.Reference([["sale.order", "Sales Order"], ["rental.order","Rental Order"], ["issue", "Issue"]], "Related To"),
+        "related_id": fields.Reference([["sale.order", "Sales Order"], ["issue", "Issue"]], "Related To"),
         "lines": fields.One2Many("job.line", "job_id", "Worksheet"),
         "complaints": fields.Text("Complaints"),
         "cause": fields.Text("Cause"),
@@ -109,6 +109,8 @@ class Job(Model):
         "track_id": fields.Many2One("account.track.categ","Tracking Code"),
         "track_entries": fields.One2Many("account.track.entry",None,"Tracking Entries",function="get_track_entries",function_write="write_track_entries"),
         "track_balance": fields.Decimal("Tracking Balance",function="_get_related",function_context={"path":"track_id.balance"}),
+        "agg_total_cost": fields.Decimal("Total Cost", agg_function=["sum", "total_cost"]),
+        "agg_total_sell": fields.Decimal("Total Selling", agg_function=["sum", "total_sell"]),
     }
     _order = "number"
     _sql_constraints = [

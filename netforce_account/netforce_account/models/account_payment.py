@@ -521,7 +521,10 @@ class Payment(Model):
                     "track_id": line.track_id.id,
                     "track2_id": line.track2_id.id,
                 }
-                if line.type=="prepay":
+                if line.type=="prepay" or line.account_id.type not in ["cost_sales","expense","other_expense","revenue","other_income","view","other"]:
+                    # For case 'Contact A loan from other Contacts and he/she wants to pay that amount by using direct payment'.
+                    # need to put a contact for account group 1 and 2 so that all account move lines can be classified by contact in Report General Ledger.
+                    # also, they can trace, reconcile, clear all amount for each contact easily.
                     line_vals["contact_id"]=obj.contact_id.id
                 get_model("account.move.line").create(line_vals)
             elif line.type=="invoice":
@@ -911,9 +914,10 @@ class Payment(Model):
 
     def delete_credit_invoices(self, ids, context={}):  # XXX: improve/simplify this
         obj = self.browse(ids)[0]
+        context["can_delete"]=True
         for inv in obj.credit_invoices:
             inv.void()
-            inv.delete()
+            inv.delete(context)
 
     def onchange_account(self, context):
         data = context["data"]
@@ -1058,10 +1062,15 @@ class Payment(Model):
         elif data["type"] == "out":
             rate_type = "buy"
         for inv in get_model("account.invoice").search_browse(cond,order="number"):
+            amount = 0
+            if data["currency_rate"]:
+                amount = inv.amount_due/data["currency_rate"]
+            else:
+                amount = get_model("currency").convert(inv.amount_due, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type)
             lines.append({
                 "invoice_id": inv.id,
                 # XXX
-                "amount": get_model("currency").convert(inv.amount_due, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type),
+                "amount": amount,
             })
         data["invoice_lines"] = lines
         data = self.update_amounts(context)
@@ -1197,6 +1206,21 @@ class Payment(Model):
         data = context["data"]
         num = self._get_number(context={"type": data["type"], "date": data["date"], "sequence_id": data["sequence_id"]})
         data["number"] = num
+        return data
+
+    def update_invoice_line(self, context={}):
+        data = context["data"]
+        if data["type"] == "in":
+            rate_type = "sell"
+        elif data["type"] == "out":
+            rate_type = "buy"
+        for line in data["invoice_lines"]:
+            inv = get_model("account.invoice").browse(line["invoice_id"])
+            if "currency_rate" in data and data["currency_rate"]:
+                line["amount"] = inv.amount_due/data["currency_rate"]
+            else:
+                line["amount"] = get_model("currency").convert(inv.amount_due, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type)
+        data = self.update_amounts(context)
         return data
 
 Payment.register()
