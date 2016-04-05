@@ -112,28 +112,7 @@
                 <field name="job_id" invisible="1"/>
             </form>
         </field>
-        <field name="tasks">
-            <list colors='{"deadline,#f00":[["overdue","=",true]],"days_late,#f00":[["overdue","=",true]],"#9f9":[["state","=","done"]]}'>
-                <head>
-                    <button string="Mark as completed" type="success" icon="ok" method="set_done"/>
-                </head>
-                <field name="name"/>
-                <field name="employee_id"/>
-                <field name="planned_duration"/>
-                <field name="deadline"/>
-                <field name="state"/>
-                <field name="overdue" invisible="1"/>
-            </list>
-            <form>
-                <field name="name"/>
-                <field name="employee_id"/>
-                <field name="planned_duration"/>
-                <field name="deadline"/>
-                <newline/>
-                <field name="state"/>
-                <field name="description"/>
-            </form>
-        </field>
+        <field name="tasks"/>
         <field name="work_time">
             <list>
                 <field name="date"/>
