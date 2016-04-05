@@ -123,6 +123,7 @@ var Group=NFView.extend({
                     show_buttons: $el.attr("show_buttons"),
                     auto_save: $el.attr("auto_save"),
                     email: $el.attr("email"),
+                    help: $el.attr("help"),
                     form_layout: form_layout,
                     context: ctx
                 };
@@ -152,6 +153,7 @@ var Group=NFView.extend({
                                 readonly: $el.attr("readonly")||that.options.readonly,
                                 default_count: $el.attr("count")||1,
                                 noadd: $el.attr("noadd"),
+                                noremove: $el.attr("noremove"),
                                 context: params.context
                             }
                             var view=Sheet.make_view(opts2);
