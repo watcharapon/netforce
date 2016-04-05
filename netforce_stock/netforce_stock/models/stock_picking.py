@@ -826,6 +826,7 @@ class Picking(Model):
 
     def update_cost_price(self,context={}):
         data=context['data']
+
         currency_rate=data.get('currency_rate',1)
         settings=get_model("settings").browse(1)
         currency_id = data.get("currency_id",settings.currency_id.id)
