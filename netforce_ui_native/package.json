@@ -1,6 +1,8 @@
 {
-  "name": "Netforce",
+  "name": "netforce_ui_native",
   "version": "0.0.1",
+  "author": "Netforce Co. Ltd.",
+  "license": "MIT",
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start"
   },
