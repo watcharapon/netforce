@@ -70,20 +70,23 @@ class FieldOne2Many extends Component {
         if (!this.state.data) return <Text>Loading...</Text>;
         var f=ui_params.get_field(this.props.model,this.props.name);
         var mr=ui_params.get_model(f.relation);
-        return <View>
+        return <View style={{borderTopWidth:0.5,borderBottomWidth:0.5}}>
             {function() {
                 if (this.state.data.length==0) return <Text>There are no items to display.</Text>
                 return <View>
                     {this.state.data.map(this.render_row.bind(this))}
                 </View>
             }.bind(this)()}
-            <View style={{paddingTop:0}}>
-                <Button onPress={this.press_add.bind(this)}>
-                    <View style={{height:50,backgroundColor:"#aaa",alignItems:"center",justifyContent:"center"}}>
-                        <Text style={{color:"#fff"}}><Icon name="plus" size={16} color="#eee"/> Add {mr.string}</Text>
-                    </View>
-                </Button>
-            </View>
+            {function() {
+                if (this.props.readonly) return;
+                return <View style={{paddingTop:0}}>
+                    <Button onPress={this.press_add.bind(this)}>
+                        <View style={{height:50,backgroundColor:"#aaa",alignItems:"center",justifyContent:"center"}}>
+                            <Text style={{color:"#fff"}}><Icon name="plus" size={16} color="#eee"/> Add {mr.string}</Text>
+                        </View>
+                    </Button>
+                </View>
+            }.bind(this)()}
         </View>
     }
 
@@ -130,7 +133,7 @@ class FieldOne2Many extends Component {
     press_item(index) {
         var f=ui_params.get_field(this.props.model,this.props.name);
         var item_data=this.state.data[index];
-        this.props.navigator.push({name:"form_o2m",model:f.relation,layout_el:this.props.form_layout_el,on_save:this.on_save.bind(this),on_delete:this.on_delete.bind(this),data:item_data,index:index});
+        this.props.navigator.push({name:"form_o2m",model:f.relation,layout_el:this.props.form_layout_el,on_save:this.on_save.bind(this),on_delete:this.on_delete.bind(this),data:item_data,index:index,readonly:this.props.readonly});
     }
 
     press_add() {

@@ -29,14 +29,6 @@ var Icon = require('react-native-vector-icons/FontAwesome');
 class List extends Component {
     constructor(props) {
         super(props);
-        this.state = {
-            dataSource: new ListView.DataSource({
-                rowHasChanged: (row1, row2) => row1 !== row2,
-            }),
-        };
-    }
-
-    componentDidMount() {
         var layout;
         if (this.props.layout) {
             layout=UIParams.get_layout(this.props.layout);
@@ -46,6 +38,15 @@ class List extends Component {
         }
         var doc=new dom().parseFromString(layout.layout);
         this.layout_el=doc.documentElement;
+        this.readonly=this.layout_el.getAttribute("readonly")?true:false;
+        this.state = {
+            dataSource: new ListView.DataSource({
+                rowHasChanged: (row1, row2) => row1 !== row2,
+            }),
+        };
+    }
+
+    componentDidMount() {
         this.load_data();
     }
 
@@ -84,13 +85,16 @@ class List extends Component {
                 </View>
             }.bind(this)()}
             <ListView dataSource={this.state.dataSource} renderRow={this.render_row.bind(this)} style={{flex:1}}/>
-            <View style={{paddingTop:5}}>
-                <Button onPress={this.press_new.bind(this)}>
-                    <View style={{height:50,backgroundColor:"#37b",alignItems:"center",justifyContent:"center"}}>
-                        <Text style={{color:"#fff"}}><Icon name="plus" size={16} color="#eee"/> New {m.string}</Text>
-                    </View>
-                </Button>
-            </View>
+            {function() {
+                if (this.readonly) return;
+                <View style={{paddingTop:5}}>
+                    <Button onPress={this.press_new.bind(this)}>
+                        <View style={{height:50,backgroundColor:"#37b",alignItems:"center",justifyContent:"center"}}>
+                            <Text style={{color:"#fff"}}><Icon name="plus" size={16} color="#eee"/> New {m.string}</Text>
+                        </View>
+                    </Button>
+                </View>
+            }.bind(this)()}
         </View>
     }
 

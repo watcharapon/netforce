@@ -22,6 +22,7 @@ var rpc=require("./rpc");
 var Button=require("./button");
 var ui_params=require("./ui_params");
 var utils=require("./utils");
+var _=require("underscore");
 
 var Icon = require('react-native-vector-icons/FontAwesome');
 
@@ -53,6 +54,7 @@ class Form extends Component {
         }
         var doc=new dom().parseFromString(layout.layout);
         this.layout_el=doc.documentElement;
+        this.readonly=this.layout_el.getAttribute("readonly")?true:false;
         this.load_data();
     }
 
@@ -106,7 +108,11 @@ class Form extends Component {
         var m=ui_params.get_model(this.props.model);
         var title;
         if (this.props.active_id) {
-            title="Edit "+m.string;
+            if (this.readonly) {
+                title="View "+m.string;
+            } else {
+                title="Edit "+m.string;
+            }
         } else {
             title="New "+m.string;
         }
@@ -123,37 +129,41 @@ class Form extends Component {
                 var f=ui_params.get_field(this.props.model,name);
                 var invisible=el.getAttribute("invisible");
                 if (invisible) return;
-                var val=this.state.data[name];
-                var val_str=utils.field_val_to_str(val,f);
                 var field_component;
-                if (f.type=="char") {
-                    field_component=<FieldChar model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="text") {
-                    field_component=<FieldText model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="float") {
-                    field_component=<FieldFloat model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="decimal") {
-                    field_component=<FieldDecimal model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="integer") {
-                    field_component=<FieldInteger model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="date") {
-                    field_component=<FieldDate model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="datetime") {
-                    field_component=<FieldDateTime model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="selection") {
-                    field_component=<FieldSelect model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="file") {
-                    field_component=<FieldFile model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="many2one") {
-                    field_component=<FieldMany2One navigator={this.props.navigator} model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="one2many") {
-                    var res=xpath.select("list",el);
-                    var list_layout_el=res.length>0?res[0]:null;
-                    var res=xpath.select("form",el);
-                    var form_layout_el=res.length>0?res[0]:null;
-                    field_component=<FieldOne2Many navigator={this.props.navigator} model={this.props.model} name={name} data={this.state.data} list_layout_el={list_layout_el} form_layout_el={form_layout_el}/>
+                if (this.readonly && f.type!="one2many") {
+                    var val=this.state.data[name];
+                    var val_str=utils.field_val_to_str(val,f);
+                    field_component=<Text>{val_str}</Text>
                 } else {
-                    throw "Invalid field type: "+f.type;
+                    if (f.type=="char") {
+                        field_component=<FieldChar model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="text") {
+                        field_component=<FieldText model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="float") {
+                        field_component=<FieldFloat model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="decimal") {
+                        field_component=<FieldDecimal model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="integer") {
+                        field_component=<FieldInteger model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="date") {
+                        field_component=<FieldDate model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="datetime") {
+                        field_component=<FieldDateTime model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="selection") {
+                        field_component=<FieldSelect model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="file") {
+                        field_component=<FieldFile model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="many2one") {
+                        field_component=<FieldMany2One navigator={this.props.navigator} model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="one2many") {
+                        var res=xpath.select("list",el);
+                        var list_layout_el=res.length>0?res[0]:null;
+                        var res=xpath.select("form",el);
+                        var form_layout_el=res.length>0?res[0]:null;
+                        field_component=<FieldOne2Many navigator={this.props.navigator} model={this.props.model} name={name} data={this.state.data} list_layout_el={list_layout_el} form_layout_el={form_layout_el} readonly={this.readonly}/>
+                    } else {
+                        throw "Invalid field type: "+f.type;
+                    }
                 }
                 var col=<View key={cols.length} style={{flexDirection:"column",flex:1}}>
                     <Text style={{fontWeight:"bold",marginRight:5}}>{f.string}</Text>
@@ -161,6 +171,23 @@ class Form extends Component {
                 </View>;
                 cols.push(col);
             } else if (el.tagName=="button") {
+                var hide=false;
+                var state=el.getAttribute("state");
+                if (state) {
+                    var states=state.split(",");
+                    if (!_.contains(states,this.state.data.state)) hide=true;
+                }
+                if (!this.props.active_id) hide=true;
+                if (!hide) {
+                    var col=<View key={cols.length} style={{paddingTop:5,flex:1}}>
+                        <Button onPress={this.press_button.bind(this,el)}>
+                            <View style={{height:50,backgroundColor:"#aaa",alignItems:"center",justifyContent:"center"}}>
+                                <Text style={{color:"#fff"}}>{el.getAttribute("string")}</Text>
+                            </View>
+                        </Button>
+                    </View>
+                    cols.push(col);
+                }
             } else {
                 throw "Invalid tag name: "+el.tagName;
             }
@@ -173,14 +200,18 @@ class Form extends Component {
             <View>
                 {rows}
             </View>
-            <View style={{paddingTop:5,marginTop:20}}>
-                <Button onPress={this.press_save.bind(this)}>
-                    <View style={{height:50,backgroundColor:"#37b",alignItems:"center",justifyContent:"center"}}>
-                        <Text style={{color:"#fff"}}><Icon name="check" size={16} color="#eee"/> Save</Text>
-                    </View>
-                </Button>
-            </View>
             {function() {
+                if (this.readonly) return;
+                return <View style={{paddingTop:5,marginTop:20}}>
+                    <Button onPress={this.press_save.bind(this)}>
+                        <View style={{height:50,backgroundColor:"#37b",alignItems:"center",justifyContent:"center"}}>
+                            <Text style={{color:"#fff"}}><Icon name="check" size={16} color="#eee"/> Save</Text>
+                        </View>
+                    </Button>
+                </View>
+            }.bind(this)()}
+            {function() {
+                if (this.readonly) return;
                 if (!this.props.active_id) return;
                 return <View style={{paddingTop:5}}>
                     <Button onPress={this.press_delete.bind(this)}>
@@ -290,11 +321,25 @@ class Form extends Component {
         var ctx={};
         rpc.execute(this.props.model,"delete",[[this.props.active_id]],{context:ctx},function(err) {
             if (err) {
-                alert("ERROR: "+err.message);
+                alert("Error: "+err.message);
                 return;
             }
             this.back_reload();
         }.bind(this));
+    }
+
+    press_button(el) {
+        var method=el.getAttribute("method");
+        if (method) {
+            var ctx={};
+            rpc.execute(this.props.model,method,[[this.props.active_id]],{context:ctx},function(err,res) {
+                if (err) {
+                    alert("Error: "+err.message);
+                    return;
+                }
+                this.load_data();
+            }.bind(this));
+        }
     }
 
     back_reload() {
