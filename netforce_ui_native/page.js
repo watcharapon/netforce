@@ -12,7 +12,7 @@ import React, {
   View
 } from 'react-native';
 
-var RPC=require("./RPC");
+var rpc=require("./rpc");
 var utils=require("./utils");
 var ImagePickerManager = require('NativeModules').ImagePickerManager;
 var Button=require("./button");
@@ -29,7 +29,7 @@ class Page extends Component {
 
     load_data() {
         var fields=["date","actual_hours","bill_hours","description","state"];
-        RPC.execute("nf.time","read_path",[[this.props.active_id],fields],{},function(err,data) {
+        rpc.execute("nf.time","read_path",[[this.props.active_id],fields],{},function(err,data) {
             if (err) {
                 alert("Failed to read data: "+err.message);
                 return;

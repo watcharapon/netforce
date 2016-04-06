@@ -17,7 +17,7 @@ import React, {
   View
 } from 'react-native';
 
-var RPC=require("./RPC");
+var rpc=require("./rpc");
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 var UIParams=require("./ui_params");
@@ -52,7 +52,7 @@ class List extends Component {
             fields.push(el.getAttribute("name"));
         });
         console.log("fields",fields);
-        RPC.execute(this.props.model,"search_read",[cond,fields],{},function(err,data) {
+        rpc.execute(this.props.model,"search_read",[cond,fields],{},function(err,data) {
             if (err) {
                 alert("ERROR: "+err);
                 return;

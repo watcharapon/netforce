@@ -18,7 +18,7 @@ import React, {
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 
-var RPC=require("./RPC");
+var rpc=require("./rpc");
 var Button=require("./button");
 var UIParams=require("./ui_params");
 var utils=require("./utils");
@@ -69,7 +69,7 @@ class Form extends Component {
             }
         }
         if (this.props.active_id) {
-            RPC.execute(this.props.model,"read",[[this.props.active_id],fields],{context:ctx},function(err,res) {
+            rpc.execute(this.props.model,"read",[[this.props.active_id],fields],{context:ctx},function(err,res) {
                 if (err) {
                     alert("ERROR: "+err);
                     return;
@@ -81,7 +81,7 @@ class Form extends Component {
                 });
             }.bind(this));
         } else {
-            RPC.execute(this.props.model,"default_get",[fields],{context:ctx},function(err,res) {
+            rpc.execute(this.props.model,"default_get",[fields],{context:ctx},function(err,res) {
                 if (err) {
                     alert("ERROR: "+err);
                     return;
@@ -249,7 +249,7 @@ class Form extends Component {
             }
         }
         if (this.props.active_id) {
-            RPC.execute(this.props.model,"write",[[this.props.active_id],vals],{context:ctx},function(err,new_id) {
+            rpc.execute(this.props.model,"write",[[this.props.active_id],vals],{context:ctx},function(err,new_id) {
                 if (err) {
                     alert("ERROR: "+err.message);
                     return;
@@ -257,7 +257,7 @@ class Form extends Component {
                 this.back_reload();
             }.bind(this));
         } else {
-            RPC.execute(this.props.model,"create",[vals],{context:ctx},function(err,new_id) {
+            rpc.execute(this.props.model,"create",[vals],{context:ctx},function(err,new_id) {
                 if (err) {
                     alert("ERROR: "+err.message);
                     return;
@@ -270,7 +270,7 @@ class Form extends Component {
     press_delete() {
         // TODO: add confirm
         var ctx={};
-        RPC.execute(this.props.model,"delete",[[this.props.active_id]],{context:ctx},function(err) {
+        rpc.execute(this.props.model,"delete",[[this.props.active_id]],{context:ctx},function(err) {
             if (err) {
                 alert("ERROR: "+err.message);
                 return;

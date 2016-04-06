@@ -1,6 +1,7 @@
 {
   "name": "netforce_ui_native",
-  "version": "0.0.1",
+  "version": "0.0.3",
+  "description": "Netforce Native UI",
   "author": "Netforce Co. Ltd.",
   "license": "MIT",
   "scripts": {

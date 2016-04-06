@@ -17,7 +17,7 @@ import React, {
   View
 } from 'react-native';
 
-var RPC=require("./RPC");
+var rpc=require("./rpc");
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 var UIParams=require("./ui_params");
@@ -43,7 +43,7 @@ class SearchM2O extends Component {
 
     load_data() {
         console.log("SearchM2O.load_data");
-        RPC.execute(this.props.model,"name_search",[this.state.query],{},function(err,data) {
+        rpc.execute(this.props.model,"name_search",[this.state.query],{},function(err,data) {
             if (err) {
                 alert("ERROR: "+err);
                 return;

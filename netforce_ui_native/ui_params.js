@@ -3,7 +3,7 @@ import React, {
   AsyncStorage,
 } from 'react-native';
 
-var RPC=require("./RPC");
+var rpc=require("./rpc");
 
 var _ui_params=null;
 
@@ -13,7 +13,7 @@ module.exports.set_ui_params=function(params) {
 
 module.exports.load_ui_params=function(cb) {
     var ctx={mobile_only:true};
-    RPC.execute("ui.params","load_ui_params",[],{context:ctx},function(err,data) {
+    rpc.execute("ui.params","load_ui_params",[],{context:ctx},function(err,data) {
         if (err) {
             cb(err);
             return;

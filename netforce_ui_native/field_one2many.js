@@ -14,7 +14,7 @@ import React, {
   View
 } from 'react-native';
 
-var RPC=require("./RPC");
+var rpc=require("./rpc");
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 var UIParams=require("./ui_params");
@@ -42,7 +42,7 @@ class FieldOne2Many extends Component {
         var ids=this.props.data[this.props.name];
         var f=UIParams.get_field(this.props.model,this.props.name);
         //alert("fields "+JSON.stringify(fields));
-        RPC.execute(f.relation,"read",[ids,fields],{},function(err,data) {
+        rpc.execute(f.relation,"read",[ids,fields],{},function(err,data) {
             if (err) {
                 alert("ERROR: "+err);
                 return;

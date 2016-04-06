@@ -15,7 +15,7 @@ import React, {
 
 var DOMParser = require('xmldom').DOMParser;
 
-var RPC=require("./RPC");
+var rpc=require("./rpc");
 var utils=require("./utils");
 var Button=require("./button");
 var UIParams=require("./ui_params");
