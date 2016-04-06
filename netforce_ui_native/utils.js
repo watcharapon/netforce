@@ -29,6 +29,8 @@ module.exports.field_val_to_str=function(val,field) {
             str="";
         }
         return str;
+    } else if (field.type=="file") {
+        return val||"";
     } else if (field.type=="many2one") {
         return val?val[1]:"";
     } else if (field.type=="one2many") {

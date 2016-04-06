@@ -37,16 +37,22 @@ class List extends Component {
     }
 
     componentDidMount() {
-        var layout_name=this.props.layout||"work_time_list_mobile";
-        var layout=UIParams.get_layout(layout_name);
-        this.layout_doc=new dom().parseFromString(layout.layout);
+        var layout;
+        if (this.props.layout) {
+            layout=UIParams.get_layout(this.props.layout);
+        } else {
+            layout=UIParams.find_layout({model:this.props.model,type:"list_mobile"});
+            if (!layout) throw "List layout not found for model "+this.props.model;
+        }
+        var doc=new dom().parseFromString(layout.layout);
+        this.layout_el=doc.documentElement;
         this.load_data();
     }
 
     load_data() {
         console.log("List.load_data");
         var cond=this.props.condition||[];
-        var field_nodes=xpath.select("//field", this.layout_doc);
+        var field_nodes=xpath.select("//field", this.layout_el);
         var fields=[];
         field_nodes.forEach(function(el) {
             fields.push(el.getAttribute("name"));
@@ -71,6 +77,12 @@ class List extends Component {
         if (this.state.data.length==0) return <Text>There are no items to display.</Text>
         var m=UIParams.get_model(this.props.model);
         return <View style={{flex:1}}>
+            {function() {
+                if (!this.props.title) return;
+                return <View style={{alignItems:"center",padding:10,borderBottomWidth:0.5}}>
+                    <Text style={{fontWeight:"bold"}}>{this.props.title}</Text>
+                </View>
+            }.bind(this)()}
             <ListView dataSource={this.state.dataSource} renderRow={this.render_row.bind(this)} style={{flex:1}}/>
             <View style={{paddingTop:5}}>
                 <Button onPress={this.press_new.bind(this)}>
@@ -83,8 +95,7 @@ class List extends Component {
     }
 
     render_row(obj) {
-        var root=this.layout_doc.documentElement;
-        var child_els=xpath.select("child::*", root);
+        var child_els=xpath.select("child::*", this.layout_el);
         var cols=[];
         var rows=[];
         {child_els.forEach(function(el,i) {

@@ -20,7 +20,7 @@ var dom = require('xmldom').DOMParser;
 
 var rpc=require("./rpc");
 var Button=require("./button");
-var UIParams=require("./ui_params");
+var ui_params=require("./ui_params");
 var utils=require("./utils");
 
 var Icon = require('react-native-vector-icons/FontAwesome');
@@ -33,6 +33,7 @@ var FieldInteger=require("./field_integer");
 var FieldDate=require("./field_date");
 var FieldDateTime=require("./field_datetime");
 var FieldSelect=require("./field_select");
+var FieldFile=require("./field_file");
 var FieldMany2One=require("./field_many2one");
 var FieldOne2Many=require("./field_one2many");
 
@@ -43,17 +44,22 @@ class Form extends Component {
     }
 
     componentDidMount() {
-        var layout_name=this.props.layout||"work_time_form_mobile";
-        var layout=UIParams.get_layout(layout_name);
-        this.layout_doc=new dom().parseFromString(layout.layout);
+        var layout;
+        if (this.props.layout) {
+            layout=ui_params.get_layout(this.props.layout);
+        } else {
+            layout=ui_params.find_layout({model:this.props.model,type:"form_mobile"});
+            if (!layout) throw "Form layout not found for model "+this.props.model;
+        }
+        var doc=new dom().parseFromString(layout.layout);
+        this.layout_el=doc.documentElement;
         this.load_data();
     }
 
     load_data() {
         console.log("Form.load_data");
         var cond=this.props.condition||[];
-        var root_el=this.layout_doc.documentElement;
-        var field_nodes=xpath.select("field", root_el);
+        var field_nodes=xpath.select("field", this.layout_el);
         var fields=[];
         field_nodes.forEach(function(el) {
             fields.push(el.getAttribute("name"));
@@ -97,8 +103,14 @@ class Form extends Component {
 
     render() {
         if (!this.state.data) return <Text>Loading...</Text>
-        var root=this.layout_doc.documentElement;
-        var child_els=xpath.select("child::*", root);
+        var m=ui_params.get_model(this.props.model);
+        var title;
+        if (this.props.active_id) {
+            title="Edit "+m.string;
+        } else {
+            title="New "+m.string;
+        }
+        var child_els=xpath.select("child::*", this.layout_el);
         var cols=[];
         var rows=[];
         {child_els.forEach(function(el,i) {
@@ -108,7 +120,7 @@ class Form extends Component {
                 return;
             } else if (el.tagName=="field") {
                 var name=el.getAttribute("name");
-                var f=UIParams.get_field(this.props.model,name);
+                var f=ui_params.get_field(this.props.model,name);
                 var invisible=el.getAttribute("invisible");
                 if (invisible) return;
                 var val=this.state.data[name];
@@ -130,6 +142,8 @@ class Form extends Component {
                     field_component=<FieldDateTime model={this.props.model} name={name} data={this.state.data}/>
                 } else if (f.type=="selection") {
                     field_component=<FieldSelect model={this.props.model} name={name} data={this.state.data}/>
+                } else if (f.type=="file") {
+                    field_component=<FieldFile model={this.props.model} name={name} data={this.state.data}/>
                 } else if (f.type=="many2one") {
                     field_component=<FieldMany2One navigator={this.props.navigator} model={this.props.model} name={name} data={this.state.data}/>
                 } else if (f.type=="one2many") {
@@ -146,12 +160,16 @@ class Form extends Component {
                     {field_component}
                 </View>;
                 cols.push(col);
+            } else if (el.tagName=="button") {
             } else {
                 throw "Invalid tag name: "+el.tagName;
             }
         }.bind(this))}
         rows.push(<View style={{flexDirection:"row", justifyContent: "space-between"}} key={rows.length}>{cols}</View>);
         return <ScrollView style={{flex:1}}>
+            <View style={{alignItems:"center",padding:10,borderBottomWidth:0.5,marginBottom:10}}>
+                <Text style={{fontWeight:"bold"}}>{title}</Text>
+            </View>
             <View>
                 {rows}
             </View>
@@ -189,7 +207,7 @@ class Form extends Component {
             } else {
                 orig_v=null;
             }
-            var f=UIParams.get_field(model,name);
+            var f=ui_params.get_field(model,name);
             if (f.type=="char") {
                 if (v!=orig_v) change[name]=v;
             } else if (f.type=="text") {
@@ -251,7 +269,7 @@ class Form extends Component {
         if (this.props.active_id) {
             rpc.execute(this.props.model,"write",[[this.props.active_id],vals],{context:ctx},function(err,new_id) {
                 if (err) {
-                    alert("ERROR: "+err.message);
+                    alert("Error: "+err.message);
                     return;
                 }
                 this.back_reload();
@@ -259,7 +277,7 @@ class Form extends Component {
         } else {
             rpc.execute(this.props.model,"create",[vals],{context:ctx},function(err,new_id) {
                 if (err) {
-                    alert("ERROR: "+err.message);
+                    alert("Error: "+err.message);
                     return;
                 }
                 this.back_reload();

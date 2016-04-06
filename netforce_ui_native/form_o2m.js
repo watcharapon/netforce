@@ -11,15 +11,16 @@ import React, {
   TextInput,
   Navigator,
   AsyncStorage,
+  ScrollView,
   View
 } from 'react-native';
 
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 
-var RPC=require("./RPC");
+var rpc=require("./rpc")
 var Button=require("./button");
-var UIParams=require("./ui_params");
+var ui_params=require("./ui_params");
 var utils=require("./utils");
 
 var Icon = require('react-native-vector-icons/FontAwesome');
@@ -32,6 +33,7 @@ var FieldInteger=require("./field_integer");
 var FieldDate=require("./field_date");
 var FieldDateTime=require("./field_datetime");
 var FieldSelect=require("./field_select");
+var FieldFile=require("./field_file");
 var FieldMany2One=require("./field_many2one");
 var FieldOne2Many=require("./field_one2many");
 
@@ -43,6 +45,14 @@ class FormO2M extends Component {
         } else {
             var data={};
         }
+        if (this.props.layout_el) {
+            this.layout_el=this.props.layout_el;
+        } else {
+            var layout=ui_params.find_layout({model:this.props.model,type:"form_mobile"});
+            if (!layout) throw "Form layout not found for model "+this.props.model;
+            var doc=new dom().parseFromString(layout.layout);
+            this.layout_el=doc.documentElement;
+        }
         this.state = {
             data: data,
         };
@@ -53,7 +63,14 @@ class FormO2M extends Component {
 
     render() {
         if (!this.state.data) return <Text>Loading...</Text>
-        var child_els=xpath.select("child::*", this.props.layout_el);
+        var m=ui_params.get_model(this.props.model);
+        var title;
+        if (this.state.data.id) {
+            title="Modify "+m.string;
+        } else {
+            title="Add "+m.string;
+        }
+        var child_els=xpath.select("child::*", this.layout_el);
         var cols=[];
         var rows=[];
         {child_els.forEach(function(el,i) {
@@ -63,7 +80,7 @@ class FormO2M extends Component {
                 return;
             } else if (el.tagName=="field") {
                 var name=el.getAttribute("name");
-                var f=UIParams.get_field(this.props.model,name);
+                var f=ui_params.get_field(this.props.model,name);
                 var invisible=el.getAttribute("invisible");
                 if (invisible) return;
                 var val=this.state.data[name];
@@ -85,6 +102,8 @@ class FormO2M extends Component {
                     field_component=<FieldDateTime model={this.props.model} name={name} data={this.state.data}/>
                 } else if (f.type=="selection") {
                     field_component=<FieldSelect model={this.props.model} name={name} data={this.state.data}/>
+                } else if (f.type=="file") {
+                    field_component=<FieldFile model={this.props.model} name={name} data={this.state.data}/>
                 } else if (f.type=="many2one") {
                     field_component=<FieldMany2One navigator={this.props.navigator} model={this.props.model} name={name} data={this.state.data}/>
                 } else if (f.type=="one2many") {
@@ -101,12 +120,16 @@ class FormO2M extends Component {
                     {field_component}
                 </View>;
                 cols.push(col);
+            } else if (el.tagName=="button") {
             } else {
                 throw "Invalid tag name: "+el.tagName;
             }
         }.bind(this))}
         rows.push(<View style={{flexDirection:"row", justifyContent: "space-between"}} key={rows.length}>{cols}</View>);
-        return <View style={{flex:1}}>
+        return <ScrollView style={{flex:1}}>
+            <View style={{alignItems:"center",padding:10,borderBottomWidth:0.5,marginBottom:10}}>
+                <Text style={{fontWeight:"bold"}}>{title}</Text>
+            </View>
             <View>
                 {rows}
             </View>
@@ -127,7 +150,7 @@ class FormO2M extends Component {
                     </Button>
                 </View>
             }.bind(this)()}
-        </View>
+        </ScrollView>
     }
 
     get_change_vals() {
@@ -136,7 +159,7 @@ class FormO2M extends Component {
         for (var name in this.state.data) {
             if (name=="id") continue;
             var v=this.state.data[name];
-            var f=UIParams.get_field(this.props.model,name);
+            var f=ui_params.get_field(this.props.model,name);
             if (v!=null) {
                 if (f.type=="many2one") {
                     v=v[0];

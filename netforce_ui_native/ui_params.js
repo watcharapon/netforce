@@ -25,6 +25,21 @@ module.exports.load_ui_params=function(cb) {
     });
 }
 
+module.exports.load_ui_params_local=function(cb) {
+    AsyncStorage.getItem("ui_params",function(err,data) {
+        if (err) {
+            cb(err);
+            return;
+        }
+        if (!data) {
+            cb("UI params not found");
+            return;
+        }
+        _ui_params=JSON.parse(data);
+        cb(null);
+    }.bind(this));
+}
+
 module.exports.get_action=function(name) {
     console.log("get_action",name);
     if (!_ui_params) throw "UI params not loaded";
@@ -41,6 +56,20 @@ module.exports.get_layout=function(name) {
     var layout=_ui_params.layouts[name];
     if (!layout) throw "Layout not found: "+name;
     return layout;
+}
+
+module.exports.find_layout=function(conds) {
+    console.log("find_layout",conds);
+    if (!_ui_params) throw "UI params not loaded";
+    var layouts=_ui_params.layouts;
+    var found=null;
+    for (var n in layouts) {
+        var l=layouts[n];
+        if (conds.model && l.model!=conds.model) continue;
+        if (conds.type && l.type!=conds.type) continue;
+        found=l;
+    }
+    return found;
 }
 
 module.exports.get_model=function(model) {

@@ -17,7 +17,7 @@ import React, {
 var rpc=require("./rpc");
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
-var UIParams=require("./ui_params");
+var ui_params=require("./ui_params");
 var utils=require("./utils");
 var Button=require("./button");
 var Icon = require('react-native-vector-icons/FontAwesome');
@@ -25,6 +25,15 @@ var Icon = require('react-native-vector-icons/FontAwesome');
 class FieldOne2Many extends Component {
     constructor(props) {
         super(props);
+        if (this.props.list_layout_el) {
+            this.layout_el=this.props.list_layout_el;
+        } else {
+            var f=ui_params.get_field(this.props.model,this.props.name);
+            var layout=ui_params.find_layout({model:f.relation,type:"list_mobile"});
+            if (!layout) throw "List layout not found for model "+f.relation;
+            var doc=new dom().parseFromString(layout.layout);
+            this.layout_el=doc.documentElement;
+        }
         this.state = {};
     }
 
@@ -34,13 +43,13 @@ class FieldOne2Many extends Component {
 
     load_data() {
         console.log("FieldOne2Many.load_data");
-        var field_nodes=xpath.select("field", this.props.list_layout_el);
+        var field_nodes=xpath.select("field", this.layout_el);
         var fields=[];
         field_nodes.forEach(function(el) {
             fields.push(el.getAttribute("name"));
         });
         var ids=this.props.data[this.props.name];
-        var f=UIParams.get_field(this.props.model,this.props.name);
+        var f=ui_params.get_field(this.props.model,this.props.name);
         //alert("fields "+JSON.stringify(fields));
         rpc.execute(f.relation,"read",[ids,fields],{},function(err,data) {
             if (err) {
@@ -59,8 +68,8 @@ class FieldOne2Many extends Component {
 
     render() {
         if (!this.state.data) return <Text>Loading...</Text>;
-        var f=UIParams.get_field(this.props.model,this.props.name);
-        var mr=UIParams.get_model(f.relation);
+        var f=ui_params.get_field(this.props.model,this.props.name);
+        var mr=ui_params.get_model(f.relation);
         return <View>
             {function() {
                 if (this.state.data.length==0) return <Text>There are no items to display.</Text>
@@ -79,9 +88,9 @@ class FieldOne2Many extends Component {
     }
 
     render_row(obj,index) {
-        var f=UIParams.get_field(this.props.model,this.props.name);
+        var f=ui_params.get_field(this.props.model,this.props.name);
         var relation=f.relation;
-        var child_els=xpath.select("child::*", this.props.list_layout_el);
+        var child_els=xpath.select("child::*", this.layout_el);
         var cols=[];
         var rows=[];
         {child_els.forEach(function(el,i) {
@@ -91,7 +100,7 @@ class FieldOne2Many extends Component {
                 return;
             } else if (el.tagName=="field") {
                 var name=el.getAttribute("name");
-                var f=UIParams.get_field(relation,name);
+                var f=ui_params.get_field(relation,name);
                 var invisible=el.getAttribute("invisible");
                 if (invisible) return;
                 var val=obj[name];
@@ -119,13 +128,13 @@ class FieldOne2Many extends Component {
     }
 
     press_item(index) {
-        var f=UIParams.get_field(this.props.model,this.props.name);
+        var f=ui_params.get_field(this.props.model,this.props.name);
         var item_data=this.state.data[index];
         this.props.navigator.push({name:"form_o2m",model:f.relation,layout_el:this.props.form_layout_el,on_save:this.on_save.bind(this),on_delete:this.on_delete.bind(this),data:item_data,index:index});
     }
 
     press_add() {
-        var f=UIParams.get_field(this.props.model,this.props.name);
+        var f=ui_params.get_field(this.props.model,this.props.name);
         this.props.navigator.push({name:"form_o2m",model:f.relation,layout_el:this.props.form_layout_el,on_save:this.on_save.bind(this)});
     }
 
