@@ -13,8 +13,13 @@ var List=React.createClass({
     mixins: [ui_params],
 
     getInitialState() {
-        var layout=this.find_layout({model:this.props.model,type:"list"});
-        if (!layout) throw "List layout not found for model "+this.props.model;
+        var layout;
+        if (this.props.layout) {
+            layout=this.get_layout(this.props.layout);
+        } else {
+            layout=this.find_layout({model:this.props.model,type:"list"});
+            if (!layout) throw "List layout not found for model "+this.props.model;
+        }
         var doc=new dom().parseFromString(layout.layout);
         var layout_el=doc.documentElement;
         return {
@@ -52,6 +57,7 @@ var List=React.createClass({
             }.bind(this)()}
             <div style={{marginTop:10}}>
                 <button className="btn btn-danger btn-sm">Delete</button>
+                <button className="btn btn-default btn-sm pull-right" onClick={this.search}><i className="glyphicon glyphicon-search"></i> Search</button>
             </div>
             {function() {
                 if (!this.state.data) return <Loading/>;
@@ -93,6 +99,10 @@ var List=React.createClass({
         if (this.props.on_select) {
             this.props.on_select(active_id);
         }
+    },
+
+    search(e) {
+        e.preventDefault();
     },
 });
 

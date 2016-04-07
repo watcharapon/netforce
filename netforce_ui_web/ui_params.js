@@ -1,4 +1,11 @@
 module.exports={
+    get_layout: function(name) {
+        if (!this.props.ui_params) throw "UI params not found";
+        var l=this.props.ui_params.layouts[name];
+        if (!l) throw "Layout not found: "+name;
+        return l;
+    },
+
     find_layout: function(conds) {
         if (!this.props.ui_params) throw "UI params not found";
         var layouts=this.props.ui_params.layouts;

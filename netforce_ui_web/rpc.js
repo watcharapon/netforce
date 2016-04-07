@@ -31,7 +31,7 @@ module.exports.execute=function (model,method,args,opts,cb) {
                 console.log("RPC OK",model,method,data.result);
             }
             if (cb) {
-                cb(data.error,data.result);
+                cb(data.error?data.error.message:null,data.result);
             }
         },
         error: function() {

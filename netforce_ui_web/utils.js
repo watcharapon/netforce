@@ -9,6 +9,8 @@ module.exports.fmt_field_val=function(val,field) {
         return val==null?"":""+val;
     } else if (field.type=="integer") {
         return val==null?"":""+val;
+    } else if (field.type=="boolean") {
+        return val==null?"":""+val;
     } else if (field.type=="date") {
         return val||"";
     } else if (field.type=="datetime") {
@@ -21,6 +23,8 @@ module.exports.fmt_field_val=function(val,field) {
             str="";
         }
         return str;
+    } else if (field.type=="file") {
+        return val||"";
     } else if (field.type=="many2one") {
         return val?val[1]:"";
     } else if (field.type=="reference") {
