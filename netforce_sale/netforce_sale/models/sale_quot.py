@@ -194,6 +194,35 @@ class SaleQuot(Model):
         data["amount_subtotal"] = 0
         data["amount_tax"] = 0
         tax_type = data["tax_type"]
+        #===============>>>
+        def _get_relative_currency_rate(currency_id):
+            rate=None
+            for r in data['currency_rates']:
+                if r.get('currency_id')==currency_id:
+                    rate=r.get('rate') or 0
+                    break
+            if rate is None:
+                rate_from=get_model("currency").get_rate([currency_id],obj.date) or Decimal(1)
+                rate_to=obj.currency_id.get_rate(obj.date) or Decimal(1)
+                rate=rate_from/rate_to
+            return rate
+        item_costs={}
+        for cost in data['est_costs']:
+            if not cost:
+                continue
+            amt=cost['amount'] or 0
+            if cost.get('currency_id'):
+                rate=_get_relative_currency_rate(cost.get("currency_id.id"))
+                amt=amt*rate
+            comps=[]
+            if cost.get("sequence"):
+                for comp in cost['sequence'].split("."):
+                    comps.append(comp)
+                    path=".".join(comps)
+                    k=(data['id'],path)
+                    item_costs.setdefault(k,0)
+                    item_costs[k]+=amt
+        #<<<===============
         for line in data["lines"]:
             if not line:
                 continue
@@ -204,6 +233,15 @@ class SaleQuot(Model):
             else:
                 disc = 0
             line["amount"] = amt
+            #===============>>>
+            k=(data['id'],line.get("sequence",0))
+            cost=item_costs.get(k,0)
+            profit=amt-cost
+            margin=profit*100/amt if amt else 0
+            line["est_cost_amount"]=cost
+            line["est_profit_amount"]=profit
+            line["est_margin_percent"]=margin
+            #<<<===============
         hide_parents=[]
         for line in data["lines"]:
             if not line:
