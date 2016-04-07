@@ -100,6 +100,7 @@ var Group=NFView.extend({
                     nolabel: $el.attr("nolabel"),
                     invisible: $el.attr("invisible"),
                     onchange: $el.attr("onchange"),
+                    click_action: $el.attr("click_action"),
                     count: $el.attr("count")||1,
                     password: $el.attr("password"),
                     size: $el.attr("size"),
