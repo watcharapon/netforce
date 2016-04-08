@@ -34,6 +34,7 @@ var Form=React.createClass({
     },
 
     load_data() {
+        this.setState({data:null});
         var field_els=xpath.select(".//field", this.state.layout_el);
         var field_names=[];
         field_els.forEach(function(el) {
@@ -44,9 +45,19 @@ var Form=React.createClass({
         });
         if (this.state.active_id) {
             rpc.execute(this.props.model,"read",[[this.state.active_id],field_names],{},function(err,res) {
+                if (err) throw err;
                 var data=res[0];
                 data._orig_data=Object.assign({},data);
                 this.setState({data:data});
+                var cond=[];
+                rpc.execute(this.props.model,"search",[cond],{},function(err,res) {
+                    if (err) throw err;
+                    this.setState({
+                        record_ids: res,
+                        num_records: res.length,
+                        record_index: res.indexOf(this.state.active_id),
+                    });
+                }.bind(this));
             }.bind(this));
         } else {
             rpc.execute(this.props.model,"default_get",[field_names],{},function(err,data) {
@@ -69,6 +80,28 @@ var Form=React.createClass({
                 if (!this.props.bread_title) return;
                 return <ol className="breadcrumb">
                     <li><a href="#" onClick={this.on_bread}>{this.props.bread_title}</a></li>
+                    {function() {
+                        if (!this.state.num_records) return;
+                        return <div className="pull-right">
+                            {function() {
+                                if (this.state.record_index<=0) return;
+                                return <a href="#" style={{margin:3}} onClick={this.click_start}>&laquo; Start</a>
+                            }.bind(this)()}
+                            {function() {
+                                if (this.state.record_index<=0) return;
+                                return <a href="#" style={{margin:3}} onClick={this.click_prev}>&lsaquo; Prev</a>
+                            }.bind(this)()}
+                            <span style={{margin:5}}>{this.state.record_index+1} / {this.state.num_records}</span>
+                            {function() {
+                                if (this.state.record_index>=this.state.num_records-1) return;
+                                return <a href="#" style={{margin:3}} onClick={this.click_next}>Next &rsaquo;</a>
+                            }.bind(this)()}
+                            {function() {
+                                if (this.state.record_index>=this.state.num_records-1) return;
+                                return <a href="#" style={{margin:3}} onClick={this.click_end}>End &raquo;</a>
+                            }.bind(this)()}
+                        </div>
+                    }.bind(this)()}
                 </ol>
             }.bind(this)()}
             <div className="page-header">
@@ -120,6 +153,36 @@ var Form=React.createClass({
         if (this.props.on_bread) {
             this.props.on_bread();
         }
+    },
+
+    click_prev(e) {
+        e.preventDefault();
+        if (this.state.record_index<=0) return;
+        var active_id=this.state.record_ids[this.state.record_index-1];
+        this.setState({active_id:active_id});
+        this.load_data();
+    },
+
+    click_next(e) {
+        e.preventDefault();
+        if (this.state.record_index>=this.state.num_records-1) return;
+        var active_id=this.state.record_ids[this.state.record_index+1];
+        this.setState({active_id:active_id});
+        this.load_data();
+    },
+
+    click_start(e) {
+        e.preventDefault();
+        var active_id=this.state.record_ids[0];
+        this.setState({active_id:active_id});
+        this.load_data();
+    },
+
+    click_end(e) {
+        e.preventDefault();
+        var active_id=this.state.record_ids[this.state.record_ids.length-1];
+        this.setState({active_id:active_id});
+        this.load_data();
     },
 
     save(e) {
