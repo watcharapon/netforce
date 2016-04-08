@@ -15,7 +15,7 @@ import React, {
 
 var DOMParser = require('xmldom').DOMParser;
 
-var RPC=require("./RPC");
+var rpc=require("./rpc");
 var utils=require("./utils");
 var Button=require("./button");
 var UIParams=require("./ui_params");
@@ -45,7 +45,7 @@ class Menu extends Component {
             items.push(item);
         }
         return <View>
-            <View style={{alignItems:"center",marginTop:10}}>
+            <View style={{alignItems:"center",padding:10,borderBottomWidth:0.5}}>
                 <Text style={{fontWeight:"bold"}}>{root_el.getAttribute("title")}</Text>
             </View>
             <View>

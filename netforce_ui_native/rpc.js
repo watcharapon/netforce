@@ -5,7 +5,7 @@ module.exports.set_base_url=function(base_url) {
 }
 
 module.exports.execute=function(model,method,args,opts,cb) {
-    console.log("RPC.execute",model,method,args,opts);
+    console.log("rpc.execute",model,method,args,opts);
     if (!_rpc_base_url) throw "RPC base url is undefined";
     var params=[model,method];
     params.push(args);
@@ -39,7 +39,7 @@ module.exports.execute=function(model,method,args,opts,cb) {
 }
 
 module.exports.upload_file=function(file,result_cb,progress_cb) {
-    console.log("RPC.upload_file",file);
+    console.log("rpc.upload_file",file);
     if (!_rpc_base_url) throw "RPC base url is undefined";
     var data=new FormData();
     data.append("file",file);

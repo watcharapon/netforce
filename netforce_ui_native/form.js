@@ -18,10 +18,11 @@ import React, {
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 
-var RPC=require("./RPC");
+var rpc=require("./rpc");
 var Button=require("./button");
-var UIParams=require("./ui_params");
+var ui_params=require("./ui_params");
 var utils=require("./utils");
+var _=require("underscore");
 
 var Icon = require('react-native-vector-icons/FontAwesome');
 
@@ -33,6 +34,7 @@ var FieldInteger=require("./field_integer");
 var FieldDate=require("./field_date");
 var FieldDateTime=require("./field_datetime");
 var FieldSelect=require("./field_select");
+var FieldFile=require("./field_file");
 var FieldMany2One=require("./field_many2one");
 var FieldOne2Many=require("./field_one2many");
 
@@ -43,17 +45,23 @@ class Form extends Component {
     }
 
     componentDidMount() {
-        var layout_name=this.props.layout||"work_time_form_mobile";
-        var layout=UIParams.get_layout(layout_name);
-        this.layout_doc=new dom().parseFromString(layout.layout);
+        var layout;
+        if (this.props.layout) {
+            layout=ui_params.get_layout(this.props.layout);
+        } else {
+            layout=ui_params.find_layout({model:this.props.model,type:"form_mobile"});
+            if (!layout) throw "Form layout not found for model "+this.props.model;
+        }
+        var doc=new dom().parseFromString(layout.layout);
+        this.layout_el=doc.documentElement;
+        this.readonly=this.layout_el.getAttribute("readonly")?true:false;
         this.load_data();
     }
 
     load_data() {
         console.log("Form.load_data");
         var cond=this.props.condition||[];
-        var root_el=this.layout_doc.documentElement;
-        var field_nodes=xpath.select("field", root_el);
+        var field_nodes=xpath.select("field", this.layout_el);
         var fields=[];
         field_nodes.forEach(function(el) {
             fields.push(el.getAttribute("name"));
@@ -69,7 +77,7 @@ class Form extends Component {
             }
         }
         if (this.props.active_id) {
-            RPC.execute(this.props.model,"read",[[this.props.active_id],fields],{context:ctx},function(err,res) {
+            rpc.execute(this.props.model,"read",[[this.props.active_id],fields],{context:ctx},function(err,res) {
                 if (err) {
                     alert("ERROR: "+err);
                     return;
@@ -81,7 +89,7 @@ class Form extends Component {
                 });
             }.bind(this));
         } else {
-            RPC.execute(this.props.model,"default_get",[fields],{context:ctx},function(err,res) {
+            rpc.execute(this.props.model,"default_get",[fields],{context:ctx},function(err,res) {
                 if (err) {
                     alert("ERROR: "+err);
                     return;
@@ -97,8 +105,18 @@ class Form extends Component {
 
     render() {
         if (!this.state.data) return <Text>Loading...</Text>
-        var root=this.layout_doc.documentElement;
-        var child_els=xpath.select("child::*", root);
+        var m=ui_params.get_model(this.props.model);
+        var title;
+        if (this.props.active_id) {
+            if (this.readonly) {
+                title="View "+m.string;
+            } else {
+                title="Edit "+m.string;
+            }
+        } else {
+            title="New "+m.string;
+        }
+        var child_els=xpath.select("child::*", this.layout_el);
         var cols=[];
         var rows=[];
         {child_els.forEach(function(el,i) {
@@ -108,61 +126,92 @@ class Form extends Component {
                 return;
             } else if (el.tagName=="field") {
                 var name=el.getAttribute("name");
-                var f=UIParams.get_field(this.props.model,name);
+                var f=ui_params.get_field(this.props.model,name);
                 var invisible=el.getAttribute("invisible");
                 if (invisible) return;
-                var val=this.state.data[name];
-                var val_str=utils.field_val_to_str(val,f);
                 var field_component;
-                if (f.type=="char") {
-                    field_component=<FieldChar model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="text") {
-                    field_component=<FieldText model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="float") {
-                    field_component=<FieldFloat model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="decimal") {
-                    field_component=<FieldDecimal model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="integer") {
-                    field_component=<FieldInteger model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="date") {
-                    field_component=<FieldDate model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="datetime") {
-                    field_component=<FieldDateTime model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="selection") {
-                    field_component=<FieldSelect model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="many2one") {
-                    field_component=<FieldMany2One navigator={this.props.navigator} model={this.props.model} name={name} data={this.state.data}/>
-                } else if (f.type=="one2many") {
-                    var res=xpath.select("list",el);
-                    var list_layout_el=res.length>0?res[0]:null;
-                    var res=xpath.select("form",el);
-                    var form_layout_el=res.length>0?res[0]:null;
-                    field_component=<FieldOne2Many navigator={this.props.navigator} model={this.props.model} name={name} data={this.state.data} list_layout_el={list_layout_el} form_layout_el={form_layout_el}/>
+                if (this.readonly && f.type!="one2many") {
+                    var val=this.state.data[name];
+                    var val_str=utils.field_val_to_str(val,f);
+                    field_component=<Text>{val_str}</Text>
                 } else {
-                    throw "Invalid field type: "+f.type;
+                    if (f.type=="char") {
+                        field_component=<FieldChar model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="text") {
+                        field_component=<FieldText model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="float") {
+                        field_component=<FieldFloat model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="decimal") {
+                        field_component=<FieldDecimal model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="integer") {
+                        field_component=<FieldInteger model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="date") {
+                        field_component=<FieldDate model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="datetime") {
+                        field_component=<FieldDateTime model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="selection") {
+                        field_component=<FieldSelect model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="file") {
+                        field_component=<FieldFile model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="many2one") {
+                        field_component=<FieldMany2One navigator={this.props.navigator} model={this.props.model} name={name} data={this.state.data}/>
+                    } else if (f.type=="one2many") {
+                        var res=xpath.select("list",el);
+                        var list_layout_el=res.length>0?res[0]:null;
+                        var res=xpath.select("form",el);
+                        var form_layout_el=res.length>0?res[0]:null;
+                        field_component=<FieldOne2Many navigator={this.props.navigator} model={this.props.model} name={name} data={this.state.data} list_layout_el={list_layout_el} form_layout_el={form_layout_el} readonly={this.readonly}/>
+                    } else {
+                        throw "Invalid field type: "+f.type;
+                    }
                 }
                 var col=<View key={cols.length} style={{flexDirection:"column",flex:1}}>
                     <Text style={{fontWeight:"bold",marginRight:5}}>{f.string}</Text>
                     {field_component}
                 </View>;
                 cols.push(col);
+            } else if (el.tagName=="button") {
+                var hide=false;
+                var state=el.getAttribute("state");
+                if (state) {
+                    var states=state.split(",");
+                    if (!_.contains(states,this.state.data.state)) hide=true;
+                }
+                if (!this.props.active_id) hide=true;
+                if (!hide) {
+                    var col=<View key={cols.length} style={{paddingTop:5,flex:1}}>
+                        <Button onPress={this.press_button.bind(this,el)}>
+                            <View style={{height:50,backgroundColor:"#aaa",alignItems:"center",justifyContent:"center"}}>
+                                <Text style={{color:"#fff"}}>{el.getAttribute("string")}</Text>
+                            </View>
+                        </Button>
+                    </View>
+                    cols.push(col);
+                }
             } else {
                 throw "Invalid tag name: "+el.tagName;
             }
         }.bind(this))}
         rows.push(<View style={{flexDirection:"row", justifyContent: "space-between"}} key={rows.length}>{cols}</View>);
         return <ScrollView style={{flex:1}}>
+            <View style={{alignItems:"center",padding:10,borderBottomWidth:0.5,marginBottom:10}}>
+                <Text style={{fontWeight:"bold"}}>{title}</Text>
+            </View>
             <View>
                 {rows}
             </View>
-            <View style={{paddingTop:5,marginTop:20}}>
-                <Button onPress={this.press_save.bind(this)}>
-                    <View style={{height:50,backgroundColor:"#37b",alignItems:"center",justifyContent:"center"}}>
-                        <Text style={{color:"#fff"}}><Icon name="check" size={16} color="#eee"/> Save</Text>
-                    </View>
-                </Button>
-            </View>
             {function() {
+                if (this.readonly) return;
+                return <View style={{paddingTop:5,marginTop:20}}>
+                    <Button onPress={this.press_save.bind(this)}>
+                        <View style={{height:50,backgroundColor:"#37b",alignItems:"center",justifyContent:"center"}}>
+                            <Text style={{color:"#fff"}}><Icon name="check" size={16} color="#eee"/> Save</Text>
+                        </View>
+                    </Button>
+                </View>
+            }.bind(this)()}
+            {function() {
+                if (this.readonly) return;
                 if (!this.props.active_id) return;
                 return <View style={{paddingTop:5}}>
                     <Button onPress={this.press_delete.bind(this)}>
@@ -189,7 +238,7 @@ class Form extends Component {
             } else {
                 orig_v=null;
             }
-            var f=UIParams.get_field(model,name);
+            var f=ui_params.get_field(model,name);
             if (f.type=="char") {
                 if (v!=orig_v) change[name]=v;
             } else if (f.type=="text") {
@@ -249,17 +298,17 @@ class Form extends Component {
             }
         }
         if (this.props.active_id) {
-            RPC.execute(this.props.model,"write",[[this.props.active_id],vals],{context:ctx},function(err,new_id) {
+            rpc.execute(this.props.model,"write",[[this.props.active_id],vals],{context:ctx},function(err,new_id) {
                 if (err) {
-                    alert("ERROR: "+err.message);
+                    alert("Error: "+err.message);
                     return;
                 }
                 this.back_reload();
             }.bind(this));
         } else {
-            RPC.execute(this.props.model,"create",[vals],{context:ctx},function(err,new_id) {
+            rpc.execute(this.props.model,"create",[vals],{context:ctx},function(err,new_id) {
                 if (err) {
-                    alert("ERROR: "+err.message);
+                    alert("Error: "+err.message);
                     return;
                 }
                 this.back_reload();
@@ -270,13 +319,27 @@ class Form extends Component {
     press_delete() {
         // TODO: add confirm
         var ctx={};
-        RPC.execute(this.props.model,"delete",[[this.props.active_id]],{context:ctx},function(err) {
+        rpc.execute(this.props.model,"delete",[[this.props.active_id]],{context:ctx},function(err) {
             if (err) {
-                alert("ERROR: "+err.message);
+                alert("Error: "+err.message);
                 return;
             }
             this.back_reload();
         }.bind(this));
+    }
+
+    press_button(el) {
+        var method=el.getAttribute("method");
+        if (method) {
+            var ctx={};
+            rpc.execute(this.props.model,method,[[this.props.active_id]],{context:ctx},function(err,res) {
+                if (err) {
+                    alert("Error: "+err.message);
+                    return;
+                }
+                this.load_data();
+            }.bind(this));
+        }
     }
 
     back_reload() {
