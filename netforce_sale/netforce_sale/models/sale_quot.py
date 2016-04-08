@@ -202,8 +202,9 @@ class SaleQuot(Model):
                     rate=r.get('rate') or 0
                     break
             if rate is None:
-                rate_from=get_model("currency").get_rate([currency_id],obj.date) or Decimal(1)
-                rate_to=obj.currency_id.get_rate(obj.date) or Decimal(1)
+                print(data['date'],currency_id,data['currency_id'])
+                rate_from=get_model("currency").get_rate([currency_id],data['date']) or Decimal(1)
+                rate_to=get_model("currency").get_rate([data['currency_id']],data['date']) or Decimal(1)
                 rate=rate_from/rate_to
             return rate
         item_costs={}
@@ -212,7 +213,8 @@ class SaleQuot(Model):
                 continue
             amt=cost['amount'] or 0
             if cost.get('currency_id'):
-                rate=_get_relative_currency_rate(cost.get("currency_id.id"))
+                print(cost.get("currency_id.id"),cost.get("currency_id"))
+                rate=_get_relative_currency_rate(cost.get("currency_id"))
                 amt=amt*rate
             comps=[]
             if cost.get("sequence"):
@@ -234,7 +236,11 @@ class SaleQuot(Model):
                 disc = 0
             line["amount"] = amt
             #===============>>>
-            k=(data['id'],line.get("sequence",0))
+            k=None
+            if id in data:
+                k=(data['id'],line.get("sequence",0))
+            else:
+                k=(line.get("sequence",0))
             cost=item_costs.get(k,0)
             profit=amt-cost
             margin=profit*100/amt if amt else 0
