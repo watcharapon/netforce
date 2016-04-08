@@ -222,12 +222,10 @@ class Payment(Model):
             total = 0
             wht = 0
             for line in obj.lines:
-                if line.type in ("direct", "prepay", "overpay", "adjust"):
+                if line.type in ("adjust"):
                     tax_comp=line.tax_comp_id
-                    #tax=line.tax_id or tax_comp.tax_rate_id # tax_id is hided
-                    tax=tax_comp.tax_rate_id
                     amt=line.amount or 0
-                    if tax:
+                    if tax_comp:
                         factor=-1
                         if tax_comp.type in ('vat'):
                             vat += amt *factor
@@ -238,6 +236,17 @@ class Payment(Model):
                     if obj.tax_type == "tax_in":
                         subtotal += amt
                     total+=amt
+                elif line.type in ("direct", "prepay", "overpay"):
+                    tax=line.tax_id
+                    amt=line.amount or 0
+                    if tax:
+                        for tax_comp in tax.components:
+                            rate=(tax_comp.rate or 0)/100
+                            if tax_comp.type in ('vat'):
+                                vat += amt * rate
+                            elif tax_comp.type in ('wht'):
+                                wht += amt * rate
+                    subtotal += amt
                 elif line.type=="invoice":
                     inv = line.invoice_id
                     cred_amt = 0
