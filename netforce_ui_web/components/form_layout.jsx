@@ -9,6 +9,8 @@ var Loading=require("./loading")
 var classNames = require('classnames');
 var FieldChar=require("./field_char");
 var FieldDecimal=require("./field_decimal");
+var FieldSelect=require("./field_select");
+var FieldMany2One=require("./field_many2one");
 var FieldOne2Many=require("./field_one2many");
 var Group=require("./group");
 var Tabs=require("./tabs");
@@ -53,11 +55,11 @@ var FormLayout=React.createClass({
                 } else if (f.type=="datetime") {
                     var field_component=<FieldChar model={this.props.model} name={name} data={this.props.data}/>;
                 } else if (f.type=="selection") {
-                    var field_component=<FieldChar model={this.props.model} name={name} data={this.props.data}/>;
+                    var field_component=<FieldSelect model={this.props.model} name={name} data={this.props.data}/>;
                 } else if (f.type=="file") {
                     var field_component=<FieldChar model={this.props.model} name={name} data={this.props.data}/>;
                 } else if (f.type=="many2one") {
-                    var field_component=<FieldChar model={this.props.model} name={name} data={this.props.data}/>;
+                    var field_component=<FieldMany2One model={this.props.model} name={name} data={this.props.data}/>;
                 } else if (f.type=="reference") {
                     var field_component=<FieldChar model={this.props.model} name={name} data={this.props.data}/>;
                 } else if (f.type=="one2many") {

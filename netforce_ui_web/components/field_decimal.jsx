@@ -20,7 +20,7 @@ var FieldDecimal=React.createClass({
 
     render() {
         return <div>
-            <input type="text" value={this.state.val_str} onChange={this.onchange}/>
+            <input className="form-control" type="text" value={this.state.val_str} onChange={this.onchange}/>
         </div>
     },
 

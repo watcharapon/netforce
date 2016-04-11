@@ -3,7 +3,7 @@ var connect = require("react-redux").connect;
 var ui_params=require("../ui_params");
 var utils=require("../utils");
 
-var FieldChar=React.createClass({
+var FieldSelect=React.createClass({
     mixins: [ui_params],
 
     getInitialState() {
@@ -22,10 +22,16 @@ var FieldChar=React.createClass({
     },
 
     render() {
+        var f=this.get_field(this.props.model,this.props.name);
         if (this.state.readonly) {
             return <span onClick={this.click_readonly}>{this.state.val_str}</span>;
         } else {
-            return <input className="form-control" ref={this.input_mounted} onBlur={this.on_blur} type="text" value={this.state.val_str} onChange={this.onchange}/>
+            return <select className="form-control" ref={this.input_mounted} onBlur={this.on_blur} type="text" value={this.state.val_str} onChange={this.onchange}>
+                <option value=""></option>
+                {f.selection.map(function(o) {
+                    return <option value={o[0]}>{o[1]}</option>
+                }.bind(this))}
+            </select>
         }
     },
 
@@ -60,4 +66,4 @@ var select=function(state) {
     }
 }
 
-module.exports=connect(select)(FieldChar);
+module.exports=connect(select)(FieldSelect);

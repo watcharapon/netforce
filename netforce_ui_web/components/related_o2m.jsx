@@ -61,7 +61,7 @@ var RelatedO2M=React.createClass({
                 if (this.state.show_form) {
                     return <RelatedForm model={f.relation} relfield={f.relfield} parent_model={this.props.model} parent_id={this.props.active_id} on_save={this.on_save} on_cancel={this.on_cancel}/>
                 } else {
-                    return <div>
+                    return <div className="btn-toolbar">
                         <button className="btn btn-sm btn-default" onClick={this.click_add}>Add</button>
                         <button className="btn btn-sm btn-default" onClick={this.click_delete}>Delete</button>
                     </div>

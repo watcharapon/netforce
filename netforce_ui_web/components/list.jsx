@@ -42,7 +42,7 @@ var List=React.createClass({
             <div className="page-header">
                 <h2>{this.props.title}</h2>
             </div>
-            <div style={{marginBottom:10}}>
+            <div className="btn-toolbar" style={{marginBottom:10}}>
                 <button className="btn btn-default" style={{marginRight:10}} onClick={this.on_new}><span className="glyphicon glyphicon-plus"></span> New {m.string}</button>
                 <button className="btn btn-default"><span className="glyphicon glyphicon-download"></span> Import</button>
             </div>
