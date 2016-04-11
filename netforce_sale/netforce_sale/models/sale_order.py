@@ -1123,7 +1123,7 @@ class SaleOrder(Model):
                 cost-=line.amount
             subtotal=obj.amount_subtotal or 0
             profit=subtotal-cost
-            margin=profit*100/obj.subtotal if obj.subtotal else None
+            margin=profit*100/subtotal if subtotal else None
             vals[obj.id] = {
                 "act_cost_amount": cost,
                 "act_profit_amount": profit,
