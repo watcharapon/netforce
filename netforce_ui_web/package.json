@@ -23,6 +23,7 @@
     "redux": "^3.3.1",
     "redux-thunk": "^2.0.1",
     "sizzle": "^2.3.0",
+    "underscore": "^1.8.3",
     "xmldom": "^0.1.22",
     "xpath": "0.0.22"
   },

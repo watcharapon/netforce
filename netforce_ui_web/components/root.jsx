@@ -19,7 +19,8 @@ var Root=React.createClass({
         return <div>
             <p>blablabla</p>
             <p>HELLO</p>
-            <MultiView title="Invoices" model="account.invoice" list_layout="cust_invoice_list" form_layout="cust_invoice_form" tabs={[["All",[]],["Draft",[["state","=","draft"]]],["Approved",[["state","=","approved"]]]]}/>
+            {/*<MultiView title="Invoices" model="account.invoice" list_layout="cust_invoice_list" form_layout="cust_invoice_form" tabs={[["All",[]],["Draft",[["state","=","draft"]]],["Approved",[["state","=","approved"]]]]}/>*/}
+            <MultiView title="Audit Log" model="log"/>
         </div>
     },
 });

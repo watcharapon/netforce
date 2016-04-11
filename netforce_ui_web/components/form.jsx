@@ -43,14 +43,15 @@ var Form=React.createClass({
             var name=el.getAttribute("name");
             field_names.push(name);
         });
+        var ctx={};
         if (this.state.active_id) {
-            rpc.execute(this.props.model,"read",[[this.state.active_id],field_names],{},function(err,res) {
+            rpc.execute(this.props.model,"read",[[this.state.active_id],field_names],{context:ctx},function(err,res) {
                 if (err) throw err;
                 var data=res[0];
                 data._orig_data=Object.assign({},data);
                 this.setState({data:data});
                 var cond=[];
-                rpc.execute(this.props.model,"search",[cond],{},function(err,res) {
+                rpc.execute(this.props.model,"search",[cond],{limit:100,context:ctx},function(err,res) {
                     if (err) throw err;
                     this.setState({
                         record_ids: res,
@@ -60,7 +61,7 @@ var Form=React.createClass({
                 }.bind(this));
             }.bind(this));
         } else {
-            rpc.execute(this.props.model,"default_get",[field_names],{},function(err,data) {
+            rpc.execute(this.props.model,"default_get",[field_names],{context:ctx},function(err,data) {
                 this.setState({data:data});
             }.bind(this));
         }
@@ -108,17 +109,17 @@ var Form=React.createClass({
                 <h2>{title}</h2>
             </div>
             {function() {
-                if (!this.state.message) return;
-                return <div className="alert alert-success">
-                    <a className="close" data-dismiss="alert" href="#">&times;</a>
-                    {this.state.message}
-                </div>
-            }.bind(this)()}
-            {function() {
                 if (!this.state.error) return;
                 return <div className="alert alert-danger">
                     <a className="close" data-dismiss="alert" href="#">&times;</a>
                     {this.state.error}
+                </div>
+            }.bind(this)()}
+            {function() {
+                if (!this.state.message) return;
+                return <div className="alert alert-success">
+                    <a className="close" data-dismiss="alert" href="#">&times;</a>
+                    {this.state.message}
                 </div>
             }.bind(this)()}
             {function() {
