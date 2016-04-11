@@ -1,4 +1,5 @@
 from netforce.model import Model,fields,get_model
+from netforce import access
 
 class SaleOrder(Model):
     _inherit="sale.order"
@@ -27,5 +28,10 @@ class SaleOrder(Model):
                     state="done"
             vals[obj.id]=state
         return vals
+
+    def save_pay_method(self,ids,pay_method_id,context={}): # XXX: remove later
+        access.set_active_company(1) # XXX
+        obj=self.browse(ids[0])
+        obj.write({"pay_method_id":pay_method_id})
 
 SaleOrder.register()

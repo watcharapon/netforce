@@ -24,15 +24,6 @@ class CartLine(Model):
         "ship_method_id": fields.Many2One("ship.method","Shipping Method"),
     }
 
-    def get_ship_method(self,context={}):
-        res=get_model("ship.method").search([],order="sequence")
-        if res:
-            return res[0]
-
-    _defaults={
-        "ship_method_id": get_ship_method,
-    }
-
     def get_amount(self,ids,context={}):
         vals={}
         for obj in self.browse(ids):
