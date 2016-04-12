@@ -48,6 +48,10 @@ var List=React.createClass({
         if (this.state.search_cond) {
             cond.push(this.state.search_cond);
         }
+        var cond_nogroup=cond.slice(0);
+        if (this.state.group_val) {
+            cond.push([this.props.group_field,"=",this.state.group_val]);
+        }
         console.log("cond",cond);
         var field_els=xpath.select("field", this.state.layout_el);
         var field_names=[];
@@ -60,6 +64,13 @@ var List=React.createClass({
         rpc.execute(this.props.model,"search_read",[cond,field_names],{count:true,offset:this.state.offset,limit:this.state.limit,context:ctx},function(err,res) {
             this.setState({data:res[0],count:res[1]});
         }.bind(this));
+        if (this.props.group_field) {
+            var group_fields=[this.props.group_field];
+            rpc.execute(this.props.model,"read_group",[],{group_fields:group_fields,condition:cond_nogroup},(err,res)=>{
+                if (err) throw err;
+                this.setState({group_data:res});
+            });
+        }
     },
 
     render() {
@@ -95,11 +106,22 @@ var List=React.createClass({
                     }.bind(this))}
                 </ul>
             }.bind(this)()}
-            {/*<ul className="nav nav-pills" style={{margin:"10px 0"}}>
-                <li className="active"><a href="#">David</a></li>
-                <li><a href="#">Poom</a></li>
-                <li><a href="#">Erik</a></li>
-            </ul>*/}
+            {function() {
+                if (!this.state.group_data) return;
+                return <ul className="nav nav-pills" style={{margin:"10px 0"}}>
+                    {this.state.group_data.map((r,i)=>{
+                        var v=r[this.props.group_field];
+                        var f=this.get_field(this.props.model,this.props.group_field);
+                        var search_val;
+                        if (f.type=="many2one"||f.type=="reference") {
+                            search_val=v?v[0]:null;
+                        } else {
+                            search_val=v;
+                        }
+                        return <li key={i} className={search_val==this.state.group_val?"active":null}><a href="#" onClick={this.click_group_pill.bind(this,search_val)}>{utils.fmt_field_val(v,f)} ({r._count})</a></li>
+                    })}
+                </ul>
+            }.bind(this)()}
             {function() {
                 if (!this.state.show_search) return;
                 return <Search model={this.props.model} on_close={this.hide_search} on_search={this.search}/>
@@ -260,6 +282,24 @@ var List=React.createClass({
         e.preventDefault();
         this.setState({
             active_tab: tab_no,
+            group_val: null,
+            show_search: false,
+            search_cond: null,
+        },function() {
+            this.load_data();
+        }.bind(this));
+    },
+
+    click_group_pill(val,e) {
+        console.log("click_group_pill",val);
+        e.preventDefault();
+        if (this.state.group_val==val) {
+            new_group_val=null;
+        } else {
+            new_group_val=val;
+        }
+        this.setState({
+            group_val: new_group_val,
         },function() {
             this.load_data();
         }.bind(this));
