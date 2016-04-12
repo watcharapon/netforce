@@ -9,6 +9,7 @@ var xpath = require('xpath');
 var Loading=require("./loading")
 var classNames = require('classnames');
 var _=require("underscore");
+var Search=require("./search")
 
 var List=React.createClass({
     mixins: [ui_params],
@@ -43,6 +44,9 @@ var List=React.createClass({
             console.log("active_tab",this.state.active_tab);
             var tab_cond=this.props.tabs[this.state.active_tab][1];
             cond.push(tab_cond);
+        }
+        if (this.state.search_cond) {
+            cond.push(this.state.search_cond);
         }
         console.log("cond",cond);
         var field_els=xpath.select("field", this.state.layout_el);
@@ -91,9 +95,21 @@ var List=React.createClass({
                     }.bind(this))}
                 </ul>
             }.bind(this)()}
+            {/*<ul className="nav nav-pills" style={{margin:"10px 0"}}>
+                <li className="active"><a href="#">David</a></li>
+                <li><a href="#">Poom</a></li>
+                <li><a href="#">Erik</a></li>
+            </ul>*/}
+            {function() {
+                if (!this.state.show_search) return;
+                return <Search model={this.props.model} on_close={this.hide_search} on_search={this.search}/>
+            }.bind(this)()}
             <div style={{marginTop:10}}>
                 <button className="btn btn-danger btn-sm" onClick={this.call_method.bind(this,"delete")}>Delete</button>
-                <button className="btn btn-default btn-sm pull-right" onClick={this.search}><i className="glyphicon glyphicon-search"></i> Search</button>
+                {function() {
+                    if (this.state.show_search) return;
+                    return <button className="btn btn-default btn-sm pull-right" onClick={this.show_search}><i className="glyphicon glyphicon-search"></i> Search</button>
+                }.bind(this)()}
             </div>
             {function() {
                 if (!this.state.data) return <Loading/>;
@@ -146,7 +162,7 @@ var List=React.createClass({
                                     return <li><a className="page-link" href="#" onClick={this.change_page.bind(this,page_no-1)}>&lsaquo; Prev</a></li>
                                 }.bind(this)()}
                                 {_.range(5).map(function(i) {
-                                    if (pages.length<i) return; 
+                                    if (i>pages.length-1) return; 
                                     return <li key={i} className={pages[i]==page_no?"active":null}><a className="page-link" href="#" onClick={this.change_page.bind(this,pages[i])}>{pages[i]+1}</a></li>
                                 }.bind(this))}
                                 {function() {
@@ -226,8 +242,17 @@ var List=React.createClass({
         }
     },
 
-    search(e) {
+    show_search(e) {
         e.preventDefault();
+        this.setState({show_search:true});
+    },
+
+    hide_search() {
+        this.setState({show_search:false,search_cond:null},()=>this.load_data());
+    },
+
+    search(cond) {
+        this.setState({search_cond:cond},()=>this.load_data());
     },
 
     click_tab(tab_no,e) {
