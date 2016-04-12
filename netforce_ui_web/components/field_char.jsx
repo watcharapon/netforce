@@ -23,7 +23,7 @@ var FieldChar=React.createClass({
 
     render() {
         if (this.state.readonly) {
-            return <span onClick={this.click_readonly}>{this.state.val_str}</span>;
+            return <a href="#" style={{color:"#333"}} onClick={this.click_readonly}>{this.state.val_str}</a>;
         } else {
             return <input className="form-control" ref={this.input_mounted} onBlur={this.on_blur} type="text" value={this.state.val_str} onChange={this.onchange}/>
         }
@@ -35,7 +35,8 @@ var FieldChar=React.createClass({
         this.props.data[this.props.name]=val_str;
     },
 
-    click_readonly() {
+    click_readonly(e) {
+        e.preventDefault();
         if (this.props.edit_focus) {
             this.setState({readonly:false});
         }

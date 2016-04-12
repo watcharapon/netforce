@@ -10,6 +10,8 @@ var Loading=require("./loading")
 var classNames = require('classnames');
 var _=require("underscore");
 var Search=require("./search")
+var FieldChar=require("./field_char")
+var FieldMany2One=require("./field_many2one")
 
 var List=React.createClass({
     mixins: [ui_params],
@@ -74,7 +76,7 @@ var List=React.createClass({
     },
 
     render() {
-        var field_els=xpath.select("field",this.state.layout_el);
+        var child_els=xpath.select("child::*",this.state.layout_el);
         var m=this.get_model(this.props.model);
         return <div>
             <div className="page-header">
@@ -141,10 +143,14 @@ var List=React.createClass({
                         <thead>
                             <tr>
                                 <th style={{width:10}}><input type="checkbox" checked={this.state.check_all} onClick={this.on_check_all}/></th>
-                                {field_els.map(function(el,i) {
-                                    var name=el.getAttribute("name");
-                                    var f=this.get_field(this.props.model,name);
-                                    return <th key={i}>{f.string}</th>
+                                {child_els.map(function(el,i) {
+                                    if (el.tagName=="field") {
+                                        var name=el.getAttribute("name");
+                                        var f=this.get_field(this.props.model,name);
+                                        return <th key={i}>{f.string}</th>
+                                    } else if (el.tagName=="actions") {
+                                        return <th key={i}></th>
+                                    }
                                 }.bind(this))}
                             </tr>
                         </thead>
@@ -152,11 +158,65 @@ var List=React.createClass({
                             {this.state.data.map(function(obj) {
                                 return <tr key={obj.id}>
                                     <td><input type="checkbox" onClick={this.on_check.bind(this,obj.id)} checked={this.state.checked_items[obj.id]}/></td>
-                                    {field_els.map(function(el,i) {
-                                        var name=el.getAttribute("name");
-                                        var f=this.get_field(this.props.model,name);
-                                        var val=obj[name];
-                                        return <td key={i} onClick={this.on_select.bind(this,obj.id)}>{utils.fmt_field_val(val,f)}</td>
+                                    {child_els.map(function(el,i) {
+                                        if (el.tagName=="field") {
+                                            var name=el.getAttribute("name");
+                                            var f=this.get_field(this.props.model,name);
+                                            var val=obj[name];
+                                            var val_str=utils.fmt_field_val(val,f);
+                                            var edit=el.getAttribute("edit");
+                                            return <td key={i} onClick={!edit?this.on_select.bind(this,obj.id):null}>
+                                                {function() {
+                                                    if (edit) {
+                                                        if (f.type=="char") {
+                                                            return <FieldChar model={this.props.model} name={name} data={obj} auto_save="1"/>;
+                                                        } else if (f.type=="text") {
+                                                            return <FieldChar model={this.props.model} name={name} data={obj} auto_save="1"/>;
+                                                        } else if (f.type=="boolean") {
+                                                            return <FieldChar model={this.props.model} name={name} data={obj} auto_save="1"/>;
+                                                        } else if (f.type=="integer") {
+                                                            return <FieldChar model={this.props.model} name={name} data={obj} auto_save="1"/>;
+                                                        } else if (f.type=="float") {
+                                                            return <FieldChar model={this.props.model} name={name} data={obj} auto_save="1"/>;
+                                                        } else if (f.type=="decimal") {
+                                                            return <FieldChar model={this.props.model} name={name} data={obj} auto_save="1"/>;
+                                                        } else if (f.type=="date") {
+                                                            return <FieldChar model={this.props.model} name={name} data={obj} auto_save="1"/>;
+                                                        } else if (f.type=="datetime") {
+                                                            return <FieldChar model={this.props.model} name={name} data={obj} auto_save="1"/>;
+                                                        } else if (f.type=="selection") {
+                                                            return <FieldChar model={this.props.model} name={name} data={obj} auto_save="1"/>;
+                                                        } else if (f.type=="file") {
+                                                            return <FieldChar model={this.props.model} name={name} data={obj} auto_save="1"/>;
+                                                        } else if (f.type=="many2one") {
+                                                            return <FieldMany2One model={this.props.model} name={name} data={obj} auto_save="1" nolink={el.getAttribute("nolink")} width={parseInt(el.getAttribute("width"))}/>;
+                                                        } else if (f.type=="reference") {
+                                                            return <FieldChar model={this.props.model} name={name} data={obj} auto_save="1"/>;
+                                                        } else {
+                                                            throw "Invalid field type "+f.type;
+                                                        }
+                                                    } else {
+                                                        return val_str;
+                                                    }
+                                                }.bind(this)()}
+                                            </td>
+                                        } else if (el.tagName=="actions") {
+                                            var action_els=xpath.select("child::*",el);
+                                            return <td key={i}>
+                                                <div className="btn-group" style={{whiteSpace:"nowrap"}}>
+                                                    {action_els.map((el,i)=>{
+                                                        return <button key={i} className="btn btn-default" style={{float:"none",display:"inline-block"}}>
+                                                            {function() {
+                                                                var icon=el.getAttribute("icon");
+                                                                if (!icon) return;
+                                                                return <span className={"glyphicon glyphicon-"+icon}></span>
+                                                            }.bind(this)()}
+                                                            {el.getAttribute("string")}
+                                                        </button>
+                                                    })}
+                                                </div>
+                                            </td>
+                                        }
                                     }.bind(this))}
                                 </tr>
                             }.bind(this))}

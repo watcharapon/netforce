@@ -3,6 +3,7 @@ var connect = require("react-redux").connect;
 var ui_params=require("../ui_params");
 var utils=require("../utils");
 var rpc=require("../rpc");
+var Saving=require("./saving");
 
 var FieldMany2One=React.createClass({
     mixins: [ui_params],
@@ -30,34 +31,43 @@ var FieldMany2One=React.createClass({
 
     render() {
         if (this.state.readonly) {
-            return <span onClick={this.click_readonly}>{this.state.val_str}</span>;
+            return <a href="#" style={{color:"#333"}} onClick={this.click_readonly}>{this.state.val_str}</a>;
         } else {
             return <div>
-                <div className="input-group">
+                <div className="input-group" style={{width:this.props.width}}>
                     <input className="form-control" ref={this.input_mounted} onBlur={this.on_blur} type="text" value={this.state.val_str} onChange={this.onchange_text}/>
                     <span className="input-group-btn">
-                        <a href="#" target="_bank" className="btn btn-default" tabindex="-1"><span className="glyphicon glyphicon-arrow-right"></span></a>
-                        <button type="button" className="btn btn-default" tabindex="-1" onClick={this.click_caret}><span className="caret"></span></button>
+                        {function() {
+                            if (this.props.nolink) return;
+                            return <a href="#" target="_bank" className="btn btn-default" tabIndex="-1"><span className="glyphicon glyphicon-arrow-right"></span></a>
+                        }.bind(this)()}
+                        <button type="button" className="btn btn-default" tabIndex="-1" onMouseDown={this.click_caret}><span className="caret"></span></button>
                     </span>
                 </div>
-            {function() {
-                if (!this.state.show_menu) return;
-                return <div style={{position:"relative"}}>
-                    <ul style={{position:"absolute",top:0,left:0,zIndex:1000,backgroundColor:"#fff",border:"1px solid rgba(0,0,0,0.15)",maxHeight:250,overflow:"auto",minWidth:200,padding:"5px 0"}}>
-                        {this.state.results.map(function(o,i) {
-                            return <li key={i} style={{listStyle:"none"}}>
-                                <a href="#" style={{display:"block",padding:"3px 20px",textDecoration:"none",color:"#333",fontSize:"14px"}} onClick={this.select_item.bind(this,o[0],o[1])}>{o[1]}</a>
-                            </li>
-                        }.bind(this))}
-                    </ul>
-                </div>
-            }.bind(this)()}
+                {function() {
+                    if (!this.state.show_menu) return;
+                    return <div style={{position:"relative"}}>
+                        <ul style={{position:"absolute",top:0,left:0,zIndex:1000,backgroundColor:"#fff",border:"1px solid rgba(0,0,0,0.15)",maxHeight:250,overflow:"auto",minWidth:200,padding:"5px 0"}}>
+                            {this.state.results.map(function(o,i) {
+                                return <li key={i} style={{listStyle:"none"}}>
+                                    <a href="#" style={{display:"block",padding:"3px 20px",textDecoration:"none",color:"#333",fontSize:"14px"}} onMouseDown={this.select_item.bind(this,o[0],o[1])}>{o[1]}</a>
+                                </li>
+                            }.bind(this))}
+                        </ul>
+                    </div>
+                }.bind(this)()}
+                {function() {
+                    if (!this.state.saving) return;
+                    return <Saving/>
+                }.bind(this)()}
             </div>
         }
     },
 
     click_caret(e) {
         e.preventDefault();
+        e.stopPropagation();
+        this.input_el.focus();
         if (this.state.show_menu) {
             this.setState({show_menu:false});
             return;
@@ -108,18 +118,39 @@ var FieldMany2One=React.createClass({
     },
 
     input_mounted(el) {
+        if (!el) return;
+        this.input_el=el;
         if (this.props.edit_focus) {
-            if (el) el.focus();
+            this.input_el.focus();
         }
     },
 
     on_blur() {
+        console.log("FieldMany2One.bur");
         if (this.props.edit_focus) {
             this.setState({readonly:true});
         }
         var val=this.props.data[this.props.name];
         var val_str=utils.fmt_field_val(val,f);
         this.setState({val_str:val_str});
+        if (this.props.auto_save) this.save_data();
+    },
+
+    save_data() {
+        var active_id=this.props.data.id;
+        if (!active_id) return;
+        var vals={};
+        var val=this.props.data[this.props.name]
+        vals[this.props.name]=val?val[0]:null;
+        var ctx={};
+        this.setState({saving:true});
+        rpc.execute(this.props.model,"write",[[active_id],vals],{context:ctx},function(err) {
+            if (err) {
+                alert(err);
+                return;
+            }
+            this.setState({saving:false});
+        }.bind(this));
     },
 });
 
