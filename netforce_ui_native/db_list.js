@@ -13,7 +13,7 @@ import React, {
   View
 } from 'react-native';
 
-var RPC=require("./RPC");
+var rpc=require("./rpc");
 var Button=require("./button");
 
 class DBList extends Component {

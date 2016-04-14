@@ -1,6 +1,6 @@
 {
   "name": "netforce_ui_web",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "description": "Netforce Web UI",
   "scripts": {
     "start": "npm run serve | npm run dev",
@@ -23,6 +23,7 @@
     "redux": "^3.3.1",
     "redux-thunk": "^2.0.1",
     "sizzle": "^2.3.0",
+    "underscore": "^1.8.3",
     "xmldom": "^0.1.22",
     "xpath": "0.0.22"
   },

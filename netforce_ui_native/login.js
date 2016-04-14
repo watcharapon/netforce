@@ -10,9 +10,9 @@ import React, {
   View
 } from 'react-native';
 
-var RPC=require("./RPC");
+var rpc=require("./rpc");
 var Button=require("./button");
-var UIParams=require("./ui_params");
+var ui_params=require("./ui_params");
 
 class Login extends Component {
     constructor(props) {
@@ -31,21 +31,20 @@ class Login extends Component {
                 this.setState({loading:false});
                 return;
             }
-            RPC.set_base_url(res);
+            rpc.set_base_url(res);
             AsyncStorage.getItem("user_id",function(err,res) {
                 if (!res) {
                     this.setState({loading:false});
                     return;
                 }
-                AsyncStorage.getItem("ui_params",function(err,res) {
+                ui_params.load_ui_params_local(function(err) {
                     if (!res) {
                         this.setState({loading:false});
                         return;
                     }
-                    UIParams.set_ui_params(JSON.parse(res));
                     var login_action={name:"action",action:"main_menu_mobile"};
                     this.props.navigator.replace(login_action);
-                }.bind(this));
+                });
             }.bind(this));
         }.bind(this));
     }
@@ -99,7 +98,7 @@ class Login extends Component {
             var db_list=JSON.parse(res)||[];
             var db_vals=db_list.find(function(obj) {return obj.dbname==this.state.dbname}.bind(this));
             var base_url=db_vals.protocol+"://"+db_vals.hostname+":"+db_vals.port;
-            RPC.set_base_url(base_url);
+            rpc.set_base_url(base_url);
              var ctx={
                   data: {
                       db_name: this.state.dbname,
@@ -107,9 +106,9 @@ class Login extends Component {
                       password: this.state.password,
                   }
               };
-              RPC.execute("login","login",[],{context:ctx},function(err,res) {
+              rpc.execute("login","login",[],{context:ctx},function(err,res) {
                   if (err) {
-                      alert("Error: "+err.message);
+                      alert("Error: "+err);
                       return;
                   }
                   var user_id=res.cookies.user_id;
@@ -120,7 +119,7 @@ class Login extends Component {
                   AsyncStorage.setItem("company_name",company_name);
                   AsyncStorage.setItem("base_url",base_url);
                   var login_action={name:"action",action:"main_menu_mobile"};
-                  UIParams.load_ui_params(function(err) {
+                  ui_params.load_ui_params(function(err) {
                       if (err) {
                           alert("Error: "+err);
                           return;

@@ -75,7 +75,7 @@ class Cart(Model):
             return res[0]
 
     def _get_ship_method(self,context={}):
-        res=get_model("ship.method").search([])
+        res=get_model("ship.method").search([],order="sequence")
         if res:
             return res[0]
 
@@ -297,7 +297,8 @@ class Cart(Model):
                 get_model("ecom2.cart.line").write([line_id],{"qty":qty})
         else:
             if qty!=0:
-                get_model("ecom2.cart.line").create({"cart_id": obj.id, "product_id": prod_id, "qty": qty, "delivery_date": due_date})
+                ctx={"cart_id":obj.id,"delivery_date":due_date}
+                get_model("ecom2.cart.line").create({"cart_id": obj.id, "product_id": prod_id, "qty": qty, "delivery_date": due_date},context=ctx)
 
     def add_lot(self,ids,prod_id,lot_id,context={}):
         print("Cart.add_lot",ids,prod_id,lot_id)

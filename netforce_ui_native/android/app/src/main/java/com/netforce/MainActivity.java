@@ -8,6 +8,7 @@ import com.AirMaps.AirPackage;
 import com.imagepicker.ImagePickerPackage;
 import me.nucleartux.date.ReactDatePackage;
 import com.oblador.vectoricons.VectorIconsPackage;
+import cn.mandata.react_native_mpchart.MPChartPackage;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,7 +44,8 @@ public class MainActivity extends ReactActivity {
         new AirPackage(),
         new ImagePickerPackage(),
         new ReactDatePackage(this),
-        new VectorIconsPackage()
+        new VectorIconsPackage(),
+        new MPChartPackage()
       );
     }
 }

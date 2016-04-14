@@ -135,6 +135,7 @@ dependencies {
     compile project(':react-native-image-picker')
     compile project(':reactdate')
     compile project(':react-native-vector-icons')
+    compile project(':react-native-chart-android')
 }
 
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"

@@ -3,7 +3,7 @@ import React, {
   AsyncStorage,
 } from 'react-native';
 
-var RPC=require("./RPC");
+var rpc=require("./rpc");
 
 var _ui_params=null;
 
@@ -13,7 +13,7 @@ module.exports.set_ui_params=function(params) {
 
 module.exports.load_ui_params=function(cb) {
     var ctx={mobile_only:true};
-    RPC.execute("ui.params","load_ui_params",[],{context:ctx},function(err,data) {
+    rpc.execute("ui.params","load_ui_params",[],{context:ctx},function(err,data) {
         if (err) {
             cb(err);
             return;
@@ -23,6 +23,21 @@ module.exports.load_ui_params=function(cb) {
         AsyncStorage.setItem("ui_params",JSON.stringify(data));
         cb(null);
     });
+}
+
+module.exports.load_ui_params_local=function(cb) {
+    AsyncStorage.getItem("ui_params",function(err,data) {
+        if (err) {
+            cb(err);
+            return;
+        }
+        if (!data) {
+            cb("UI params not found");
+            return;
+        }
+        _ui_params=JSON.parse(data);
+        cb(null);
+    }.bind(this));
 }
 
 module.exports.get_action=function(name) {
@@ -41,6 +56,20 @@ module.exports.get_layout=function(name) {
     var layout=_ui_params.layouts[name];
     if (!layout) throw "Layout not found: "+name;
     return layout;
+}
+
+module.exports.find_layout=function(conds) {
+    console.log("find_layout",conds);
+    if (!_ui_params) throw "UI params not loaded";
+    var layouts=_ui_params.layouts;
+    var found=null;
+    for (var n in layouts) {
+        var l=layouts[n];
+        if (conds.model && l.model!=conds.model) continue;
+        if (conds.type && l.type!=conds.type) continue;
+        found=l;
+    }
+    return found;
 }
 
 module.exports.get_model=function(model) {

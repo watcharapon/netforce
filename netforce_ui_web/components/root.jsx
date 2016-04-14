@@ -18,7 +18,8 @@ var Root=React.createClass({
         if (!this.props.ui_params) return <Loading/>; 
         return <div>
             <p>blablabla</p>
-            <MultiView title="Work Time" model="work.time" tabs={[["All",[]],["Draft",[["state","=","draft"]]]]}/>
+            <p>HELLO</p>
+            <MultiView title="Invoices" model="account.invoice" list_layout="cust_invoice_list" form_layout="cust_invoice_form" tabs={[["All",[]],["Draft",[["state","=","draft"]]],["Approved",[["state","=","approved"]]]]} group_field="contact_id"/>
         </div>
     },
 });

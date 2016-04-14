@@ -17,18 +17,29 @@ import React, {
   View
 } from 'react-native';
 
-var RPC=require("./RPC");
+var rpc=require("./rpc");
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 var UIParams=require("./ui_params");
 var utils=require("./utils");
 var Button=require("./button");
+var ScrollableTabView = require('react-native-scrollable-tab-view');
 
 var Icon = require('react-native-vector-icons/FontAwesome');
 
 class List extends Component {
     constructor(props) {
         super(props);
+        var layout;
+        if (this.props.layout) {
+            layout=UIParams.get_layout(this.props.layout);
+        } else {
+            layout=UIParams.find_layout({model:this.props.model,type:"list_mobile"});
+            if (!layout) throw "List layout not found for model "+this.props.model;
+        }
+        var doc=new dom().parseFromString(layout.layout);
+        this.layout_el=doc.documentElement;
+        this.readonly=this.layout_el.getAttribute("readonly")?true:false;
         this.state = {
             dataSource: new ListView.DataSource({
                 rowHasChanged: (row1, row2) => row1 !== row2,
@@ -37,22 +48,24 @@ class List extends Component {
     }
 
     componentDidMount() {
-        var layout_name=this.props.layout||"work_time_list_mobile";
-        var layout=UIParams.get_layout(layout_name);
-        this.layout_doc=new dom().parseFromString(layout.layout);
         this.load_data();
     }
 
     load_data() {
         console.log("List.load_data");
         var cond=this.props.condition||[];
-        var field_nodes=xpath.select("//field", this.layout_doc);
+        if (this.props.tabs) {
+            var tab_cond=this.props.tabs[this.state.active_tab||0][1];
+            cond.push(tab_cond);
+        }
+        var field_nodes=xpath.select("//field", this.layout_el);
         var fields=[];
         field_nodes.forEach(function(el) {
             fields.push(el.getAttribute("name"));
         });
         console.log("fields",fields);
-        RPC.execute(this.props.model,"search_read",[cond,fields],{},function(err,data) {
+        this.setState({data:null});
+        rpc.execute(this.props.model,"search_read",[cond,fields],{},function(err,data) {
             if (err) {
                 alert("ERROR: "+err);
                 return;
@@ -65,26 +78,58 @@ class List extends Component {
     }
 
     render() {
-        if (this.state.data==null) {
-            return <Text>Loading...</Text>
-        }
-        if (this.state.data.length==0) return <Text>There are no items to display.</Text>
         var m=UIParams.get_model(this.props.model);
         return <View style={{flex:1}}>
-            <ListView dataSource={this.state.dataSource} renderRow={this.render_row.bind(this)} style={{flex:1}}/>
-            <View style={{paddingTop:5}}>
-                <Button onPress={this.press_new.bind(this)}>
-                    <View style={{height:50,backgroundColor:"#37b",alignItems:"center",justifyContent:"center"}}>
-                        <Text style={{color:"#fff"}}><Icon name="plus" size={16} color="#eee"/> New {m.string}</Text>
-                    </View>
-                </Button>
-            </View>
+            {function() {
+                if (!this.props.title) return;
+                return <View style={{alignItems:"center",padding:10,borderBottomWidth:0.5}}>
+                    <Text style={{fontWeight:"bold"}}>{this.props.title}</Text>
+                </View>
+            }.bind(this)()}
+            {function() {
+                if (this.props.tabs) {
+                    return <ScrollableTabView onChangeTab={this.change_tab.bind(this)} initialPage={this.state.active_tab||0}>
+                        {this.props.tabs.map((t,i)=>{
+                            return <View key={i} tabLabel={t[0]}>
+                                {function() {
+                                    if (this.state.data==null) {
+                                        return <Text>Loading...</Text>
+                                    }
+                                    if (this.state.data.length==0) return <Text>There are no items to display.</Text>
+                                    return <ListView dataSource={this.state.dataSource} renderRow={this.render_row.bind(this)} style={{flex:1}}/>
+                                }.bind(this)()}
+                            </View>
+                        })}
+                    </ScrollableTabView>
+                } else {
+                    if (this.state.data==null) {
+                        return <Text>Loading...</Text>
+                    }
+                    if (this.state.data.length==0) return <Text>There are no items to display.</Text>
+                    return <ListView dataSource={this.state.dataSource} renderRow={this.render_row.bind(this)} style={{flex:1}}/>
+                }
+            }.bind(this)()}
+            {function() {
+                if (this.readonly) return;
+                <View style={{paddingTop:5}}>
+                    <Button onPress={this.press_new.bind(this)}>
+                        <View style={{height:50,backgroundColor:"#37b",alignItems:"center",justifyContent:"center"}}>
+                            <Text style={{color:"#fff"}}><Icon name="plus" size={16} color="#eee"/> New {m.string}</Text>
+                        </View>
+                    </Button>
+                </View>
+            }.bind(this)()}
         </View>
     }
 
+    change_tab(tab) {
+        this.setState({active_tab:tab.i},function() {
+            this.load_data();
+        });
+    }
+
     render_row(obj) {
-        var root=this.layout_doc.documentElement;
-        var child_els=xpath.select("child::*", root);
+        var child_els=xpath.select("child::*", this.layout_el);
         var cols=[];
         var rows=[];
         {child_els.forEach(function(el,i) {
