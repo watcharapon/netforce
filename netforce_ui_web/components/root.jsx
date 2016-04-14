@@ -1,21 +1,26 @@
 React = require("react");
-var connect = require("react-redux").connect;
-var actions=require("../actions")
 var Menu=require("./menu")
 var Loading=require("./loading")
 var MultiView=require("./multi_view")
+var ui_params=require("../ui_params");
 
 var Root=React.createClass({
     getInitialState() {
-        return {};
+        return {ui_params_loaded:false};
     },
 
     componentDidMount() {
-        this.props.dispatch(actions.load_ui_params());
+        ui_params.load_ui_params(null,function(err) {
+            if (err) {
+                alert("ERROR: "+err);
+                return;
+            }
+            this.setState({ui_params_loaded:true});
+        }.bind(this));
     },
 
     render() {
-        if (!this.props.ui_params) return <Loading/>; 
+        if (!this.state.ui_params_loaded) return <Loading/>; 
         return <div>
             <p>blablabla</p>
             <p>HELLO</p>
@@ -24,10 +29,4 @@ var Root=React.createClass({
     },
 });
 
-var select=function(state) {
-    return {
-        ui_params: state.ui_params,
-    }
-}
-
-module.exports=connect(select)(Root);
+module.exports=Root;

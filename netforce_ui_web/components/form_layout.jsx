@@ -1,5 +1,4 @@
 React = require("react");
-var connect = require("react-redux").connect;
 var actions=require("../actions")
 var ui_params=require("../ui_params");
 var rpc=require("../rpc");
@@ -16,8 +15,6 @@ var Group=require("./group");
 var Tabs=require("./tabs");
 
 var FormLayout=React.createClass({
-    mixins: [ui_params],
-
     getInitialState() {
         console.log("FormLayout.getInitialState");
         return {};
@@ -37,7 +34,7 @@ var FormLayout=React.createClass({
             if (invisible) return;
             if (el.tagName=="field") {
                 var name=el.getAttribute("name");
-                var f=this.get_field(this.props.model,name);
+                var f=ui_params.get_field(this.props.model,name);
                 if (f.type=="char") {
                     var field_component=<FieldChar model={this.props.model} name={name} data={this.props.data}/>;
                 } else if (f.type=="text") {
@@ -105,10 +102,4 @@ var FormLayout=React.createClass({
     },
 });
 
-var select=function(state) {
-    return {
-        ui_params: state.ui_params,
-    }
-}
-
-module.exports=connect(select)(FormLayout);
+module.exports=FormLayout;

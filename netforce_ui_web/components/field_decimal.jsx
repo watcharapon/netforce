@@ -1,13 +1,10 @@
 React = require("react");
-var connect = require("react-redux").connect;
 var ui_params=require("../ui_params");
 var utils=require("../utils");
 
 var FieldDecimal=React.createClass({
-    mixins: [ui_params],
-
     getInitialState() {
-        var f=this.get_field(this.props.model,this.props.name);
+        var f=ui_params.get_field(this.props.model,this.props.name);
         var val=this.props.data[this.props.name];
         var val_str=utils.fmt_field_val(val,f);
         return {
@@ -35,10 +32,4 @@ var FieldDecimal=React.createClass({
     },
 });
 
-var select=function(state) {
-    return {
-        ui_params: state.ui_params,
-    }
-}
-
-module.exports=connect(select)(FieldDecimal);
+module.exports=FieldDecimal;

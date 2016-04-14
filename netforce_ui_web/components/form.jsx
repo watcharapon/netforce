@@ -1,6 +1,4 @@
 React = require("react");
-var connect = require("react-redux").connect;
-var actions=require("../actions")
 var ui_params=require("../ui_params");
 var rpc=require("../rpc");
 var dom = require('xmldom').DOMParser;
@@ -11,14 +9,12 @@ var FormLayout=require("./form_layout");
 var RelatedO2M=require("./related_o2m");
 
 var Form=React.createClass({
-    mixins: [ui_params],
-
     getInitialState() {
         var layout;
         if (this.props.layout) {
-            layout=this.get_layout(this.props.layout);
+            layout=ui_params.get_layout(this.props.layout);
         } else {
-            layout=this.find_layout({model:this.props.model,type:"form"});
+            layout=ui_params.find_layout({model:this.props.model,type:"form"});
             if (!layout) throw "Form layout not found for model "+this.props.model;
         }
         var doc=new dom().parseFromString(layout.layout);
@@ -70,7 +66,7 @@ var Form=React.createClass({
     render() {
         console.log("Form.render");
         var title;
-        var m=this.get_model(this.props.model);
+        var m=ui_params.get_model(this.props.model);
         if (this.state.active_id) {
             title="Edit "+m.string;
         } else {
@@ -234,7 +230,7 @@ var Form=React.createClass({
             } else {
                 orig_v=null;
             }
-            var f=this.get_field(model,name);
+            var f=ui_params.get_field(model,name);
             if (f.type=="char") {
                 if (v!=orig_v) change[name]=v;
             } else if (f.type=="text") {
@@ -279,10 +275,4 @@ var Form=React.createClass({
     }
 });
 
-var select=function(state) {
-    return {
-        ui_params: state.ui_params,
-    }
-}
-
-module.exports=connect(select)(Form);
+module.exports=Form;

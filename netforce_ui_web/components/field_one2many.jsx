@@ -1,5 +1,4 @@
 React = require("react");
-var connect = require("react-redux").connect;
 var ui_params=require("../ui_params");
 var utils=require("../utils");
 var rpc=require("../rpc");
@@ -10,14 +9,12 @@ var FieldChar=require("./field_char");
 var FieldDecimal=require("./field_decimal");
 
 var FieldOne2Many=React.createClass({
-    mixins: [ui_params],
-
     getInitialState() {
-        var f=this.get_field(this.props.model,this.props.name);
+        var f=ui_params.get_field(this.props.model,this.props.name);
         if (this.props.list_layout_el) {
             this.list_layout_el=this.props.list_layout_el;
         } else {
-            layout=this.find_layout({model:f.relation,type:"list"});
+            layout=ui_params.find_layout({model:f.relation,type:"list"});
             if (!layout) throw "List layout not found for model "+f.relation;
             var doc=new dom().parseFromString(layout.layout);
             this.list_layout_el=doc.documentElement;
@@ -30,7 +27,7 @@ var FieldOne2Many=React.createClass({
     },
 
     load_data: function() {
-        var f=this.get_field(this.props.model,this.props.name);
+        var f=ui_params.get_field(this.props.model,this.props.name);
         var ctx={};
         var ids=this.props.data[this.props.name];
         var field_els=xpath.select("field", this.list_layout_el);
@@ -47,7 +44,7 @@ var FieldOne2Many=React.createClass({
     render() {
         if (!this.state.data) return <Loading/>
         var field_els=xpath.select("field", this.list_layout_el);
-        var f=this.get_field(this.props.model,this.props.name);
+        var f=ui_params.get_field(this.props.model,this.props.name);
         var relation=f.relation;
         return <div>
             <table className="table">
@@ -55,7 +52,7 @@ var FieldOne2Many=React.createClass({
                     <tr>
                         {field_els.map(function(el,i) {
                             var name=el.getAttribute("name");
-                            var f=this.get_field(relation,name);
+                            var f=ui_params.get_field(relation,name);
                             return <th key={i}>{f.string}</th>
                         }.bind(this))}
                     </tr>
@@ -65,7 +62,7 @@ var FieldOne2Many=React.createClass({
                         return <tr key={i}>
                             {field_els.map(function(el,i) {
                                 var name=el.getAttribute("name");
-                                var f=this.get_field(relation,name);
+                                var f=ui_params.get_field(relation,name);
                                 var val=obj[name];
                                 return <td key={i}>
                                     {function() {
@@ -107,10 +104,4 @@ var FieldOne2Many=React.createClass({
     },
 });
 
-var select=function(state) {
-    return {
-        ui_params: state.ui_params,
-    }
-}
-
-module.exports=connect(select)(FieldOne2Many);
+module.exports=FieldOne2Many;

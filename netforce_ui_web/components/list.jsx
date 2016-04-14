@@ -1,6 +1,4 @@
 React = require("react");
-var connect = require("react-redux").connect;
-var actions=require("../actions");
 var ui_params=require("../ui_params");
 var rpc=require("../rpc");
 var utils=require("../utils");
@@ -14,14 +12,12 @@ var FieldChar=require("./field_char")
 var FieldMany2One=require("./field_many2one")
 
 var List=React.createClass({
-    mixins: [ui_params],
-
     getInitialState() {
         var layout;
         if (this.props.layout) {
-            layout=this.get_layout(this.props.layout);
+            layout=ui_params.get_layout(this.props.layout);
         } else {
-            layout=this.find_layout({model:this.props.model,type:"list"});
+            layout=ui_params.find_layout({model:this.props.model,type:"list"});
             if (!layout) throw "List layout not found for model "+this.props.model;
         }
         var doc=new dom().parseFromString(layout.layout);
@@ -77,7 +73,7 @@ var List=React.createClass({
 
     render() {
         var child_els=xpath.select("child::*",this.state.layout_el);
-        var m=this.get_model(this.props.model);
+        var m=ui_params.get_model(this.props.model);
         return <div>
             <div className="page-header">
                 <h2>{this.props.title}</h2>
@@ -113,7 +109,7 @@ var List=React.createClass({
                 return <ul className="nav nav-pills" style={{margin:"10px 0"}}>
                     {this.state.group_data.map((r,i)=>{
                         var v=r[this.props.group_field];
-                        var f=this.get_field(this.props.model,this.props.group_field);
+                        var f=ui_params.get_field(this.props.model,this.props.group_field);
                         var search_val;
                         if (f.type=="many2one"||f.type=="reference") {
                             search_val=v?v[0]:null;
@@ -146,7 +142,7 @@ var List=React.createClass({
                                 {child_els.map(function(el,i) {
                                     if (el.tagName=="field") {
                                         var name=el.getAttribute("name");
-                                        var f=this.get_field(this.props.model,name);
+                                        var f=ui_params.get_field(this.props.model,name);
                                         return <th key={i}>{f.string}</th>
                                     } else if (el.tagName=="actions") {
                                         return <th key={i}></th>
@@ -161,7 +157,7 @@ var List=React.createClass({
                                     {child_els.map(function(el,i) {
                                         if (el.tagName=="field") {
                                             var name=el.getAttribute("name");
-                                            var f=this.get_field(this.props.model,name);
+                                            var f=ui_params.get_field(this.props.model,name);
                                             var val=obj[name];
                                             var val_str=utils.fmt_field_val(val,f);
                                             var edit=el.getAttribute("edit");
@@ -405,10 +401,4 @@ var List=React.createClass({
     },
 });
 
-var select=function(state) {
-    return {
-        ui_params: state.ui_params,
-    }
-}
-
-module.exports=connect(select)(List);
+module.exports=List;

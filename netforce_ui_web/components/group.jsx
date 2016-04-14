@@ -1,5 +1,4 @@
 React = require("react");
-var connect = require("react-redux").connect;
 var actions=require("../actions")
 var ui_params=require("../ui_params");
 var rpc=require("../rpc");
@@ -27,10 +26,4 @@ var Group=React.createClass({
     },
 });
 
-var select=function(state) {
-    return {
-        ui_params: state.ui_params,
-    }
-}
-
-module.exports=connect(select)(Group);
+module.exports=Group;

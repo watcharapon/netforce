@@ -1,5 +1,4 @@
 React = require("react");
-var connect = require("react-redux").connect;
 var ui_params=require("../ui_params");
 var utils=require("../utils");
 var _=require("underscore")
@@ -29,7 +28,7 @@ var Search=React.createClass({
         var rows=[];
         field_els.forEach((el,i) => {
             var name=el.getAttribute("name");
-            var f=this.get_field(this.props.model,name);
+            var f=ui_params.get_field(this.props.model,name);
             if (f.type=="char") {
                 var field_component=<FieldChar model={this.props.model} name={name} data={this.state.data}/>;
             } else if (f.type=="text") {
@@ -92,7 +91,7 @@ var Search=React.createClass({
         for (var name in this.state.data) {
             var v=this.state.data[name];
             if (v==null) return;
-            var f=this.get_field(this.props.model,name);
+            var f=ui_params.get_field(this.props.model,name);
             var clause=[];
             if (f.type=="char") {
                 clause=[name,"ilike",v];
@@ -126,7 +125,7 @@ var Search=React.createClass({
     make_default_search_view() {
         var req_fields=[];
         var other_fields=[];
-        var m=this.get_model(this.props.model);
+        var m=ui_params.get_model(this.props.model);
         _.each(m.fields,function(f,n) {
             if (f.search) {
                 if (f.required) {
@@ -136,8 +135,8 @@ var Search=React.createClass({
                 }
             }
         });
-        req_fields=_.sortBy(req_fields,function(n) {return this.get_field(this.props.model,n).string}.bind(this));
-        other_fields=_.sortBy(other_fields,function(n) {return this.get_field(this.props.model,n).string}.bind(this));
+        req_fields=_.sortBy(req_fields,function(n) {return ui_params.get_field(this.props.model,n).string}.bind(this));
+        other_fields=_.sortBy(other_fields,function(n) {return ui_params.get_field(this.props.model,n).string}.bind(this));
         var fields=[];
         _.each(req_fields,function(n) {
             fields.push({name:n});
@@ -154,10 +153,4 @@ var Search=React.createClass({
     }
 });
 
-var select=function(state) {
-    return {
-        ui_params: state.ui_params,
-    }
-}
-
-module.exports=connect(select)(Search);
+module.exports=Search;

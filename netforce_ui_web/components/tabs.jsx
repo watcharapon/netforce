@@ -1,6 +1,4 @@
 React = require("react");
-var connect = require("react-redux").connect;
-var actions=require("../actions")
 var ui_params=require("../ui_params");
 var rpc=require("../rpc");
 var dom = require('xmldom').DOMParser;
@@ -37,10 +35,4 @@ var Tabs=React.createClass({
     },
 });
 
-var select=function(state) {
-    return {
-        ui_params: state.ui_params,
-    }
-}
-
-module.exports=connect(select)(Tabs);
+module.exports=Tabs;
