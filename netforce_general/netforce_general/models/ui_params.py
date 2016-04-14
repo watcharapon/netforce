@@ -28,8 +28,8 @@ class UIParams(Model):
     _store = False
     
     def load_ui_params(self,context={}):
-        actions=action.actions_to_json()
-        layouts=layout.layouts_to_json(mobile_only=context.get("mobile_only"))
+        actions=action.actions_to_json(modules=context.get("modules"))
+        layouts=layout.layouts_to_json(modules=context.get("modules"),mobile_only=context.get("mobile_only"))
         models=model.models_to_json()
         return {
             "actions": actions,
