@@ -22,7 +22,7 @@ class Navbar extends Component {
             <View style={{position:"absolute",left:0,right:0,bottom:0,top:0,alignItems:"center",flexDirection:"row",justifyContent:"center"}}>
                 <View style={{flexDirection:"row",alignItems:"center",position:"relative",left:-10}}>
                     <Image source={require('./nf_logo_64.png')} style={{width:24}} resizeMode="contain"/>
-                    <Text style={{fontSize:17,letterSpacing:0.5,color:"#eee",textAlign:"center",fontWeight:"500"}}>Netforce</Text>
+                    <Text style={{fontSize:17,letterSpacing:0.5,color:"#eee",textAlign:"center",fontWeight:"500"}}>{this.props.title}</Text>
                 </View>
             </View>
             <View style={{alignItems:"center",flexDirection:"row"}}>

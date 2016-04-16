@@ -31,7 +31,7 @@ class Page extends Component {
         var fields=["date","actual_hours","bill_hours","description","state"];
         rpc.execute("nf.time","read_path",[[this.props.active_id],fields],{},function(err,data) {
             if (err) {
-                alert("Failed to read data: "+err.message);
+                alert("Failed to read data: "+err);
                 return;
             }
             this.setState({

@@ -11,6 +11,7 @@ module.exports={
                 return;
             }
             _ui_params=data;
+            window.ui_params=_ui_params; // XXX: remove this
             cb();
         });
     },

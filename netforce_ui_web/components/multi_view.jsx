@@ -15,7 +15,7 @@ var MultiView=React.createClass({
 
     render() {
         if (this.state.mode=="list") {
-            return <List title={this.props.title} model={this.props.model} layout={this.props.list_layout} tabs={this.props.tabs} group_field={this.props.group_field} on_new={this.on_new} on_select={this.on_select}/>
+            return <List title={this.props.title} model={this.props.model} layout={this.props.list_layout} tabs={this.props.tabs} group_field={this.props.group_field} on_new={this.on_new} on_select={this.on_select} summary_view={this.props.summary_view}/>
         } else if (this.state.mode=="form") {
             return <Form model={this.props.model} active_id={this.state.active_id} layout={this.props.form_layout} bread_title={this.props.title} on_bread={this.on_bread}/>
         } else {

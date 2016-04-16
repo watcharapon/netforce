@@ -11,8 +11,8 @@ module.exports.set_ui_params=function(params) {
     _ui_params=params;
 }
 
-module.exports.load_ui_params=function(cb) {
-    var ctx={mobile_only:true};
+module.exports.load_ui_params=function(modules,cb) {
+    var ctx={mobile_only:true,modules:modules};
     rpc.execute("ui.params","load_ui_params",[],{context:ctx},function(err,data) {
         if (err) {
             cb(err);

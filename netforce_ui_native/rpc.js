@@ -27,7 +27,7 @@ module.exports.execute=function(model,method,args,opts,cb) {
     .then((response) => response.json())
     .then((data) => {
         if (data.error) {
-            if (cb) cb(data.error,null);
+            if (cb) cb(data.error.message,null);
         } else {
             if (cb) cb(null,data.result);
         }

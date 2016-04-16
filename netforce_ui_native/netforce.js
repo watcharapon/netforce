@@ -45,7 +45,7 @@ class Netforce extends Component {
     render_scene(route,navigator) {
         _nav=navigator;
         return <View style={{ flex: 1, }}>
-            <NavBar navigator={navigator}/>
+            <NavBar navigator={navigator} title="Netforce"/>
             {function() {
                 if (!route) route={name:"login"};
                 if (route.name=="login") {

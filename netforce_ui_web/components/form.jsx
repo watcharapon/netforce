@@ -36,6 +36,8 @@ var Form=React.createClass({
         field_els.forEach(function(el) {
             var res=xpath.select("./ancestor::field",el);
             if (res.length>0) return;
+            var res=xpath.select("./ancestor::related",el);
+            if (res.length>0) return;
             var name=el.getAttribute("name");
             field_names.push(name);
         });
@@ -65,12 +67,16 @@ var Form=React.createClass({
 
     render() {
         console.log("Form.render");
-        var title;
         var m=ui_params.get_model(this.props.model);
-        if (this.state.active_id) {
-            title="Edit "+m.string;
+        var title;
+        if (this.props.title) {
+            title=this.props.title;
         } else {
-            title="New "+m.string;
+            if (this.state.active_id) {
+                title="Edit "+m.string;
+            } else {
+                title="New "+m.string;
+            }
         }
         return <div>
             {function() {
@@ -217,7 +223,7 @@ var Form=React.createClass({
     },
 
     get_change_vals(data,model) {
-        console.log("get_change_vals");
+        console.log("get_change_vals",data,model);
         var change={};
         for (var name in data) {
             if (name=="id") continue;
@@ -241,7 +247,11 @@ var Form=React.createClass({
                 if (v!=orig_v) change[name]=v;
             } else if (f.type=="decimal") {
                 if (v!=orig_v) change[name]=v;
-            } else if (f.type=="select") {
+            } else if (f.type=="selection") {
+                if (v!=orig_v) change[name]=v;
+            } else if (f.type=="date") {
+                if (v!=orig_v) change[name]=v;
+            } else if (f.type=="datetime") {
                 if (v!=orig_v) change[name]=v;
             } else if (f.type=="many2one") {
                 var v1=v?v[0]:null;
@@ -269,8 +279,11 @@ var Form=React.createClass({
                 }.bind(this));
                 if (del_ids.length>0) ops.push(["delete",del_ids]);
                 if (ops.length>0) change[name]=ops;
+            } else {
+                throw "Invalid field type: "+f.type;
             }
         }
+        console.log("change",change);
         return change;
     }
 });

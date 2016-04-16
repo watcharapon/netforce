@@ -181,8 +181,15 @@ class Form extends Component {
                 if (!hide) {
                     var col=<View key={cols.length} style={{paddingTop:5,flex:1}}>
                         <Button onPress={this.press_button.bind(this,el)}>
-                            <View style={{height:50,backgroundColor:"#aaa",alignItems:"center",justifyContent:"center"}}>
-                                <Text style={{color:"#fff"}}>{el.getAttribute("string")}</Text>
+                            <View style={{height:50,backgroundColor:"#aaa",alignItems:"center",justifyContent:"center",flexDirection:"row"}}>
+                                {function() {
+                                    var icon=el.getAttribute("icon");
+                                    if (!icon) return;
+                                    return <Icon name={icon} size={16} color="#eee" style={{marginRight:5}}/>
+                                }.bind(this)()}
+                                <Text style={{color:"#fff"}}>
+                                    {el.getAttribute("string")}
+                                </Text>
                             </View>
                         </Button>
                     </View>
@@ -300,7 +307,7 @@ class Form extends Component {
         if (this.props.active_id) {
             rpc.execute(this.props.model,"write",[[this.props.active_id],vals],{context:ctx},function(err,new_id) {
                 if (err) {
-                    alert("Error: "+err.message);
+                    alert("Error: "+err);
                     return;
                 }
                 this.back_reload();
@@ -308,7 +315,7 @@ class Form extends Component {
         } else {
             rpc.execute(this.props.model,"create",[vals],{context:ctx},function(err,new_id) {
                 if (err) {
-                    alert("Error: "+err.message);
+                    alert("Error: "+err);
                     return;
                 }
                 this.back_reload();
@@ -321,7 +328,7 @@ class Form extends Component {
         var ctx={};
         rpc.execute(this.props.model,"delete",[[this.props.active_id]],{context:ctx},function(err) {
             if (err) {
-                alert("Error: "+err.message);
+                alert("Error: "+err);
                 return;
             }
             this.back_reload();
@@ -334,10 +341,14 @@ class Form extends Component {
             var ctx={};
             rpc.execute(this.props.model,method,[[this.props.active_id]],{context:ctx},function(err,res) {
                 if (err) {
-                    alert("Error: "+err.message);
+                    alert("Error: "+err);
                     return;
                 }
                 this.load_data();
+                var next=res?res.next:null;
+                if (next) {
+                    this.props.navigator.push(next);
+                }
             }.bind(this));
         }
     }

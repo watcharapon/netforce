@@ -6,12 +6,11 @@ var FieldSelect=React.createClass({
     getInitialState() {
         var f=ui_params.get_field(this.props.model,this.props.name);
         var val=this.props.data[this.props.name];
-        var val_str=utils.fmt_field_val(val,f);
         var readonly=this.props.readonly?true:false;
         if (this.props.edit_focus) readonly=true;
         return {
             readonly: readonly,
-            val_str: val_str,
+            val: val,
         };
     },
 
@@ -20,10 +19,12 @@ var FieldSelect=React.createClass({
 
     render() {
         var f=ui_params.get_field(this.props.model,this.props.name);
+        var val=this.props.data[this.props.name];
+        var val_str=utils.fmt_field_val(val,f);
         if (this.state.readonly) {
-            return <span onClick={this.click_readonly}>{this.state.val_str}</span>;
+            return <span onClick={this.click_readonly}>{val_str}</span>;
         } else {
-            return <select className="form-control" ref={this.input_mounted} onBlur={this.on_blur} type="text" value={this.state.val_str} onChange={this.onchange}>
+            return <select className="form-control" ref={this.input_mounted} onBlur={this.on_blur} type="text" value={val} onChange={this.onchange}>
                 <option value=""></option>
                 {f.selection.map(function(o) {
                     return <option value={o[0]}>{o[1]}</option>
@@ -33,9 +34,11 @@ var FieldSelect=React.createClass({
     },
 
     onchange(e) {
-        var val_str=e.target.value;
-        this.setState({val_str:val_str});
-        this.props.data[this.props.name]=val_str;
+        console.log("field_select.on_change");
+        var val=e.target.value;
+        this.setState({val:val});
+        console.log(this.props.name,"<=",val);
+        this.props.data[this.props.name]=val;
     },
 
     click_readonly() {

@@ -1,5 +1,4 @@
 React = require("react");
-var actions=require("../actions")
 var ui_params=require("../ui_params");
 var rpc=require("../rpc");
 var dom = require('xmldom').DOMParser;
@@ -13,6 +12,7 @@ var FieldMany2One=require("./field_many2one");
 var FieldOne2Many=require("./field_one2many");
 var Group=require("./group");
 var Tabs=require("./tabs");
+var views=require("../views");
 
 var FormLayout=React.createClass({
     getInitialState() {
@@ -91,6 +91,18 @@ var FormLayout=React.createClass({
             } else if (el.tagName=="head") {
             } else if (el.tagName=="foot") {
             } else if (el.tagName=="related") {
+            } else if (el.tagName=="view") {
+                var name=el.getAttribute("name");
+                var view_class=views.get_view(name);
+                var props={
+                    model: this.props.model,
+                    data: this.props.data,
+                };
+                var el=React.createElement(view_class,props);
+                var col=<div key={cols.length} className="col-sm-6">
+                    {el}
+                </div>
+                cols.push(col);
             } else {
                 throw "Unexpected tag name: "+el.tagName;
             }

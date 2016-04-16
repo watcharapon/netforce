@@ -10,6 +10,7 @@ var _=require("underscore");
 var Search=require("./search")
 var FieldChar=require("./field_char")
 var FieldMany2One=require("./field_many2one")
+var views=require("../views");
 
 var List=React.createClass({
     getInitialState() {
@@ -97,6 +98,16 @@ var List=React.createClass({
                 <button className="btn btn-default"><span className="glyphicon glyphicon-download"></span> Import</button>
             </div>
             {function() {
+                if (!this.props.summary_view) return;
+                var view_class=views.get_view(this.props.summary_view);
+                var props={
+                    model: this.props.model,
+                    data: this.state.data,
+                };
+                var el=React.createElement(view_class,props);
+                return el;
+            }.bind(this)()}
+            {function() {
                 if (!this.props.tabs) return;
                 return <ul className="nav nav-tabs">
                     {this.props.tabs.map(function(o,i) {
@@ -116,7 +127,13 @@ var List=React.createClass({
                         } else {
                             search_val=v;
                         }
-                        return <li key={i} className={search_val==this.state.group_val?"active":null}><a href="#" onClick={this.click_group_pill.bind(this,search_val)}>{utils.fmt_field_val(v,f)} ({r._count})</a></li>
+                        var val_str;
+                        if (v!=null) {
+                            val_str=utils.fmt_field_val(v,f);
+                        } else {
+                            val_str="N/A";
+                        }
+                        return <li key={i} className={search_val==this.state.group_val?"active":null}><a href="#" onClick={this.click_group_pill.bind(this,search_val)}>{val_str} ({r._count})</a></li>
                     })}
                 </ul>
             }.bind(this)()}
@@ -201,7 +218,8 @@ var List=React.createClass({
                                             return <td key={i}>
                                                 <div className="btn-group" style={{whiteSpace:"nowrap"}}>
                                                     {action_els.map((el,i)=>{
-                                                        return <button key={i} className="btn btn-default" style={{float:"none",display:"inline-block"}}>
+                                                        var method=el.getAttribute("method");
+                                                        return <button key={i} className="btn btn-default" style={{float:"none",display:"inline-block"}} onClick={this.call_method2.bind(this,[obj.id],method)}>
                                                             {function() {
                                                                 var icon=el.getAttribute("icon");
                                                                 if (!icon) return;
@@ -372,6 +390,19 @@ var List=React.createClass({
             this.setState({"error": "No items selected."});
             return;
         }
+        rpc.execute(this.props.model,method,[ids],{context:ctx},function(err,res) {
+            if (err) {
+                this.setState({"error": err});
+                return;
+            }
+            this.load_data();
+        }.bind(this));
+    },
+
+    call_method2(ids,method,e) { // XXX
+        console.log("call_method2",ids,method);
+        e.preventDefault();
+        var ctx={};
         rpc.execute(this.props.model,method,[ids],{context:ctx},function(err,res) {
             if (err) {
                 this.setState({"error": err});
