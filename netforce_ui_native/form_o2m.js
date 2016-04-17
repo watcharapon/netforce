@@ -24,18 +24,7 @@ var ui_params=require("./ui_params");
 var utils=require("./utils");
 
 var Icon = require('react-native-vector-icons/FontAwesome');
-
-var FieldChar=require("./field_char");
-var FieldText=require("./field_text");
-var FieldFloat=require("./field_float");
-var FieldDecimal=require("./field_decimal");
-var FieldInteger=require("./field_integer");
-var FieldDate=require("./field_date");
-var FieldDateTime=require("./field_datetime");
-var FieldSelect=require("./field_select");
-var FieldFile=require("./field_file");
-var FieldMany2One=require("./field_many2one");
-var FieldOne2Many=require("./field_one2many");
+var FormLayout=require("./form_layout");
 
 class FormO2M extends Component {
     constructor(props) {
@@ -49,9 +38,12 @@ class FormO2M extends Component {
             this.layout_el=this.props.layout_el;
         } else {
             var layout=ui_params.find_layout({model:this.props.model,type:"form_mobile"});
-            if (!layout) throw "Form layout not found for model "+this.props.model;
-            var doc=new dom().parseFromString(layout.layout);
-            this.layout_el=doc.documentElement;
+            if (layout) {
+                var doc=new dom().parseFromString(layout.layout);
+                this.layout_el=doc.documentElement;
+            } else {
+                alert("Missing layout");
+            }
         }
         this.state = {
             data: data,
@@ -62,6 +54,7 @@ class FormO2M extends Component {
     }
 
     render() {
+        if (!this.layout_el) return <View/>
         if (!this.state.data) return <Text>Loading...</Text>
         var m=ui_params.get_model(this.props.model);
         var title;
@@ -74,75 +67,11 @@ class FormO2M extends Component {
         } else {
             title="Add "+m.string;
         }
-        var child_els=xpath.select("child::*", this.layout_el);
-        var cols=[];
-        var rows=[];
-        {child_els.forEach(function(el,i) {
-            if (el.tagName=="newline") {
-                rows.push(<View style={{flexDirection:"row", justifyContent: "space-between"}} key={rows.length}>{cols}</View>);
-                cols=[];
-                return;
-            } else if (el.tagName=="field") {
-                var name=el.getAttribute("name");
-                var f=ui_params.get_field(this.props.model,name);
-                var invisible=el.getAttribute("invisible");
-                if (invisible) return;
-                var val=this.state.data[name];
-                var val_str=utils.field_val_to_str(val,f);
-                var field_component;
-                if (this.props.readonly && f.type!="one2many") {
-                    var val=this.state.data[name];
-                    var val_str=utils.field_val_to_str(val,f);
-                    field_component=<Text>{val_str}</Text>
-                } else {
-                    if (f.type=="char") {
-                        field_component=<FieldChar model={this.props.model} name={name} data={this.state.data}/>
-                    } else if (f.type=="text") {
-                        field_component=<FieldText model={this.props.model} name={name} data={this.state.data}/>
-                    } else if (f.type=="float") {
-                        field_component=<FieldFloat model={this.props.model} name={name} data={this.state.data}/>
-                    } else if (f.type=="decimal") {
-                        field_component=<FieldDecimal model={this.props.model} name={name} data={this.state.data}/>
-                    } else if (f.type=="integer") {
-                        field_component=<FieldInteger model={this.props.model} name={name} data={this.state.data}/>
-                    } else if (f.type=="date") {
-                        field_component=<FieldDate model={this.props.model} name={name} data={this.state.data}/>
-                    } else if (f.type=="datetime") {
-                        field_component=<FieldDateTime model={this.props.model} name={name} data={this.state.data}/>
-                    } else if (f.type=="selection") {
-                        field_component=<FieldSelect model={this.props.model} name={name} data={this.state.data}/>
-                    } else if (f.type=="file") {
-                        field_component=<FieldFile model={this.props.model} name={name} data={this.state.data}/>
-                    } else if (f.type=="many2one") {
-                        field_component=<FieldMany2One navigator={this.props.navigator} model={this.props.model} name={name} data={this.state.data}/>
-                    } else if (f.type=="one2many") {
-                        var res=xpath.select("list",el);
-                        var list_layout_el=res.length>0?res[0]:null;
-                        var res=xpath.select("form",el);
-                        var form_layout_el=res.length>0?res[0]:null;
-                        field_component=<FieldOne2Many navigator={this.props.navigator} model={this.props.model} name={name} data={this.state.data} list_layout_el={list_layout_el} form_layout_el={form_layout_el}/>
-                    } else {
-                        throw "Invalid field type: "+f.type;
-                    }
-                }
-                var col=<View key={cols.length} style={{flexDirection:"column",flex:1}}>
-                    <Text style={{fontWeight:"bold",marginRight:5}}>{f.string}</Text>
-                    {field_component}
-                </View>;
-                cols.push(col);
-            } else if (el.tagName=="button") {
-            } else {
-                throw "Invalid tag name: "+el.tagName;
-            }
-        }.bind(this))}
-        rows.push(<View style={{flexDirection:"row", justifyContent: "space-between"}} key={rows.length}>{cols}</View>);
         return <ScrollView style={{flex:1}}>
             <View style={{alignItems:"center",padding:10,borderBottomWidth:0.5,marginBottom:10}}>
                 <Text style={{fontWeight:"bold"}}>{title}</Text>
             </View>
-            <View>
-                {rows}
-            </View>
+            <FormLayout navigator={this.props.navigator} model={this.props.model} data={this.state.data} layout_el={this.layout_el} readonly={this.props.readonly}/>
             {function() {
                 if (this.props.readonly) return;
                 return <View style={{paddingTop:5,marginTop:20}}>

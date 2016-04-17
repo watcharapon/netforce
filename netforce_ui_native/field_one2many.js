@@ -9,6 +9,7 @@ import React, {
   StyleSheet,
   TextInput,
   Text,
+  Image,
   TouchableOpacity,
   ListView,
   View
@@ -107,9 +108,16 @@ class FieldOne2Many extends Component {
                 var invisible=el.getAttribute("invisible");
                 if (invisible) return;
                 var val=obj[name];
-                var val_str=utils.field_val_to_str(val,f);
                 var col=<View key={cols.length} style={{flexDirection:"row"}}>
-                    <Text style={{fontWeight:"bold",marginRight:5}}>{f.string}:</Text><Text>{val_str}</Text>
+                    {function() {
+                        if (el.getAttribute("image")) {
+                            var uri=rpc.get_file_uri(val);
+                            return <Image style={{width:100,height:100,resizeMode:"contain"}} source={{uri:uri}}/>
+                        } else {
+                            var val_str=utils.field_val_to_str(val,f);
+                            return <View><Text style={{fontWeight:"bold",marginRight:5}}>{f.string}:</Text><Text>{val_str}</Text></View>
+                        }
+                    }.bind(this)()}
                 </View>;
                 cols.push(col);
             } else if (el.tagName=="text") {
@@ -133,7 +141,30 @@ class FieldOne2Many extends Component {
     press_item(index) {
         var f=ui_params.get_field(this.props.model,this.props.name);
         var item_data=this.state.data[index];
-        this.props.navigator.push({name:"form_o2m",model:f.relation,layout_el:this.props.form_layout_el,on_save:this.on_save.bind(this),on_delete:this.on_delete.bind(this),data:item_data,index:index,readonly:this.props.readonly});
+        if (this.props.link) { // XXX
+            var action={
+                view: "form_mobile",
+                model: f.relation,
+                active_id: item_data.id,
+                context: this.props.context,
+            }
+            var route={
+                name: "action",
+                action: action,
+            }
+        } else {
+            var route={
+                name: "form_o2m",
+                model: f.relation,
+                layout_el: this.props.form_layout_el,
+                on_save:this.on_save.bind(this),
+                on_delete:this.on_delete.bind(this),
+                data:item_data,
+                index:index,
+                readonly:this.props.readonly
+            };
+        }
+        this.props.navigator.push(route);
     }
 
     press_add() {

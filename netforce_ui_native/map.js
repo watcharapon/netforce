@@ -22,6 +22,16 @@ class Map extends Component {
 
     componentDidMount() {
         this.load_data();
+        navigator.geolocation.getCurrentPosition((pos)=>{
+            this.setState({position:pos});
+        });
+        this.watch_id=navigator.geolocation.watchPosition((pos)=>{
+            this.setState({position:pos});
+        });
+    }
+
+    componentWillUnmount() {
+        navigator.geolocation.clearWatch(this.watch_id);
     }
 
     load_data() {
@@ -65,6 +75,11 @@ class Map extends Component {
                           longitudeDelta: 0.0421,
                         }}
                       style={{flex:1}}>
+                      {function() {
+                            if (!this.state.position) return;
+                            var coords=this.state.position.coords;
+                            return <MapView.Marker coordinate={{latitude:coords.latitude,longitude:coords.longitude}} title="My Location" pinColor="#0cc"/>
+                      }.bind(this)()}
                       <MapView.Marker draggable coordinate={{latitude:lat,longitude:lng}} title={title} description={description} onDragEnd={(e) => this.setState({ new_coords: e.nativeEvent.coordinate})}/>
                     </MapView>
                     {function() {

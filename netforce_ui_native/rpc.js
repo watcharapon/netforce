@@ -1,7 +1,12 @@
 var _rpc_base_url;
+var _database;
 
 module.exports.set_base_url=function(base_url) {
     _rpc_base_url=base_url;
+}
+
+module.exports.set_database=function(dbname) {
+    _database=dbname;
 }
 
 module.exports.execute=function(model,method,args,opts,cb) {
@@ -57,3 +62,10 @@ module.exports.upload_file=function(file,result_cb,progress_cb) {
     })
     .done();
 }
+
+module.exports.get_file_uri=function(filename) {
+    if (!filename) return null;
+    var url=_rpc_base_url+"/static/db/"+_database+"/files/"+filename;
+    return url;
+}
+

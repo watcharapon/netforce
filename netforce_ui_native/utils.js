@@ -1,11 +1,3 @@
-var files_url="https://time.netforce.com/static/db/nftime/files/";
-
-module.exports.get_image_url=function(filename) {
-    if (!filename) return null;
-    var url=files_url+filename;
-    return url;
-}
-
 module.exports.field_val_to_str=function(val,field) {
     if (field.type=="char") {
         return val||"";
