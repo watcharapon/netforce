@@ -8,6 +8,7 @@ var FieldChar=React.createClass({
         var val=this.props.data[this.props.name];
         var val_str=utils.fmt_field_val(val,f);
         var readonly=this.props.readonly?true:false;
+        if (f.readonly) readonly=true;
         if (this.props.edit_focus) readonly=true;
         return {
             readonly: readonly,

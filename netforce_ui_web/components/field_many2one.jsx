@@ -1,8 +1,10 @@
 React = require("react");
+ReactDOM = require("react-dom");
 var ui_params=require("../ui_params");
 var utils=require("../utils");
 var rpc=require("../rpc");
 var Saving=require("./saving");
+var $=require("jquery");
 
 var FieldMany2One=React.createClass({
     getInitialState() {
@@ -30,7 +32,7 @@ var FieldMany2One=React.createClass({
         if (this.state.readonly) {
             return <a href="#" style={{color:"#333"}} onClick={this.click_readonly}>{this.state.val_str}</a>;
         } else {
-            return <div>
+            return <div ref={(el)=>{if (el) this.root_el=el}}>
                 <div className="input-group" style={{width:this.props.width}}>
                     <input className="form-control" ref={this.input_mounted} onBlur={this.on_blur} type="text" value={this.state.val_str} onChange={this.onchange_text}/>
                     <span className="input-group-btn">
@@ -62,8 +64,8 @@ var FieldMany2One=React.createClass({
     },
 
     click_caret(e) {
+        console.log("FieldMany2One.click_caret");
         e.preventDefault();
-        e.stopPropagation();
         this.input_el.focus();
         if (this.state.show_menu) {
             this.setState({show_menu:false});
@@ -88,7 +90,6 @@ var FieldMany2One=React.createClass({
     select_item(record_id,record_name,e) {
         console.log("FieldMany2One.select_item",this.props.name);
         e.preventDefault();
-        e.stopPropagation();
         this.setState({
             val_str: record_name,
             show_menu: false,
@@ -96,8 +97,13 @@ var FieldMany2One=React.createClass({
         this.props.data[this.props.name]=[record_id,record_name];
     },
 
-    click_page() {
+    click_page(e) {
         console.log("FieldMany2One.click_page",this.props.name);
+        if (!this.root_el) return;
+        if ($.contains(this.root_el,e.target)) {
+            console.log("click inside => keep menu");
+            return;
+        }
         this.setState({show_menu:false});
     },
 
@@ -123,7 +129,7 @@ var FieldMany2One=React.createClass({
     },
 
     on_blur() {
-        console.log("FieldMany2One.bur");
+        console.log("FieldMany2One.on_blur");
         if (this.props.edit_focus) {
             this.setState({readonly:true});
         }
