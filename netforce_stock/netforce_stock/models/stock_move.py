@@ -168,6 +168,8 @@ class Move(Model):
         prod_ids = []
         for obj in self.browse(ids):
             prod_ids.append(obj.product_id.id)
+            if obj.related_id:
+                obj.related_id.function_store()
         super().write(ids, vals, context=context)
         prod_id = vals.get("product_id")
         if prod_id:

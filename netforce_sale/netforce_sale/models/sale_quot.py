@@ -100,6 +100,16 @@ class SaleQuot(Model):
         settings = get_model("settings").browse(1)
         return settings.currency_id.id
 
+    def _get_currency_rates(self,context={}):
+        settings = get_model("settings").browse(1)
+        lines=[]
+        date = time.strftime("%Y-%m-%d")
+        lines.append({
+            "currency_id": settings.currency_id.id,
+            "rate": settings.currency_id.get_rate(date,"sell") or 1
+        })
+        return lines
+
     _defaults = {
         "state": "draft",
         "date": lambda *a: time.strftime("%Y-%m-%d"),
@@ -109,6 +119,7 @@ class SaleQuot(Model):
         "user_id": lambda self, context: get_active_user(),
         "uuid": lambda *a: str(uuid.uuid4()),
         "company_id": lambda *a: get_active_company(),
+        "currency_rates": _get_currency_rates,
     }
     _constraints = ["check_fields"]
     _order = "date desc"
