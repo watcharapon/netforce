@@ -15,8 +15,9 @@
         <field name="number" span="2"/>
         <field name="fixed_asset_account_id" span="2" condition='[["type","!=","view"]]'/>
         <field name="track_id" span="2"/>
+        <field name="track2_id" span="2"/>
         <newline/>
-        <field name="date_purchase" span="2"/>
+        <field name="date_purchase" onchange="onchange_date" span="2"/>
         <field name="price_purchase" span="2"/>
         <field name="invoice_id" span="2"/>
         <newline/>
@@ -52,6 +53,21 @@
                 <field name="date_to"/>
                 <field name="amount"/>
                 <field name="move_id"/>
+            </form>
+        </field>
+        <field name="documents">
+            <list>
+                <field name="file" target="_blank" preview="1"/>
+                <field name="categ_id"/>
+                <field name="description"/>
+                <field name="date"/>
+            </list>
+            <form>
+                <field name="categ_id"/>
+                <field name="file" target="_blank" onchange="onchange_file"/>
+                <field name="date"/>
+                <field name="description"/>
+                <field name="contact_id" invisible="1"/>
             </form>
         </field>
         <field name="comments"/>

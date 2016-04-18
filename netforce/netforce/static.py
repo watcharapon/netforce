@@ -44,14 +44,17 @@ from .access import get_active_user, set_active_user
 import netforce
 
 mimetypes.add_type("application/x-font-woff", ".woff")
+mimetypes.add_type("font/opentype", ".ttf")
 mimetypes.add_type("text/cache-manifest", ".appcache")
 mimetypes.add_type("text/plain", ".log")
+mimetypes.add_type("application/json", ".json")
 
 
 def get_static_data(path,req):
     print("get_static_data", path)
-    if os.path.exists("static/" + path):
-        data = open("static/" + path, "rb").read()
+    fpath=os.path.join("static",path)
+    if os.path.exists(fpath):
+        data = open(fpath,"rb").read()
         return data
     data = module.read_module_file("static/" + path)
     if data:
@@ -222,7 +225,8 @@ def make_js(minify=False):
         if minify:
             if not os.path.exists("static/js/netforce-%s-min.js"%h):
                 print("  minifying js...")
-                os.system("closure static/js/netforce-%s.js > static/js/netforce-%s-min.js" %(h,h))
+                #os.system("closure static/js/netforce-%s.js > static/js/netforce-%s-min.js" %(h,h))
+                os.system("yui-compressor --type js static/js/netforce-%s.js > static/js/netforce-%s-min.js" %(h,h))
             _js_file="netforce-%s-min.js"%h
         else:    
             _js_file="netforce-%s.js"%h

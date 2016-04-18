@@ -237,7 +237,17 @@ class Model(object):
             if len(ids) > 1:
                 raise Exception("Duplicate keys: model=%s, %s" % (self._name, ", ".join(["%s='%s'"%(k,r[k]) for k in self._key])))
 
+    def check_permission_company(self,context={}):
+        """
+            System should not allow to create any transaction on a Group Company except reports
+            (since some reports will also create a record when click run report).
+        """
+        except_models=['company','log','field.default']
+        if not access.allow_create_transaction() and not self._transient and self._name not in except_models:
+            raise Exception("Permission denied!")
+
     def create(self, vals, context={}):
+        self.check_permission_company()
         if not access.check_permission(self._name, "create"):
             raise Exception("Permission denied (create %s, user_id=%s)" % (self._name, access.get_active_user()))
         vals = self._add_missing_defaults(vals, context=context)
@@ -253,6 +263,10 @@ class Model(object):
             vals["create_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
         if not vals.get("create_uid"):
             vals["create_uid"] = access.get_active_user()
+        if not vals.get("write_time"):
+            vals["write_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        if not vals.get("write_uid"):
+            vals["write_uid"] = access.get_active_user()
         store_fields = [n for n in vals if self._fields[n].store]
         cols = store_fields[:]
         q = "INSERT INTO " + self._table
@@ -329,6 +343,16 @@ class Model(object):
         self.audit_log("create", {"id": new_id, "vals": vals})
         self.trigger([new_id], "create")
         return new_id
+
+    def copy(self,ids,vals,context={}):
+        for obj in self.browse(ids):
+            create_vals={}
+            for n,f in self._fields.items():
+                if not f.store:
+                    continue
+                create_vals[n]=obj[n]
+            create_vals.update(vals)
+            self.create(create_vals,context=context)
 
     def _expand_condition(self, condition, context={}):
         new_condition = []
@@ -625,6 +649,7 @@ class Model(object):
 
     def write(self, ids, vals, check_time=False, context={}):
         #print(">>> WRITE",self._name,ids,vals)
+        self.check_permission_company()
         if not access.check_permission(self._name, "write", ids):
             raise Exception("Permission denied (write %s)" % self._name)
         if not ids or not vals:
@@ -691,6 +716,7 @@ class Model(object):
                            company_id, self._name, tuple(multico_fields), tuple(ids))
             val_ids = {}
             rec_ids = {}
+            user_id = access.get_active_user()
             for r in res:
                 val_ids.setdefault(r.field, []).append(r.id)
                 rec_ids.setdefault(r.field, []).append(r.record_id)
@@ -710,12 +736,14 @@ class Model(object):
                         raise Exception("Multicompany field not yet implemented: %s" % n)
                 ids2 = val_ids.get(n)
                 if ids2:
-                    db.execute("UPDATE field_value SET value=%s WHERE id in %s", val, tuple(ids2))
+                    write_time=time.strftime("%Y-%m-%d %H:%M:%S")
+                    db.execute("UPDATE field_value SET value=%s, write_time=%s, write_uid=%s WHERE id in %s", val, write_time, user_id, tuple(ids2))
                 ids3 = rec_ids.get(n, [])
                 ids4 = list(set(ids) - set(ids3))
                 for rec_id in ids4:
-                    db.execute("INSERT INTO field_value (company_id,model,field,record_id,value) VALUES (%s,%s,%s,%s,%s)",
-                               company_id, self._name, n, rec_id, val)
+                    create_time=time.strftime("%Y-%m-%d %H:%M:%S")
+                    db.execute("INSERT INTO field_value (create_time,create_uid,company_id,model,field,record_id,value) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                               create_time,user_id,company_id, self._name, n, rec_id, val)
         for n in vals:
             f = self._fields[n]
             if f.function_write:
@@ -791,6 +819,7 @@ class Model(object):
         self.trigger(ids, "write")
 
     def delete(self, ids, context={}):
+        self.check_permission_company()
         if not access.check_permission(self._name, "delete", ids):
             raise Exception("Permission denied (delete %s)" % self._name)
         if not ids:
@@ -809,8 +838,8 @@ class Model(object):
 
     def read(self, ids, field_names=None, load_m2o=True, get_time=False, context={}):
         #print(">>> READ",self._name,ids,field_names)
-        if not access.check_permission(self._name, "read", ids):
-            raise Exception("Permission denied (read %s, ids=%s)" % (self._name, ",".join([str(x) for x in ids])))
+        #if not access.check_permission(self._name, "read", ids):
+            #raise Exception("Permission denied (read %s, ids=%s)" % (self._name, ",".join([str(x) for x in ids])))
         #print("read perm ok")
         if not ids:
             #print("<<< READ",self._name)
@@ -872,7 +901,8 @@ class Model(object):
                     r_ids=[]
                     for r in res:
                         v = r[n]
-                        if v is not None:
+                        if v is not None and v.isnumeric():
+                        #if v is not None:
                             r_ids.append(int(v))
                     r_ids=list(set(r_ids))
                     mr=get_model(f.relation)
@@ -880,7 +910,8 @@ class Model(object):
                     r_ids2_set=set(r_ids2)
                     for r in res:
                         v = r[n]
-                        if v is not None:
+                        if v is not None and v.isnumeric():
+                        #if v is not None:
                             v=int(v)
                             if v in r_ids2_set:
                                 r[n]=v
@@ -892,7 +923,8 @@ class Model(object):
                         if k not in vals:
                             continue
                         v = vals[k]
-                        if v is not None:
+                        if v is not None and v.isnumeric():
+                        #if v is not None:
                             r[n] = float(v)
                 elif isinstance(f, fields.Char):
                     pass
@@ -1224,17 +1256,35 @@ class Model(object):
         path = context.get("path")
         if not path:
             raise Exception("Missing path")
-        fields = path.split(".")
+        fnames = path.split(".")
         vals = {}
-        # i=0
         for obj in self.browse(ids):
-            # print("XXX",i)
-            # i+=1
-            val = obj
-            for field in fields:
-                val = val[field]
-            if isinstance(val, BrowseRecord):
-                val = val.id
+            parent = obj
+            parent_m=get_model(obj._model)
+            for n in fnames[:-1]:
+                f=parent_m._fields[n]
+                if not isinstance(f,(fields.Many2One,fields.Reference)):
+                    raise Exception("Invalid field path for model %s: %s"%(self._name,path))
+                parent = parent[n]
+                if not parent:
+                    parent=None
+                    break
+                parent_m=get_model(parent._model)
+            if not parent:
+                val=None
+            else:
+                n=fnames[-1]
+                val=parent[n]
+                if n!="id":
+                    f=parent_m._fields.get(n)
+                    if not f:
+                        val=None
+                    else:
+                        if isinstance(f,(fields.Many2One,fields.Reference)):
+                            val = val.id
+                        elif isinstance(f,(fields.One2Many,fields.Many2Many)):
+                            val=[v.id for v in val]
+                
             vals[obj.id] = val
         return vals
 
@@ -1310,6 +1360,15 @@ class Model(object):
                             if n not in todo:
                                 v = obj[n]
                                 todo[n] = [v]
+                    elif isinstance(f, fields.Reference):
+                        v = obj[n]
+                        if v:
+                            mr = get_model(v._model)
+                            exp_field = mr.get_export_field()
+                            v = '%s,%s'%(v._model,v[exp_field])
+                        else:
+                            v = None
+                        row[path] = v
                     elif isinstance(f, fields.Selection):
                         v = obj[n]
                         if v:
@@ -1422,7 +1481,7 @@ class Model(object):
                     elif isinstance(f, fields.Selection):
                         found = None
                         for k, s in f.selection:
-                            if v == s:
+                            if v == s and k!="_group":
                                 found = k
                                 break
                         if found is None:
@@ -1431,6 +1490,22 @@ class Model(object):
                     elif isinstance(f, fields.Date):
                         dt = dateutil.parser.parse(v)
                         v = dt.strftime("%Y-%m-%d")
+                    elif isinstance(f, fields.Reference):
+                        if v:
+                            try:
+                                model_name,value = v.split(",")
+                                mr = get_model(model_name)
+                                exp_field = mr.get_export_field()
+                                res = mr.search([[exp_field,'=',value]])
+                                if res:
+                                    rid = res[0]
+                                    v = "%s,%s" % (model_name,rid) #XXX
+                                else:
+                                    v = None
+                            except:
+                                v = None
+                        else:
+                            v = None
                     elif isinstance(f, fields.Many2One):
                         mr = get_model(f.relation)
                         ctx = {
@@ -1545,6 +1620,7 @@ class Model(object):
     def audit_log(self, operation, params, context={}):
         if not self._audit_log:
             return
+        related_id=None
         if self._string:
             model_name = self._string
         else:
@@ -1552,6 +1628,7 @@ class Model(object):
         if operation == "create":
             msg = "%s %d created" % (model_name, params["id"])
             details = utils.json_dumps(params["vals"])
+            related_id="%s,%d"%(self._name,params["id"])
         elif operation == "delete":
             msg = "%s %s deleted" % (model_name, ",".join([str(x) for x in params["ids"]]))
             details = ""
@@ -1561,6 +1638,8 @@ class Model(object):
                 return
             msg = "%s %s changed" % (model_name, ",".join([str(x) for x in params["ids"]]))
             details = utils.json_dumps(params["vals"])
+            if params["ids"]:
+                related_id="%s,%d"%(self._name,params["ids"][0]) # XXX
         if operation == "sync_create":
             msg = "%s %d created by remote sync" % (model_name, params["id"])
             details = utils.json_dumps(params["vals"])
@@ -1573,7 +1652,7 @@ class Model(object):
                 return
             msg = "%s %s changed by remote sync" % (model_name, ",".join([str(x) for x in params["ids"]]))
             details = utils.json_dumps(params["vals"])
-        netforce.logger.audit_log(msg, details)
+        netforce.logger.audit_log(msg, details, related_id=related_id)
 
     def get_view(self, name=None, type=None, context={}):  # XXX: remove this
         #print("get_view model=%s name=%s type=%s"%(self._name,name,type))
@@ -1625,17 +1704,14 @@ class Model(object):
         res = f(context=context)
         if res is None:
             res = {}
-        data = {}
-        if "vals" in res:
-            data["vals"] = res["vals"]
+        if "data" in res or "field_attrs" in res or "alert" in res:
+            out=res
         else:
-            data["vals"] = res
-        if "meta" in res:
-            data["meta"] = res["meta"]
-        if "alert" in res:
-            data["alert"] = res["alert"]
+            out={"data":res}
         def _fill_m2o(m, vals):
             for k, v in vals.items():
+                if k=='id':
+                    continue
                 if not v:
                     continue
                 f = m._fields[k]
@@ -1647,9 +1723,9 @@ class Model(object):
                     mr = get_model(f.relation)
                     for v2 in v:
                         _fill_m2o(mr, v2)
-        if data.get("vals"):
-            _fill_m2o(self, data["vals"])
-        return data
+        if out.get("data"):
+            _fill_m2o(self, out["data"])
+        return out
 
     def _check_cycle(self, ids, context={}):
         for obj in self.browse(ids):
@@ -1949,6 +2025,39 @@ class Model(object):
         ids=self.search(condition,context=context)
         return self.read_path(ids,field_paths,context=context)
 
+    def save_data(self,data,context={}):
+        print(">>> save_data %s %s"%(self._name,data))
+        o2m_fields=[]
+        obj_vals={}
+        for n,v in data.items():
+            if n=="id":
+                continue
+            f=self._fields[n]
+            if isinstance(f,fields.One2Many):
+                o2m_fields.append(n)
+            else:
+                obj_vals[n]=v
+        obj_id=data.get("id")
+        if obj_id:
+            self.write([obj_id],obj_vals,context=context)
+        else:
+            obj_id=self.create(obj_vals,context=context)
+        if o2m_fields:
+            o2m_vals=self.read([obj_id],o2m_fields,context=context)[0]
+            for n in o2m_fields:
+                f=self._fields[n]
+                mr=get_model(f.relation)
+                new_rids=set()
+                for rdata in data[n]:
+                    rdata2=rdata.copy()
+                    rdata2[f.relfield]=obj_id
+                    rid=mr.save_data(rdata2,context={})
+                    new_rids.add(rid)
+                del_rids=[rid for rid in o2m_vals[n] if rid not in new_rids]
+                if del_rids:
+                    mr.delete(del_rids)
+        return obj_id
+
     def sync_get_key(self, ids, context={}):
         if not self._key:
             raise Exception("Missing key fields (model=%s)" % self._name)
@@ -1970,6 +2079,18 @@ class Model(object):
             keys.append([k, obj.id, obj.write_time])
         return keys
 
+    def sync_check_keys(self, keys, context={}):
+        res=[]
+        for k in keys:
+            obj_id=self.sync_find_key(k)
+            if obj_id:
+                obj=self.browse(obj_id) # XXX: speed
+                mtime=obj.write_time
+            else:
+                mtime=None
+            res.append((k,m_time))
+        return res
+
     def sync_export(self, ids, context={}):
         # print("Model.sync_export",self._name,ids)
         data = []
@@ -1979,7 +2100,7 @@ class Model(object):
                 f = self._fields[n]
                 if not f.store and not isinstance(f, fields.Many2Many):
                     continue
-                if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
+                if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Decimal, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
                     vals[n] = obj[n]
                 elif isinstance(f, fields.Many2One):
                     v = obj[n]
@@ -2044,8 +2165,11 @@ class Model(object):
             try:
                 vals = {}
                 for n, v in rec.items():
-                    f = self._fields[n]
-                    if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
+                    f = self._fields.get(n)
+                    if not f:
+                        print("WARNING: no such field %s in %s"%(n,self._name))
+                        continue
+                    if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Decimal, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
                         vals[n] = v
                     elif isinstance(f, fields.Many2One):
                         if v:

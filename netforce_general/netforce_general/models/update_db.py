@@ -31,7 +31,7 @@ class UpdateDB(Model):
 
     def do_update(self, ids, context={}):
         print("update_db")
-        update_db(custom=True)
+        update_db(force=True)
         static.make_ui_params_db()
         return {
             "next": {

@@ -36,7 +36,7 @@ class Move(Model):
         "narration": fields.Text("Narration", required=True, search=True),
         "date": fields.Date("Document Date", required=True, search=True, index=True),
         "date_posted": fields.Date("Posted Date", search=True, index=True),
-        "state": fields.Selection([["draft", "Draft"], ["posted", "Posted"], ["voided", "Voided"]], "Status", required=True),
+        "state": fields.Selection([["draft", "Draft"], ["posted", "Posted"], ["voided", "Voided"]], "Status", required=True, search=True),
         "lines": fields.One2Many("account.move.line", "move_id", "Lines"),
         "total_debit": fields.Decimal("Total Debit", function="get_total", function_multi=True),
         "total_credit": fields.Decimal("Total Credit", function="get_total", function_multi=True),
@@ -48,6 +48,8 @@ class Move(Model):
         "related_id": fields.Reference([["account.invoice", "Invoice"], ["account.payment", "Payment"], ["account.transfer", "Transfer"], ["hr.expense", "Expense Claim"], ["service.contract", "Service Contract"], ["pawn.loan", "Loan"], ["landed.cost","Landed Cost"], ["stock.picking","Stock Picking"]], "Related To"),
         "company_id": fields.Many2One("company", "Company"),
         "track_entries": fields.One2Many("account.track.entry","move_id","Tracking Entries"),
+        "difference" : fields.Float("Difference",function="get_difference",function_multi=True),
+        "verified": fields.Boolean("Verified",search=True),
     }
 
     def _get_journal(self, context={}):
@@ -82,6 +84,14 @@ class Move(Model):
         "company_id": lambda *a: get_active_company(),
     }
     _order = "date desc,id desc"
+
+    def get_difference(self, ids, context): 
+        vals = {}
+        for obj in self.browse(ids):
+            vals[obj.id] = {
+                "difference": obj.total_debit-obj.total_credit ,
+            }
+        return vals
 
     def create(self, vals, **kw):
         t0 = time.time()
@@ -146,7 +156,7 @@ class Move(Model):
                 if acc.type == "view":
                     raise Exception("Can not post to 'view' account ([%s] %s)" % (acc.code, acc.name))
                 if acc.company_id.id!=obj.company_id.id:
-                    raise Exception("Wrong company for account %s"%acc.code)
+                    raise Exception("Wrong company for account %s in journal entry %s (account company: %s, journal entry company %s)("%(acc.code,obj.number,acc.company_id.code,obj.company_id.code))
                 if acc.require_contact and not line.contact_id:
                     raise Exception("Missing contact for account %s" % acc.code)
                 if acc.require_tax_no and not line.tax_no:
@@ -262,6 +272,7 @@ class Move(Model):
                 line["credit"] = 0
             if line.get("credit") is not None and line.get("debit") is None:
                 line["debit"] = 0
+        data["difference"]= data["total_debit"]-data["total_credit"]
         return data
 
     def get_line_desc(self, context):
@@ -412,6 +423,12 @@ class Move(Model):
             "pages": pages,
             "logo": get_file_path(settings.logo),  # XXX: remove when render_odt fixed
         }
+
+    def get_report_data(self,ids=None,context={}):
+        if ids is not None:  # for new templates
+            return super().get_report_data(ids, context=context)
+        ids = context["ids"]
+        return self.get_data(ids,context)
 
     def reverse(self, ids, context={}):
         obj = self.browse(ids)[0]

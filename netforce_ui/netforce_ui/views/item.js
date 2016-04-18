@@ -36,9 +36,21 @@ var Item=NFView.extend({
     render: function() {
         var that=this;
         var hide=false;
+        var perm_model=that.options.perm_model;
         if (this.options.perm) {
             if (!check_other_permission(this.options.perm,this.options.perm_check_admin)) {
                 hide=true;
+            }
+        }else if (perm_model && typeof(perm_model)==typeof('')) {
+            var perms=perm_model.split(",");
+            if (perms.length>1){
+                var model=perms[0];
+                var all_perm=[];
+                for(var i=0; i<perms.length;i++){
+                    var perm=perms[i];
+                    all_perm.push(check_model_permission(model,perm));
+                }
+                hide=!(all_perm ? _.contains(all_perm,true) : true);
             }
         }
         if (this.options.action) {
@@ -69,6 +81,13 @@ var Item=NFView.extend({
             if (!_.contains(states,state)) {
                 this.$el.hide();
             }
+        }
+        if (this.options.disabled) {
+            this.$el.addClass("disabled");
+            this.$el.find('a').css({"color":"#cccccc"});
+        }
+        if(this.options.color){
+            this.$el.find('a').css({"color":this.options.color});
         }
     },
 
@@ -172,7 +191,6 @@ var Item=NFView.extend({
                                 model.trigger("reload");
                                 return;
                             }
-                            model.trigger("reload");
                             if (data && data.flash) {
                                 set_flash("success",data.flash);
                             }

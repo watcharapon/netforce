@@ -1,5 +1,5 @@
 <form model="document">
-    <field name="partner_id"/>
+    <field name="contact_id"/>
     <field name="categ_id"/>
     <field name="file"/>
     <field name="date"/>

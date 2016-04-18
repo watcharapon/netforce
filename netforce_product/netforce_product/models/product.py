@@ -21,12 +21,13 @@
 from netforce.model import Model, fields, get_model
 from netforce import database
 from netforce.database import get_active_db
+from netforce import utils
 import os.path
 from PIL import Image, ImageChops
 from netforce import access
 from decimal import Decimal
 import time
-
+import math
 
 class Product(Model):
     _name = "product"
@@ -34,7 +35,7 @@ class Product(Model):
     _audit_log = True
     _key = ["code","state","company_id"]
     _order = "code,name"
-    _export_name_field = "code"
+    _export_field = "code"
     _history = True
     _fields = {
         "name": fields.Char("Name", required=True, search=True, translate=True, size=256),
@@ -45,13 +46,15 @@ class Product(Model):
         "categ_id": fields.Many2One("product.categ", "Product Category", search=True),
         "description": fields.Text("Description", translate=True),
         "purchase_price": fields.Decimal("Purchase Price", scale=6),
-        "sale_price": fields.Decimal("List Price", scale=6),
+        "sale_price": fields.Decimal("List Price (Sales Invoice UoM)", scale=6),
+        "sale_price_order_uom": fields.Decimal("List Price (Sales Order UoM)", scale=6, function="get_sale_price_order_uom"),
         "tags": fields.Many2Many("tag", "Tags"),
         "image": fields.File("Image"),
         "cost_method": fields.Selection([["standard", "Standard Cost"], ["average", "Weighted Average"], ["fifo", "FIFO"], ["lifo", "LIFO"]], "Costing Method"),
         "cost_price": fields.Decimal("Cost Price", scale=6),
-        "stock_in_account_id": fields.Many2One("account.account", "Stock Input Account", multi_company=True),
-        "stock_out_account_id": fields.Many2One("account.account", "Stock Output Account", multi_company=True),
+        "stock_in_account_id": fields.Many2One("account.account", "Stock Input Account", multi_company=True), # XXX: deprecated
+        "stock_out_account_id": fields.Many2One("account.account", "Stock Output Account", multi_company=True), # XXX: deprecated
+        "cogs_account_id": fields.Many2One("account.account", "Cost Of Goods Sold Account", multi_company=True),
         "purchase_account_id": fields.Many2One("account.account", "Purchase Account", multi_company=True),
         "purchase_tax_id": fields.Many2One("account.tax.rate", "Purchase Tax"),
         "supplier_id": fields.Many2One("contact", "Default Supplier"),  # XXX: deprecated
@@ -65,7 +68,7 @@ class Product(Model):
         "update_balance": fields.Boolean("Update Balance"),
         "active": fields.Boolean("Active"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
-        "categs": fields.Many2Many("product.categ", "Other Categories", search=True),  # XXX: deprecated
+        "categs": fields.Many2Many("product.categ", "Other Categories"),  # XXX: deprecated
         "attributes": fields.One2Many("product.attribute.value", "product_id", "Attributes"),
         "variants": fields.One2Many("product", "parent_id", "Variants"),
         #"variant_values": fields.One2Many("product.custom.option.variant.value","product_id","Variant Values"),
@@ -158,6 +161,13 @@ class Product(Model):
         "service_items": fields.One2Many("service.item","product_id","Service Items"),
         "lots": fields.One2Many("stock.lot","product_id","Lots"),
         "stock_plan_horizon": fields.Integer("Inventory Planning Horizon (days)"),
+        "ecom_hide_qty": fields.Boolean("Hide Stock Qty From Website"),
+        "ecom_hide_unavail": fields.Boolean("Hide From Website When Out Of Stock"),
+        "ecom_no_order_unavail": fields.Boolean("Prevent Orders When Out Of Stock"),
+        "ecom_select_lot": fields.Boolean("Customers Select Lot When Ordering"),
+        "ecom_lot_before_invoice": fields.Boolean("Require Lot Before Invoicing"),
+        "product_origin": fields.Char("Product Origin"),
+        "stock_balances": fields.One2Many("stock.balance","product_id","Stock Balances"),
     }
 
     _defaults = {
@@ -238,7 +248,6 @@ class Product(Model):
             "stock_in_account_id": obj.stock_in_account_id.id,
             "stock_out_account_id": obj.stock_out_account_id.id,
             "bin_location": obj.bin_location,
-            "subbrand": obj.subbrand,
             "sale_company_id": obj.sale_company_id.id,
             "attributes": [],
         }
@@ -530,5 +539,19 @@ class Product(Model):
                 "url": "/ecom_product?product_id=%s"%prod_id,
             }
         }
+
+    def get_sale_price_order_uom(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            factor=obj.sale_to_invoice_uom_factor or 1
+            vals[obj.id]=math.ceil((obj.sale_price or 0)*factor)
+        return vals
+
+    def create_thumbnails(self,ids,context={}):
+        print("Product.create_thumbnails",ids)
+        for obj in self.browse(ids):
+            if not obj.image:
+                continue
+            utils.create_thumbnails(obj.image)
 
 Product.register()

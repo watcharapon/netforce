@@ -23,7 +23,7 @@
 var PageView=NFView.extend({
     _name: "page_view",
     events: {
-        "click ol.breadcrumb": "click_bread",
+        "click ol.breadcrumb li": "click_bread",
         "click .related-tab": "click_related_tab"
     },
 
@@ -114,8 +114,53 @@ var PageView=NFView.extend({
                 var val=that.model.get("company_id");
                 that.data.company_name=val?val[1]:null;
             }
-            NFView.prototype.render.call(that);
             that.model.on("reload",that.reload,that);
+            var args=[that.options.search_condition || []];
+            var opts={
+                offset: that.options.offset||0,
+                limit: that.options.limit||100,
+            };
+            nf_execute(model_name,"search",args,opts,function(err,data) {
+                if (err) throw "ERROR: "+err;
+                that.data.count=data.length;
+                that.data.record_index=data.indexOf(that.active_id);
+                that.data.record_index_p1=that.data.record_index+1;
+                if (that.data.record_index>0) {
+                    var prev_active_id=data[that.data.record_index-1];
+                    var h=window.location.hash.substr(1);
+                    var action=qs_to_obj(h);
+                    action.active_id=prev_active_id;
+                    var h2=obj_to_qs(action);
+                    that.data.prev_url="#"+h2;
+
+                    var start_active_id=data[0];
+                    var h=window.location.hash.substr(1);
+                    var action=qs_to_obj(h);
+                    action.active_id=start_active_id;
+                    var h2=obj_to_qs(action);
+                    that.data.start_url="#"+h2;
+                }
+                if (that.data.record_index < that.data.count-1) {
+                    var next_active_id=data[that.data.record_index+1];
+                    var h=window.location.hash.substr(1);
+                    var action=qs_to_obj(h);
+                    action.active_id=next_active_id;
+                    var h2=obj_to_qs(action);
+                    that.data.next_url="#"+h2;
+
+                    var end_active_id=data[data.length-1];
+                    var h=window.location.hash.substr(1);
+                    var action=qs_to_obj(h);
+                    action.active_id=end_active_id;
+                    var h2=obj_to_qs(action);
+                    that.data.end_url="#"+h2;
+                }
+                NFView.prototype.render.call(that);
+                if (that.focus_field) {
+                    var view=that.get_field_view(that.focus_field);
+                    view.focus();
+                }
+            });
         });
         return this;
     },
@@ -690,6 +735,7 @@ var PageView=NFView.extend({
             var view_id=$(this).attr("id");
             //log("render sub",view_id);
             var view=get_view_inst(view_id);
+            view.options.show_pagination=true;
             view.render();
             $(this).replaceWith(view.$el);
             that.subviews[view_id]=view;

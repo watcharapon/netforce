@@ -42,6 +42,11 @@ var FieldOne2Many=NFView.extend({
         var attrs=this.eval_attrs();
         if (attrs.readonly) ctx.readonly=true;
         if (attrs.noadd) ctx.noadd=true;
+        if (attrs.invisible) {
+            this.$el.hide();
+        } else {
+            this.$el.show();
+        }
         var view_opts={
             "model": relation,
             "template": this.options.inner||this.options.template,

@@ -42,6 +42,7 @@ class Move(Model):
         "date": fields.DateTime("Date", required=True, search=True),
         "cost_price_cur": fields.Decimal("Cost Price (Cur)",scale=6), # in picking currency
         "cost_price": fields.Decimal("Cost Price", scale=6),  # in company currency
+        "unit_price": fields.Decimal("Cost Price", scale=6),  # deprecated  change to cost_price
         "cost_amount": fields.Decimal("Cost Amount"), # in company currency
         "state": fields.Selection([("draft", "Draft"), ("pending", "Planned"), ("approved", "Approved"), ("done", "Completed"), ("voided", "Voided")], "Status", required=True),
         "stock_count_id": fields.Many2One("stock.count", "Stock Count"),
@@ -57,9 +58,9 @@ class Move(Model):
         "num_packages": fields.Integer("# Packages"),
         "notes": fields.Text("Notes"),
         "qty2": fields.Decimal("Qty2"),
-        "company_id": fields.Many2One("company", "Company"), # XXX: deprecated
+        "company_id": fields.Many2One("company", "Company"),
         "invoice_id": fields.Many2One("account.invoice", "Invoice"),
-        "related_id": fields.Reference([["sale.order", "Sales Order"], ["purchase.order", "Purchase Order"], ["production.order", "Production Order"], ["job", "Service Order"], ["account.invoice", "Invoice"], ["pawn.loan", "Loan"]], "Related To"),
+        "related_id": fields.Reference([["sale.order", "Sales Order"], ["purchase.order", "Purchase Order"], ["job", "Service Order"], ["account.invoice", "Invoice"], ["pawn.loan", "Loan"]], "Related To"),
         "number": fields.Char("Number", required=True, search=True),
         "journal_id": fields.Many2One("stock.journal", "Journal", required=True, search=True),
         "alloc_costs": fields.One2Many("landed.cost.alloc","move_id","Allocated Costs"),
@@ -126,15 +127,15 @@ class Move(Model):
         return res[0]
 
     def _get_number(self, context={}):
-        seq_id = get_model("sequence").find_sequence("stock_move")
+        seq_id = get_model("sequence").find_sequence("stock_move",context=context)
         if not seq_id:
             return None
         while 1:
-            num = get_model("sequence").get_next_number(seq_id)
+            num = get_model("sequence").get_next_number(seq_id,context=context)
             res = self.search([["number", "=", num]])
             if not res:
                 return num
-            get_model("sequence").increment_number(seq_id)
+            get_model("sequence").increment_number(seq_id,context=context)
 
     _defaults = {
         "state": "draft",
@@ -167,6 +168,8 @@ class Move(Model):
         prod_ids = []
         for obj in self.browse(ids):
             prod_ids.append(obj.product_id.id)
+            if obj.related_id:
+                obj.related_id.function_store()
         super().write(ids, vals, context=context)
         prod_id = vals.get("product_id")
         if prod_id:
@@ -191,30 +194,37 @@ class Move(Model):
         obj = self.browse(ids[0])
         if obj.picking_id:
             pick = obj.picking_id
-            if pick.type == "in":
-                next = {
-                    "name": "pick_in",
-                    "mode": "form",
-                    "active_id": pick.id,
-                }
-            elif pick.type == "out":
-                next = {
-                    "name": "pick_out",
-                    "mode": "form",
-                    "active_id": pick.id,
-                }
-            elif pick.type == "internal":
-                next = {
-                    "name": "pick_internal",
-                    "mode": "form",
-                    "active_id": pick.id,
-                }
+            next=pick.view_picking()['next']
         elif obj.stock_count_id:
             next = {
                 "name": "stock_count",
                 "mode": "form",
                 "active_id": obj.stock_count_id.id,
             }
+        elif obj.related_id:
+            rel=obj.related_id
+            name=rel._model
+            action_name=''
+            if name=='stock.picking':
+                action_name='view_picking'
+            elif name=='sale.order':
+                action_name='sale'
+            elif name=='stock.count':
+                action_name='stock_count'
+            elif name=='purchase.order':
+                action_name='purchase'
+            elif name=='account.invoice':
+                action_name='view_invoice'
+            elif name=='account.payment':
+                action_name='payment'
+            else:
+                pass
+            if action_name:
+                next={
+                    'name': action_name,
+                    'mode': 'form',
+                    'active_id': rel.id,
+                }
         else:
             raise Exception("Invalid stock move")
         return {"next": next}
@@ -257,7 +267,7 @@ class Move(Model):
         prod_ids=list(set(prod_ids))
         if prod_ids and settings.stock_cost_auto_compute:
             get_model("stock.compute.cost").compute_cost([],context={"product_ids": prod_ids})
-        if settings.stock_cost_mode=="perpetual":
+        if settings.stock_cost_mode=="perpetual" and not context.get("no_post"):
             self.post(ids,context=context)
         self.update_lots(ids,context=context)
         self.set_reference(ids,context=context)
@@ -293,16 +303,6 @@ class Move(Model):
             move_id=self.create(vals)
             move_ids.append(move_id)
         self.set_done(move_ids)
-
-    def get_production_orders(self, ids, context={}):
-        prod_ids = []
-        for obj in self.browse(ids):
-            prod_ids.append(obj.product_id.id)
-        prod_ids = list(set(prod_ids))
-        production_ids = []
-        for comp in get_model("production.component").search_browse([["product_id", "in", prod_ids]]):
-            production_ids.append(comp.order_id.id)
-        return list(set(production_ids))
 
     def get_alloc_cost_amount(self,ids,context={}):
         vals={}
@@ -353,8 +353,6 @@ class Move(Model):
                 pick_ids.append(move.picking_id.id)
         lines=[]
         for (acc_id,track_id,desc),amt in accounts.items():
-            if amt==0:
-                continue
             lines.append({
                 "description": desc,
                 "account_id": acc_id,
@@ -367,10 +365,16 @@ class Move(Model):
             "date": post_date,
             "lines": [("create",vals) for vals in lines],
         }
+        if move.related_id:
+            vals['related_id']='%s,%s'%(move.related_id._model,move.related_id.id)
         pick_ids=list(set(pick_ids))
         if len(pick_ids)==1:
             vals["related_id"]="stock.picking,%s"%pick_ids[0]
-        move_id=get_model("account.move").create(vals)
+        # sequence number should correspond date
+        context.update({
+            'date': move.date,
+        })
+        move_id=get_model("account.move").create(vals,context=context)
         get_model("account.move").post([move_id])
         get_model("stock.move").write(ids,{"move_id":move_id})
         return move_id

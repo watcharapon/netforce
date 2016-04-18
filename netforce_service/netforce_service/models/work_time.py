@@ -48,6 +48,11 @@ class WorkTime(Model):
         "state": fields.Selection([["waiting_approval", "Waiting Approval"], ["approved", "Approved"], ["rejected", "Rejected"]], "Status", required=True),
         "agg_actual_hours_total": fields.Decimal("Actual Hours Total", agg_function=["sum", "actual_hours"]),
         "agg_bill_hours_total": fields.Decimal("Billable Hours Total", agg_function=["sum", "bill_hours"]),
+        "track_entries": fields.One2Many("account.track.entry","related_id","Tracking Entries"),
+        "track_id": fields.Many2One("account.track.categ","Tracking",function="get_track_categ"),
+        "cost_amount": fields.Decimal("Cost Amount",function="get_cost_amount"),
+        #"agg_cost_amount": fields.Decimal("Cost Amount", agg_function=["sum", "cost_amount"]),
+        "sale_price": fields.Decimal("Hourly Rate"),
     }
     _order = "date,resource_id.name"
 
@@ -63,6 +68,12 @@ class WorkTime(Model):
         "resource_id": get_resource,
         "state": "waiting_approval",
     }
+
+    def name_get(self,ids,context={}):
+        res=[]
+        for obj in self.browse(ids):
+            res.append((obj.id,"Work Time %s / %s"%(obj.resource_id.name,obj.date)))
+        return res
 
     def create(self, vals, **kw):
         new_id = super().create(vals, **kw)
@@ -98,8 +109,23 @@ class WorkTime(Model):
         return [["date", ">=", d0.strftime("%Y-%m-%d")], ["date", "<=", d1.strftime("%Y-%m-%d")]]
 
     def approve(self, ids, context={}):
+        res=get_model("uom").search([["name","=","Hour"]])
+        if not res:
+            raise Exception("Hour UoM not found")
+        hour_uom_id=res[0]
         for obj in self.browse(ids):
             obj.write({"state": "approved"})
+            if obj.track_id and obj.cost_amount:
+                vals={
+                    "track_id": obj.track_id.id,
+                    "date": obj.date,
+                    "amount": -obj.cost_amount,
+                    "product_id": obj.resource_id.product_id.id,
+                    "qty": obj.actual_hours or 0,
+                    "uom_id": hour_uom_id,
+                    "related_id": "work.time,%s"%obj.id,
+                }
+                get_model("account.track.entry").create(vals)
 
     def reject(self, ids, context={}):
         for obj in self.browse(ids):
@@ -108,6 +134,7 @@ class WorkTime(Model):
     def waiting_approval(self, ids, context={}):
         for obj in self.browse(ids):
             obj.write({"state": "waiting_approval"})
+            obj.track_entries.delete()
 
     def onchange_product(self, context={}):
         data = context["data"]
@@ -115,5 +142,26 @@ class WorkTime(Model):
         prod = get_model("product").browse(prod_id)
         data["unit_price"] = prod.cost_price
         return data
+
+    def get_track_categ(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            track_id=None
+            project_id=obj.project_id
+            if project_id and project_id.track_id:
+                track_id=project_id.track_id.id
+            rel=obj.related_id
+            if rel.track_id:
+                track_id=rel.track_id.id
+            vals[obj.id]=track_id
+        return vals
+
+    def get_cost_amount(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            prod=obj.resource_id.product_id
+            amt=(prod.cost_price or 0)*(obj.actual_hours or 0)
+            vals[obj.id]=amt
+        return vals
 
 WorkTime.register()

@@ -70,6 +70,8 @@ class TaxRate(Model):
 
     # XXX: remove this
     def compute_tax(self, tax_id, amt, tax_type="tax_ex", wht=False):
+        if not tax_id:
+            return 0
         if tax_type == "no_tax":
             return 0
         obj = self.browse(tax_id)
@@ -113,11 +115,12 @@ class TaxRate(Model):
             comps[comp.id] = base_amt * (comp.rate / 100)
         return comps
 
-    def compute_base(self, tax_id, amt, tax_type="tax_ex"):
+    def compute_base(self, tax_id, amt=0, tax_type="tax_ex"):
         if isinstance(tax_id, BrowseRecord):  # XXX: for speed (use browse cache)
             obj = tax_id
         else:
             obj = self.browse(tax_id)
+        amt=Decimal(amt)
         if tax_type == "tax_in":
             base_amt = amt / (1 + obj.rate / 100)
         elif tax_type == "tax_ex":

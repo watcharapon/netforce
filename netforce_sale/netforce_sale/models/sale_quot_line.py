@@ -68,12 +68,6 @@ class SaleQuotLine(Model):
             vals[line.id] = (line.retail_price or 0) * (line.qty or 0)
         return vals
 
-    def get_retail_amount(self,ids,context={}):
-        vals={}
-        for line in self.browse(ids):
-            vals[line.id]=(line.retail_price or 0)*(line.qty or 0)
-        return vals
-
     def get_est_profit(self,ids,context={}):
         quot_ids=[]
         for line in self.browse(ids):
@@ -82,14 +76,18 @@ class SaleQuotLine(Model):
         item_costs={}
         for quot in get_model("sale.quot").browse(quot_ids):
             for cost in quot.est_costs:
-                k=(quot.id,cost.sequence)
-                if k not in item_costs:
-                    item_costs[k]=0
                 amt=cost.amount or 0
                 if cost.currency_id:
                     rate=quot.get_relative_currency_rate(cost.currency_id.id)
                     amt=amt*rate
-                item_costs[k]+=amt
+                comps=[]
+                if cost.sequence:
+                    for comp in cost.sequence.split("."):
+                        comps.append(comp)
+                        path=".".join(comps)
+                        k=(quot.id,path)
+                        item_costs.setdefault(k,0)
+                        item_costs[k]+=amt
         vals={}
         for line in self.browse(ids):
             k=(line.quot_id.id,line.sequence)

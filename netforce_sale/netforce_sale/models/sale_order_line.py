@@ -31,10 +31,10 @@ class SaleOrderLine(Model):
         "description": fields.Text("Description", required=True, search=True),
         "qty": fields.Decimal("Qty"),
         "uom_id": fields.Many2One("uom", "UoM"),
-        "unit_price": fields.Decimal("Unit Price", search=True, scale=6),
+        "unit_price": fields.Decimal("Unit Price", search=True, required=True, scale=6),
         "tax_id": fields.Many2One("account.tax.rate", "Tax Rate"),
         "amount": fields.Decimal("Amount", function="get_amount", function_multi=True, store=True, function_order=1, search=True),
-        "amount_cur": fields.Decimal("Amount", function="get_amount", function_multi=True, store=True, function_order=1, search=True),
+        "amount_cur": fields.Decimal("Amount (Cur)", function="get_amount", function_multi=True, store=True, function_order=1, search=True),
         "qty_stock": fields.Decimal("Qty (Stock UoM)"),
         "qty_delivered": fields.Decimal("Delivered Qty", function="get_qty_delivered"),
         "qty_invoiced": fields.Decimal("Invoiced Qty", function="get_qty_invoiced"),
@@ -50,6 +50,7 @@ class SaleOrderLine(Model):
         "discount_amount": fields.Decimal("Disc Amt"),
         "qty_avail": fields.Decimal("Qty In Stock", function="get_qty_avail"),
         "agg_amount": fields.Decimal("Total Amount", agg_function=["sum", "amount"]),
+        "agg_amount_cur": fields.Decimal("Total Amount Cur", agg_function=["sum", "amount_cur"]),
         "agg_qty": fields.Decimal("Total Order Qty", agg_function=["sum", "qty"]),
         "remark": fields.Char("Remark"),
         "ship_method_id": fields.Many2One("ship.method", "Shipping Method"),
@@ -112,11 +113,12 @@ class SaleOrderLine(Model):
                 if prom_amt:
                     amt-=prom_amt
                 order = line.order_id
+                new_cur=get_model("currency").convert(amt, order.currency_id.id, settings.currency_id.id)
                 vals[line.id] = {
-                    "amount": amt,
-                    "amount_cur": get_model("currency").convert(amt, order.currency_id.id, settings.currency_id.id),
+                    "amount": round(amt,2),
                     "amount_discount": disc,
                     "promotion_amount": prom_amt,
+                    "amount_cur": new_cur and new_cur or None,
                 }
         return vals
 
@@ -168,7 +170,7 @@ class SaleOrderLine(Model):
                 for line in inv.lines:
                     prod_id = line.product_id.id
                     inv_qtys.setdefault(prod_id, 0)
-                    inv_qtys[prod_id] += line.qty
+                    inv_qtys[prod_id] += line.qty or 0
             for line in order.lines:
                 if line.id not in ids:
                     continue

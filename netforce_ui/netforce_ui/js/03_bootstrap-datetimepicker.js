@@ -387,6 +387,9 @@ THE SOFTWARE.
                 dateStr = getPickerInput().val();
                 if (dateStr) {
                     picker.date = moment(dateStr, picker.format, picker.options.useStrict);
+                    if (picker.options.use_buddhist_date) {
+                        picker.date.add(-543,"year");
+                    }
                 }
                 if (!picker.date) {
                     picker.date = moment();
@@ -446,8 +449,14 @@ THE SOFTWARE.
             picker.widget.find('.datepicker-months').find('.disabled').removeClass('disabled');
             picker.widget.find('.datepicker-years').find('.disabled').removeClass('disabled');
 
+            var year_fmt;
+            if (picker.options.use_buddhist_date) {
+                year_fmt=year+543;
+            } else {
+                year_fmt=year;
+            }
             picker.widget.find('.datepicker-days th:eq(1)').text(
-                months[month] + ' ' + year);
+                months[month] + ' ' + year_fmt);
 
             prevMonth = moment(picker.viewDate, picker.format, picker.options.useStrict).subtract(1, 'months');
             days = prevMonth.daysInMonth();
@@ -504,7 +513,7 @@ THE SOFTWARE.
             }
             picker.widget.find('.datepicker-days tbody').empty().append(html);
             currentYear = picker.date.year();
-            months = picker.widget.find('.datepicker-months').find('th:eq(1)').text(year).end().find('span').removeClass('active');
+            months = picker.widget.find('.datepicker-months').find('th:eq(1)').text(year_fmt).end().find('span').removeClass('active');
             if (currentYear === year) {
                 months.eq(picker.date.month()).addClass('active');
             }
@@ -956,7 +965,11 @@ THE SOFTWARE.
             moment.locale(picker.options.language);
             var formatted = '';
             if (!picker.unset) {
-                formatted = moment(picker.date).format(picker.format);
+                var d=moment(picker.date);
+                if (picker.options.use_buddhist_date) {
+                    d.add(543,"year");
+                }
+                formatted = moment(d).format(picker.format);
             }
             getPickerInput().val(formatted);
             picker.element.data('date', formatted);

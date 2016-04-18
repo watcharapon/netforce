@@ -26,6 +26,7 @@ from . import stock_count_line
 from . import report_stock
 from . import stock_orderpoint
 from . import stock_balance
+from . import stock_barcode
 from . import pick_validate
 from . import pick_validate_line
 from . import report_stock_card
@@ -65,3 +66,4 @@ from . import messenger
 from . import report_stock_plan
 from . import stock_order
 from . import stock_order_line
+from . import stock_settings

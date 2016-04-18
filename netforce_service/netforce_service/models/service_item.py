@@ -71,6 +71,7 @@ class ServiceItem(Model):
         "quarter": fields.Char("Quarter", sql_function=["quarter", "arrival_date"]),
         "month": fields.Char("Month", sql_function=["month", "arrival_date"]),
         "week": fields.Char("Week", sql_function=["week", "arrival_date"]),
+        "agg_last_counter": fields.Decimal("Total Cost", agg_function=["sum", "last_counter"]),
     }
     _order = "number"
 

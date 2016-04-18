@@ -33,7 +33,7 @@ class PurchaseOrderLine(Model):
         "unit_price": fields.Decimal("Unit Price", required=True, scale=6),
         "tax_id": fields.Many2One("account.tax.rate", "Tax Rate"),
         "amount": fields.Decimal("Amount", function="get_amount", function_multi=True, store=True, function_order=1),
-        "amount_cur": fields.Decimal("Amount", function="get_amount", function_multi=True, store=True, function_order=1),
+        "amount_cur": fields.Decimal("Amount (Cur)", function="get_amount", function_multi=True, store=True, function_order=1),
         "qty_received": fields.Decimal("Received Qty", function="get_qty_received"),
         "qty_invoiced": fields.Decimal("Invoiced Qty", function="get_qty_invoiced"),
         "contact_id": fields.Many2One("contact", "Contact", function="_get_related", function_search="_search_related", function_context={"path": "order_id.contact_id"}),
@@ -44,6 +44,7 @@ class PurchaseOrderLine(Model):
         "product_categs": fields.Many2Many("product.categ", "Product Categories", function="_get_related", function_context={"path": "product_id.categs"}, function_search="_search_related", search=True),
         "agg_amount": fields.Decimal("Total Amount", agg_function=["sum", "amount"]),
         "agg_qty": fields.Decimal("Total Order Qty", agg_function=["sum", "qty"]),
+        "agg_amount_cur": fields.Decimal("Total Amount Cur", agg_function=["sum", "amount_cur"]),
         "ship_method_id": fields.Many2One("ship.method", "Shipping Method"),
         "discount_amount": fields.Decimal("Disc Amt"),
         "qty_stock": fields.Decimal("Qty (Stock UoM)"),
@@ -66,7 +67,7 @@ class PurchaseOrderLine(Model):
             amt = (line.qty * line.unit_price) - (line.discount_amount or 0)
             order = line.order_id
             vals[line.id] = {
-                "amount": amt,
+                "amount": round(amt,2), #XXX
                 "amount_cur": get_model("currency").convert(amt, order.currency_id.id, settings.currency_id.id),
             }
         return vals
@@ -121,7 +122,7 @@ class PurchaseOrderLine(Model):
                 for line in inv.lines:
                     prod_id = line.product_id.id
                     inv_qtys.setdefault(prod_id, 0)
-                    inv_qtys[prod_id] += line.qty 
+                    inv_qtys[prod_id] += line.qty or 0
             for line in order.lines:
                 if line.id not in ids:
                     continue

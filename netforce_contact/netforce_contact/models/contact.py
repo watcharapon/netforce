@@ -242,6 +242,6 @@ class Contact(Model):
             if not obj.email:
                 continue
             if not utils.check_email_syntax(obj.email):
-                raise Exception("Invalid email")
+                raise Exception("Invalid email for contact '%s'"%obj.name)
 
 Contact.register()

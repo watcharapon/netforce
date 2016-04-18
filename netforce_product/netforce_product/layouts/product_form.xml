@@ -51,6 +51,7 @@
                 <newline/>
                 <field name="sale_price" span="2" onchange="update_prices"/>
                 <field name="max_discount" span="2" string="Listed Gross Profit"/>
+                <field name="sale_price_order_uom" span="2"/>
                 <!--<field name="price_index" span="2"/>-->
             </group>
             <separator/>
@@ -112,8 +113,7 @@
             <separator string="Costing"/>
             <field name="cost_method"/>
             <field name="cost_price"/>
-            <field name="stock_in_account_id" condition='[["type","!=","view"],["company_id","=",context.company_id]]'/>
-            <field name="stock_out_account_id" condition='[["type","!=","view"],["company_id","=",context.company_id]]'/>
+            <field name="cogs_account_id" condition='[["type","!=","view"],["company_id","=",context.company_id]]'/>
         </tab>
         <tab string="Inventory">
             <field name="weight"/>
@@ -162,6 +162,14 @@
             <field name="details3_label"/>
             <newline/>
             <field name="details3" wysi="1" width="800" height="200"/>
+            <newline/>
+            <field name="ecom_hide_qty"/>
+            <field name="ecom_hide_unavail"/>
+            <field name="ecom_no_order_unavail"/>
+            <field name="ecom_select_lot"/>
+            <field name="ecom_lot_before_invoice"/>
+            <newline/>
+            <field name="product_origin"/>
         </tab>
         <tab string="Other">
             <field name="id"/>
@@ -210,6 +218,7 @@
                 <field name="description"/>
             </form>
         </field>
+        <field name="stock_balances"/>
         <field name="lots"/>
         <field name="service_items"/>
         <field name="documents">

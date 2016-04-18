@@ -24,7 +24,7 @@ from netforce.model import Model, fields
 class District(Model):
     _name = "district"
     _string = "District"
-    _export_name_field = "code"
+    _export_field = "code"
     _fields = {
         "province_id": fields.Many2One("province", "Province"),
         "name": fields.Char("Name", required=True, search=True, translate=True),

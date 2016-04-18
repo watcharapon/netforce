@@ -25,8 +25,11 @@ from . import job_item
 from . import job_part
 from . import job_cost
 from . import task
+from . import task_depend
+from . import task_list
 from . import job_template
 from . import task_template
+from . import task_list_template
 from . import work_time
 from . import work_type
 from . import fault_code
@@ -41,3 +44,5 @@ from . import job_line
 from . import report_service_time
 from . import service_create_quot
 from . import service_application
+from . import project_milestone
+from . import create_task_list

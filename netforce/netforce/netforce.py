@@ -102,18 +102,25 @@ web_proc=None
 job_proc=None
 
 def on_sigterm(signum,frame):
-    print("Received SIGTERM")
+    print("Received SIGTERM pid=%s"%os.getpid())
     print("Kill all child processes...")
     root = psutil.Process(os.getpid())
-    pids=[os.get_pid()]
+    sub_pids=[]
+    # according to psutil v3.3.0 use children instead of get_children
     for child in root.children(recursive=True):
-        pids.append(child.pid)
-    for pid in pids:
+        sub_pids.append(child.pid)
+    print("kill sub_pids",sub_pids)
+    for pid in sub_pids:
         try:
             proc=psutil.Process(pid)
             proc.kill()
         except Exception as e:
             print("WARNING: failed to kill process %s: %s"%(pid,e))
+    print("#"*80)
+    print("ALL CHILD PROCESS KILLED, KILLING ROOT PROCESS IN 5 SECONDS...")
+    print("#"*80)
+    time.sleep(5);
+    root.kill()
 
 def run_server():
     global NUM_PROCESSES

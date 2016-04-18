@@ -131,8 +131,8 @@ class ReportStockSummary(Model):
             if not params.get("show_container"):
                 cont_from_id = -1
                 cont_to_id = -1
-            prod_locs.add((prod_id, lot_id, loc_from_id, cont_from_id))
-            prod_locs.add((prod_id, lot_id, loc_to_id, cont_to_id))
+            prod_locs.add((prod_id, lot_id, loc_from_id, cont_from_id,))
+            prod_locs.add((prod_id, lot_id, loc_to_id, cont_to_id,))
 
         prod_totals={}
         for when in ("open","period","close"):
@@ -170,7 +170,7 @@ class ReportStockSummary(Model):
             loc_ids.append(loc_id)
             if lot_id and lot_id!=-1:
                 lot_ids.append(lot_id)
-            if cont_id and lot_id!=-1:
+            if cont_id and cont_id!=-1:
                 cont_ids.append(cont_id)
         prod_ids = list(set(prod_ids))
         loc_ids = list(set(loc_ids))
@@ -279,10 +279,13 @@ class ReportStockSummary(Model):
             "only_closing": params.get("only_closing"),
             "lines": lines,
             "total_open_amt": sum([l["open_amt"] for l in lines]),
+            "total_open_qty": sum([l["open_qty"] for l in lines]),
             "total_open_qty2": sum([l["open_qty2"] for l in lines]),
             "total_period_in_amt": sum([l["period_in_amt"] for l in lines]),
+            "total_period_in_qty": sum([l["period_in_qty"] for l in lines]),
             "total_period_in_qty2": sum([l["period_in_qty2"] for l in lines]),
             "total_period_out_amt": sum([l["period_out_amt"] for l in lines]),
+            "total_period_out_qty": sum([l["period_out_qty"] for l in lines]),
             "total_period_out_qty2": sum([l["period_out_qty2"] for l in lines]),
             "total_close_qty": sum([l["close_qty"] for l in lines]),
             "total_close_amt": sum([l["close_amt"] for l in lines]),

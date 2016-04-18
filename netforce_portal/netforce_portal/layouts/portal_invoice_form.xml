@@ -6,8 +6,8 @@
         </button>
     </head>
     <group form_layout="stacked">
-        <field name="partner_id" span="2" create="1" onchange="onchange_partner"/>
-        <field name="bill_address_id" span="2" condition='[["partner_id","=",partner_id],["partner_id","!=",null]]'/>
+        <field name="contact_id" span="2" create="1" onchange="onchange_partner"/>
+        <field name="bill_address_id" span="2" condition='[["contact_id","=",contact_id],["contact_id","!=",null]]'/>
         <field name="date" span="2" onchange="onchange_date"/>
         <field name="due_date" span="2"/>
         <field name="number" required="1" span="2"/>
@@ -81,7 +81,7 @@
     </group>
     <field name="type" invisible="1"/>
     <field name="inv_type" invisible="1"/>
-    <field name="partner_credit" invisible="1"/>
+    <field name="contact_credit" invisible="1"/>
     <field name="company_id" invisible="1"/>
     <foot states="draft,waiting_approval" replace="1">
     </foot>
@@ -98,7 +98,7 @@
                 <field name="file" target="_blank" onchange="onchange_file"/>
                 <field name="date"/>
                 <field name="description"/>
-                <field name="partner_id" invisible="1"/>
+                <field name="contact_id" invisible="1"/>
             </form>
         </field>
         <field name="comments"/>

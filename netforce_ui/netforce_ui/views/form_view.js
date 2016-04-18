@@ -23,7 +23,7 @@
 var FormView=NFView.extend({
     _name: "form_view",
     events: {
-        "click ol.breadcrumb": "click_bread",
+        "click ol.breadcrumb li": "click_bread",
         "click .call-method": "call_method"
     },
 
@@ -105,15 +105,22 @@ var FormView=NFView.extend({
         this.render_waiting();
         if (this.active_id) {
             var ctx=clean_context(_.extend({},this.context,this.options));
-            nf_execute(model_name,"read",[[this.active_id]],{field_names:field_names,get_time:true,context:ctx},function(err,data) {
+            var opts={
+                field_names:field_names,
+                get_time: true,
+                context:ctx
+            };
+            var args=[[this.active_id]];
+            nf_execute(model_name,"read",args,opts,function(err,data) {
                 if (err) throw "ERROR: "+err;
-                var read_time=data[0].read_time;
-                delete data[0].read_time;
-                that.model=new NFModel(data[0],{name:model_name});
-                that.model.set_orig_data(data[0]);
+                var form_data=data[0];
+                var read_time=form_data.read_time;
+                delete form_data.read_time;
+                that.model=new NFModel(form_data,{name:model_name});
+                that.model.set_orig_data(form_data);
                 that.model.read_time=read_time;
                 that.model.on("reload",that.reload,that);
-                that.data.context.data=data[0];
+                that.data.context.data=form_data;
                 that.data.context.model=that.model;
                 var attrs=that.eval_attrs();
                 that.readonly=attrs.readonly;
@@ -157,11 +164,52 @@ var FormView=NFView.extend({
                     that.data.show_foot=true;
                 }
                 that.data.show_background=!that.data.readonly;
-                NFView.prototype.render.call(that);
-                if (that.focus_field) {
-                    var view=that.get_field_view(that.focus_field);
-                    view.focus();
-                }
+                var args=[that.options.search_condition || []];
+                var opts={
+                    offset: that.options.offset||0,
+                    limit: that.options.limit||100,
+                };
+                nf_execute(model_name,"search",args,opts,function(err,data) {
+                    if (err) throw "ERROR: "+err;
+                    that.data.count=data.length;
+                    that.data.record_index=data.indexOf(that.active_id);
+                    that.data.record_index_p1=that.data.record_index+1;
+                    if (that.data.record_index>0) {
+                        var prev_active_id=data[that.data.record_index-1];
+                        var h=window.location.hash.substr(1);
+                        var action=qs_to_obj(h);
+                        action.active_id=prev_active_id;
+                        var h2=obj_to_qs(action);
+                        that.data.prev_url="#"+h2;
+
+                        var start_active_id=data[0];
+                        var h=window.location.hash.substr(1);
+                        var action=qs_to_obj(h);
+                        action.active_id=start_active_id;
+                        var h2=obj_to_qs(action);
+                        that.data.start_url="#"+h2;
+                    }
+                    if (that.data.record_index < that.data.count-1) {
+                        var next_active_id=data[that.data.record_index+1];
+                        var h=window.location.hash.substr(1);
+                        var action=qs_to_obj(h);
+                        action.active_id=next_active_id;
+                        var h2=obj_to_qs(action);
+                        that.data.next_url="#"+h2;
+
+                        var end_active_id=data[data.length-1];
+                        var h=window.location.hash.substr(1);
+                        var action=qs_to_obj(h);
+                        action.active_id=end_active_id;
+                        var h2=obj_to_qs(action);
+                        that.data.end_url="#"+h2;
+                    }
+                    NFView.prototype.render.call(that);
+                    if (that.focus_field) {
+                        var view=that.get_field_view(that.focus_field);
+                        view.focus();
+                    }
+                });
             });
         } else {
             var ctx=clean_context(_.extend({},this.context,this.options));
@@ -306,6 +354,7 @@ var FormView=NFView.extend({
                     count: $el.attr("count")||1,
                     password: $el.attr("password"),
                     size: $el.attr("size"),
+                    click_action: $el.attr("click_action"),
                     selection: $el.attr("selection"),
                     attrs: $el.attr("attrs"),
                     width: $el.attr("width"),
@@ -323,6 +372,7 @@ var FormView=NFView.extend({
                     create: $el.attr("create"),
                     search_mode: $el.attr("search_mode"),
                     method: $el.attr("method"),
+                    string: $el.attr("string"),
                     form_layout: form_layout,
                     context: ctx
                 };
@@ -339,6 +389,8 @@ var FormView=NFView.extend({
                                         name: $el2.attr("name"),
                                         condition: $el2.attr("condition")||$el2.attr("condition"), // XXX
                                         readonly: $el2.attr("readonly"),
+                                        required: $el2.attr("required"),
+                                        invisible: $el2.attr("invisible"),
                                         onchange: $el2.attr("onchange"),
                                         onfocus: $el2.attr("onfocus"),
                                         create: $el2.attr("create"),
@@ -356,6 +408,7 @@ var FormView=NFView.extend({
                                     default_count: parseInt($el.attr("default_count"))||1,
                                     readonly: $el.attr("readonly")||that.readonly,
                                     noadd: $el.attr("noadd"),
+                                    noremove: $el.attr("noremove"),
                                     context: params.context
                                 }
                             } else if (view_cls_name=="form_list_view") { // XXX
@@ -503,6 +556,7 @@ var FormView=NFView.extend({
                     icon: $el.attr("icon"),
                     states: $el.attr("states"),
                     perm: $el.attr("perm"),
+                    perm_model: $el.attr("perm_model"),
                     attrs: $el.attr("attrs"),
                     context: context
                 };
@@ -600,18 +654,28 @@ var FormView=NFView.extend({
                     string: $el.attr("string"),
                     method: $el.attr("method"),
                     action: $el.attr("action"),
+                    next: $el.attr("next"),
                     action_context: $el.attr("action_context"),
                     size: $el.attr("size")||"large",
                     type: $el.attr("type"),
-                    next: $el.attr("next"),
                     icon: $el.attr("icon"),
                     states: $el.attr("states"),
                     perm: $el.attr("perm"),
+                    perm_model: $el.attr("perm_model"),
                     attrs: $el.attr("attrs"),
                     split: $el.attr("split"),
                     confirm: $el.attr("confirm"),
                     context: context
                 };
+                if (opts['method']=='_save') {
+                        opts['next']=function() {
+                            var action={name:that.next_action,active_id:that.model.id,form_view_xml:that.options.view_xml};
+                            if (that.next_action_options) {
+                                _.extend(action,qs_to_obj(that.next_action_options));
+                            }
+                            exec_action(action);
+                        };
+                }
                 if (that.active_id) {
                     opts.action_options="refer_id="+that.active_id;
                 }
@@ -628,8 +692,10 @@ var FormView=NFView.extend({
                                 action_options: $el2.attr("action_options"),
                                 action_context: $el2.attr("action_context"),
                                 states: $el2.attr("states"),
+                                next: $el2.attr("next"),
                                 confirm: $el2.attr("confirm"),
                                 perm: $el2.attr("perm"),
+                                perm_model: $el2.attr("perm_model"),
                                 context: context
                             }
                             if (that.active_id) {
@@ -702,6 +768,7 @@ var FormView=NFView.extend({
                     dropdown: $el.attr("dropdown"),
                     align: "right",
                     perm: $el.attr("perm"),
+                    perm_model: $el.attr("perm_model"),
                     context: context
                 };
                 if (that.active_id) {
@@ -722,6 +789,7 @@ var FormView=NFView.extend({
                                 states: $el2.attr("states"),
                                 confirm: $el2.attr("confirm"),
                                 perm: $el2.attr("perm"),
+                                perm_model: $el2.attr("perm_model"),
                                 context: context
                             }
                             if (that.active_id) { // XXX: deprecated

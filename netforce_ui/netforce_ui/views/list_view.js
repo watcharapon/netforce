@@ -184,7 +184,7 @@ var ListView=NFView.extend({
                 that.collection.search_condition=condition; // XXX: check this
                 if (that.options.show_full||that.options.show_pagination) { // FIXME
                     that.collection.count=data[1];
-                    that.collection.offset=that.options.offset;
+                    that.collection.offset=parseInt(that.options.offset);
                     that.collection.limit=that.options.limit||100;
                 }
                 that.collection.on("click",that.line_click,that);
@@ -192,6 +192,7 @@ var ListView=NFView.extend({
                 that.data.context.data=data;
                 that.data.context.collection=that.collection;
                 that.data.context.model=null; // XXX
+                that.data.context.model_name=model_name;
                 if (that.$list.attr("group_fields")) {
                     that.data.group_fields=that.$list.attr("group_fields").split(",");
                 }
@@ -231,7 +232,7 @@ var ListView=NFView.extend({
         var html=$("<div/>");
         if ((this.options.show_full || this.options.show_search) && !this.$list.attr("no_search")) { // XXX
             if (_.isEmpty(this.options.search_condition)) {
-                html.append('<button type="button" class="btn btn-sm btn-default pull-right search-btn" style="white-space:nowrap;"><i class="icon-search"></i> Search</button>');
+                html.append('<button type="button" class="btn btn-sm btn-default pull-right search-btn" style="white-space:nowrap;"><i class="icon-search"></i> '+ translate("Search")+"</button>");
             }
         }
         if (this.options.show_full||this.options.show_default_buttons) { // XXX
@@ -300,6 +301,7 @@ var ListView=NFView.extend({
                     next: $el.attr("next"),
                     icon: $el.attr("icon"),
                     perm: $el.attr("perm"),
+                    perm_model: $el.attr("perm_model"),
                     confirm: $el.attr("confirm"),
                     context: context
                 };
@@ -348,6 +350,7 @@ var ListView=NFView.extend({
             var $el=$(this);
             var tag=$el.prop("tagName");
             if (tag=="button") {
+                context.model_name=that.options.model;
                 var opts={
                     string: $el.attr("string"),
                     model: that.options.model,
@@ -360,6 +363,7 @@ var ListView=NFView.extend({
                     next: $el.attr("next"),
                     icon: $el.attr("icon"),
                     perm: $el.attr("perm"),
+                    perm_model: $el.attr("perm_model"),
                     dropdown: $el.attr("dropdown"),
                     context: context
                 };
@@ -427,6 +431,15 @@ var ListView=NFView.extend({
                 _.extend(action,action_options);
             }
             action.active_id=model.id;
+            if (this.tab_no) {
+                action.tab_no=this.tab_no;
+            }
+            if (this.search_condition) {
+                action.search_condition=this.search_condition;
+            }
+            if (this.collection.offset) {
+                action.offset=this.collection.offset;
+            }
         } else if (this.options.action) {
             var action={name:this.options.action};
             if (this.options.action_options) {

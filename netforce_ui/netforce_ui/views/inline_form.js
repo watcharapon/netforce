@@ -79,6 +79,7 @@ var InlineForm=NFView.extend({
             });
         } else {
             var ctx={
+                data:that.options.parent_data,
                 defaults: {}
             };
             var f=get_field(model_name,that.relfield);
@@ -149,6 +150,7 @@ var InlineForm=NFView.extend({
                     perm: $el.attr("perm"),
                     pkg: $el.attr("pkg"),
                     link: $el.attr("link"),
+                    action: $el.attr("action"),
                     target: $el.attr("target"),
                     form_layout: form_layout,
                     context: context

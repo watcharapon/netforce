@@ -24,6 +24,7 @@ from netforce import ipc
 import os
 from netforce import access
 from decimal import *
+import decimal
 
 _cache = {}
 
@@ -41,6 +42,7 @@ class Currency(Model):
     _string = "Currency"
     _key = ["name"]
     _name_field = "code"
+    _audit_log = True
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "code": fields.Char("Code", required=True, search=True),
@@ -119,9 +121,11 @@ class Currency(Model):
         if cur_from_id == cur_to_id:
             return amt
         if not from_rate and not rate:
-            from_rate = self.get_rate([cur_from_id], date=date, rate_type=rate_type, context=context)
+            if cur_from_id:
+                from_rate = self.get_rate([cur_from_id], date=date, rate_type=rate_type, context=context)
         if not to_rate and not rate:
-            to_rate = self.get_rate([cur_to_id], date=date, rate_type=rate_type, context=context)
+            if cur_to_id:
+                to_rate = self.get_rate([cur_to_id], date=date, rate_type=rate_type, context=context)
         if not from_rate and not rate:
             print("WARNING: missing rate for currency %s" % cur_from_id)
             from_rate = 0
@@ -138,6 +142,7 @@ class Currency(Model):
             return amt2
 
     def round(self, cur_id, amt):
-        return round(amt, 2)  # XXX: support currencies with more than 2 digits later
+        decimal.getcontext().rounding=ROUND_HALF_UP
+        return Decimal(amt).quantize(Decimal("0.01"))
 
 Currency.register()

@@ -20,6 +20,8 @@
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+NF_TIMEOUT=1; // seconds
+
 window.log=function() {
     if (this.console) {
         console.log(Array.prototype.slice.call(arguments));
@@ -253,11 +255,30 @@ Handlebars.registerHelper("currency",function(v,options) {
     } else {
         scale=2;
     }
-    if (typeof(v)!="number") return "";
+    /*if (typeof(v)!="number") return "";*/
+    if (isNaN(v)) return v; // XXX
     if (v>-0.00001 && v<0.00001) v=0; // XXX
     if (v==0 && options.hash && options.hash.zero!=null) return options.hash.zero;
     if (v<0) {
         var s="("+format_money(-v,scale)+")";
+    } else {
+        var s=format_money(v,scale);
+    }
+    return s;
+});
+
+Handlebars.registerHelper("currency_abs",function(v,options) {
+    var scale;
+    if (options.hash && options.hash.scale!=null) {
+        scale=options.hash.scale;
+    } else {
+        scale=2;
+    }
+    if (typeof(v)!="number") return "";
+    if (v>-0.00001 && v<0.00001) v=0; // XXX
+    if (v==0 && options.hash && options.hash.zero!=null) return options.hash.zero;
+    if (v<0) {
+        var s=format_money(-v,scale);
     } else {
         var s=format_money(v,scale);
     }
@@ -426,12 +447,12 @@ Handlebars.registerHelper("field_label",function(name,options) {
 
 function format_date(val,options) {
     if (!val) return null;
-    if (window.nf_use_buddhist_date) {
+    if (ui_params_db && ui_params_db.use_buddhist_date) {
         var year=parseInt(val.substr(0,4));
         var year2=year+543;
         val=""+year2+val.substr(4);
     }
-    if (options && options.hash.fmt) {
+    if (options && options.hash && options.hash.fmt) {
         var fmt=options.hash.fmt;
     } else {
         if (ui_params_db && ui_params_db.date_format) {
@@ -452,7 +473,7 @@ function parse_date(val) {
         var fmt="YYYY-MM-DD";
     }
     var val2=moment(val,fmt).format("YYYY-MM-DD");
-    if (window.nf_use_buddhist_date) {
+    if (ui_params_db && ui_params_db.use_buddhist_date) {
         var year=parseInt(val2.substr(0,4));
         var year2=year-543;
         val2=""+year2+val2.substr(4);
@@ -462,7 +483,7 @@ function parse_date(val) {
 
 function format_datetime(val) {
     if (!val) return null;
-    if (window.nf_use_buddhist_date) {
+    if (ui_params_db && ui_params_db.use_buddhist_date) {
         var year=parseInt(val.substr(0,4));
         var year2=year+543;
         val=""+year2+val.substr(4);
@@ -484,7 +505,7 @@ function parse_datetime(val) {
         var fmt="YYYY-MM-DD HH:mm:ss";
     }
     var val2=moment(val,fmt).format("YYYY-MM-DD HH:mm:ss");
-    if (window.nf_use_buddhist_date) {
+    if (ui_params_db && ui_params_db.use_buddhist_date) {
         var year=parseInt(val2.substr(0,4));
         var year2=year-543;
         val2=""+year2+val2.substr(4);
@@ -537,6 +558,7 @@ function field_value(name,context,link,target,m2o_link,click_action,show_image,s
                     };
                 } else {
                     action=find_details_action(field.relation,id);
+                    log("######################",field.relation,action);
                 }
                 if (action) {
                     var link_url="#"+obj_to_qs(action);
@@ -766,6 +788,16 @@ Handlebars.registerHelper("unless_perm",function(perm,options) { // TODO!!!
         return options.inverse(this);
     }
 });
+
+Handlebars.registerHelper("ifgt",function(val1,val2,options) {
+    if (val1>val2) {
+        return options.fn(this);
+    } else {
+        return options.inverse(this);
+    }
+});
+
+
 
 $(document).ready(function() {
     if (window.ready_done) return; // prevent multiple call of ready (in case body reload that contains script)
@@ -1095,8 +1127,9 @@ function exec_action_ready(action) {
         var args=[];
         if (active_id) args.push([active_id]);
         var opts={};
+        opts.context={action:action_opts};
         if (action_opts.context) {
-            opts.context=action_opts.context;
+            _.extend(opts.context,action_opts.context);
         }
         rpc_execute(model,method,args,opts,function(err,data) {
             if (err) {
@@ -1340,6 +1373,7 @@ function get_model_cls(name) { // XXX
 }
 
 function get_field(model_name,field_name) {
+    if (field_name=='id') return {};
     var models=nf_models;
     var model=models[model_name];
     if (!model) throw "Model not found: "+model_name;
@@ -1449,7 +1483,7 @@ window.NFModel=Backbone.Model.extend({
             if (n=="id") continue;
             var v=data[n];
             var f=this.get_field(n);
-            if (f.type=="many2one") {
+            if (f.type=="many2one" || f.type=="reference") {
                 if (_.isArray(v)) v=v[0];
             } else if (f.type=="one2many") {
                 if (!v) continue;
@@ -1479,11 +1513,28 @@ window.NFModel=Backbone.Model.extend({
         return vals;
     },
 
+    get_path_value: function(path) {
+        log("NFModel.get_path_value",path);
+        var comps=path.split(".");
+        var n=comps[0];
+        var v;
+        if (n=="parent") {
+            var parent_model=this.collection.parent_model;
+            if (!parent_model) throw "Parent model not found";
+            v=parent_model.get_path_value(path.substr(7));
+        } else {
+            v=this.get(n);
+        }
+        log("==>",v);
+        return v;
+    },
+
     set_vals: function(vals) {
         log("model set_vals",vals);
         for (var n in vals) {
             var v=vals[n];
             var f=this.get_field(n);
+            if (_.isEmpty(f)) continue;
             if (f.type=="many2one") {
                 if (_.isNumber(v)) {
                     var old_v=this.get(n);
@@ -1503,10 +1554,27 @@ window.NFModel=Backbone.Model.extend({
         }
     },
 
+    set_fields: function(fields) {
+        log("model set_fields",fields);
+        for (var path in fields) {
+            var comps=path.split(".");
+            var n=comps[0];
+            var new_f=fields[n];
+            var cur_f=this.fields[n];
+            if (!cur_f) {
+                var f=get_field(this.name,n);
+                cur_f=_.clone(f);
+                this.fields[n]=cur_f;
+            }
+            if (comps.length==1) {
+                _.extend(cur_f,new_f);
+            }
+        }
+    },
+
     get_path: function(field_name) {
         var path;
         if (this.collection) {
-            var parent_path=this.collection.get_path();
             var found=false;
             for (var i=0; i<this.collection.models.length; i++) {
                 var m=this.collection.models[i];
@@ -1517,6 +1585,20 @@ window.NFModel=Backbone.Model.extend({
             }
             if (!found) throw "Model not found!";
             path=this.collection.get_path()+"."+i;
+        } else {
+            path="";
+        }
+        if (field_name) {
+            if (path) path+="."+field_name;
+            else path=field_name;
+        }
+        return path;
+    },
+
+    get_field_path: function(field_name) {
+        var path;
+        if (this.collection) {
+            path=this.collection.get_path();
         } else {
             path="";
         }
@@ -1539,7 +1621,7 @@ window.NFModel=Backbone.Model.extend({
         }
     },
 
-    set_meta: function(meta) { // XXX
+    set_meta: function(meta) { // XXX: remove this
         log("model set_meta",this,meta);
         for (var n in meta) {
             var fmeta=meta[n];
@@ -1579,9 +1661,15 @@ window.NFModel=Backbone.Model.extend({
             var required=this.required_fields[n];
             var v=this.get(n);
             //log("n",n,"req",required,"v",v);
-            if (required && !v && v!=0) {
-                errors[n]="Missing value";
-                ok=false;
+            if (required){
+                var t=typeof(v);
+                if(t!='number' && _.isEmpty(v)){
+                    errors[n]="Missing value";
+                    ok=false;
+                }else if(t=='number' && v==null){
+                    errors[n]="Missing value";
+                    ok=false;
+                }
             }
             if (f.type=="one2many") {
                 if (v instanceof NFCollection) {
@@ -1749,6 +1837,10 @@ window.NFCollection=Backbone.Collection.extend({
             that.reset(data,{name:that.name});
             if (cb) cb(err,data);
         });
+    },
+
+    nf_pluck: function(field_name) {
+        return this.filter(function(m) {return m.get(field_name)}).map(function(m) {return m.get(field_name)[0]});
     }
 })
 
@@ -1768,22 +1860,35 @@ function get_action(name) {
 function find_action(options) {
     log("find_action",JSON.stringify(options));
     var actions=nf_actions;
+    var min_pri=null;
+    var found_action=null;
     for (var name in actions) {
         var action=actions[name];
         if (options.model && action.model!=options.model) continue;
         var view=action.view||action.view_cls; // XXX: remove view_cls later
-        if (view!="multi_view" && view!="model_view") continue; // XXX: remove model_view
-        return name;
+        if (options.view && view!=options.view) continue;
+        var pri=parseInt(action.priority)||10;
+        if (min_pri==null || pri<min_pri) {
+            min_pri=pri;
+            found_action=name;
+        }
     }
-    return null;
-    //throw "Action not found: "+model;
+    return found_action;
 }
 
 function find_details_action(model,active_id) {
     log("find_details_action",model,active_id);
-    var action_name=find_action({model:model});
+    var action_name=find_action({model:model,view:"multi_view"});
     if (!action_name) return null;
     var action=get_action(action_name);
+    var pri=parseInt(action.priority)||10;
+    var action_name2=find_action({model:model});
+    var action2=get_action(action_name2);
+    var pri2=parseInt(action2.priority)||10;
+    if (pri2<pri) { // if there is action with lower priority than multi_view, use that action
+        action_name=action_name2;
+        action=action2;
+    }
     var modes=(action.modes||"list,form").split(",");
     var a={
         name: action_name,
@@ -1793,15 +1898,13 @@ function find_details_action(model,active_id) {
         a.mode="page";
     } else if (_.contains(modes,"form")) {
         a.mode="form";
-    } else {
-        return null;
     }
     return a;
 }
 
 function find_new_action(model) {
     log("find_new_action",model);
-    var action_name=find_action({model:model});
+    var action_name=find_action({model:model,view:"multi_view"});
     if (!action_name) return null;
     var action=get_action(action_name);
     var modes=(action.modes||"list,form").split(",");

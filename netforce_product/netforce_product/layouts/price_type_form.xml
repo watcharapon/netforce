@@ -2,4 +2,7 @@
     <field name="name"/>
     <field name="currency_id"/>
     <field name="uom_id"/>
+    <separator/>
+    <field name="price_format"/>
+    <field name="price_format_factor"/>
 </form>

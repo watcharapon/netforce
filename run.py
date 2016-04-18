@@ -9,6 +9,7 @@ modules=[
     "netforce_general",
     "netforce_contact",
     "netforce_service",
+    "netforce_messaging",
     "netforce_support",
     "netforce_product",
     "netforce_account",
@@ -19,12 +20,13 @@ modules=[
     "netforce_purchase",
     "netforce_mfg",
     "netforce_marketing",
+    "netforce_delivery",
     "netforce_hr",
     "netforce_document",
-    "netforce_messaging",
     "netforce_cms", 
     "netforce_ecom",
 ]
 
 netforce.load_modules(modules)
-netforce.run_server()
+if __name__=="__main__":
+	netforce.run_server()

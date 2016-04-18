@@ -40,7 +40,10 @@ var NFLayout=NFView.extend({
                     action: $el.attr("action"),
                     perm: $el.attr("perm"),
                     perm_check_admin: $el.attr("perm_check_admin"),
-                    pkg: $el.attr("pkg")
+                    pkg: $el.attr("pkg"),
+                    url: $el.attr("url"),
+                    color: $el.attr("color"),
+                    disabled: $el.attr("disabled")
                 };
                 that.data.mainmenu_items.push(item);
             }
@@ -59,6 +62,7 @@ var NFLayout=NFView.extend({
                     action: $el.attr("action"),
                     action_options: $el.attr("action_options"),
                     url: $el.attr("url"),
+                    color: $el.attr("color"),
                     perm: $el.attr("perm"),
                     perm_check_admin: $el.attr("perm_check_admin"),
                     pkg: $el.attr("pkg"),
@@ -75,6 +79,7 @@ var NFLayout=NFView.extend({
                             action: $el2.attr("action"),
                             action_options: $el2.attr("action_options"),
                             url: $el2.attr("url"),
+                            color: $el.attr("color"),
                             perm: $el2.attr("perm"),
                             perm_check_admin: $el2.attr("perm_check_admin"),
                             pkg: $el2.attr("pkg")

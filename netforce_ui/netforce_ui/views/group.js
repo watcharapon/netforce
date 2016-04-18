@@ -100,6 +100,7 @@ var Group=NFView.extend({
                     nolabel: $el.attr("nolabel"),
                     invisible: $el.attr("invisible"),
                     onchange: $el.attr("onchange"),
+                    click_action: $el.attr("click_action"),
                     count: $el.attr("count")||1,
                     password: $el.attr("password"),
                     size: $el.attr("size"),
@@ -110,6 +111,7 @@ var Group=NFView.extend({
                     condition: $el.attr("condition"),
                     perm: $el.attr("perm"),
                     pkg: $el.attr("pkg"),
+                    mode: $el.attr("mode"),
                     link: $el.attr("link"),
                     view: $el.attr("view"),
                     strong: $el.attr("strong"),
@@ -121,6 +123,7 @@ var Group=NFView.extend({
                     show_buttons: $el.attr("show_buttons"),
                     auto_save: $el.attr("auto_save"),
                     email: $el.attr("email"),
+                    help: $el.attr("help"),
                     form_layout: form_layout,
                     context: ctx
                 };
@@ -135,21 +138,24 @@ var Group=NFView.extend({
                                     name: $el2.attr("name"),
                                     condition: $el2.attr("condition"),
                                     readonly: $el2.attr("readonly"),
+                                    required: $el2.attr("required"),
+                                    invisible: $el2.attr("invisible"),
                                     onchange: $el2.attr("onchange"),
                                     onfocus: $el2.attr("onfocus"),
                                     search_mode: $el2.attr("search_mode"),
                                     scale: $el2.attr("scale"),
+                                    create: $el2.attr("create"),
                                     attrs: $el2.attr("attrs")
                                 });
                             });
                             var opts2={
                                 fields: sub_fields,
                                 readonly: $el.attr("readonly")||that.options.readonly,
-                                default_count: parseInt($el.attr("default_count"))||1,
+                                default_count: $el.attr("count")||1,
                                 noadd: $el.attr("noadd"),
+                                noremove: $el.attr("noremove"),
                                 context: params.context
                             }
-                            if (opts2.default_count==5) alert("x");
                             var view=Sheet.make_view(opts2);
                             html="<div id=\""+view.cid+"\" class=\"view\"></div>";
                             return html;

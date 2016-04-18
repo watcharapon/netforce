@@ -76,6 +76,14 @@ var FieldMany2One=NFView.extend({
             }
             action.active_id=id;
             this.data.link_url="#"+obj_to_qs(action);
+        } else if (value && this.options.click_action) {
+            var id;
+            if (_.isArray(value)) {
+                id=value[0];
+            } else {
+                id=value;
+            }
+            this.data.link_url="#name="+this.options.click_action+"&active_id="+id;
         } else if (value && !this.options.nolink) {
             var id;
             if (_.isArray(value)) {
@@ -112,6 +120,7 @@ var FieldMany2One=NFView.extend({
         if (attrs.required!=null) required=attrs.required;
         //log("XXXXXXXXXXXXXXXXXX",required);
         if (required && !this.data.readonly) {
+            this.$el.addClass("nf-required-field");
             this.data.required=true;
         } else {
             this.data.required=false;
@@ -128,9 +137,6 @@ var FieldMany2One=NFView.extend({
             that.disable_blur=true;
             NFView.prototype.render.call(that);
             that.disable_blur=false;
-            if (that.data.required && !that.data.readonly) {
-                that.show_required();
-            }
             if (that.data.required) {
                 model.set_required(name);
             } else {
@@ -168,6 +174,7 @@ var FieldMany2One=NFView.extend({
             if (!that.data.readonly) {
                 that.$el.find("input").focus();
             }
+            that.$el.find("a.help").tooltip();
         }
         if (value) {
             if (_.isArray(value)) {
@@ -195,10 +202,6 @@ var FieldMany2One=NFView.extend({
         }
     },
 
-    show_required: function() {
-        this.$el.find(".label-text").append(" <span style='color:#e32'>*</span>");
-    },
-
     btn_mousedown: function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -215,6 +218,15 @@ var FieldMany2One=NFView.extend({
 
     eval_condition: function() {
         log("eval_condition",this);
+        var form=this.context.form;
+        var model=this.context.model;
+        var path=model.get_field_path(this.options.name);
+        if (form) {
+            var form_attrs=form.get_field_attrs(path);
+            if (form_attrs && form_attrs.condition) {
+                return form_attrs.condition;
+            }
+        }
         var condition=this.field_condition;
         var _conv=function(vals) {
             for (var k in vals) {
@@ -225,8 +237,13 @@ var FieldMany2One=NFView.extend({
                 vals[k]=v;
             }
         }
-        if (this.options.condition) {
-            var cond_str=html_decode(this.options.condition);
+        var view_cond_s=this.options.condition;
+        var attrs=this.eval_attrs();
+        if (attrs.condition) {
+            view_cond_s=attrs.condition;
+        }
+        if (view_cond_s) {
+            var cond_str=html_decode(view_cond_s);
             log("cond_str",cond_str);
             var model=this.context.model;
             var ctx=model.toJSON();
@@ -351,7 +368,8 @@ var FieldMany2One=NFView.extend({
             if (!cur_text) {
                 var mr=get_model(this.relation);
                 if (mr.string) {
-                    var item=$('<li data-value="_create_link"><a href="#" style="font-weight:bold">New '+mr.string+'</a></li>');
+                    var new_item=translate('New '+mr.string);
+                    var item=$('<li data-value="_create_link"><a href="#" style="font-weight:bold">'+new_item+'</a></li>');
                     items=[item[0]].concat(items);
                 }
             }
@@ -579,13 +597,23 @@ var FieldMany2One=NFView.extend({
         var attrs={};
         for (var attr in expr) {
             var conds=expr[attr];
-            var attr_val=true;
+            if (_.isArray(conds)) {
+                var attr_val=true;
+            } else if (_.isObject(conds)) {
+                var attr_val=conds.value;
+                conds=conds.condition;
+                if (!conds) {
+                    throw "Missing condition in attrs expression: "+str;
+                }
+            } else {
+                throw "Invalid attrs expression: "+str;
+            }
             for (var i in conds) {
                 var clause=conds[i];
                 var n=clause[0];
                 var op=clause[1];
                 var cons=clause[2];
-                var v=model.get(n);
+                var v=model.get_path_value(n);
                 var clause_v;
                 if (op=="=") {
                     clause_v=v==cons;

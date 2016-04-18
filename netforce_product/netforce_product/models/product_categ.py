@@ -25,7 +25,7 @@ from netforce import access
 class ProductCateg(Model):
     _name = "product.categ"
     _string = "Product Category"
-    _export_name_field="code"
+    _export_field="code"
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "code": fields.Char("Short Code", search=True),
@@ -37,6 +37,12 @@ class ProductCateg(Model):
         "sub_categories": fields.One2Many("product.categ", "parent_id", "Sub Categories"),
         "num_products": fields.Integer("Number of products", function="get_num_products"),
         "gross_profit": fields.Decimal("Gross Profit (%)"),
+        "sale_account_id": fields.Many2One("account.account", "Sales Account", multi_company=True),
+        "sale_tax_id": fields.Many2One("account.tax.rate", "Sales Tax"),
+        "purchase_account_id": fields.Many2One("account.account", "Purchase Account", multi_company=True),
+        "purchase_tax_id": fields.Many2One("account.tax.rate", "Purchase Tax"),
+        "cost_method": fields.Selection([["standard", "Standard Cost"], ["average", "Weighted Average"], ["fifo", "FIFO"], ["lifo", "LIFO"]], "Costing Method"),
+        "cogs_account_id": fields.Many2One("account.account", "Cost Of Goods Sold Account", multi_company=True),
     }
     _order = "name"
     _constraints = ["_check_cycle"]

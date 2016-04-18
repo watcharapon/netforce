@@ -21,6 +21,7 @@
         <item string="General Ledger Summary" action="report_gl"/>
         <item string="General Ledger Details" action="report_gl_details"/>
         <item string="Tax Summary Report" action="report_tax_sum"/>
+        <item string="Invoice Analysis" action="invoice_analysis"/>
     </item>
     <item string="Other">
         <!--<item string="Expense Claims" action="expense_draft"/>-->

@@ -100,6 +100,16 @@ class SaleQuot(Model):
         settings = get_model("settings").browse(1)
         return settings.currency_id.id
 
+    def _get_currency_rates(self,context={}):
+        settings = get_model("settings").browse(1)
+        lines=[]
+        date = time.strftime("%Y-%m-%d")
+        lines.append({
+            "currency_id": settings.currency_id.id,
+            "rate": settings.currency_id.get_rate(date,"sell") or 1
+        })
+        return lines
+
     _defaults = {
         "state": "draft",
         "date": lambda *a: time.strftime("%Y-%m-%d"),
@@ -109,6 +119,7 @@ class SaleQuot(Model):
         "user_id": lambda self, context: get_active_user(),
         "uuid": lambda *a: str(uuid.uuid4()),
         "company_id": lambda *a: get_active_company(),
+        "currency_rates": _get_currency_rates,
     }
     _constraints = ["check_fields"]
     _order = "date desc"
@@ -194,6 +205,37 @@ class SaleQuot(Model):
         data["amount_subtotal"] = 0
         data["amount_tax"] = 0
         tax_type = data["tax_type"]
+        #===============>>>
+        def _get_relative_currency_rate(currency_id):
+            rate=None
+            for r in data['currency_rates']:
+                if r.get('currency_id')==currency_id:
+                    rate=r.get('rate') or 0
+                    break
+            if rate is None:
+                print(data['date'],currency_id,data['currency_id'])
+                rate_from=get_model("currency").get_rate([currency_id],data['date']) or Decimal(1)
+                rate_to=get_model("currency").get_rate([data['currency_id']],data['date']) or Decimal(1)
+                rate=rate_from/rate_to
+            return rate
+        item_costs={}
+        for cost in data['est_costs']:
+            if not cost:
+                continue
+            amt=cost['amount'] or 0
+            if cost.get('currency_id'):
+                print(cost.get("currency_id.id"),cost.get("currency_id"))
+                rate=_get_relative_currency_rate(cost.get("currency_id"))
+                amt=amt*rate
+            comps=[]
+            if cost.get("sequence"):
+                for comp in cost['sequence'].split("."):
+                    comps.append(comp)
+                    path=".".join(comps)
+                    k=(data['id'],path)
+                    item_costs.setdefault(k,0)
+                    item_costs[k]+=amt
+        #<<<===============
         for line in data["lines"]:
             if not line:
                 continue
@@ -204,6 +246,19 @@ class SaleQuot(Model):
             else:
                 disc = 0
             line["amount"] = amt
+            #===============>>>
+            k=None
+            if id in data:
+                k=(data['id'],line.get("sequence",0))
+            else:
+                k=(line.get("sequence",0))
+            cost=item_costs.get(k,0)
+            profit=amt-cost
+            margin=profit*100/amt if amt else 0
+            line["est_cost_amount"]=cost
+            line["est_profit_amount"]=profit
+            line["est_margin_percent"]=margin
+            #<<<===============
         hide_parents=[]
         for line in data["lines"]:
             if not line:
@@ -321,6 +376,11 @@ class SaleQuot(Model):
         contact = get_model("contact").browse(contact_id)
         data["payment_terms"] = contact.payment_terms
         data["price_list_id"] = contact.sale_price_list_id.id
+        if contact.currency_id:
+            data["currency_id"] = contact.currency_id.id
+        else:
+            settings = get_model("settings").browse(1)
+            data["currency_id"] = settings.currency_id.id
         return data
 
     def onchange_uom(self, context):
@@ -362,6 +422,8 @@ class SaleQuot(Model):
                 "unit_price": line.unit_price,
                 "discount": line.discount,
                 "tax_id": line.tax_id.id,
+                'amount': line.amount,
+                'sequence': line.sequence,
             }
             vals["lines"].append(("create", line_vals))
         new_id = self.create(vals, context=context)
@@ -513,6 +575,7 @@ class SaleQuot(Model):
     def onchange_sequence(self, context={}):
         data = context["data"]
         seq_id = data["sequence_id"]
+        context['date']=data['date']
         if not seq_id:
             return None
         while 1:
@@ -541,7 +604,7 @@ class SaleQuot(Model):
             line["purchase_duty_percent"]=prod.purchase_duty_percent
             line["purchase_ship_percent"]=prod.purchase_ship_percent
             line["landed_cost"]=prod.landed_cost
-            line["purcase_price"]=prod.purchase_price
+            line["amount"]=line['qty']*line['landed_cost'] or 0
 
             if prod.suppliers:
                 line["supplier_id"]=prod.suppliers[0].supplier_id.id
@@ -686,5 +749,12 @@ class SaleQuot(Model):
             rate_to=obj.currency_id.get_rate(obj.date) or Decimal(1)
             rate=rate_from/rate_to
         return rate
+
+    def update_cost_amount(self,context={}):
+        data=context['data']
+        path=context['path']
+        line=get_data_path(data,path,parent=True)
+        line['amount']=(line['qty'] or 0) *(line['landed_cost'] or 0)
+        return data
 
 SaleQuot.register()

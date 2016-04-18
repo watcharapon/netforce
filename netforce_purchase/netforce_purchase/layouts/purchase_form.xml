@@ -15,14 +15,14 @@
     <tabs>
         <tab string="General">
             <group form_layout="stacked">
-                <field name="contact_id" span="2" create="1" onchange="onchange_contact"/>
+                <field name="contact_id" span="2" create="1" onchange="onchange_contact" condition='[["supplier", "=", "True"]]'/>
                 <field name="date" span="2"/>
                 <field name="number" span="2"/>
                 <field name="ref" span="2"/>
                 <field name="delivery_date" span="2"/>
                 <field name="is_delivered" span="1"/>
                 <newline/>
-                <field name="currency_id" span="2"/>
+                <field name="currency_id" span="2" onchange="onchange_currency"/>
                 <field name="tax_type" span="2"/>
                 <field name="price_list_id" span="2"/>
                 <field name="purchase_type_id" span="2"/>
@@ -42,6 +42,7 @@
                     <field name="tax_id" onchange="update_amounts"/>
                     <field name="discount_amount" onchange="update_amounts"/>
                     <field name="amount"/>
+                    <field name="amount_cur"/>
                     <field name="location_id"/>
                     <field name="qty_stock"/>
                     <field name="ship_method_id"/>

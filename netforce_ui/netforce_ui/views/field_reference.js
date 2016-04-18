@@ -62,7 +62,9 @@ var FieldReference=NFView.extend({
             var relation=res[0];
             var id=res[1];
             var action=find_details_action(relation,id);
-            if (action) {
+            if (this.options.click_action) {
+                this.data.link_url="#name="+this.options.click_action+"&active_id="+this.context.data.id;
+            } else if (action) {
                 this.data.link_url="#"+obj_to_qs(action);
             } else {
                 this.data.link_url=null;
@@ -82,7 +84,7 @@ var FieldReference=NFView.extend({
         }
         var attrs=this.eval_attrs();
         this.data.readonly=field.readonly||this.options.readonly||this.context.readonly;
-        var required=field.required||this.options.required;
+        var required=field.required||this.options.required||that.data.required;
         var form_layout=this.options.form_layout||"stacked";
         this.data.horizontal=form_layout=="horizontal";
         var do_render=function() {
@@ -95,6 +97,15 @@ var FieldReference=NFView.extend({
             }
             if (required) {
                 that.$el.addClass("nf-required-field");
+                model.set_required(name);
+            }else{
+                model.set_not_required(name);
+            }
+            var err=model.get_field_error(name);
+            if (err) {
+                that.$el.addClass("error");
+            } else {
+                that.$el.removeClass("error");
             }
             if (that.options.span && !that.options.span_input_only) { // XXX
                 that.$el.addClass("col-sm-"+that.options.span);
@@ -113,6 +124,7 @@ var FieldReference=NFView.extend({
             that.$menu
                 .on('click', $.proxy(that.menu_click, that))
                 .on('mouseenter', 'li', $.proxy(that.menu_mouseenter, that));
+            that.$el.find("a.help").tooltip();
         }
         if (value) {
             if (_.isArray(value)) {
