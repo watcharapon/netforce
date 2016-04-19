@@ -395,7 +395,7 @@ class SaleQuot(Model):
         if not uom_id:
             return {}
         uom = get_model("uom").browse(uom_id)
-        if line.get("unit_price") is None and prod.sale_price is not None:
+        if prod.sale_price is not None:
             line["unit_price"] = prod.sale_price * uom.ratio / prod.uom_id.ratio
         data = self.update_amounts(context)
         return data
