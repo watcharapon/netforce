@@ -166,10 +166,11 @@ class Move(Model):
 
     def write(self, ids, vals, context={}):
         prod_ids = []
-        for obj in self.browse(ids):
-            prod_ids.append(obj.product_id.id)
-            if obj.related_id:
-                obj.related_id.function_store()
+        if "qty" in vals or "state" in vals: # XXX: change this
+            for obj in self.browse(ids):
+                prod_ids.append(obj.product_id.id)
+                if obj.related_id:
+                    obj.related_id.function_store() # XXX: very slow, change this
         super().write(ids, vals, context=context)
         prod_id = vals.get("product_id")
         if prod_id:
