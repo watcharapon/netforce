@@ -140,6 +140,7 @@ class StockOrder(Model):
         }
 
     def create_mo(self,ids,context={}):
+        print("StockOrder.create_mo",ids)
         obj=self.browse(ids[0])
         n=0
         for line in obj.lines:

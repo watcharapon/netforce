@@ -433,7 +433,6 @@ class SaleOrder(Model):
     def copy_to_picking(self, ids, context={}):
         id = ids[0]
         obj = self.browse(id)
-        pick_vals = {}
         contact = obj.contact_id
         res = get_model("stock.location").search([["type", "=", "customer"]])
         if not res:
@@ -443,28 +442,8 @@ class SaleOrder(Model):
         if not res:
             raise Exception("Warehouse not found")
         wh_loc_id = res[0]
-
-        for obj_line in obj.lines:
-            picking_key = obj_line.ship_method_id and obj_line.ship_method_id.id or 0
-            if picking_key in pick_vals: continue
-            if not obj.due_date:
-                raise Exception("Missing due date in sales order %s"%obj.number)
-            pick_vals[picking_key] = {
-                "type": "out",
-                "ref": obj.number,
-                "related_id": "sale.order,%s" % obj.id,
-                "contact_id": contact.id,
-                "ship_address_id": obj.ship_address_id.id,
-                "lines": [],
-                "state": "draft",
-                "ship_method_id": obj_line.ship_method_id.id or obj.ship_method_id.id,
-                "company_id": obj.company_id.id,
-                "date": obj.due_date+" 00:00:00",
-            }
-            if contact and contact.pick_out_journal_id:
-                pick_vals[picking_key]["journal_id"] = contact.pick_out_journal_id.id
+        pick_vals = {}
         for line in obj.lines:
-            picking_key = line.ship_method_id and line.ship_method_id.id or 0
             prod = line.product_id
             if not prod:
                 continue
@@ -475,6 +454,26 @@ class SaleOrder(Model):
             qty_remain = (line.qty_stock or line.qty) - line.qty_delivered
             if qty_remain <= 0:
                 continue
+            ship_method_id = line.ship_method_id.id or obj.ship_method_id.id
+            due_date = line.due_date or obj.due_date
+            if not due_date:
+                raise Exception("Missing due date for sales order %s"%obj.number)
+            pick_key = (ship_method_id,due_date)
+            if pick_key not in pick_vals:
+                pick_vals[pick_key] = {
+                    "type": "out",
+                    "ref": obj.number,
+                    "related_id": "sale.order,%s" % obj.id,
+                    "contact_id": contact.id,
+                    "ship_address_id": obj.ship_address_id.id,
+                    "lines": [],
+                    "state": "draft",
+                    "ship_method_id": ship_method_id,
+                    "company_id": obj.company_id.id,
+                    "date": due_date+" 00:00:00",
+                }
+                if contact and contact.pick_out_journal_id:
+                    pick_vals[pick_key]["journal_id"] = contact.pick_out_journal_id.id
             line_vals = {
                 "product_id": prod.id,
                 "lot_id": line.lot_id.id,
@@ -484,7 +483,7 @@ class SaleOrder(Model):
                 "location_to_id": cust_loc_id,
                 "related_id": "sale.order,%s" % obj.id,
             }
-            pick_vals[picking_key]["lines"].append(("create", line_vals))
+            pick_vals[pick_key]["lines"].append(("create", line_vals))
             if prod.type=="bundle":
                 if not prod.components:
                     raise Exception("No components for bundle product %s"%prod.code)
@@ -498,10 +497,11 @@ class SaleOrder(Model):
                         "location_to_id": cust_loc_id,
                         "related_id": "sale.order,%s" % obj.id,
                     }
-                    pick_vals[picking_key]["lines"].append(("create", line_vals))
-        for picking_key, picking_value in pick_vals.items():
-            if not picking_value["lines"]:Exception("Nothing left to deliver")
-            pick_id = get_model("stock.picking").create(picking_value, context={"pick_type": "out"})
+                    pick_vals[pick_key]["lines"].append(("create", line_vals))
+        if not pick_vals:
+            Exception("Nothing left to deliver")
+        for pick_key, pick_val in pick_vals.items():
+            pick_id = get_model("stock.picking").create(pick_val, context={"pick_type": "out"})
             pick = get_model("stock.picking").browse(pick_id)
         return {
             "next": {
@@ -530,7 +530,7 @@ class SaleOrder(Model):
                     "pay_method_id": obj.pay_method_id.id,
                     "lines": [],
                     "company_id": obj.company_id.id,
-                    "due_date": obj.due_date,
+                    "due_date": obj.due_date or obj.date,
                 }
                 set_active_company(obj.company_id.id) # XXX
             else:

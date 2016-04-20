@@ -27,7 +27,7 @@ import time
 from dateutil.relativedelta import *
 import math
 
-def get_total_qtys(prod_ids, loc_id, date_from, date_to, states, categ_id):
+def get_total_qtys(prod_ids, loc_id, date_from, date_to, states, categ_ids):
     db = get_connection()
     q = "SELECT " \
         " t1.product_id,t1.location_from_id,t1.location_to_id,t1.uom_id,SUM(t1.qty) AS total_qty " \
@@ -47,9 +47,9 @@ def get_total_qtys(prod_ids, loc_id, date_from, date_to, states, categ_id):
     if loc_id:
         q += " AND (t1.location_from_id=%s OR t1.location_to_id=%s)"
         q_args += [loc_id, loc_id]
-    if categ_id:
-        q += " AND t2.categ_id=%s"
-        q_args.append(categ_id)
+    if categ_ids:
+        q += " AND t2.categ_id IN %s"
+        q_args.append(tuple(categ_ids))
     company_id = access.get_active_company()
     if company_id:
         q += " AND t1.company_id=%s"
@@ -150,7 +150,7 @@ class StockOrder(Model):
     def fill_products(self,ids,context={}):
         obj=self.browse(ids[0])
         obj.write({"lines":[("delete_all",)]})
-        lines=self.get_product_order_qtys()
+        lines=self.get_product_order_qtys(context=context)
         n=0
         for line in lines:
             vals={
@@ -165,6 +165,39 @@ class StockOrder(Model):
         return {
             "flash": "%d lines added"%n,
         }
+
+    def fill_products2(self,ids,required_date=None,categ_ids=None,context={}): # XXX: used for PLR
+        print("StockOrder.fill_products2",ids,required_date,categ_ids)
+        obj=self.browse(ids[0])
+        obj.write({"lines":[("delete_all",)]})
+        loc_types={}
+        for loc in get_model("stock.location").search_browse([]):
+            loc_types[loc.id]=loc.type
+        if not required_date:
+            raise Exception("Missing required date")
+        res = get_total_qtys(None, None, None, required_date, ["done","pending","approved"], categ_ids)
+        qtys={}
+        for (prod_id,loc_from_id,loc_to_id),qty in res.items():
+            qtys.setdefault(prod_id,0)
+            if loc_types[loc_from_id]=="internal":
+                qtys[prod_id]-=qty
+            if loc_types[loc_to_id]=="internal":
+                qtys[prod_id]+=qty
+        print("qtys",qtys)
+        for prod_id,qty in qtys.items():
+            if qty>=0:
+                continue
+            order_qty=-qty
+            prod=get_model("product").browse(prod_id)
+            print("  add line for product %s"%prod.code)
+            vals={
+                "order_id": obj.id,
+                "product_id": prod_id,
+                "qty": order_qty,
+                "uom_id": prod.uom_id.id,
+                "date": time.strftime("%Y-%m-%d"),
+            }
+            get_model("stock.order.line").create(vals)
 
     def create_po(self,ids,context={}):
         obj=self.browse(ids[0])
@@ -244,13 +277,13 @@ class StockOrder(Model):
             "num_orders": n,
         }
 
-    def get_plan_qtys_unlim(self,product_id=None,categ_id=None,context={}):
+    def get_plan_qtys_unlim(self,product_id=None,categ_ids=None,context={}):
         print("StockOrder.get_plan_qtys_unlim")
         loc_types={}
         for loc in get_model("stock.location").search_browse([]):
             loc_types[loc.id]=loc.type
         prod_ids=[product_id] if product_id else None
-        res = get_total_qtys(prod_ids, None, None, None, ["done","pending","approved"], categ_id)
+        res = get_total_qtys(prod_ids, None, None, None, ["done","pending","approved"], categ_ids)
         qtys_unlim={}
         for (prod_id,loc_from_id,loc_to_id),qty in res.items():
             qtys_unlim.setdefault(prod_id,0)
