@@ -358,6 +358,9 @@ class Invoice(Model):
                 account_id = contact.account_payable_id.id or settings.account_payable_id.id
                 if not account_id:
                     raise Exception("Account payable not found")
+            account=get_model("account.account").browse(account_id)
+            if account.currency_id.id!=obj.currency_id.id:
+                raise Exception("Currency of accounts %s is different than invoice (%s / %s)"%(account.code,account.currency_id.code,obj.currency_id.code))
             sign = obj.type == "out" and 1 or -1
             if obj.inv_type == "credit":
                 sign *= -1
