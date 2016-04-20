@@ -187,6 +187,8 @@ class Move(Model):
                     raise Exception("Missing currency amount for account %s" % line.account_id.name_get()[0][1])
                 if line.amount_cur is not None and acc.currency_id.id == settings.currency_id.id:
                     raise Exception("Currency amount for account %s should be empty" % line.account_id.name_get()[0][1])
+                if line.amount_cur is not None and line.amount_cur<0:
+                    raise Exception("Currency amount is negative (%s)"%line.amount_cur)
             if abs(total_debit - total_credit) != 0:
                 print("NOT BALANCED total_debit=%s total_credit=%s" % (total_debit, total_credit))
                 for line in obj.lines:

@@ -479,7 +479,7 @@ class Payment(Model):
         if obj.account_id.currency_id.id != settings.currency_id.id:
             if obj.account_id.currency_id.id != obj.currency_id.id:
                 raise Exception("Invalid account currency for this payment: %s" % obj.account_id.code)
-            line_vals["amount_cur"] = obj.amount_payment if obj.type == "in" else -obj.amount_payment
+            line_vals["amount_cur"] = obj.amount_payment
         get_model("account.move.line").create(line_vals)
         taxes = {}
         reconcile_ids = []
@@ -563,10 +563,7 @@ class Payment(Model):
                     else:
                         line_vals["credit"] = -amt
                     if inv.account_id.currency_id.id != settings.currency_id.id:
-                        if amt>0:
-                            line_vals["amount_cur"] = inv_pay_amt
-                        else:
-                            line_vals["amount_cur"] = -inv_pay_amt
+                        line_vals["amount_cur"] = inv_pay_amt
                     print("invoice")
                     pprint(line_vals)
                     pay_line_id = get_model("account.move.line").create(line_vals)
