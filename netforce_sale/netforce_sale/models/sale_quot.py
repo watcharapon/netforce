@@ -104,10 +104,17 @@ class SaleQuot(Model):
         settings = get_model("settings").browse(1)
         lines=[]
         date = time.strftime("%Y-%m-%d")
-        lines.append({
+        val = {
             "currency_id": settings.currency_id.id,
             "rate": settings.currency_id.get_rate(date,"sell") or 1
-        })
+        }
+        if context.get('action_name'):
+            # new quotation
+            lines.append(val)
+        else:
+            # create quotation from other modules or methods
+            # default for one2many cannot use for this case bacause action key such as 'create', 'delete' and etc is missing
+            lines.append(("create",val))
         return lines
 
     _defaults = {
