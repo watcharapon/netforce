@@ -109,11 +109,13 @@ class SaleQuot(Model):
             "rate": settings.currency_id.get_rate(date,"sell") or 1
         }
         if context.get('action_name'):
-            # new quotation
+            # default for new quotation create via quotation form
             lines.append(val)
         else:
-            # create quotation from other modules or methods
-            # default for one2many cannot use for this case bacause action key such as 'create', 'delete' and etc is missing
+            # When users create or copy quotation from other modules or methods, one2many field cannot be appended without action key
+            # bacause it must be created in the database along with quotation itself.
+            # If action key such as 'create', 'delete' is missing, the default line will not be created.
+            # So, the action_key 'create' has to be appended into the list also.
             lines.append(("create",val))
         return lines
 
