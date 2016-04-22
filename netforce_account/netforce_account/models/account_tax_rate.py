@@ -77,6 +77,7 @@ class TaxRate(Model):
         obj = self.browse(tax_id)
         vat_rate = Decimal(0)
         wht_rate = Decimal(0)
+        base_amt = amt
         for comp in obj.components:
             if comp.type == "wht":
                 wht_rate += comp.rate or 0
