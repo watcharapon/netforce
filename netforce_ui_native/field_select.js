@@ -18,6 +18,12 @@ var utils=require("./utils");
 class FieldSelect extends Component {
     constructor(props) {
         super(props);
+        if (this.props.selection) {
+            this.selection=this.props.selection;
+        } else {
+            var f=UIParams.get_field(this.props.model,this.props.name);
+            this.selection=f.selection;
+        }
         this.state = {};
     }
 
@@ -30,11 +36,10 @@ class FieldSelect extends Component {
     }
 
     render() {
-        var f=UIParams.get_field(this.props.model,this.props.name);
-        var val_str=utils.field_val_to_str(this.state.value,f);
+        var items=[null].concat(this.selection);
         return <Picker selectedValue={this.state.value} onValueChange={this.onchange.bind(this)} style={{height:40}}>
-            {f.selection.map(function(o,i) {
-                return <Picker.Item label={o[1]} value={o[0]} key={i}/>
+            {items.map(function(o,i) {
+                return <Picker.Item label={o?o[1]:""} value={o?o[0]:null} key={i}/>
             }.bind(this))}
         </Picker>
     }

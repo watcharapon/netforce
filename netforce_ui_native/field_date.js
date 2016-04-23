@@ -33,8 +33,7 @@ class FieldDate extends Component {
     }
 
     render() {
-        var f=UIParams.get_field(this.props.model,this.props.name);
-        var val_str=utils.field_val_to_str(this.state.value,f);
+        var val_str=this.state.value;
         return <TouchableOpacity onPress={this.on_press.bind(this)} style={{borderBottomWidth:0.5,height:40}}>
             <Text>{val_str}</Text>
         </TouchableOpacity>
