@@ -731,7 +731,7 @@ class Payment(Model):
                     line.tax_base or 0, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
                 line_vals = {
                     "move_id": move_id,
-                    "description": desc,
+                    "description": line.description or desc,
                     "account_id": line.account_id.id,
                     "tax_comp_id": line.tax_comp_id.id,
                     "tax_base": tax_base,
