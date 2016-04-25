@@ -1,4 +1,4 @@
-<FOrm model="account.payment" attrs='{"readonly":[["state","!=","draft"]]}' show_company="1">
+<form model="account.payment" attrs='{"readonly":[["state","!=","draft"]]}' show_company="1">
     <head>
         <field name="state"/>
         <button string="Print" icon="print" dropdown="1">
