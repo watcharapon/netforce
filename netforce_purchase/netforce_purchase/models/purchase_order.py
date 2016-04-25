@@ -326,7 +326,7 @@ class PurchaseOrder(Model):
                 cost_price_cur/=prod.purchase_to_stock_uom_factor
             else:
                 purch_uom=line.uom_id
-            cost_price=get_model("currency").convert(cost_price_cur,obj.currency_id.id,settings.currency_id.id)
+            cost_price=get_model("currency").convert(cost_price_cur,obj.currency_id.id,settings.currency_id.id,date=pick_vals.get("date"))
             cost_amount=cost_price*remain_qty
             line_vals = {
                 "product_id": prod.id,
@@ -344,6 +344,7 @@ class PurchaseOrder(Model):
             raise Exception("Nothing left to receive")
         pick_id = get_model("stock.picking").create(pick_vals, {"pick_type": "in"})
         pick = get_model("stock.picking").browse(pick_id)
+        pick.set_currency_rate()
         return {
             "next": {
                 "name": "pick_in",
