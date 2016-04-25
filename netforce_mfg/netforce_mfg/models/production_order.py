@@ -1034,7 +1034,7 @@ class ProductionOrder(Model):
     def complete_production_moves(self,ids,context={}):
         obj=self.browse(ids[0])
         for pick in obj.pickings:
-            if pick.state in ("in","out"):
+            if pick.type in ("in","out"):
                 pick.set_done()
 
     def get_pickings(self, ids, context={}):
