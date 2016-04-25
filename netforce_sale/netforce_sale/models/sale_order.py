@@ -575,6 +575,9 @@ class SaleOrder(Model):
                         sale_acc_id=prod.sale_account_id.id
                         if not sale_acc_id and prod.parent_id:
                             sale_acc_id=prod.parent_id.sale_account_id.id
+                        categ=prod.categ_id
+                        if not sale_acc_id:
+                            sale_acc_id=categ.sale_account_id.id
                     line_vals = {
                         "product_id": prod.id,
                         "description": line.description,
