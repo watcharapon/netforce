@@ -174,6 +174,7 @@ var FieldMany2One=NFView.extend({
             if (!that.data.readonly) {
                 that.$el.find("input").focus();
             }
+            that.$el.find("a.help").tooltip();
         }
         if (value) {
             if (_.isArray(value)) {
