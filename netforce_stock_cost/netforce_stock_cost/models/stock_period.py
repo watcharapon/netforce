@@ -55,9 +55,12 @@ class StockPeriod(Model):
         move_ids=get_model("stock.move").search([["date",">=",obj.date_from+" 00:00:00"],["date","<=",obj.date_to+" 23:59:59"],["state","=","done"],["product_id.type","=","stock"]])
         for move in get_model("stock.move").browse(move_ids):
             prod=move.product_id
-            acc_from_id=move.location_from_id.account_id.id
-            if not acc_from_id:
-                raise Exception("Missing account for location '%s'"%move.location_from_id.name)
+            if move.location_from_id.type=="customer" and prod.cogs_account_id:
+                acc_from_id=prod.cogs_account_id.id
+            else:
+                acc_from_id=move.location_from_id.account_id.id
+                if not acc_from_id:
+                    raise Exception("Missing account for location '%s'"%move.location_from_id.name)
             if move.location_to_id.type=="customer" and prod.cogs_account_id:
                 acc_to_id=prod.cogs_account_id.id
             else:

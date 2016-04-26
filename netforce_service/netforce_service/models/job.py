@@ -50,7 +50,7 @@ class Job(Model):
         "overdue": fields.Boolean("Overdue", function="get_overdue", function_search="search_overdue"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "documents": fields.One2Many("document", "related_id", "Documents"),
-        "tasks": fields.One2Many("task", "job_id", "Tasks"),
+        "tasks": fields.One2Many("task", "related_id", "Tasks"),
         "days_late": fields.Integer("Days Late", function="get_days_late"),
         "user_id": fields.Many2One("base.user", "Assigned To"),  # XXX: deprecated
         "resource_id": fields.Many2One("service.resource", "Assigned Resource", search=True),  # XXX: deprecated
