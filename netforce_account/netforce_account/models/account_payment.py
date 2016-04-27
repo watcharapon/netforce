@@ -451,7 +451,8 @@ class Payment(Model):
             if obj.currency_id.id == settings.currency_id.id:
                 currency_rate = 1.0
             else:
-                rate_from = obj.currency_id.get_rate(date=obj.date)
+                rate_type=obj.type=="in" and "sell" or "buy"
+                rate_from = obj.currency_id.get_rate(date=obj.date,rate_type=rate_type)
                 if not rate_from:
                     raise Exception("Missing currency rate for %s" % obj.currency_id.code)
                 rate_to = settings.currency_id.get_rate(date=obj.date)

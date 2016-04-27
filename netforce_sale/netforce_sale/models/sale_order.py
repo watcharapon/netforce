@@ -142,6 +142,16 @@ class SaleOrder(Model):
         settings = get_model("settings").browse(1)
         return settings.currency_id.id
 
+    def _get_currency_rates(self,context={}):
+        settings = get_model("settings").browse(1)
+        lines=[]
+        date = time.strftime("%Y-%m-%d")
+        lines.append({
+            "currency_id": settings.currency_id.id,
+            "rate": settings.currency_id.get_rate(date,"sell") or 1
+        })
+        return lines 
+
     _defaults = {
         "state": "draft",
         "date": lambda *a: time.strftime("%Y-%m-%d"),
@@ -150,6 +160,7 @@ class SaleOrder(Model):
         "tax_type": "tax_ex",
         "user_id": lambda *a: get_active_user(),
         "company_id": lambda *a: get_active_company(),
+        "currency_rates": _get_currency_rates,
     }
     _order = "date desc,number desc"
 
@@ -564,6 +575,9 @@ class SaleOrder(Model):
                         sale_acc_id=prod.sale_account_id.id
                         if not sale_acc_id and prod.parent_id:
                             sale_acc_id=prod.parent_id.sale_account_id.id
+                        categ=prod.categ_id
+                        if not sale_acc_id:
+                            sale_acc_id=categ.sale_account_id.id
                     line_vals = {
                         "product_id": prod.id,
                         "description": line.description,
@@ -1123,7 +1137,7 @@ class SaleOrder(Model):
                 cost-=line.amount
             subtotal=obj.amount_subtotal or 0
             profit=subtotal-cost
-            margin=profit*100/obj.subtotal if obj.subtotal else None
+            margin=profit*100/subtotal if subtotal else None
             vals[obj.id] = {
                 "act_cost_amount": cost,
                 "act_profit_amount": profit,

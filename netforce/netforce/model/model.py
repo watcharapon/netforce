@@ -617,7 +617,6 @@ class Model(object):
         joins, cond, w_args = self._where_calc(cond, context=context)
         args=w_args[:]
         ord_joins, ord_clauses = self._order_calc(order or self._order or "id")
-        # print("CONDITION:",cond)
         q = "SELECT tbl0.id FROM " + self._table + " tbl0"
         if joins:
             q += " " + " ".join(joins)
