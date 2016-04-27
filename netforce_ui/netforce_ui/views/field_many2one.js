@@ -43,6 +43,7 @@ var FieldMany2One=NFView.extend({
     render: function() {
         log("############");
         log("field_many2one.render",this);
+        var has_focus=this.$el.find("input").is(":focus");
         var that=this;
         if (this.options.perm) {
             this.$el.hide();
@@ -175,6 +176,7 @@ var FieldMany2One=NFView.extend({
                 that.$el.find("input").focus();
             }
             that.$el.find("a.help").tooltip();
+            if (has_focus) that.focus();
         }
         if (value) {
             if (_.isArray(value)) {
