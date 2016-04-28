@@ -87,16 +87,20 @@ def load_modules(modules):
     for mod in modules:
         module.load_module(mod)
 
-MODULE_VERSION = None
+_version_name = None
+_version_code = None
+
+def set_module_version(version_name,version_code):
+    global _version_name,_version_code
+    _version_name=version_name
+    _version_code=version_code
 
 
-def set_module_version(v):
-    global MODULE_VERSION
-    MODULE_VERSION = v
+def get_module_version_name():
+    return _version_name
 
-
-def get_module_version():
-    return MODULE_VERSION
+def get_module_version_code():
+    return _version_code
 
 web_proc=None
 job_proc=None
@@ -144,7 +148,7 @@ def run_server():
         print("running in development mode...")
     config.load_config()
     if args.version:
-        version = get_module_version()
+        version = get_module_version_name()
         print(version)
         return
     dbname = args.db or config.get("database")
