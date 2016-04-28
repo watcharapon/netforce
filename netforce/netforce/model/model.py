@@ -121,7 +121,7 @@ class Model(object):
             db.execute("CREATE TABLE %s (id SERIAL, PRIMARY KEY (id))" % self._table)
         else:
             res = db.query(
-                "SELECT * FROM pg_attribute a WHERE attrelid=(SELECT oid FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname=%s AND n.nspname=%s) AND attnum>0 AND attnotnull", self._table, schema)
+                "SELECT * FROM pg_attribute a WHERE attrelid=(SELECT pg_class.oid FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname=%s AND n.nspname=%s) AND attnum>0 AND attnotnull", self._table, schema)
             for r in res:
                 n = r.attname
                 if n == "id":
