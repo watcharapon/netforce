@@ -11,8 +11,6 @@ class PaymentMethod(Model):
             return res
         transaction_no=context.get("transaction_no")
         audit_log("Payment received: transaction_no=%s"%transaction_no)
-        amount=context.get("amount")
-        currency_id=context.get("currency_id")
         pay_type=context.get("type")
         res=get_model("sale.order").search([["transaction_no","=",transaction_no]])
         if not res:
@@ -22,15 +20,13 @@ class PaymentMethod(Model):
         print("Found sales order %d for transaction_no=%s"%(sale_id,transaction_no))
         sale=get_model("sale.order").browse(sale_id)
         if not sale.is_paid:
-            if currency_id and currency_id!=sale.currency_id.id:
-                raise Exception("Received sales order payment in wrong currency (pmt: %s, sale: %s)"%(currency_id,sale.currency_id.id))
             method=sale.pay_method_id
             if not method:
                 raise Exception("Missing sales order payment method")
             if method.type!=pay_type:
                 raise Exception("Received sales order payment with wrong method (pmt: %s, sale: %s)"%(pay_type,method.type))
             audit_log("Creating payment for sales order %s: transaction_no=%s"%(sale.number,transaction_no))
-            sale.payment_received()
+            sale.payment_received(context=context)
         settings=get_model("ecom2.settings").browse(1) # XXX: change this
         if settings.ecom_return_url:
             url=settings.ecom_return_url+str(sale_id)
