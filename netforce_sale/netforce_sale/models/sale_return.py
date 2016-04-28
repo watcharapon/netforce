@@ -468,7 +468,7 @@ class SaleReturn(Model):
                     sale_acc_id=None
                     if prod:
                         #1. get account from product
-                        sale_acc_id=prod.sale_account_id.id
+                        sale_acc_id=prod.sale_account_id and prod.sale_account_id.id or None
                         # 2. if not get from master/parent product
                         if not sale_acc_id and prod.parent_id:
                             sale_acc_id=prod.parent_id.sale_account_id.id
@@ -478,7 +478,7 @@ class SaleReturn(Model):
                             sale_acc_id= categ.sale_account_id and categ.sale_account_id.id or None
 
                     if not sale_acc_id:
-                        raise Exception("Missing sale account for product %s " % prod.name )
+                        raise Exception("Missing sale account for product [%s] " % prod.name )
 
 
                     line_vals = {

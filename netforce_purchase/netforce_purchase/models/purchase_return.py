@@ -334,7 +334,7 @@ class PurchaseReturn(Model):
             purch_acc_id=None
             if prod:
                 # 1. get from product
-                purch_acc_id=prod.purchase_account_id.id
+                purch_acc_id=prod.purchase_account_id and prod.purchase_account_id.id or None
                 # 2. if not get from master / parent product
                 if not purch_acc_id and prod.parent_id:
                     purch_acc_id=prod.parent_id.purchase_account_id.id
