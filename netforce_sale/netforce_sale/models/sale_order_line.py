@@ -66,6 +66,7 @@ class SaleOrderLine(Model):
         "production_id": fields.Many2One("production.order","Production Order"),
         "lot_id": fields.Many2One("stock.lot","Lot / Serial Number"),
         "ship_address_id": fields.Many2One("address", "Shipping Address"),
+        "packaging_id": fields.Many2One("stock.packaging", "Packaging"),
     }
 
     def create(self, vals, context={}):

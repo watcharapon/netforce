@@ -330,15 +330,17 @@ class Cart(Model):
         for line in obj.lines:
             if line.lot_id:
                 exclude_lot_ids.append(line.lot_id.id)
-        res=get_model("stock.balance").search([["product_id","=",prod_id],["lot_id","!=",None],["qty_virt",">",0],["lot_id","not in",exclude_lot_ids]],order="lot_id.received_date")
-        if res:
-            bal_id=res[0]
-            bal=get_model("stock.balance").browse(bal_id)
-            lot_id=bal.lot_id.id
+        prod=get_model("product").browse(prod_id)
+        found_lot_id=None
+        for lot in prod.stock_lots:
+            if lot.id not in exclude_lot_ids:
+                found_lot_id=lot.id
+                break
+        if found_lot_id:
             get_model("ecom2.cart.line").create({
                 "cart_id": obj.id,
                 "product_id": prod_id,
-                "lot_id": lot_id,
+                "lot_id": found_lot_id,
                 "qty": 1
             })
         else:
@@ -371,7 +373,10 @@ class Cart(Model):
                 break
         if not del_line:
             raise Exception("No cart line found to remove")
-        del_line.delete()
+        if del_line.qty>1:
+            del_line.write({"qty":del_line.qty-1})
+        else:
+            del_line.delete()
 
     def get_delivery_delay(self,ids,context={}):
         settings=get_model("ecom2.settings").browse(1)
