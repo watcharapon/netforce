@@ -18,7 +18,7 @@ var DOMParser = require('xmldom').DOMParser;
 var rpc=require("./rpc");
 var utils=require("./utils");
 var Button=require("./button");
-var UIParams=require("./ui_params");
+var ui_params=require("./ui_params");
 
 class Menu extends Component {
     constructor(props) {
@@ -31,7 +31,7 @@ class Menu extends Component {
 
     render() {
         console.log("Menu.render");
-        var layout=UIParams.get_layout(this.props.layout);
+        var layout=ui_params.get_layout(this.props.layout);
         var doc=new DOMParser().parseFromString(layout.layout);
         var root_el=doc.documentElement;
         var items=[];

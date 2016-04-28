@@ -11,9 +11,10 @@ module.exports.set_ui_params=function(params) {
     _ui_params=params;
 }
 
-module.exports.load_ui_params=function(modules,cb) {
+var load_ui_params_from_server=function(modules,cb) {
+    console.log("load_ui_params_from_server");
     var ctx={mobile_only:true,modules:modules};
-    rpc.execute("ui.params","load_ui_params",[],{context:ctx},function(err,data) {
+    rpc.execute("ui.params","load_ui_params",[],{context:ctx},(err,data)=>{
         if (err) {
             cb(err);
             return;
@@ -25,19 +26,35 @@ module.exports.load_ui_params=function(modules,cb) {
     });
 }
 
-module.exports.load_ui_params_local=function(cb) {
+module.exports.load_ui_params_from_server=load_ui_params_from_server;
+
+module.exports.load_ui_params=function(modules,cb) {
+    console.log("load_ui_params");
     AsyncStorage.getItem("ui_params",function(err,data) {
         if (err) {
-            cb(err);
+            alert("Error: "+err);
             return;
         }
         if (!data) {
-            cb("UI params not found");
+            console.log("ui_params not in local storage");
+            load_ui_params_from_server(cb);
             return;
         }
         _ui_params=JSON.parse(data);
-        cb(null);
-    }.bind(this));
+        rpc.execute("ui.params","get_version",[],{},(err,data)=>{
+            if (err) {
+                alert("Error: "+err);
+                return;
+            }
+            if (_ui_params.version_code==data.version_code) {
+                console.log("ui_params in local storage, version match");
+                cb();
+                return;
+            }
+            console.log("ui_params in local storage, wrong version");
+            load_ui_params_from_server(cb);
+        });
+    });
 }
 
 module.exports.get_action=function(name) {

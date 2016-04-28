@@ -17,8 +17,11 @@ import React, {
 
 var NavBar=require("./navbar");
 var Login=require("./login");
-var DBList=require("./db_list");
-var DBForm=require("./db_form");
+var SignUp=require("./sign_up");
+var OrgList=require("./org_list");
+var AddOrg=require("./add_org");
+var ViewOrg=require("./view_org");
+var AddUser=require("./add_user");
 var Menu=require("./menu");
 var List=require("./list");
 var Form=require("./form");
@@ -36,13 +39,20 @@ class Netforce extends Component {
     }
 
     componentDidMount() {
+        AsyncStorage.getItem("auth_user_id",function(err,res) {
+            if (!res) return;
+            var auth_user_id=parseInt(res);
+            _nav.push({name:"org_list"});
+        }.bind(this));
     }
 
     render() {
+        console.log("Netforce.render");
         return <Navigator renderScene={this.render_scene.bind(this)}/>
     }
 
     render_scene(route,navigator) {
+        console.log("Netforce.render_scene",route);
         _nav=navigator;
         return <View style={{ flex: 1, }}>
             <NavBar navigator={navigator} title="Netforce"/>
@@ -50,10 +60,16 @@ class Netforce extends Component {
                 if (!route) route={name:"login"};
                 if (route.name=="login") {
                     return <Login navigator={navigator}/>
-                } else if (route.name=="db_list") {
-                    return <DBList navigator={navigator}/>
-                } else if (route.name=="db_form") {
-                    return <DBForm navigator={navigator} index={route.index}/>
+                } else if (route.name=="sign_up") {
+                    return <SignUp navigator={navigator}/>
+                } else if (route.name=="org_list") {
+                    return <OrgList navigator={navigator}/>
+                } else if (route.name=="add_org") {
+                    return <AddOrg navigator={navigator}/>
+                } else if (route.name=="view_org") {
+                    return <ViewOrg navigator={navigator} org_id={route.org_id}/>
+                } else if (route.name=="add_user") {
+                    return <AddUser navigator={navigator} org_id={route.org_id}/>
                 } else if (route.name=="action") {
                     var action;
                     if (typeof(route.action)=="object") {

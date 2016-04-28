@@ -529,7 +529,6 @@ def _ldelim(this):
 def _rdelim(this):
     return "}}"
 
-
 def _fmt_date(this, val, fmt=None):
     if not val:
         return None
