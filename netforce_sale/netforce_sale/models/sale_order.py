@@ -570,6 +570,8 @@ class SaleOrder(Model):
                     remain_qty = line.qty - line.qty_invoiced
                     if remain_qty <= 0:
                         continue
+
+                    # TODO: this get account should call from product.get_account()["sale_account_id"]
                     sale_acc_id=None
                     if prod:
                         sale_acc_id=prod.sale_account_id.id
