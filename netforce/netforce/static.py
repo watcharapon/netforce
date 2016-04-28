@@ -269,7 +269,7 @@ def make_css(minify=False):
 def make_ui_params():
     print("building ui_params...")
     data = {}
-    data["version"] = netforce.get_module_version()
+    data["version"] = netforce.get_module_version_name()
     data["models"] = model.models_to_json()
     data["actions"] = action.actions_to_json()
     data["layouts"] = layout.layouts_to_json()
