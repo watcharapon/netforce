@@ -378,14 +378,22 @@ class PurchaseOrder(Model):
             remain_qty = line.qty - line.qty_invoiced
             if remain_qty <= 0:
                 continue
+            # get account for purchase invoice
             purch_acc_id=None
             if prod:
+                # 1. get from product
                 purch_acc_id=prod.purchase_account_id.id
+                # 2. if not get from master / parent product
                 if not purch_acc_id and prod.parent_id:
                     purch_acc_id=prod.parent_id.purchase_account_id.id
+                # 3. if not get from product category
                 categ=prod.categ_id
-                if not purch_acc_id:
-                    purch_acc_id=categ.purchase_account_id.id
+                if categ and not purch_acc_id:
+                    purch_acc_id= categ.purchase_account_id and categ.purchase_account_id.id and None
+
+            if not purch_acc_id:
+                raise Exception("Missing purchase account configure for product %s " % prod.name)
+
             line_vals = {
                 "product_id": prod.id,
                 "description": line.description,

@@ -323,18 +323,36 @@ class PurchaseReturn(Model):
             inv_vals["journal_id"] = contact.purchase_journal_id.id
             if contact.purchase_journal_id.sequence_id:
                 inv_vals["sequence_id"] = contact.purchase_journal_id.sequence_id.id
+
         for line in obj.lines:
             prod = line.product_id
             remain_qty = line.qty - line.qty_invoiced
             if remain_qty <= 0:
                 continue
+
+            # get account for purchase invoice
+            purch_acc_id=None
+            if prod:
+                # 1. get from product
+                purch_acc_id=prod.purchase_account_id.id
+                # 2. if not get from master / parent product
+                if not purch_acc_id and prod.parent_id:
+                    purch_acc_id=prod.parent_id.purchase_account_id.id
+                # 3. if not get from product category
+                categ=prod.categ_id
+                if categ and not purch_acc_id:
+                    purch_acc_id= categ.purchase_account_id and categ.purchase_account_id.id or None
+
+            if not purch_acc_id:
+                raise Exception("Missing purchase account configure for product %s " % prod.name)
+
             line_vals = {
                 "product_id": prod.id,
                 "description": line.description,
                 "qty": remain_qty,
                 "uom_id": line.uom_id.id,
                 "unit_price": line.unit_price,
-                "account_id": prod and prod.purchase_account_id.id or None,
+                "account_id": purch_acc_id,
                 "tax_id": line.tax_id.id,
                 "amount": line.amount,
             }
