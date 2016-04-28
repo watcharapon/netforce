@@ -341,6 +341,7 @@ class SaleOrder(Model):
                 data["amount_tax"] += tax
             else:
                 tax = 0
+            amt=Decimal(round(float(amt),2)) # # convert to float because Decimal gives wrong rounding
             if tax_type == "tax_in":
                 data["amount_subtotal"] += amt - tax
             else:
