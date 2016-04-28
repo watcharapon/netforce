@@ -126,10 +126,11 @@ def run_server():
     parser = argparse.ArgumentParser(description="Netforce server")
     parser.add_argument("-v", "--version", action="store_true", help="Show version information")
     parser.add_argument("-d", "--db", metavar="DB", help="Database")
+    parser.add_argument("-s", "--schema", metavar="SCHEMA", help="Database schema")
     parser.add_argument("-u", "--update", action="store_true", help="Update database schema")
     parser.add_argument("-M", "--migrate", metavar="FROM_VERSION", help="Apply version migrations")
     parser.add_argument("-l", "--load", metavar="MODULE", help="Load module data")
-    parser.add_argument("-s", "--export_static", action="store_true", help="Update static files")
+    parser.add_argument("-S", "--export_static", action="store_true", help="Update static files")
     parser.add_argument("-t", "--test", action="store_true", help="Run unit tests")
     parser.add_argument("-D", "--devel", action="store_true", help="Development mode")
     parser.add_argument("-m", "--minify", action="store_true", help="Minify js/css")
@@ -149,6 +150,9 @@ def run_server():
     dbname = args.db or config.get("database")
     if dbname:
         database.set_active_db(dbname)
+    schema = args.schema or config.get("schema")
+    if schema:
+        database.set_active_schema(schema)
     ipc.init()
     if args.update:
         model.update_db(force=args.force)

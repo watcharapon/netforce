@@ -115,12 +115,13 @@ class Model(object):
 
     def update_db(self):
         db = database.get_connection()
-        res = db.get("SELECT * FROM pg_class WHERE relname=%s", self._table)
+        schema = database.get_active_schema() or "public"
+        res = db.get("SELECT * FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname=%s AND n.nspname=%s", self._table, schema)
         if not res:
             db.execute("CREATE TABLE %s (id SERIAL, PRIMARY KEY (id))" % self._table)
         else:
             res = db.query(
-                "SELECT * FROM pg_attribute a WHERE attrelid=(SELECT oid FROM pg_class WHERE relname=%s) AND attnum>0 AND attnotnull", self._table)
+                "SELECT * FROM pg_attribute a WHERE attrelid=(SELECT oid FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname=%s AND n.nspname=%s) AND attnum>0 AND attnotnull", self._table, schema)
             for r in res:
                 n = r.attname
                 if n == "id":
@@ -134,13 +135,14 @@ class Model(object):
 
     def update_db_constraints(self):  # XXX: move to update_db
         db = database.get_connection()
+        schema = database.get_active_schema() or "public"
         constraints = self._sql_constraints[:]
         # if self._key: # XXX
         #    constraints.append(("key_uniq","unique ("+", ".join([n for n in self._key])+")",""))
         for (con_name, con_def, _) in constraints:
             full_name = "%s_%s" % (self._table, con_name)
             res = db.get(
-                "SELECT conname, pg_catalog.pg_get_constraintdef(oid,true) AS condef FROM pg_constraint WHERE conname=%s", full_name)
+                "SELECT conname, pg_catalog.pg_get_constraintdef(pg_constraint.oid,true) AS condef FROM pg_constraint JOIN pg_catalog.pg_namespace n ON n.oid=pg_constraint.connamespace WHERE conname=%s AND n.nspname=%s", full_name, schema)
             if res:
                 if con_def == res["condef"].lower():
                     continue
@@ -153,9 +155,10 @@ class Model(object):
 
     def update_db_indexes(self):
         db = database.get_connection()
+        schema = database.get_active_schema() or "public"
         for field_names in self._indexes:
             idx_name = self._table + "_" + "_".join(field_names) + "_idx"
-            res = db.get("SELECT * FROM pg_index i,pg_class c WHERE c.oid=i.indexrelid AND c.relname=%s", idx_name)
+            res = db.get("SELECT * FROM pg_index i,pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE c.oid=i.indexrelid AND c.relname=%s AND n.nspname=%s", idx_name, schema)
             if not res:
                 print("creating index %s" % idx_name)
                 db.execute("CREATE INDEX " + idx_name + " ON " + self._table + " (" + ",".join(field_names) + ")")

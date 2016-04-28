@@ -57,12 +57,14 @@ for name, typeoid in types_mapping.items():
 
 connections = {}
 active_db = None
+active_schema = None
+con_id=0
 
-def connect(dbname):
-    #print("connect %s pid=%s"%(dbname,os.getpid()))
+def connect(dbname,schema):
+    print("DB.connect db=%s schema=%s pid=%s"%(dbname,schema,os.getpid()))
     try:
-        if dbname in connections:
-            return connections[dbname]
+        if (dbname,schema) in connections:
+            return connections[(dbname,schema)]
         if len(connections) >= MAX_CONS:
             print_color("need to close oldest connection (pid=%s, num_cons=%s)" %
                         (os.getpid(), len(connections)), "red")
@@ -81,8 +83,10 @@ def connect(dbname):
         if res.password:
             args["password"] = res.password
         db = Connection(**args)
+        print("  => con_id=%s"%db.con_id)
         db._dbname = dbname
-        connections[dbname] = db
+        db._schema = schema
+        connections[(dbname,schema)] = db
         return db
     except Exception as e:
         import traceback
@@ -91,29 +95,37 @@ def connect(dbname):
 
 
 def set_active_db(dbname):
-    global active_db
+    global active_db, active_schema
     active_db = dbname
+    active_schema = None
 
+def set_active_schema(schema):
+    global active_schema
+    active_schema = schema
 
 def get_active_db():
     return active_db
 
+def get_active_schema():
+    return active_schema
 
 def get_connection():
+    #print("DB.get_connection db=%s schema=%s"%(active_db,active_schema))
     if not active_db:
         return None
-    db = connections.get(active_db)
+    db = connections.get((active_db,active_schema))
     if db and db.is_closed():
-        del connections[active_db]
+        del connections[(active_db,active_schema)]
         db = None
     if not db:
-        db = connect(active_db)
+        db = connect(active_db,active_schema)
     #print("db.get_connection db=%s pid=%s back_pid=%s"%(active_db,os.getpid(),db._db.get_backend_pid()))
     return db
 
 class Transaction:
     def __enter__(self):
         self.db=get_connection()
+        self.db.begin()
 
     def __exit__(self,ex_type,ex_val,tb):
         if ex_type is None:
@@ -136,23 +148,29 @@ def close_oldest_connection():
 class Connection():
 
     def __init__(self, **args):
+        global con_id
         try:
             self._db = psycopg2.connect(**args)
             # self._db.set_session(psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE) # postgres out-of-shared-memory-error
             # self._db.set_session(psycopg2.extensions.ISOLATION_LEVEL_REPEATABLE_READ)
             self._db.set_session(psycopg2.extensions.ISOLATION_LEVEL_READ_COMMITTED)
             self.con_time = time.strftime("%Y-%m-%d %H:%M:%S")
+            self.con_id = con_id
+            con_id+=1
         except Exception as e:
             raise Exception("failed to connect: %s" % e)
 
     def begin(self):
-        #print(">>> db.begin pid=%s back_pid=%s"%(os.getpid(),self._db.get_backend_pid()))
+        print(">>> db.begin db=%s schema=%s pid=%s back_pid=%s"%(self._dbname,self._schema,os.getpid(),self._db.get_backend_pid()))
         if self.is_closed():
             raise Exception("Connection is closed")
         try:
             res = self._db.get_transaction_status()
             if res != psycopg2.extensions.TRANSACTION_STATUS_IDLE:
                 raise Exception("Failed to start transaction (%d)" % res)
+            if self._schema:
+                self.execute("SET search_path TO %s"%self._schema)
+                #time.sleep(0.1) # XXX
         except Exception as e:
             print_color("WARNING: failed to start database transaction, closing connection (db=%s, pid=%s)" %
                         (self._dbname, os.getpid()), "red")
@@ -160,7 +178,7 @@ class Connection():
             raise e
 
     def execute(self, query, *args):
-        # print("execute",query)
+        #print("DB.execute con_id=%s db=%s schema=%s q=%s"%(self.con_id,self._dbname,self._schema,query))
         if self.is_closed():
             raise Exception("Connection is closed")
         try:
@@ -205,7 +223,7 @@ class Connection():
         return res and res[0] or None
 
     def commit(self):
-        #print("<<< db.commit pid=%s back_pid=%s"%(os.getpid(),self._db.get_backend_pid()))
+        #print("DB.commit con_id=%s db=%s schema=%s pid=%s back_pid=%s"%(self.con_id,self._dbname,self._schema,os.getpid(),self._db.get_backend_pid()))
         if self.is_closed():
             raise Exception("Connection is closed")
         try:
@@ -235,7 +253,7 @@ class Connection():
         except:
             print("db connection close failed, skipping...")
             pass
-        del connections[self._dbname]
+        del connections[(self._dbname,self._schema)]
 
     def is_closed(self):  # XXX: this only checks if connection was closed by client (not by server)...
         return self._db.closed != 0
