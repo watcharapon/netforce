@@ -6,6 +6,7 @@ import React, {
   Text,
   Image,
   Platform,
+  AsyncStorage,
   TouchableOpacity,
 } from 'react-native';
 
@@ -41,7 +42,10 @@ class Navbar extends Component {
     go_back() {
         var routes=this.props.navigator.getCurrentRoutes();
         var route=routes[routes.length-2];
-        if (route==null) route={name:"login"};
+        if (route==null) {
+            AsyncStorage.removeItem("auth_user_id"); // XXX
+            route={name:"login"};
+        }
         route=Object.assign({},route);
         this.props.navigator.replacePrevious(route);
         this.props.navigator.pop();

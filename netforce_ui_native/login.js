@@ -16,54 +16,30 @@ var ui_params=require("./ui_params");
 
 class Login extends Component {
     constructor(props) {
+        console.log("Login.constructor");
         super(props);
-        this.state = {login:"",password:"",dbname:null,db_list:[],loading:true};
+        this.state = {};
     }
 
     componentDidMount() {
-        AsyncStorage.getItem("db_list",function(err,res) {
-            var db_list=JSON.parse(res)||[];
-            var dbname=db_list.length>0?db_list[0].dbname:null;
-            this.setState({db_list:db_list,dbname:dbname});
-        }.bind(this));
-        AsyncStorage.getItem("base_url",function(err,res) {
-            if (!res) {
-                this.setState({loading:false});
+        console.log("Login.componentDidMount");
+        AsyncStorage.getItem("email",function(err,email) {
+            if (!email) {
                 return;
             }
-            rpc.set_base_url(res);
-            AsyncStorage.getItem("user_id",function(err,res) {
-                if (!res) {
-                    this.setState({loading:false});
-                    return;
-                }
-                ui_params.load_ui_params_local(function(err) {
-                    if (!res) {
-                        this.setState({loading:false});
-                        return;
-                    }
-                    var login_action={name:"action",action:"main_menu_mobile"};
-                    this.props.navigator.replace(login_action);
-                });
-            }.bind(this));
+            console.log("email",email);
+            this.setState({email});
         }.bind(this));
     }
 
     render() {
+        console.log("Login.render");
         if (this.state.loading) return <Text>Loading...</Text>
         return <View>
             <Text>
-                Database:
+                Email:
             </Text>
-            <Picker selectedValue={this.state.dbname} onValueChange={(dbname) => this.setState({dbname})}> 
-                {this.state.db_list.map(function(obj,i) {
-                    return <Picker.Item label={obj.dbname} value={obj.dbname} key={i}/>
-                }.bind(this))}
-            </Picker>
-            <Text>
-                Username:
-            </Text>
-            <TextInput style={{height:40, borderColor: 'gray', borderWidth: 1}} value={this.state.login} onChangeText={(login)=>this.setState({login})}/>
+            <TextInput style={{height:40, borderColor: 'gray', borderWidth: 1}} value={this.state.email} onChangeText={(email)=>this.setState({email})}/>
             <Text>
                 Password:
             </Text>
@@ -76,9 +52,9 @@ class Login extends Component {
                 </Button>
             </View>
             <View style={{paddingTop:5}}>
-                <Button onPress={this.manage_db.bind(this)}>
+                <Button onPress={this.click_link.bind(this,{name:"sign_up"})}>
                     <View style={{height:50,backgroundColor:"#ccc",alignItems:"center",justifyContent:"center"}}>
-                        <Text style={{color:"#fff"}}>Manage Databases</Text>
+                        <Text style={{color:"#fff"}}>Sign Up</Text>
                     </View>
                 </Button>
             </View>
@@ -87,56 +63,28 @@ class Login extends Component {
 
     login() {
         try {
-            if (!this.state.dbname) throw "Missing database"; 
-            if (!this.state.login) throw "Missing login"; 
+            if (!this.state.email) throw "Missing email"; 
             if (!this.state.password) throw "Missing password"; 
         } catch (e) {
             alert("Error: "+e);
             return;
         }
-        AsyncStorage.getItem("db_list",function(err,res) {
-            var db_list=JSON.parse(res)||[];
-            var db_vals=db_list.find(function(obj) {return obj.dbname==this.state.dbname}.bind(this));
-            var base_url=db_vals.protocol+"://"+db_vals.hostname+":"+db_vals.port;
-            rpc.set_base_url(base_url);
-             var ctx={
-                  data: {
-                      db_name: this.state.dbname,
-                      login: this.state.login,
-                      password: this.state.password,
-                  }
-              };
-              rpc.execute("login","login",[],{context:ctx},function(err,res) {
-                  if (err) {
-                      alert("Error: "+err);
-                      return;
-                  }
-                  var user_id=res.cookies.user_id;
-                  var user_name=res.cookies.user_name;
-                  var company_name=res.cookies.company_name;
-                  AsyncStorage.setItem("user_id",""+user_id);
-                  AsyncStorage.setItem("user_name",user_name);
-                  AsyncStorage.setItem("company_name",company_name);
-                  AsyncStorage.setItem("base_url",base_url);
-                  var login_action={name:"action",action:"main_menu_mobile"};
-                  ui_params.load_ui_params(function(err) {
-                      if (err) {
-                          alert("Error: "+err);
-                          return;
-                      }
-                      this.props.navigator.replace(login_action);
-                  }.bind(this));
-              }.bind(this));
+        AsyncStorage.setItem("email",this.state.email);
+        rpc.set_base_url("https://auth.netforce.com");
+        rpc.execute("auth.user","login",[this.state.email,this.state.password],{},function(err,res) {
+          if (err) {
+              alert("Error: "+err);
+              return;
+          }
+          var user_id=res.user_id;
+          AsyncStorage.setItem("auth_user_id",""+user_id);
+          this.props.navigator.push({name:"org_list"});
         }.bind(this));
-  }
+    }
 
-  manage_db() {
-      this.props.navigator.push({name:"db_list"});
-  }
-
-  click_link(action) {
-      this.props.navigator.push(action);
-  }
+    click_link(action) {
+        this.props.navigator.push(action);
+    }
 }
 
 module.exports=Login;

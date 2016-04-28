@@ -57,7 +57,8 @@ class Many2Many(Field):
         m = netforce.model.get_model(self.model)
         mr = netforce.model.get_model(self.relation)
         db = database.get_connection()
-        res = db.get("SELECT * FROM pg_class WHERE relname=%s", self.reltable)
+        schema = database.get_active_schema() or "public"
+        res = db.get("SELECT * FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname=%s AND n.nspname=%s", self.reltable, schema)
         if not res:
             db.execute("CREATE TABLE %s (%s int4 NOT NULL REFERENCES %s(id) ON DELETE CASCADE, %s int4 NOT NULL REFERENCES %s(id) ON DELETE CASCADE)" % (
                 self.reltable, self.relfield, m._table, self.relfield_other, mr._table))

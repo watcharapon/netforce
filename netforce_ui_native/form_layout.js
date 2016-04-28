@@ -44,6 +44,7 @@ class FormLayout extends Component {
     }
 
     render() {
+        console.log("FormLayout.render",this.props.context);
         var m=ui_params.get_model(this.props.model);
         var child_els=xpath.select("child::*", this.props.layout_el);
         var cols=[];
@@ -90,7 +91,7 @@ class FormLayout extends Component {
                         var res=xpath.select("form",el);
                         var form_layout_el=res.length>0?res[0]:null;
                         var link=el.getAttribute("link");
-                        field_component=<FieldOne2Many navigator={this.props.navigator} model={this.props.model} name={name} data={this.props.data} list_layout_el={list_layout_el} form_layout_el={form_layout_el} readonly={this.props.readonly} link={link}/>
+                        field_component=<FieldOne2Many navigator={this.props.navigator} model={this.props.model} name={name} data={this.props.data} list_layout_el={list_layout_el} form_layout_el={form_layout_el} readonly={this.props.readonly} link={link} context={this.props.context}/>
                     } else {
                         throw "Invalid field type: "+f.type;
                     }
@@ -136,7 +137,7 @@ class FormLayout extends Component {
     press_button(el) {
         var method=el.getAttribute("method");
         if (method) {
-            var ctx={};
+            var ctx=this.props.context||{};
             rpc.execute(this.props.model,method,[[this.props.data.id]],{context:ctx},function(err,res) {
                 if (err) {
                     alert("Error: "+err);

@@ -22,20 +22,20 @@ class FieldDecimal extends Component {
 
     componentDidMount() {
         var val=this.props.data[this.props.name];
-        this.setState({value:val});
+        var val_str=val!=null?""+val:"";
+        this.setState({val_str:val_str});
     }
 
     load_data() {
     }
 
     render() {
-        var f=UIParams.get_field(this.props.model,this.props.name);
-        var val_str=utils.field_val_to_str(this.state.value,f);
-        return <TextInput value={val_str} onChangeText={this.onchange.bind(this)} style={{height:40}}/>
+        return <TextInput value={this.state.val_str} onChangeText={this.onchange.bind(this)} style={{height:40}} keyboardType="numeric"/>
     }
 
-    onchange(val) {
-        this.setState({value:val});
+    onchange(val_str) {
+        this.setState({val_str:val_str});
+        var val=parseFloat(val_str);
         this.props.data[this.props.name]=val;
     }
 }

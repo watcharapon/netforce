@@ -31,3 +31,25 @@ module.exports.field_val_to_str=function(val,field) {
         throw "Invalid field type: "+field.type;
     }
 }
+
+module.exports.get_change_vals=function(data) {
+    console.log("get_change_vals",data);
+    var change={};
+    for (var name in data) {
+        if (name=="id") continue;
+        if (name=="_orig_data") continue;
+        var v=data[name];
+        var orig_v;
+        if (data.id) {
+            if (!data._orig_data) throw "Missing _orig_data";
+            orig_v=data._orig_data[name];
+        } else {
+            orig_v=null;
+        }
+        if (v && typeof(v)=="object") v=v[0]; // XXX
+        if (orig_v && typeof(orig_v)=="object") orig_v=orig_v[0]; // XXX
+        if (v!=orig_v) change[name]=v;
+    }
+    console.log("=> change",change);
+    return change;
+}

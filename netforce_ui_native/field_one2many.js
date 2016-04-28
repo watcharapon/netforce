@@ -161,7 +161,8 @@ class FieldOne2Many extends Component {
                 on_delete:this.on_delete.bind(this),
                 data:item_data,
                 index:index,
-                readonly:this.props.readonly
+                readonly:this.props.readonly,
+                context: this.props.context,
             };
         }
         this.props.navigator.push(route);

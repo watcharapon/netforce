@@ -1,6 +1,7 @@
 package com.netforce;
 
 import com.facebook.react.ReactActivity;
+import com.mikemonteith.reactnativempchart.MPChartPackage;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 
@@ -8,7 +9,6 @@ import com.AirMaps.AirPackage;
 import com.imagepicker.ImagePickerPackage;
 import me.nucleartux.date.ReactDatePackage;
 import com.oblador.vectoricons.VectorIconsPackage;
-import cn.mandata.react_native_mpchart.MPChartPackage;
 
 import java.util.Arrays;
 import java.util.List;

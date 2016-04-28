@@ -22,16 +22,25 @@ from netforce.model import Model, fields
 from netforce import action
 from netforce import layout
 from netforce import model
+from netforce import get_module_version_name,get_module_version_code
 
 class UIParams(Model):
     _name = "ui.params"
     _store = False
+
+    def get_version(self,context={}):
+        return {
+            "version_name": get_module_version_name(),
+            "version_code": get_module_version_code(),
+        }
     
     def load_ui_params(self,context={}):
         actions=action.actions_to_json(modules=context.get("modules"))
         layouts=layout.layouts_to_json(modules=context.get("modules"),mobile_only=context.get("mobile_only"))
         models=model.models_to_json()
         return {
+            "version_name": get_module_version_name(),
+            "version_code": get_module_version_code(),
             "actions": actions,
             "layouts": layouts,
             "models": models,

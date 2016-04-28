@@ -128,6 +128,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-mpchart')
     compile fileTree(dir: "libs", include: ["*.jar"])
     compile "com.android.support:appcompat-v7:23.1.1"
     compile "com.facebook.react:react-native:0.20.+"
@@ -135,7 +136,6 @@ dependencies {
     compile project(':react-native-image-picker')
     compile project(':reactdate')
     compile project(':react-native-vector-icons')
-    compile project(':react-native-chart-android')
 }
 
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"

@@ -341,7 +341,8 @@ def compare_version(v1, v2):
 
 def get_db_version():
     db = database.get_connection()
-    res = db.get("SELECT * FROM pg_class WHERE relname='settings'")
+    schema = database.get_active_schema() or "public"
+    res = db.get("SELECT * FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname='settings' AND nspname=%s",schema)
     if not res:
         return None
     res = db.get("SELECT * FROM settings WHERE id=1")
@@ -352,7 +353,8 @@ def get_db_version():
 
 def set_db_version(version):
     db = database.get_connection()
-    res = db.get("SELECT * FROM pg_class WHERE relname='settings'")
+    schema = database.get_active_schema() or "public"
+    res = db.get("SELECT * FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname='settings' AND nspname=%s",schema)
     if not res:
         raise Exception("Missing settings table")
     res = db.get("SELECT * FROM settings WHERE id=1")
@@ -363,7 +365,8 @@ def set_db_version(version):
 
 def is_empty_db():
     db = database.get_connection()
-    res = db.get("SELECT * FROM pg_class WHERE relname='settings'")
+    schema = database.get_active_schema() or "public"
+    res = db.get("SELECT * FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname='settings' AND nspname=%s",schema)
     if not res:
         return True
     res = db.get("SELECT * FROM settings WHERE id=1")

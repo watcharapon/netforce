@@ -109,7 +109,7 @@ class Form extends Component {
             <View style={{alignItems:"center",padding:10,borderBottomWidth:0.5,marginBottom:10}}>
                 <Text style={{fontWeight:"bold"}}>{title}</Text>
             </View>
-            <FormLayout navigator={this.props.navigator} model={this.props.model} data={this.state.data} layout_el={this.layout_el} readonly={this.readonly} reload={this.reload.bind(this)}/>
+            <FormLayout navigator={this.props.navigator} model={this.props.model} data={this.state.data} layout_el={this.layout_el} readonly={this.readonly} reload={this.reload.bind(this)} context={this.props.context}/>
             {function() {
                 if (this.readonly) return;
                 return <View style={{paddingTop:5,marginTop:20}}>

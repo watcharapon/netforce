@@ -18,7 +18,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from netforce import get_module_version
+from netforce import get_module_version_name
 from netforce.model import Model, fields, get_model
 from netforce import database
 import json
@@ -146,7 +146,7 @@ class Login(Model):
             res = db.get("SELECT * FROM pg_class WHERE relname='settings'")
             settings = get_model("settings").browse(1)
             version = settings.version
-            mod_version = get_module_version()
+            mod_version = get_module_version_name()
             if version != mod_version:
                 raise Exception("Database version (%s) is different than modules version (%s), please upgrade database before login." % (
                     version, mod_version))

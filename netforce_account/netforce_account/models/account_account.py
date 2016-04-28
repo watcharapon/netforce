@@ -140,7 +140,7 @@ class Account(Model):
                         acc_bals[id] = vals
                         get_model("field.cache").set_value("account.account", "balance", id, vals)
                 return acc_bals
-            q = "SELECT l.account_id,SUM(l.debit) AS debit,SUM(l.credit) AS credit,SUM(COALESCE(l.amount_cur,l.debit-l.credit)) AS amount_cur FROM account_move_line l JOIN account_move m ON m.id=l.move_id WHERE l.account_id IN %s AND m.state='posted'"
+            q = "SELECT l.account_id,SUM(l.debit) AS debit,SUM(l.credit) AS credit,SUM(COALESCE(l.amount_cur*SIGN(l.debit-l.credit),l.debit-l.credit)) AS amount_cur FROM account_move_line l JOIN account_move m ON m.id=l.move_id WHERE l.account_id IN %s AND m.state='posted'"
             q_args = [tuple(ids)]
             if date_from:
                 q += " AND m.date>=%s"
