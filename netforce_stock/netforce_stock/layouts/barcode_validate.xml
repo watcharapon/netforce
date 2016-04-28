@@ -4,7 +4,7 @@
         <button string="Fill Products" icon="align-justify" method="fill_products"/>
     </group>
     <separator string="Products"/>
-    <field name="lines" nolabel="1">
+    <field name="lines" count="10" nolabel="1">
         <list>
             <field name="product_id" readonly="1"/>
             <field name="qty_planned" readonly="1"/>

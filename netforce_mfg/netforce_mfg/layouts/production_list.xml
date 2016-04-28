@@ -1,6 +1,6 @@
 <list model="production.order" colors='{"#ccc":[["state","=","done"]],"#fc9":[["state","=","waiting_confirm"]],"#dbe":[["state","=","waiting_suborder"]],"#ff9":[["state","=","waiting_material"]],"#9f9":[["state","=","ready"]],"#99f":[["state","=","in_progress"]],"#999":[["state","=","split"]],"due_date,#f00":[["overdue","=",true]]}'>
     <head>
-        <button string="Print" icon="print" action="report_production_form"/>
+        <button string="Print" icon="print" perm_model="production.order,create" action="report_production_form"/>
     </head>
     <field name="number"/>
     <field name="order_date"/>

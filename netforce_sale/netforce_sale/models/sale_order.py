@@ -237,7 +237,7 @@ class SaleOrder(Model):
                     subtotal -= line.amount
             vals["amount_subtotal"] = subtotal
             vals["amount_tax"] = tax
-            vals["amount_total"] = subtotal + tax
+            vals["amount_total"] = (subtotal + tax)
             vals["amount_total_cur"] = get_model("currency").convert(
                 vals["amount_total"], obj.currency_id.id, settings.currency_id.id)
             vals["amount_total_discount"] = discount
@@ -371,6 +371,12 @@ class SaleOrder(Model):
             line["tax_id"] = prod.sale_tax_id.id
         if prod.location_id:
             line["location_id"] = prod.location_id.id
+        elif prod.locations:
+            line["location_id"] = prod.locations[0].location_id.id
+            for loc in prod.locations:
+                if loc.stock_qty:
+                    line['location_id']=prod.location_id.id
+                    break
         data = self.update_amounts(context)
         return data
 
@@ -918,6 +924,7 @@ class SaleOrder(Model):
 
     def onchange_sequence(self, context={}):
         data = context["data"]
+        context['date'] = data['date']
         seq_id = data["sequence_id"]
         if not seq_id:
             return None
@@ -1114,8 +1121,9 @@ class SaleOrder(Model):
             cost=0
             for line in obj.track_entries:
                 cost-=line.amount
-            profit=obj.amount_subtotal-cost
-            margin=profit*100/obj.amount_subtotal if obj.amount_subtotal else None
+            subtotal=obj.amount_subtotal or 0
+            profit=subtotal-cost
+            margin=profit*100/obj.subtotal if obj.subtotal else None
             vals[obj.id] = {
                 "act_cost_amount": cost,
                 "act_profit_amount": profit,

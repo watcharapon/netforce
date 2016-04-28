@@ -215,6 +215,7 @@ var Related=NFView.extend({
                 relfield: this.relfield,
                 parent_id: this.context.model.id,
                 parent_model: this.model_name,
+                parent_data: this.context.model.get_vals(),
                 context: this.data.context
             };
             var view_cls=get_view_cls("inline_form");

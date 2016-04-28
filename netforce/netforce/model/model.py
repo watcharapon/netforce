@@ -237,7 +237,17 @@ class Model(object):
             if len(ids) > 1:
                 raise Exception("Duplicate keys: model=%s, %s" % (self._name, ", ".join(["%s='%s'"%(k,r[k]) for k in self._key])))
 
+    def check_permission_company(self,context={}):
+        """
+            System should not allow to create any transaction on a Group Company except reports
+            (since some reports will also create a record when click run report).
+        """
+        except_models=['company','log','field.default']
+        if not access.allow_create_transaction() and not self._transient and self._name not in except_models:
+            raise Exception("Permission denied!")
+
     def create(self, vals, context={}):
+        self.check_permission_company()
         if not access.check_permission(self._name, "create"):
             raise Exception("Permission denied (create %s, user_id=%s)" % (self._name, access.get_active_user()))
         vals = self._add_missing_defaults(vals, context=context)
@@ -639,6 +649,7 @@ class Model(object):
 
     def write(self, ids, vals, check_time=False, context={}):
         #print(">>> WRITE",self._name,ids,vals)
+        self.check_permission_company()
         if not access.check_permission(self._name, "write", ids):
             raise Exception("Permission denied (write %s)" % self._name)
         if not ids or not vals:
@@ -705,6 +716,7 @@ class Model(object):
                            company_id, self._name, tuple(multico_fields), tuple(ids))
             val_ids = {}
             rec_ids = {}
+            user_id = access.get_active_user()
             for r in res:
                 val_ids.setdefault(r.field, []).append(r.id)
                 rec_ids.setdefault(r.field, []).append(r.record_id)
@@ -724,12 +736,14 @@ class Model(object):
                         raise Exception("Multicompany field not yet implemented: %s" % n)
                 ids2 = val_ids.get(n)
                 if ids2:
-                    db.execute("UPDATE field_value SET value=%s WHERE id in %s", val, tuple(ids2))
+                    write_time=time.strftime("%Y-%m-%d %H:%M:%S")
+                    db.execute("UPDATE field_value SET value=%s, write_time=%s, write_uid=%s WHERE id in %s", val, write_time, user_id, tuple(ids2))
                 ids3 = rec_ids.get(n, [])
                 ids4 = list(set(ids) - set(ids3))
                 for rec_id in ids4:
-                    db.execute("INSERT INTO field_value (company_id,model,field,record_id,value) VALUES (%s,%s,%s,%s,%s)",
-                               company_id, self._name, n, rec_id, val)
+                    create_time=time.strftime("%Y-%m-%d %H:%M:%S")
+                    db.execute("INSERT INTO field_value (create_time,create_uid,company_id,model,field,record_id,value) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                               create_time,user_id,company_id, self._name, n, rec_id, val)
         for n in vals:
             f = self._fields[n]
             if f.function_write:
@@ -805,6 +819,7 @@ class Model(object):
         self.trigger(ids, "write")
 
     def delete(self, ids, context={}):
+        self.check_permission_company()
         if not access.check_permission(self._name, "delete", ids):
             raise Exception("Permission denied (delete %s)" % self._name)
         if not ids:
@@ -1695,6 +1710,8 @@ class Model(object):
             out={"data":res}
         def _fill_m2o(m, vals):
             for k, v in vals.items():
+                if k=='id':
+                    continue
                 if not v:
                     continue
                 f = m._fields[k]

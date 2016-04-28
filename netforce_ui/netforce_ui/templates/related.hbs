@@ -3,10 +3,10 @@
 </div>
 <div class="btn-toolbar">
     {{#if model_perm_create}}
-        <button type="button" class="btn btn-sm btn-default nf-btn-add">Add</button>
+        <button type="button" class="btn btn-sm btn-default nf-btn-add">{{t 'Add'}}</button>
     {{/if}}
     {{#if model_perm_delete}}
-        <button type="button" class="btn btn-sm btn-default nf-btn-delete">Delete</button>
+        <button type="button" class="btn btn-sm btn-default nf-btn-delete">{{t 'Delete'}}</button>
     {{/if}}
     {{{call render_list_head context}}}
 </div>

@@ -53,7 +53,7 @@ class ReportDepSchedule(Model):
         track_id = params.get("track_id")
         track2_id = params.get("track2_id")
         assets = {}
-        cond = [["state", "=", "registered"]]
+        cond = [["state", "=", "registered"],["date_purchase","<=",date_to]]
         if track_id:
             cond.append(["track_id", "=", track_id])
         if track2_id:
@@ -88,6 +88,7 @@ class ReportDepSchedule(Model):
                 groups.append(cur_group)
             cur_group["lines"].append(line)
         for group in groups:
+            group['lines'] = sorted(group['lines'],key=lambda l: l['purchase_date'])
             group.update({
                 "total_book_val_from": sum([l["book_val_from"] for l in group["lines"]]),
                 "total_accum_dep": sum([l["accum_dep"] for l in group["lines"]]),

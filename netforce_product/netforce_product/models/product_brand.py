@@ -28,7 +28,7 @@ class ProductBrand(Model):
         "name": fields.Char("Name", required=True, search=True),
         "description": fields.Text("Description", search=True),
         "image": fields.File("Image"),
-        "code": fields.Char("Code"),
+        "code": fields.Char("Code",search=True),
         "parent_id": fields.Many2One("product.brand","Parent Brand"),
         "sub_brands": fields.One2Many("product.brand","parent_id","Sub Brands"),
         "products": fields.One2Many("product","brand_id","Products", operator="child_of"),

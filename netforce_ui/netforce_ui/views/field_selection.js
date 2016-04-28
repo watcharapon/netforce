@@ -139,6 +139,7 @@ var FieldSelection=NFView.extend({
             this.$el.find("select").css("width",this.options.width+"px");
             this.$el.css("width",this.options.width+"px");
         }
+        this.$el.find("a.help").tooltip();
     },
 
     listen_selection: function() {

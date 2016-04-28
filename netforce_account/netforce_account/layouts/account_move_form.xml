@@ -1,4 +1,4 @@
-<form model="account.move" attrs='{"readonly":[["state","!=","draft"]]}' show_company="1">
+<form model="account.move" attrs='{"readonly":[["state","!=","draft"]]}' show_company="1" show_save="1">
     <head>
         <field name="state"/>
         <button string="Print" icon="print" action="report_account_move_form"/>
@@ -36,13 +36,16 @@
             <field name="amount_cur"/>
         </list>
     </field>
-    <group offset="8" span="4">
+    <group span="8">
+        <field name="verified" readonly="0"/>
+    </group>
+    <group span="4">
         <field name="total_debit" span="12"/>
         <field name="total_credit" span="12"/>
         <field name="difference" span="12" attrs='{"invisible": [["difference","=",0]]}'/>
     </group>
     <field name="company_id" invisible="1"/>
-    <foot states='draft'>
+    <foot>
         <button string="Post" method="post" type="success" states="draft" icon="arrow-right"/>
     </foot>
     <related>

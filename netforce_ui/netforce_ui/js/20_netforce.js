@@ -20,6 +20,8 @@
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+NF_TIMEOUT=1; // seconds
+
 window.log=function() {
     if (this.console) {
         console.log(Array.prototype.slice.call(arguments));
@@ -1371,6 +1373,7 @@ function get_model_cls(name) { // XXX
 }
 
 function get_field(model_name,field_name) {
+    if (field_name=='id') return {};
     var models=nf_models;
     var model=models[model_name];
     if (!model) throw "Model not found: "+model_name;
@@ -1531,6 +1534,7 @@ window.NFModel=Backbone.Model.extend({
         for (var n in vals) {
             var v=vals[n];
             var f=this.get_field(n);
+            if (_.isEmpty(f)) continue;
             if (f.type=="many2one") {
                 if (_.isNumber(v)) {
                     var old_v=this.get(n);
@@ -1657,9 +1661,15 @@ window.NFModel=Backbone.Model.extend({
             var required=this.required_fields[n];
             var v=this.get(n);
             //log("n",n,"req",required,"v",v);
-            if (required && !v && v!=0) {
-                errors[n]="Missing value";
-                ok=false;
+            if (required){
+                var t=typeof(v);
+                if(t!='number' && _.isEmpty(v)){
+                    errors[n]="Missing value";
+                    ok=false;
+                }else if(t=='number' && v==null){
+                    errors[n]="Missing value";
+                    ok=false;
+                }
             }
             if (f.type=="one2many") {
                 if (v instanceof NFCollection) {

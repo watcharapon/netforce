@@ -108,7 +108,7 @@ class Statement(Model):
 
     def update_balance(self, context={}):
         data = context["data"]
-        bal = data["balance_start"]
+        bal = data["balance_start"] or 0
         for line in data["lines"]:
             if line.get("received") is None:
                 line["received"] = 0
