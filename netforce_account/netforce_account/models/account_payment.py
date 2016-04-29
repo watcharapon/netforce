@@ -447,7 +447,7 @@ class Payment(Model):
 
         lines=[]
         settings = get_model("settings").browse(1)
-        obj = self.browse(ids,context=context)
+        obj = self.browse(ids,context=context)[0]
 
         amt = get_model("currency").convert(
             obj.amount_payment, obj.currency_id.id, settings.currency_id.id, rate=obj.currency_rate)
