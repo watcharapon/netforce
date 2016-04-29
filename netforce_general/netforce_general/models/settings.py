@@ -150,6 +150,7 @@ class Settings(Model):
     }
     _defaults = {
         "package": "free",
+        "stock_cost_mode": "periodic",
         'stock_cost_auto_compute': True,
     }
 
