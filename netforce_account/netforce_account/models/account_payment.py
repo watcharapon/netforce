@@ -465,7 +465,7 @@ class Payment(Model):
         if obj.account_id.currency_id.id != settings.currency_id.id:
             if obj.account_id.currency_id.id != obj.currency_id.id:
                 raise Exception("Invalid account currency for this payment: %s" % obj.account_id.code)
-            line_vals["amount_cur"] = obj.amount_payment if obj.type == "in" else -obj.amount_payment
+            vals["amount_cur"] = obj.amount_payment if obj.type == "in" else -obj.amount_payment
 
         lines.append(vals)
 
@@ -759,12 +759,26 @@ class Payment(Model):
                     "description": desc,
                     "account_id": settings.unpaid_claim_id.id,
                 }
-                amt = line.amount
+                amount = line.amount
+                amount_cur = None
+
+                if obj.currency_id.id!=settings.currency_id.id:
+                    amount = get_model("currency").convert(
+                        amount, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
+                    amount_cur = line.amount
+
+                if settings.unpaid_claim_id.id != settings.currency_id.id:
+                    amount_cur=None
+
+                line_vals["amount_cur"] = amount_cur
+
                 if obj.type == "out":
-                    line_vals["debit"] = amt
+                    line_vals["debit"] = amount
                 else:
-                    line_vals["credit"] = amt
+                    line_vals["credit"] = amount
+
                 get_model("account.move.line").create(line_vals)
+
             elif line.type == "adjust":
                 cur_amt = get_model("currency").convert(
                     line.amount, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
@@ -1288,6 +1302,8 @@ class Payment(Model):
         elif data["type"] == "out":
             rate_type = "buy"
         for line in data["invoice_lines"]:
+            if not line.get("invoice_id"):
+                continue
             inv = get_model("account.invoice").browse(line["invoice_id"])
             if "currency_rate" in data and data["currency_rate"]:
                 line["amount"] = inv.amount_due/data["currency_rate"]
