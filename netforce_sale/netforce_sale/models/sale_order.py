@@ -146,10 +146,14 @@ class SaleOrder(Model):
         settings = get_model("settings").browse(1)
         lines=[]
         date = time.strftime("%Y-%m-%d")
-        lines.append({
+        line_vals={
             "currency_id": settings.currency_id.id,
             "rate": settings.currency_id.get_rate(date,"sell") or 1
-        })
+        }
+        if context.get("is_create"):
+            lines.append(('create',line_vals))
+        else:
+            lines.append(line_vals)
         return lines 
 
     _defaults = {
@@ -179,6 +183,7 @@ class SaleOrder(Model):
         return cond
 
     def create(self, vals, context={}):
+        context['is_create']=True #send to function _get_currency_rates
         id = super(SaleOrder, self).create(vals, context)
         self.function_store([id])
         quot_id = vals.get("quot_id")
