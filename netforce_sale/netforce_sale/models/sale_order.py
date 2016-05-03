@@ -146,10 +146,14 @@ class SaleOrder(Model):
         settings = get_model("settings").browse(1)
         lines=[]
         date = time.strftime("%Y-%m-%d")
-        lines.append({
+        line_vals={
             "currency_id": settings.currency_id.id,
             "rate": settings.currency_id.get_rate(date,"sell") or 1
-        })
+        }
+        if context.get("is_create"):
+            lines.append(('create',line_vals))
+        else:
+            lines.append(line_vals)
         return lines 
 
     _defaults = {
@@ -179,6 +183,7 @@ class SaleOrder(Model):
         return cond
 
     def create(self, vals, context={}):
+        context['is_create']=True #send to function _get_currency_rates
         id = super(SaleOrder, self).create(vals, context)
         self.function_store([id])
         quot_id = vals.get("quot_id")
@@ -571,14 +576,26 @@ class SaleOrder(Model):
                     remain_qty = line.qty - line.qty_invoiced
                     if remain_qty <= 0:
                         continue
+
+                    # TODO: this get account should call from product.get_account()["sale_account_id"]
+
                     sale_acc_id=None
                     if prod:
-                        sale_acc_id=prod.sale_account_id.id
+                        #1. get account from product
+                        sale_acc_id=prod.sale_account_id and prod.sale_account_id.id or None
+
+                        # 2. if not get from master/parent product
                         if not sale_acc_id and prod.parent_id:
                             sale_acc_id=prod.parent_id.sale_account_id.id
+                        # 3. if not get from product category
                         categ=prod.categ_id
-                        if not sale_acc_id:
-                            sale_acc_id=categ.sale_account_id.id
+                        if categ and not sale_acc_id:
+                            sale_acc_id=categ.sale_account_id and categ.sale_account_id.id or None
+
+                    #if not sale_acc_id:
+                        #raise Exception("Missing sale account for product [%s] " % prod.name )
+
+
                     line_vals = {
                         "product_id": prod.id,
                         "description": line.description,
