@@ -1,4 +1,5 @@
 <search model="stock.move">
+    <field name="number"/>
     <field name="date"/>
     <field name="location_from_id" select="1"/>
     <field name="location_to_id" select="1"/>

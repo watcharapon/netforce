@@ -184,6 +184,7 @@ var Sheet=NFView.extend({
     },
 
     focus_cell: function(cell) {
+        log("################################################");
         log("sheet.focus_cell",cell);
         var line_view=null;
         for (var view_id in this.subviews) {

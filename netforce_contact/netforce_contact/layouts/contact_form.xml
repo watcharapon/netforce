@@ -74,6 +74,9 @@
             <field name="purchase_journal_id"/>
             <field name="pay_in_journal_id"/>
             <field name="pay_out_journal_id"/>
+            <separator string="Credit Balance"/>
+            <field name="receivable_credit"/>
+            <field name="payable_credit"/>
         </tab>
         <tab string="Inventory">
             <field name="pick_in_journal_id"/>

@@ -22,11 +22,13 @@ from netforce.model import Model, fields, get_model
 import time
 
 
+# XXX: deprecated
 class CreditAlloc(Model):
     _name = "account.credit.alloc"
     _fields = {
         "invoice_id": fields.Many2One("account.invoice", "Invoice", required=True, on_delete="cascade"),
-        "credit_id": fields.Many2One("account.invoice", "Credit Note", required=True, on_delete="cascade"),
+        "credit_id": fields.Many2One("account.invoice", "Credit Note", on_delete="cascade"),
+        "credit_move_id": fields.Many2One("account.move", "Credit Journal Entry", on_delete="cascade"),
         "credit_type": fields.Char("Credit Type", function="_get_related", function_context={"path": "credit_id.inv_type"}),
         "amount": fields.Decimal("Amount"),
         "move_id": fields.Many2One("account.move", "Journal Entry"),
@@ -38,29 +40,82 @@ class CreditAlloc(Model):
 
     def create(self, vals, **kw):
         new_id = super().create(vals, **kw)
-        inv_id = vals["invoice_id"]
-        cred_id = vals["credit_id"]
-        get_model("account.invoice").function_store([inv_id, cred_id])
-        self.post([new_id])
+        inv_ids=[]
+        inv_id = vals.get("invoice_id")
+        if inv_id:
+            inv_ids.append(inv_id)
+        cred_id = vals.get("credit_id")
+        if cred_id:
+            inv_ids.append(cred_id)
+        if inv_ids:
+            get_model("account.invoice").function_store(inv_ids)
         return new_id
 
     def delete(self, ids, **kw):
         inv_ids = []
         for obj in self.browse(ids):
-            inv_ids.append(obj.invoice_id.id)
-            inv_ids.append(obj.credit_id.id)
+            if obj.invoice_id:
+                inv_ids.append(obj.invoice_id.id)
+            if obj.credit_ids:
+                inv_ids.append(obj.credit_id.id)
             if obj.move_id:
                 obj.move_id.void()
                 obj.move_id.delete()
         super().delete(ids, **kw)
-        get_model("account.invoice").function_store(inv_ids)
+        if inv_ids:
+            get_model("account.invoice").function_store(inv_ids)
 
+""" XXX: depecated
     def post(self, ids, context={}):
         settings = get_model("settings").browse(1)
         obj = self.browse(ids)[0]
+        contact = obj.contact_id
+        inv_line=obj.invoice_line_id
+        cred_line=obj.credit_line_id
         inv = obj.invoice_id
-        contact = inv.contact_id
         cred = obj.credit_id
+        desc = "Credit allocation: %s" % contact.name
+        move_vals={
+            "journal_id": inv_line.move_id.journal_id.id, # XXX
+            "date": obj.date,
+            "narration": desc,
+            "lines": [],
+        }
+        move_id = get_model("account.move").create(move_vals)
+        cur_total=obj.amount # XXX
+        if inv.type == "in":
+            sign = 1
+        else:
+            sign = -1
+        amt = cur_total * sign
+        line_vals={
+            "move_id": move_id,
+            "description": desc,
+            "account_id": inv.account_id.id,
+            "debit": amt > 0 and amt or 0,
+            "credit": amt < 0 and -amt or 0,
+            "contact_id": contact.id,
+        }
+        line1_id=get_model("account.move.line").create(line_vals)
+        line_vals={
+            "move_id": move_id,
+            "description": desc,
+            "account_id": cred.account_id.id,
+            "debit": amt < 0 and -amt or 0,
+            "credit": amt > 0 and amt or 0,
+            "contact_id": contact.id,
+        }
+        line2_id=get_model("account.move.line").create(line_vals)
+        get_model("account.move").post([move_id])
+        obj.write({"move_id": move_id})
+        if not inv.move_id or not inv.move_id.lines:
+            raise Exception("Failed to find invoice journal entry line to reconcile")
+        inv_line_id=inv.move_id.lines[0].id
+        get_model("account.move.line").reconcile([inv_line_id,line1_id])
+        if not cred.move_id or not cred.move_id.lines:
+            raise Exception("Failed to find credit note journal entry line to reconcile")
+        cred_line_id=cred.move_id.lines[0].id
+        get_model("account.move.line").reconcile([cred_line_id,line2_id])
         if cred.inv_type == "credit":
             desc = "Credit allocation: %s" % cred.contact_id.name
             move_vals={
@@ -191,5 +246,6 @@ class CreditAlloc(Model):
             move_id = get_model("account.move").create(move_vals)
             get_model("account.move").post([move_id])
             obj.write({"move_id": move_id})
+"""
 
 CreditAlloc.register()

@@ -98,7 +98,7 @@ class ComputeCost(Model):
             locations[loc.id]={}
         db=get_connection()
         print("reading...")
-        q="SELECT m.id,m.date,m.product_id,p.cost_method,p.uom_id as prod_uom_id,m.qty,m.uom_id,m.cost_amount,m.location_from_id,m.location_to_id,m.move_id FROM stock_move m,product p WHERE p.cost_method='average' AND p.type='stock' AND p.id=m.product_id AND m.state='done'"
+        q="SELECT m.id,m.date,m.product_id,p.cost_method,p.uom_id as prod_uom_id,m.qty,m.uom_id,m.cost_amount,m.location_from_id,m.location_to_id,m.move_id,m.move_id FROM stock_move m,product p WHERE p.cost_method='average' AND p.type='stock' AND p.id=m.product_id AND m.state='done'"
         args=[]
         product_ids=context.get("product_ids")
         if product_ids:
@@ -120,6 +120,7 @@ class ComputeCost(Model):
                 "cost_amount": r.cost_amount or 0,
                 "loc_from_id": r.location_from_id,
                 "loc_to_id": r.location_to_id,
+                "move_id": r.move_id,
             }
             prod_moves.setdefault(prod_id,[]).append(move)
         prod_ids=sorted(prod_moves.keys())
@@ -134,7 +135,7 @@ class ComputeCost(Model):
                 loc_from=locations.get(m["loc_from_id"])
                 if loc_from:
                     if loc_from["qty"]>=m["conv_qty"]:
-                        cost_price=loc_from["amt"]/loc_from["qty"]
+                        cost_price=loc_from["amt"]/loc_from["qty"] if loc_from["qty"] else 0
                         m["cost_amount"]=round(cost_price*m["conv_qty"],2)
                         loc_from["qty"]-=m["conv_qty"]
                         loc_from["amt"]-=m["cost_amount"]
@@ -150,6 +151,8 @@ class ComputeCost(Model):
             moves=prod_moves[prod_id]
             for m in moves:
                 if m["cost_amount"]!=m["old_cost_amount"]:
+                    if m["move_id"]:
+                        raise Exception("Failed to change cost amount of stock movement %s because it is posted already"%m["id"])
                     cost_price=m["cost_amount"]/m["conv_qty"] if m["conv_qty"] else 0
                     db.execute("UPDATE stock_move SET cost_amount=%s, cost_price=%s WHERE id=%s",m["cost_amount"],cost_price,m["id"])
         if prod_ids:
@@ -251,8 +254,8 @@ class ComputeCost(Model):
                     use_cost=use_qty*first_price
                     m["qty_in"]+=use_qty
                     m["cost"]+=use_cost
-                    if m["qty_in"]<=m["qty"]:
-                        m["unit_price"]=m["cost"]/m["qty"]
+                    if m["qty_in"]>=m["qty"]:
+                        m["unit_price"]=m["cost"]/m["qty"] if m["qty"] else 0
                         outputs=loc_outputs[loc_id]
                         heapq.heappop(outputs)
                         loc_to=int_locs.get(m["location_to_id"])
@@ -273,6 +276,8 @@ class ComputeCost(Model):
         for prod_id in prod_ids:
             moves=prod_moves[prod_id]
             for m in moves:
+                if m["qty"]==0: # XXX: don't overwrite LC stock moves
+                    continue
                 if m["unit_price"] is not None:
                     new_cost_amount=m["unit_price"]*m["conv_qty"]
                 else:

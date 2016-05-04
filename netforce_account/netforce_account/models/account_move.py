@@ -48,6 +48,7 @@ class Move(Model):
         "related_id": fields.Reference([["account.invoice", "Invoice"], ["account.payment", "Payment"], ["account.transfer", "Transfer"], ["hr.expense", "Expense Claim"], ["service.contract", "Service Contract"], ["pawn.loan", "Loan"], ["landed.cost","Landed Cost"], ["stock.picking","Stock Picking"]], "Related To"),
         "company_id": fields.Many2One("company", "Company"),
         "track_entries": fields.One2Many("account.track.entry","move_id","Tracking Entries"),
+        "difference" : fields.Float("Difference",function="get_difference",function_multi=True),
     }
 
     def _get_journal(self, context={}):
@@ -83,6 +84,14 @@ class Move(Model):
     }
     _order = "date desc,id desc"
 
+    def get_difference(self, ids, context): 
+        vals = {}
+        for obj in self.browse(ids):
+            vals[obj.id] = {
+                "difference": obj.total_debit-obj.total_credit ,
+            }
+        return vals
+
     def create(self, vals, **kw):
         t0 = time.time()
         new_id = super().create(vals, **kw)
@@ -117,6 +126,14 @@ class Move(Model):
         get_model("account.move.line").function_store(line_ids)
         if rec_ids:
             get_model("account.reconcile").function_store(rec_ids)
+            move_ids=[]
+            for rec in get_model("account.reconcile").browse(rec_ids):
+                for line in rec.lines:
+                    move_ids.append(line.move_id.id)
+            move_ids=list(set(move_ids))
+            inv_ids=get_model("account.invoice").search([["move_id","in",move_ids]])
+            if inv_ids:
+                get_model("account.invoice").function_store(inv_ids) # XXX: check this
         get_model("field.cache").clear_cache(model="account.account")
 
     def delete(self, ids, **kw):
@@ -170,6 +187,8 @@ class Move(Model):
                     raise Exception("Missing currency amount for account %s" % line.account_id.name_get()[0][1])
                 if line.amount_cur is not None and acc.currency_id.id == settings.currency_id.id:
                     raise Exception("Currency amount for account %s should be empty" % line.account_id.name_get()[0][1])
+                if line.amount_cur is not None and line.amount_cur<0:
+                    raise Exception("Currency amount is negative (%s)"%line.amount_cur)
             if abs(total_debit - total_credit) != 0:
                 print("NOT BALANCED total_debit=%s total_credit=%s" % (total_debit, total_credit))
                 for line in obj.lines:
@@ -199,19 +218,26 @@ class Move(Model):
 
     def create_track_entries(self, ids, context={}):
         obj=self.browse(ids[0])
+        settings=get_model("settings").browse(1)
         for line in obj.lines:
             if line.track_id:
+                amt=line.credit-line.debit
+                if line.track_id.currency_id:
+                    amt=get_model("currency").convert(amt,settings.currency_id.id,line.track_id.currency_id.id)
                 vals={
                     "track_id": line.track_id.id,
-                    "amount": line.credit-line.debit,
+                    "amount": amt,
                     "description": line.description,
                     "move_id": obj.id,
                 }
                 get_model("account.track.entry").create(vals)
             if line.track2_id:
+                amt=line.credit-line.debit
+                if line.track2_id.currency_id:
+                    amt=get_model("currency").convert(amt,settings.currency_id.id,line.track2_id.currency_id.id)
                 vals={
                     "track_id": line.track2_id.id,
-                    "amount": line.credit-line.debit,
+                    "amount": amt,
                     "description": line.description,
                     "move_id": obj.id,
                 }
@@ -262,6 +288,7 @@ class Move(Model):
                 line["credit"] = 0
             if line.get("credit") is not None and line.get("debit") is None:
                 line["debit"] = 0
+        data["difference"]= data["total_debit"]-data["total_credit"]
         return data
 
     def get_line_desc(self, context):

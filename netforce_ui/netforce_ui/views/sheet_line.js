@@ -189,6 +189,7 @@ var SheetLine=NFView.extend({
         log("hidden",hidden);
         hidden.attr("tabindex","-1");
         field_view.on("focus_next",function() {
+            log("################################################");
             log("sheet_line.focus_next");
             var el=field_view.$el;
             var cell=el.parents(".sheet-cell");
@@ -198,6 +199,7 @@ var SheetLine=NFView.extend({
             if (i==-1) throw "Cell position not found";
             if (i<cells.length-1) {
                 var next_cell=cells.eq(i+1)[0];
+                log("next_cell",next_cell);
                 that.sheet_view.focus_cell(next_cell);
             } else {
                 focus_next();

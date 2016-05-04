@@ -4,5 +4,6 @@
     <field name="model">report.ap.details</field>
     <field name="report_template">report_ap_details</field>
     <field name="report_template_xls">ap_details</field>
+    <field name="fast_render">1</field>
     <field name="menu">account_menu</field>
 </action>

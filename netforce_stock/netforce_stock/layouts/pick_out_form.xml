@@ -17,6 +17,8 @@
             <item string="Assign Lots" method="assign_lots" states="draft"/>
             <divider/>
             <item string="View Journal Entry" method="view_journal_entry" states="done"/>
+            <divider/>
+            <item string="Create Delivery Order" method="create_delivery_order"/>
         </button>
     </head>
     <field name="type" invisible="1"/>
@@ -54,12 +56,13 @@
         <tab string="Shipping">
             <field name="ship_method_id"/>
             <field name="ship_tracking" readonly="0"/>
+            <field name="ship_state"/>
+            <separator/>
+            <field name="from_coords"/>
+            <field name="to_coords"/>
+            <separator/>
             <field name="ship_cost"/>
             <field name="ship_pay_by"/>
-            <separator/>
-            <field name="avail_messengers"/>
-            <field name="messenger_id"/>
-            <field name="sequence"/>
         </tab>
         <tab string="Approval">
             <field name="pending_by_id"/>
@@ -67,6 +70,9 @@
             <separator string="Complete Transaction"/>
             <field name="done_approved_by_id"/>
             <button string="Approve" icon="ok" method="approve_done" confirm="Are you sure?" perm="stock_approve_done"/>
+        </tab>
+        <tab string="Other">
+            <field name="sequence"/>
         </tab>
     </tabs>
     <field name="company_id" invisible="1"/>

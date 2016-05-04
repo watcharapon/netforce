@@ -54,12 +54,23 @@ class BaseController(Controller):
             self.set_cookie("locale",lang)
         ctx={}
         user_id=self.get_cookie("user_id",None)
+        # if user_id:
+        #     user_id=int(user_id)
+        #     user=get_model("base.user").browse(user_id)
+        #     contact = user.contact_id
+        #     if contact.sale_price_list_id:
+        #         browse_ctx["pricelist2_id"] =contact.sale_price_list_id.id 
+        user_id=self.get_cookie("user_id",None)
         if user_id:
             user_id=int(user_id)
             user=get_model("base.user").browse(user_id)
             contact = user.contact_id
-            if contact.sale_price_list_id.id:
-                browse_ctx["pricelist_id"] =contact.sale_price_list_id.id 
+            pricelist_ids=[website.sale_channel_id.pricelist_id.id]
+            if contact.groups:
+                for group in contact.groups:
+                    if group.sale_price_list_id:
+                        pricelist_ids.append(group.sale_price_list_id.id)
+            browse_ctx["pricelist_ids"]=pricelist_ids
             ctx["customer"]=contact
         ctx["website"]=website
         ctx["database"]=get_active_db()

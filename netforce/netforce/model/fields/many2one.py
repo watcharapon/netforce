@@ -39,6 +39,7 @@ class Many2One(Field):
         if not m._table or not self.store:
             return
         db = database.get_connection()
+        schema = database.get_active_schema() or "public"
         fkname = m._table + "_" + self.name + "_fk"
         if self.on_delete == "restrict":
             delete_rule = "r"
@@ -63,7 +64,7 @@ class Many2One(Field):
         drop_fk = False
         add_fk = False
         res = db.get(
-            "SELECT r.relname,c.confdeltype FROM pg_constraint c,pg_class r WHERE c.conname=%s and r.oid=c.confrelid", fkname)
+            "SELECT r.relname,c.confdeltype FROM pg_constraint c,pg_class r JOIN pg_catalog.pg_namespace n ON n.oid=r.relnamespace WHERE c.conname=%s AND r.oid=c.confrelid AND n.nspname=%s", fkname, schema)
         if not res:
             print("adding foreign key %s.%s" % (self.model, self.name))
             drop_fk = False

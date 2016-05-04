@@ -15,7 +15,7 @@ class Contact(Model):
             contact_prods.setdefault(r.contact_id,[]).append(r.product_id)
         vals={}
         for obj in self.browse(ids):
-            vals[obj.id]=contact_prods.get(obj.id,[])
+            vals[obj.id]=contact_prods.get(obj.id,[])[:5] # XXX
         return vals
 
 Contact.register()

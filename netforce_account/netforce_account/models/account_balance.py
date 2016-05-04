@@ -36,7 +36,7 @@ class Balance(Model):
 
     def update_balances(self,context={}): # XXX: make faster
         db=get_connection()
-        res=db.query("SELECT account_id,track_id,SUM(debit) AS total_debit,SUM(credit) AS total_credit,SUM(amount_cur) AS total_amount_cur FROM account_move_line GROUP BY account_id,track_id")
+        res=db.query("SELECT account_id,track_id,SUM(debit) AS total_debit,SUM(credit) AS total_credit,SUM(amount_cur*SIGN(debit-credit)) AS total_amount_cur FROM account_move_line GROUP BY account_id,track_id")
         bals={}
         for r in res:
             bals[(r.account_id,r.track_id)]=(r.total_debit,r.total_credit,r.total_amount_cur)

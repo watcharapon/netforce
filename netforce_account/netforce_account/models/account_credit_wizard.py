@@ -40,12 +40,30 @@ class CreditWizard(Model):
         inv = get_model("account.invoice").browse(inv_id)
         contact_id = inv.contact_id.id
         lines = []
-        for cred in get_model("account.invoice").search_browse([["type", "=", inv.type], ["inv_type", "in", ("credit", "prepay", "overpay")], ["contact_id", "=", contact_id], ["state", "=", "waiting_payment"], ["currency_id", "=", inv.currency_id.id]]):
-            lines.append({
-                "credit_id": [cred.id, cred.name_get()[0][1]],
-                "date": cred.date,
-                "amount_credit_remain": cred.amount_credit_remain,
-            })
+        if inv.type=="out":
+            cond=[["account_id.type","in",["receivable","cust_deposit"]],["credit","!=",0],["contact_id","=",contact_id]]
+        else:
+            cond=[["account_id.type","in",["payable","sup_deposit"]],["debit","!=",0],["contact_id","=",contact_id]]
+        for move_line in get_model("account.move.line").search_browse(cond):
+            move=move_line.move_id
+            acc=move_line.account_id
+            rec=move_line.reconcile_id
+            if rec:
+                amt=rec.balance
+            else:
+                amt=move_line.debit-move_line.credit
+            if amt==0:
+                continue
+            if inv.type=="out":
+                amt=-amt
+            line_vals={
+                "move_line_id": move_line.id,
+                "move_id": [move.id,move.name_get()[0][1]],
+                "date": move.date,
+                "account_id": [acc.id,acc.name_get()[0][1]],
+                "amount_credit_remain": amt,
+            }
+            lines.append(line_vals)
         vals = {
             "invoice_id": [inv.id, inv.name_get()[0][1]],
             "lines": lines,
@@ -58,16 +76,52 @@ class CreditWizard(Model):
 
     def allocate(self, ids, context={}):
         obj = self.browse(ids)[0]
-        assert obj.invoice_id.inv_type == "invoice"
+        inv=obj.invoice_id
+        if inv.inv_type != "invoice":
+            raise Exception("Wrong invoice type")
+        contact=inv.contact_id
         for line in obj.lines:
             if not line.amount:
                 continue
-            vals = {
-                "invoice_id": obj.invoice_id.id,
-                "credit_id": line.credit_id.id,
-                "amount": line.amount,
+            cred_move_line=line.move_line_id
+            desc = "Credit allocation: %s" % contact.name
+            move_vals={
+                "journal_id": cred_move_line.move_id.journal_id.id, # XXX
+                "date": obj.date,
+                "narration": desc,
+                "lines": [],
+                "related_id": "account.invoice,%d"%inv.id,
             }
-            get_model("account.credit.alloc").create(vals)
+            move_id = get_model("account.move").create(move_vals)
+            if inv.type == "in":
+                sign = 1
+            else:
+                sign = -1
+            amt=line.amount*sign # TODO: currency convert
+            line_vals={
+                "move_id": move_id,
+                "description": desc,
+                "account_id": inv.account_id.id,
+                "debit": amt > 0 and amt or 0,
+                "credit": amt < 0 and -amt or 0,
+                "contact_id": contact.id,
+            }
+            line1_id=get_model("account.move.line").create(line_vals)
+            line_vals={
+                "move_id": move_id,
+                "description": desc,
+                "account_id": cred_move_line.account_id.id,
+                "debit": amt < 0 and -amt or 0,
+                "credit": amt > 0 and amt or 0,
+                "contact_id": contact.id,
+            }
+            line2_id=get_model("account.move.line").create(line_vals)
+            get_model("account.move").post([move_id])
+            if not inv.move_id or not inv.move_id.lines:
+                raise Exception("Failed to find invoice journal entry line to reconcile")
+            inv_line_id=inv.move_id.lines[0].id
+            get_model("account.move.line").reconcile([inv_line_id,line1_id])
+            get_model("account.move.line").reconcile([cred_move_line.id,line2_id])
         return {
             "next": {
                 "name": "view_invoice",

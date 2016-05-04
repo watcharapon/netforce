@@ -34,7 +34,7 @@ class Payment(Model):
     _key = ["company_id", "number"]
     _fields = {
         "type": fields.Selection([["out", "Paid"], ["in", "Received"]], "Payment Type", required=True, search=True),
-        "pay_type": fields.Selection([["direct", "Direct Payment"], ["invoice", "Invoice Payment"], ["prepay", "Prepayment"], ["overpay", "Overpayment"], ["claim", "Expense Claim Payment"], ["adjust", "Adjustment"]], "Payment Subtype", required=True, search=True),
+        "pay_type": fields.Selection([["direct", "Direct Payment"], ["invoice", "Invoice Payment"], ["claim", "Expense Claim Payment"], ["adjust", "Adjustment"]], "Payment Subtype", required=True, search=True),
         "contact_id": fields.Many2One("contact", "Contact", search=True),
         "date": fields.Date("Date", required=True, search=True),
         "ref": fields.Char("Ref", search=True, size=256),  # not used any more
@@ -69,6 +69,7 @@ class Payment(Model):
         "credit_invoices": fields.One2Many("account.invoice", "payment_id", "Credit Invoices"),
         "journal_id": fields.Many2One("account.journal", "Journal"),
         "sequence_id": fields.Many2One("sequence", "Number Sequence"),
+        "transaction_no": fields.Char("Transaction ID",search=True),
     }
     _order = "date desc,id desc"
 
@@ -228,6 +229,7 @@ class Payment(Model):
                     inv = line.invoice_id
                     cred_amt = 0
                     inv_vat = 0
+                    inv_wht = 0
                     if inv:
                         for alloc in inv.credit_notes:
                             cred_amt += alloc.amount
@@ -239,7 +241,7 @@ class Payment(Model):
                                 if tax and inv.tax_type != "no_tax":
                                     base_amt = get_model("account.tax.rate").compute_base(
                                         tax.id, invline_amt, tax_type=inv.tax_type)
-                                    # TODO: make this more clear...
+                                    # TODO: remove this later (use.inv.taxes)
                                     tax_comps = get_model("account.tax.rate").compute_taxes(
                                         tax.id, base_amt, when="direct_payment")
                                     for comp_id, tax_amt in tax_comps.items():
@@ -247,10 +249,20 @@ class Payment(Model):
                                         if comp.type == "vat":
                                             inv_vat += tax_amt
                                         elif comp.type == "wht":
-                                            wht -= tax_amt
+                                            int_wht -= tax_amt
                                 else:
                                     base_amt = invline_amt
                                 subtotal += base_amt
+                            if inv.taxes:
+                                inv_vat = 0
+                                inv_wht = 0
+                                for tax in inv.taxes:
+                                    comp=tax.tax_comp_id
+                                    tax_amt=tax.tax_amount*pay_ratio
+                                    if comp.type == "vat":
+                                        inv_vat += tax_amt
+                                    elif comp.type == "wht":
+                                        inv_wht -= tax_amt
                             for alloc in inv.credit_notes:
                                 cred = alloc.credit_id
                                 cred_ratio = alloc.amount / cred.amount_total
@@ -268,14 +280,16 @@ class Payment(Model):
                                             if comp.type == "vat":
                                                 inv_vat -= tax_amt
                                             elif comp.type == "wht":
-                                                wht += tax_amt
+                                                inv_wht += tax_amt
                                     else:
                                         base_amt = credline_amt
                                     subtotal -= base_amt
                         elif inv.inv_type == "overpay":
                             subtotal += line.amount
                     inv_vat = get_model("currency").round(obj.currency_id.id, inv_vat)
+                    inv_wht = get_model("currency").round(obj.currency_id.id, inv_wht)
                     vat += inv_vat
+                    wht += inv_wht
                     total += line.amount
                 elif line.type == "claim":  # XXX
                     subtotal += line.amount
@@ -465,7 +479,7 @@ class Payment(Model):
         if obj.account_id.currency_id.id != settings.currency_id.id:
             if obj.account_id.currency_id.id != obj.currency_id.id:
                 raise Exception("Invalid account currency for this payment: %s" % obj.account_id.code)
-            line_vals["amount_cur"] = obj.amount_payment if obj.type == "in" else -obj.amount_payment
+            line_vals["amount_cur"] = obj.amount_payment
         get_model("account.move.line").create(line_vals)
         taxes = {}
         reconcile_ids = []
@@ -504,6 +518,7 @@ class Payment(Model):
                     "credit": amt < 0 and -amt or 0,
                     "track_id": line.track_id.id,
                     "track2_id": line.track2_id.id,
+                    "contact_id": obj.contact_id.id,
                 }
                 if line.type=="prepay":
                     line_vals["contact_id"]=obj.contact_id.id
@@ -548,10 +563,7 @@ class Payment(Model):
                     else:
                         line_vals["credit"] = -amt
                     if inv.account_id.currency_id.id != settings.currency_id.id:
-                        if amt>0:
-                            line_vals["amount_cur"] = inv_pay_amt
-                        else:
-                            line_vals["amount_cur"] = -inv_pay_amt
+                        line_vals["amount_cur"] = inv_pay_amt
                     print("invoice")
                     pprint(line_vals)
                     pay_line_id = get_model("account.move.line").create(line_vals)
@@ -716,7 +728,7 @@ class Payment(Model):
                     line.tax_base or 0, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
                 line_vals = {
                     "move_id": move_id,
-                    "description": desc,
+                    "description": line.description or desc,
                     "account_id": line.account_id.id,
                     "tax_comp_id": line.tax_comp_id.id,
                     "tax_base": tax_base,
@@ -848,6 +860,7 @@ class Payment(Model):
         obj = self.browse(ids)[0]
         if obj.pay_type == "prepay":
             vals = {
+                "number": obj.number,
                 "type": obj.type == "in" and "out" or "in",
                 "inv_type": "prepay",
                 "contact_id": obj.contact_id.id,

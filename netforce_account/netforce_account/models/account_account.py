@@ -36,8 +36,8 @@ class Account(Model):
     _fields = {
         "code": fields.Char("Account Code", required=True, search=True, index=True),
         "name": fields.Char("Account Name", size=256, required=True, search=True, translate=True),
-        "type": fields.Selection([["_group", "Assets"], ["cash", "Cash"], ["cheque", "Cheque"], ["bank", "Bank Account"], ["receivable", "Receivable"], ["cur_asset", "Current Asset"], ["fixed_asset", "Fixed Asset"], ["noncur_asset", "Non-current Asset"], ["_group", "Liabilities"], ["payable", "Payable"], ["cust_deposit", "Customer Deposit"], ["cur_liability", "Current Liability"], ["noncur_liability", "Non-current Liability"], ["_group", "Equity"], ["equity", "Equity"], ["_group", "Expenses"], ["cost_sales", "Cost of Sales"], ["expense", "Expense"], ["other_expense", "Other Expense"], ["_group", "Income"], ["revenue", "Revenue"], ["other_income", "Other Income"], ["_group", "Other"], ["view", "View"], ["other", "Other"]], "Type", required=True, search=True, index=True),
-        "parent_id": fields.Many2One("account.account", "Parent", condition=[["type", "=", "view"]]),
+        "type": fields.Selection([["_group", "Assets"], ["cash", "Cash"], ["cheque", "Cheque"], ["bank", "Bank Account"], ["receivable", "Receivable"], ["cur_asset", "Current Asset"], ["fixed_asset", "Fixed Asset"], ["noncur_asset", "Non-current Asset"], ["sup_deposit","Supplier Deposit"], ["_group", "Liabilities"], ["payable", "Payable"], ["cust_deposit", "Customer Deposit"], ["cur_liability", "Current Liability"], ["noncur_liability", "Non-current Liability"], ["_group", "Equity"], ["equity", "Equity"], ["_group", "Expenses"], ["cost_sales", "Cost of Sales"], ["expense", "Expense"], ["other_expense", "Other Expense"], ["_group", "Income"], ["revenue", "Revenue"], ["other_income", "Other Income"], ["_group", "Other"], ["view", "View"], ["other", "Other"]], "Type", required=True, search=True, index=True),
+        "parent_id": fields.Many2One("account.account", "Parent", condition=[["type", "=", "view"]],search=True),
         "bank_type": fields.Selection([["bank", "Bank Account"], ["credit_card", "Credit Card"], ["paypal", "Paypal"]], "Bank Type"),
         "description": fields.Text("Description"),
         "tax_id": fields.Many2One("account.tax.rate", "Tax"),
@@ -140,7 +140,7 @@ class Account(Model):
                         acc_bals[id] = vals
                         get_model("field.cache").set_value("account.account", "balance", id, vals)
                 return acc_bals
-            q = "SELECT l.account_id,SUM(l.debit) AS debit,SUM(l.credit) AS credit,SUM(COALESCE(l.amount_cur,l.debit-l.credit)) AS amount_cur FROM account_move_line l JOIN account_move m ON m.id=l.move_id WHERE l.account_id IN %s AND m.state='posted'"
+            q = "SELECT l.account_id,SUM(l.debit) AS debit,SUM(l.credit) AS credit,SUM(COALESCE(l.amount_cur*SIGN(l.debit-l.credit),l.debit-l.credit)) AS amount_cur FROM account_move_line l JOIN account_move m ON m.id=l.move_id WHERE l.account_id IN %s AND m.state='posted'"
             q_args = [tuple(ids)]
             if date_from:
                 q += " AND m.date>=%s"

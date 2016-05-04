@@ -15,11 +15,14 @@
             <item string="Copy Estimated Costs To Purchase Orders" method="copy_cost_to_purchase"/>
             <item string="Copy To Production Orders" method="copy_to_production"/>
             <item string="Copy To Service Order" method="copy_to_job"/>
+            <item string="Create Invoice And Record Payment" method="create_invoice_payment" confirm="Are you sure?"/>
             <item string="To Draft" method="to_draft"/>
             <item string="Void" method="void" confirm="Are you sure you want to void this sales order?" states="confirmed,done"/>
             <divider/>
             <item string="Create Estimated Costs" method="create_est_costs"/>
             <item string="Create Tracking Codes" method="create_track"/>
+            <divider/>
+            <item string="Online Payment" method="pay_online" states="confirmed"/>
         </button>
     </head>
     <tabs>
@@ -41,7 +44,7 @@
                 <newline/>
                 <field name="bill_address_id" span="2" condition='[["contact_id","!=",null],["contact_id","=",contact_id]]'/>
                 <field name="ship_address_id" span="2" condition='[["contact_id","!=",null],["contact_id","=",contact_id]]'/>
-                <field name="delivery_slot_id"/>
+                <field name="delivery_slot_id" span="2"/>
             </group>
             <field name="lines" nolabel="1">
                 <list>
@@ -57,8 +60,11 @@
                     <field name="tax_id" onchange="update_amounts"/>
                     <field name="amount"/>
                     <field name="location_id"/>
+                    <field name="lot_id"/>
                     <field name="qty_stock"/>
                     <field name="ship_method_id"/>
+                    <field name="due_date"/>
+                    <field name="ship_address_id"/>
                     <field name="qty_delivered"/>
                     <field name="est_cost_amount"/>
                     <field name="est_profit_amount"/>
@@ -66,12 +72,11 @@
                     <field name="act_cost_amount"/>
                     <field name="act_profit_amount"/>
                     <field name="act_margin_percent"/>
-                    <field name="production_id"/>
                 </list>
             </field>
             <group span="8">
                 <field name="payment_terms"/>
-                <newline/>
+                <NEwline/>
                 <field name="other_info"/>
             </group>
             <group span="4" columns="1" horizontal="1">
@@ -81,6 +86,7 @@
             </group>
         </tab>
         <tab string="Promotions">
+            <field name="voucher_id"/>
             <separator string="Promotions"/>
             <field name="used_promotions" nolabel="1">
                 <list>
@@ -161,6 +167,10 @@
             <field name="job_template_id"/>
             <newline/>
             <field name="pay_method_id"/>
+            <newline/>
+            <field name="transaction_no"/>
+            <newline/>
+            <field name="ship_tracking"/>
             <newline/>
             <field name="create_time"/>
         </tab>

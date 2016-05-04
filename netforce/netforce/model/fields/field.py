@@ -65,9 +65,10 @@ class Field(object):
         if not m._table or not self.store:
             return
         db = database.get_connection()
+        schema = database.get_active_schema() or "public"
         col_type = self.get_col_type()
         res = db.get(
-            "SELECT * FROM pg_attribute a,pg_type t WHERE attrelid=(SELECT oid FROM pg_class WHERE relname=%s) AND attname=%s and t.oid=a.atttypid", m._table, self.name)
+            "SELECT * FROM pg_attribute a,pg_type t WHERE attrelid=(SELECT pg_class.oid FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname=%s AND n.nspname=%s) AND attname=%s and t.oid=a.atttypid", m._table, schema, self.name)
         if not res:
             print("adding column %s.%s" % (m._table, self.name))
             q = "ALTER TABLE %s ADD COLUMN \"%s\" %s" % (m._table, self.name, col_type)
@@ -104,7 +105,7 @@ class Field(object):
             db.execute(q)
         if self.index:
             idx_name = m._table + "_" + self.name + "_idx"
-            res = db.get("SELECT * FROM pg_index i,pg_class c WHERE c.oid=i.indexrelid AND c.relname=%s", idx_name)
+            res = db.get("SELECT * FROM pg_index i,pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE c.oid=i.indexrelid AND c.relname=%s AND n.nspname=%s", idx_name,schema)
             if not res:
                 print("creating index %s" % idx_name)
                 db.execute("CREATE INDEX " + idx_name + " ON " + m._table + " (" + self.name + ")")

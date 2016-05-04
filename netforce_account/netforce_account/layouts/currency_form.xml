@@ -3,6 +3,7 @@
         <field name="name"/>
         <field name="code"/>
         <field name="sign"/>
+        <field name="iso_number"/>
         <separator/>
         <field name="account_receivable_id"/>
         <field name="account_payable_id"/>

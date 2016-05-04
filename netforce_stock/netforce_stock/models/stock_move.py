@@ -57,7 +57,7 @@ class Move(Model):
         "num_packages": fields.Integer("# Packages"),
         "notes": fields.Text("Notes"),
         "qty2": fields.Decimal("Qty2"),
-        "company_id": fields.Many2One("company", "Company"), # XXX: deprecated
+        "company_id": fields.Many2One("company", "Company"),
         "invoice_id": fields.Many2One("account.invoice", "Invoice"),
         "related_id": fields.Reference([["sale.order", "Sales Order"], ["purchase.order", "Purchase Order"], ["job", "Service Order"], ["account.invoice", "Invoice"], ["pawn.loan", "Loan"]], "Related To"),
         "number": fields.Char("Number", required=True, search=True),
@@ -257,11 +257,19 @@ class Move(Model):
         prod_ids=list(set(prod_ids))
         if prod_ids and settings.stock_cost_auto_compute:
             get_model("stock.compute.cost").compute_cost([],context={"product_ids": prod_ids})
-        if settings.stock_cost_mode=="perpetual":
+        if settings.stock_cost_mode=="perpetual" and not context.get("no_post"):
             self.post(ids,context=context)
         self.update_lots(ids,context=context)
         self.set_reference(ids,context=context)
+        self.check_periods(ids,context=context)
         print("<<<  stock_move.set_done")
+
+    def check_periods(self,ids,context={}):
+        for obj in self.browse(ids):
+            d=obj.date[:10]
+            res=get_model("stock.period").search([["date_from","<=",d],["date_to",">=",d],["state","=","posted"]])
+            if res:
+                raise Exception("Failed to validate stock movement because stock period already posted")
 
     def set_reference(self,ids,context={}):
         for obj in self.browse(ids):

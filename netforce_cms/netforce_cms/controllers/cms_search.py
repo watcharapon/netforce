@@ -42,7 +42,8 @@ class Search(BaseController):
             condition = [["state","=","approved"]]
             if minprice: condition.append(["sale_price", ">=", minprice])
             if maxprice: condition.append(["sale_price", "<=", maxprice])
-            if q: condition.append(["or",["name","ilike",q],["description","ilike",q]])
+            for word in q.split():
+                condition.append(["or",["name","ilike",word],["description","ilike",word]])
             results=[]
             if condition:
                 condition.append(["parent_id","=",None]) #Filter out variant

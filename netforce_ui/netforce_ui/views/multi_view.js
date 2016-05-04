@@ -115,10 +115,12 @@ var MultiView=NFView.extend({
                 refer_id: this.options.refer_id, // XXX
                 action_name: this.options.name, // XXX
                 model_string: this.options.model_string,
-                defaults: this.options.defaults,
                 modes: this.modes,
                 context: this.context
             };
+            if (this.options.defaults) {
+                opts.defaults=this.options.defaults;
+            }
             if (_.contains(this.modes,"page")) {
                 opts.next_action_options="mode=page";
             } else {
@@ -228,7 +230,7 @@ var MultiView=NFView.extend({
         view.on("click_item",function(opts) {
             var action={
                 name: that.options.name,
-                active_id: opts.active_id
+                active_id: opts.active_id,
             };
             if (_.contains(this.modes,"page")) {
                 action.mode="page";

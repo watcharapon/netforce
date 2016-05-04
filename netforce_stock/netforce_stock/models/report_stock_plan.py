@@ -44,12 +44,18 @@ class ReportStockPlan(Model):
             params = self.default_get(load_m2o=False, context=context)
         product_id=params.get("product_id")
         categ_id=params.get("product_categ_id")
+        if categ_id:
+            categ_ids=get_model("product.categ").search([["id","child_of",categ_id]])
+        else:
+            categ_ids=None
         supplier_id=params.get("supplier_id")
         loc_types={}
         for loc in get_model("stock.location").search_browse([]):
             loc_types[loc.id]=loc.type
         min_qtys=get_model("stock.order").get_min_qtys()
-        qtys_unlim=get_model("stock.order").get_plan_qtys_unlim(product_id=product_id,categ_id=categ_id)
+        print("get qtys_unlim...")
+        qtys_unlim=get_model("stock.order").get_plan_qtys_unlim(product_id=product_id,categ_ids=categ_ids)
+        print("got_qtys_unlim (%s)"%len(qtys_unlim))
         product_ids=[]
         for prod_id,qty in qtys_unlim.items():
             min_qty=min_qtys.get(prod_id,0)
@@ -92,18 +98,17 @@ class ReportStockPlan(Model):
                 else:
                     order_uom=prod.uom_id
                     order_qty=req_qty
-                if not prod.purchase_lead_time:
-                    raise Exception("Missing purchase lead time for product %s"%prod.code)
-                order_date=(datetime.strptime(req_date,"%Y-%m-%d")-timedelta(days=prod.purchase_lead_time)).strftime("%Y-%m-%d")
+                order_date=(datetime.strptime(req_date,"%Y-%m-%d")-timedelta(days=prod.purchase_lead_time or 0)).strftime("%Y-%m-%d")
             elif prod.supply_method=="production":
                 supply_method="Production"
                 order_uom=prod.uom_id
                 order_qty=req_qty
-                if not prod.mfg_lead_time:
-                    raise Exception("Missing manufacturing lead time for product %s"%prod.code)
-                order_date=(datetime.strptime(req_date,"%Y-%m-%d")-timedelta(days=prod.mfg_lead_time)).strftime("%Y-%m-%d")
+                order_date=(datetime.strptime(req_date,"%Y-%m-%d")-timedelta(days=prod.mfg_lead_time or 0)).strftime("%Y-%m-%d")
             else:
-                raise Exception("Invalid supply method")
+                supply_method=None
+                order_uom=None
+                order_qty=None
+                order_date=None
             line_vals={
                 "product_id": prod.id,
                 "product_code": prod.code,
@@ -116,7 +121,7 @@ class ReportStockPlan(Model):
                 "stock_uom_name": prod.uom_id.name,
                 "req_date": req_date,
                 "order_qty": order_qty,
-                "order_uom_name": order_uom.name,
+                "order_uom_name": order_uom and order_uom.name or None,
                 "order_date": order_date,
                 "below_min": qty_horiz<min_qty,
                 "supply_method": supply_method,

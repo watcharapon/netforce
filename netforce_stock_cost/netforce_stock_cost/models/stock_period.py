@@ -21,10 +21,13 @@
 from netforce.model import Model, fields, get_model
 from datetime import *
 from dateutil.relativedelta import *
+from netforce import access
 
 class StockPeriod(Model):
     _name="stock.period"
     _string="Stock Period"
+    _multi_company = True
+    _key = ["company_id", "number"]
     _fields={
         "number": fields.Char("Number",required=True,search=True),
         "date_from": fields.Date("Date From",required=True),
@@ -35,11 +38,13 @@ class StockPeriod(Model):
         "stock_moves": fields.One2Many("stock.move","period_id","Posted Stock Movements"),
         "num_stock_moves": fields.Integer("Number stock movements",function="get_num_stock_moves",function_multi=True),
         "num_posted_stock_moves": fields.Integer("Number posted stock movements",function="get_num_stock_moves",function_multi=True),
+        "company_id": fields.Many2One("company", "Company"),
     }
     _defaults={
         "state": "draft",
         "date_from": lambda *a: date.today().strftime("%Y-%m-01"),
         "date_to": lambda *a: (date.today()+relativedelta(day=31)).strftime("%Y-%m-%d"),
+        "company_id": lambda *a: access.get_active_company(),
     }
 
     def post(self,ids,context={}):
@@ -50,19 +55,15 @@ class StockPeriod(Model):
             prod=move.product_id
             acc_from_id=move.location_from_id.account_id.id
             if not acc_from_id:
-                acc_from_id=prod.stock_in_account_id.id
-            if not acc_from_id:
-                raise Exception("Missing input account for stock transaction %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
+                raise Exception("Missing account for location '%s'"%move.location_from_id.name)
             acc_to_id=move.location_to_id.account_id.id
             if not acc_to_id:
-                acc_to_id=prod.stock_out_account_id.id
-            if not acc_to_id:
-                raise Exception("Missing output account for stock transaction %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
+                raise Exception("Missing account for location '%s'"%move.location_to_id.name)
             if move.unit_price is None:
                 raise Exception("Unknown cost price for stock transaction %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
             track_from_id=move.location_from_id.track_id.id
             track_to_id=move.location_to_id.track_id.id
-            amt=round(move.qty*move.unit_price,2) # XXX: uom
+            amt=move.cost_amount or 0
             accounts.setdefault((acc_from_id,track_from_id),0)
             accounts.setdefault((acc_to_id,track_to_id),0)
             accounts[(acc_from_id,track_from_id)]-=amt

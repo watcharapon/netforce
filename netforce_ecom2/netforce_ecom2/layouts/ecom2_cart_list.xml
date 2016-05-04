@@ -6,5 +6,7 @@
     <field name="ship_address_id"/>
     <field name="delivery_date"/>
     <field name="delivery_slot_id"/>
+    <field name="comments"/>
+    <field name="voucher_id"/>
     <field name="state"/>
 </list>

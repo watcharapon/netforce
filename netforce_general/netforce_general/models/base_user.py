@@ -24,6 +24,8 @@ from netforce import config
 from netforce import database
 from netforce import utils
 from pprint import pprint
+import string
+import random
 
 
 class User(Model):
@@ -47,6 +49,7 @@ class User(Model):
         "pin_code": fields.Char("PIN Code", password=True, size=256),
         "company_id": fields.Many2One("company","Company",search=True),
         "company2_id": fields.Many2One("company","Company #2",search=True),
+        "password_reset_code": fields.Char("Password Reset Code"),
     }
     _order = "login"
     _defaults = {
@@ -203,5 +206,13 @@ http://nf1.netforce.com/action?name=nfw_reset_passwd&reset_code=%s""" % code
             return params
         finally:
             access.set_active_user(user_id)
+    
+
+    def password_reset(self,ids,context={}):
+        obj = self.browse(ids)
+        random_no ="%012d"%random.randint(0,999999999999) 
+        obj.write({'password_reset_code':random_no})
+        return random_no
+
 
 User.register()

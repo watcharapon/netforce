@@ -9,6 +9,7 @@
     <field name="company_id"/>
     <field name="company2_id"/>
     <field name="contact_id"/>
+    <field name="address_id" condition='[["contact_id","=",contact_id]]'/>
     <related>
         <field name="comments"/>
     </related>

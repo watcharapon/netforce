@@ -32,21 +32,23 @@ _translations = {}
 def load_translations():
     loaded_modules = module.get_loaded_modules()
     for m in reversed(loaded_modules):
-        if not pkg_resources.resource_exists(m, "i18n"):
-            continue
-        for csv_f in pkg_resources.resource_listdir(m, "i18n"):
-            if not csv_f.endswith(".csv"):
+        try:
+            if not pkg_resources.resource_exists(m, "i18n"):
                 continue
-            locale, ext = csv_f.split(".")
-            data = pkg_resources.resource_string(m, csv_f)
-            f = StringIO(data)
-            for i, row in enumerate(csv.reader(f)):
-                if not row or len(row) < 2:
+            for csv_f in pkg_resources.resource_listdir(m, "i18n"):
+                if not csv_f.endswith(".csv"):
                     continue
-                row = [c.decode("utf-8").strip() for c in row]
-                english, translation = row[:2]
-                _translations.setdefault(locale, {})[english] = translation
-
+                locale, ext = csv_f.split(".")
+                data = pkg_resources.resource_string(m, csv_f)
+                f = StringIO(data)
+                for i, row in enumerate(csv.reader(f)):
+                    if not row or len(row) < 2:
+                        continue
+                    row = [c.decode("utf-8").strip() for c in row]
+                    english, translation = row[:2]
+                    _translations.setdefault(locale, {})[english] = translation
+        except Exception as e:
+            print("Failed to load translations of module %s: %s"%(m,e))
 
 def get(code):
     return Locale.get(code)

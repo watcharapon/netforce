@@ -46,6 +46,7 @@
                         <field name="adjust_lines" nolabel="1" count="5">
                             <list>
                                 <field name="account_id" condition='[["type","!=","view"],["company_id","=",parent.company_id]]'/>
+                                <field name="description"/>
                                 <field name="tax_comp_id"/>
                                 <field name="tax_base"/>
                                 <field name="track_id"/>
@@ -134,6 +135,8 @@
             <field name="sequence_id" condition='[["type","in",["pay_in","pay_out"]]]' onchange="onchange_sequence"/>
             <newline/>
             <field name="currency_rate"/>
+            <newline/>
+            <field name="transaction_no"/>
         </tab>
     </tabs>
     <field name="company_id" invisible="1"/>

@@ -30,6 +30,7 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
         //log("tabs_view.initialize",this);
         NFView.prototype.initialize.call(this,options);
         this.$tabs=this.options.tabs_layout;
+        this.listen_attrs();
     },
 
     render: function() {
@@ -49,7 +50,11 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                 action: $el.attr("action"),
                 active: i==0,
                 tab_id: _.uniqueId("tab"),
-                tab_layout: $el
+                tab_layout: $el,
+            }
+            var attrs_expr=$el.attr("attrs");
+            if (attrs_expr) {
+                tab.attrs=that.eval_attrs(attrs_expr);
             }
             tabs.push(tab);
         });
@@ -321,6 +326,78 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
         } else {
             log("normal tab");
             $(e.target).tab("show");
+        }
+    },
+
+    eval_attrs: function(attrs_expr) {
+        if (!attrs_expr) return {};
+        var expr=JSON.parse(attrs_expr);
+        var model=this.context.model;
+        var attrs={};
+        for (var attr in expr) {
+            var conds=expr[attr];
+            if (_.isArray(conds)) {
+                var attr_val=true;
+            } else if (_.isObject(conds)) {
+                var attr_val=conds.value;
+                conds=conds.condition;
+                if (!conds) {
+                    throw "Missing condition in attrs expression: "+attrs_expr;
+                }
+            } else {
+                throw "Invalid attrs expression: "+attrs_expr;
+            }
+            for (var i in conds) {
+                var clause=conds[i];
+                var n=clause[0];
+                var op=clause[1];
+                var cons=clause[2];
+                var v=model.get_path_value(n);
+                var clause_v;
+                if (op=="=") {
+                    clause_v=v==cons;
+                } else if (op=="!=") {
+                    clause_v=v!=cons;
+                } else if (op=="in") {
+                    clause_v=_.contains(cons,v);
+                } else if (op=="not in") {
+                    clause_v=!_.contains(cons,v);
+                } else {
+                    throw "Invalid operator: "+op;
+                }
+                if (!clause_v) {
+                    attr_val=false;
+                    break;
+                }
+            }
+            attrs[attr]=attr_val;
+        }
+        //log("==>",attrs);
+        return attrs;
+    },
+
+    listen_attrs: function() {
+        var depends=[];
+        this.$tabs.children().each(function(i) {
+            var $el=$(this);
+            var tag=$el.prop("tagName");
+            if (tag!="tab") throw "Expected 'tab' element";
+            var attrs_expr=$el.attr("attrs");
+            if (!attrs_expr) return;
+            var expr=JSON.parse(attrs_expr);
+            for (var attr in expr) {
+                var conds=expr[attr];
+                for (var i in conds) {
+                    var clause=conds[i];
+                    var n=clause[0];
+                    depends.push(n);
+                }
+            }
+        });
+        var model=this.context.model;
+        for (var i in depends) {
+            var n=depends[i];
+            model.on("change:"+n,this.render,this);
         }
     }
 });

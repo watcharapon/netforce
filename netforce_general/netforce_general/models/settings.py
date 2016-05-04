@@ -18,10 +18,11 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from netforce.model import Model, fields
+from netforce.model import Model, fields, get_model
 from netforce import static
 import datetime
 from dateutil.relativedelta import relativedelta
+from netforce import access
 
 _days = [
     ["1", "1"],
@@ -100,7 +101,7 @@ class Settings(Model):
         "version": fields.Char("Version"),
         "tax_no": fields.Char("Tax ID Number", multi_company=True),
         "branch_no": fields.Char("Branch Number", multi_company=True),
-        "addresses": fields.One2Many("address", "settings_id", "Addresses"),
+        "addresses": fields.One2Many("address","settings_id","Addresses",function="get_addresses"),
         "date_format": fields.Char("Date Format"),
         "use_buddhist_date": fields.Boolean("Use Buddhist Date"),
         "phone": fields.Char("Phone", multi_company=True),
@@ -188,6 +189,14 @@ class Settings(Model):
         vals = {}
         for obj in self.browse(ids):
             vals[obj.id] = obj.addresses and obj.addresses[0].id or None
+        return vals
+
+    def get_addresses(self,ids,context={}):
+        vals={}
+        comp_id=access.get_active_company()
+        for obj in self.browse(ids):
+            res=get_model("address").search([["settings_id","=",obj.id],["or",["company_id","=",None],["company_id","child_of",comp_id]]])
+            vals[obj.id]=res
         return vals
 
 Settings.register()

@@ -35,6 +35,7 @@ class ShipRate(Model):
         "postal_code": fields.Char("Postal Code", search=True),
         "min_amount": fields.Decimal("Min Total Amount"),
         "min_weight": fields.Decimal("Min Total Weight (Kg)"),
+        "address_name": fields.Char("Address Name",search=True),
         "ship_price": fields.Decimal("Shipping Price", required=True),
         "comments": fields.One2Many("message", "related_id", "Comments"),
     }

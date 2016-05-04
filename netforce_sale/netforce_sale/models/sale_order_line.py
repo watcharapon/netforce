@@ -54,6 +54,7 @@ class SaleOrderLine(Model):
         "remark": fields.Char("Remark"),
         "ship_method_id": fields.Many2One("ship.method", "Shipping Method"),
         "sequence": fields.Char("Item No."),
+        "due_date": fields.Date("Due Date"),
         "est_cost_amount": fields.Float("Est. Cost Amount",function="get_est_profit",function_multi=True),
         "est_profit_amount": fields.Float("Est. Profit Amount",function="get_est_profit",function_multi=True),
         "est_margin_percent": fields.Float("Est. Margin %",function="get_est_profit",function_multi=True),
@@ -63,6 +64,9 @@ class SaleOrderLine(Model):
         "promotion_amount": fields.Decimal("Prom Amt",function="get_amount",function_multi=True),
         "agg_act_profit": fields.Decimal("Total Actual Profit", agg_function=["sum", "act_profit_amount"]),
         "production_id": fields.Many2One("production.order","Production Order"),
+        "lot_id": fields.Many2One("stock.lot","Lot / Serial Number"),
+        "ship_address_id": fields.Many2One("address", "Shipping Address"),
+        "packaging_id": fields.Many2One("stock.packaging", "Packaging"),
     }
 
     def create(self, vals, context={}):

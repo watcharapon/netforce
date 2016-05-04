@@ -537,6 +537,7 @@ function field_value(name,context,link,target,m2o_link,click_action,show_image,s
                     };
                 } else {
                     action=find_details_action(field.relation,id);
+                    log("######################",field.relation,action);
                 }
                 if (action) {
                     var link_url="#"+obj_to_qs(action);
@@ -1095,8 +1096,9 @@ function exec_action_ready(action) {
         var args=[];
         if (active_id) args.push([active_id]);
         var opts={};
+        opts.context={action:action_opts};
         if (action_opts.context) {
-            opts.context=action_opts.context;
+            _.extend(opts.context,action_opts.context);
         }
         rpc_execute(model,method,args,opts,function(err,data) {
             if (err) {
@@ -1815,22 +1817,35 @@ function get_action(name) {
 function find_action(options) {
     log("find_action",JSON.stringify(options));
     var actions=nf_actions;
+    var min_pri=null;
+    var found_action=null;
     for (var name in actions) {
         var action=actions[name];
         if (options.model && action.model!=options.model) continue;
         var view=action.view||action.view_cls; // XXX: remove view_cls later
-        if (view!="multi_view" && view!="model_view") continue; // XXX: remove model_view
-        return name;
+        if (options.view && view!=options.view) continue;
+        var pri=parseInt(action.priority)||10;
+        if (min_pri==null || pri<min_pri) {
+            min_pri=pri;
+            found_action=name;
+        }
     }
-    return null;
-    //throw "Action not found: "+model;
+    return found_action;
 }
 
 function find_details_action(model,active_id) {
     log("find_details_action",model,active_id);
-    var action_name=find_action({model:model});
+    var action_name=find_action({model:model,view:"multi_view"});
     if (!action_name) return null;
     var action=get_action(action_name);
+    var pri=parseInt(action.priority)||10;
+    var action_name2=find_action({model:model});
+    var action2=get_action(action_name2);
+    var pri2=parseInt(action2.priority)||10;
+    if (pri2<pri) { // if there is action with lower priority than multi_view, use that action
+        action_name=action_name2;
+        action=action2;
+    }
     var modes=(action.modes||"list,form").split(",");
     var a={
         name: action_name,
@@ -1840,15 +1855,13 @@ function find_details_action(model,active_id) {
         a.mode="page";
     } else if (_.contains(modes,"form")) {
         a.mode="form";
-    } else {
-        return null;
     }
     return a;
 }
 
 function find_new_action(model) {
     log("find_new_action",model);
-    var action_name=find_action({model:model});
+    var action_name=find_action({model:model,view:"multi_view"});
     if (!action_name) return null;
     var action=get_action(action_name);
     var modes=(action.modes||"list,form").split(",");
