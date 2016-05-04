@@ -69,7 +69,9 @@ class ReportDepSchedule(Model):
                 "purchase_date": asset.date_purchase,
                 "book_val_from": asset.book_val,
                 "track_id": asset.track_id.id,
+                "track_name": asset.track_id.name,
                 "track2_id": asset.track2_id.id,
+                "track2_name": asset.track2_id.name,
             }
             assets[asset.id] = vals
         for asset in get_model("account.fixed.asset").search_browse(cond, context={"date": date_to}):

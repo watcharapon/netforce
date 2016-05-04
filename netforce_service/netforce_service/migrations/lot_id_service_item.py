@@ -4,7 +4,7 @@ from netforce import migration
 
 class Migration(migration.Migration):
     _name="service.item"
-    _version="3.100.0"
+    _version="3.1.1"
 
     def migrate(self):
         for obj in get_model("service.item").search_browse([[]]):

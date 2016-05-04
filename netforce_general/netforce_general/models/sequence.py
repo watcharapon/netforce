@@ -138,9 +138,13 @@ class Sequence(Model):
         if not sequence_id:
             raise Exception("[G001] No sequence configured %s" % type)
             #return None
+        # specific column to find latest sequence
+        sequence_field = "number"
+        if context.get("sequence_field",False):
+            sequence_field = context["sequence_field"]
         while 1:
             num = self.get_next_number(sequence_id, context=context)
-            res = get_model(model).search([["number", "=", num]])
+            res = get_model(model).search([[sequence_field, "=", num]])
             if not res:
                 return num
             # set next number
