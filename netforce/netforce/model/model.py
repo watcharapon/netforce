@@ -121,7 +121,7 @@ class Model(object):
             db.execute("CREATE TABLE %s (id SERIAL, PRIMARY KEY (id))" % self._table)
         else:
             res = db.query(
-                "SELECT * FROM pg_attribute a WHERE attrelid=(SELECT oid FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname=%s AND n.nspname=%s) AND attnum>0 AND attnotnull", self._table, schema)
+                "SELECT * FROM pg_attribute a WHERE attrelid=(SELECT pg_class.oid FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname=%s AND n.nspname=%s) AND attnum>0 AND attnotnull", self._table, schema)
             for r in res:
                 n = r.attname
                 if n == "id":
@@ -2427,7 +2427,7 @@ def update_db(force=False):
     print("update_db")
     access.set_active_user(1)
     db_version = utils.get_db_version() or "0"
-    mod_version = netforce.get_module_version()
+    mod_version = netforce.get_module_version_name()
     if utils.compare_version(db_version, mod_version) == 0:
         print("Database is already at version %s" % mod_version)
         if not force:

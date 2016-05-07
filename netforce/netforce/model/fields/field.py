@@ -68,7 +68,7 @@ class Field(object):
         schema = database.get_active_schema() or "public"
         col_type = self.get_col_type()
         res = db.get(
-            "SELECT * FROM pg_attribute a,pg_type t WHERE attrelid=(SELECT oid FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname=%s AND n.nspname=%s) AND attname=%s and t.oid=a.atttypid", m._table, schema, self.name)
+            "SELECT * FROM pg_attribute a,pg_type t WHERE attrelid=(SELECT pg_class.oid FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname=%s AND n.nspname=%s) AND attname=%s and t.oid=a.atttypid", m._table, schema, self.name)
         if not res:
             print("adding column %s.%s" % (m._table, self.name))
             q = "ALTER TABLE %s ADD COLUMN \"%s\" %s" % (m._table, self.name, col_type)

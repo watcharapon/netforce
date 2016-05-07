@@ -161,6 +161,8 @@ class Picking(Model):
             prod=move.product_id
             if not prod.check_lot_neg_stock:
                 continue
+            if not move.lot_id:
+                continue
             qty_virt=get_model("stock.balance").get_qty_virt(move.location_from_id.id,prod.id,move.lot_id.id) # XXX: improve speed
             print("loc_id=%s prod_id=%s lot_id=%s => qty_virt=%s"%(move.location_from_id.id,prod.id,move.lot_id.id,qty_virt))
             if qty_virt<0:

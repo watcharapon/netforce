@@ -34,10 +34,13 @@ class CartLine(Model):
         prod_id=vals["product_id"]
         prod=get_model("product").browse(prod_id)
         vals["uom_id"]=prod.uom_id.id
-        if prod.ecom_select_lot and vals.get("lot_id"): # XXX: improve this
-            lot_id=vals["lot_id"]
-            lot=get_model("stock.lot").browse(lot_id)
-            sale_price=math.ceil((prod.sale_price or 0)*(lot.weight or 0)/1000)
+        if prod.ecom_select_lot:
+            lot_id=vals.get("lot_id")
+            if lot_id:
+                lot=get_model("stock.lot").browse(lot_id)
+                sale_price=math.ceil((prod.sale_price or 0)*(lot.weight or 0)/1000) # XXX: too specific
+            else:
+                sale_price=math.ceil((prod.sale_price or 0)*(prod.sale_to_invoice_uom_factor or 0)) # XXX: too specific
             vals["unit_price"]=sale_price
         else:
             vals["unit_price"]=prod.sale_price
@@ -47,11 +50,9 @@ class CartLine(Model):
         vals={}
         for obj in self.browse(ids):
             prod=obj.product_id
-            if prod.locations:
-                loc_id=prod.locations[0].location_id.id
-                qty=get_model("stock.balance").get_qty_virt(loc_id,prod.id,obj.lot_id.id) # XXX: speed
-            else:
-                qty=0
+            qty=0
+            for bal in get_model("stock.balance").search_browse([["product_id","=",prod.id]]):
+                qty+=bal.qty_virt # XXX: chek this
             vals[obj.id]=qty
         return vals
 
