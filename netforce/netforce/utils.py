@@ -376,9 +376,9 @@ def is_empty_db():
 
 def init_db():
     db = database.get_connection()
-    db.execute("INSERT INTO settings (id) VALUES (1)")
+    db.execute("INSERT INTO profile (id,name,default_model_perms) VALUES (1,'System Admin','full')")
+    db.execute("INSERT INTO settings (id,anon_profile_id) VALUES (1,1)")
     enc_pass=encrypt_password('1234')
-    db.execute("INSERT INTO profile (id,name) VALUES (1,'System Admin')")
     db.execute("INSERT INTO base_user (id,login,password,name,profile_id,active) VALUES (1,'admin',%s,'Admin',1,true)",enc_pass)
     db.execute("INSERT INTO company (id,name) VALUES (1,'Test Company')")
 
