@@ -23,6 +23,12 @@ var _=require("underscore");
 class FieldMany2One extends Component {
     constructor(props) {
         super(props);
+        if (this.props.relation) {
+            this.relation=this.props.relation;
+        } else {
+            var f=UIParams.get_field(this.props.model,this.props.name);
+            this.relation=f.relation;
+        }
         this.state = {};
     }
 
@@ -34,7 +40,7 @@ class FieldMany2One extends Component {
 
     load_items() {
         var ctx={};
-        rpc.execute(this.props.relation,"name_search",[""],{context:ctx},(err,data)=>{
+        rpc.execute(this.relation,"name_search",[""],{context:ctx},(err,data)=>{
             if (err) {
                 alert("Error: "+err);
                 return;

@@ -35,6 +35,7 @@ var FieldDate=require("./field_date");
 var FieldDateTime=require("./field_datetime");
 var FieldSelect=require("./field_select");
 var FieldFile=require("./field_file");
+var FieldImage=require("./field_image");
 var FieldMany2One=require("./field_many2one");
 var FieldOne2Many=require("./field_one2many");
 
@@ -82,9 +83,9 @@ class FormLayout extends Component {
                     } else if (f.type=="selection") {
                         field_component=<FieldSelect model={this.props.model} name={name} data={this.props.data}/>
                     } else if (f.type=="file") {
-                        field_component=<FieldFile model={this.props.model} name={name} data={this.props.data}/>
+                        field_component=<FieldImage model={this.props.model} name={name} data={this.props.data}/>
                     } else if (f.type=="many2one") {
-                        field_component=<FieldMany2One navigator={this.props.navigator} model={this.props.model} name={name} data={this.props.data}/>
+                        field_component=<FieldMany2One navigator={this.props.navigator} model={this.props.model} name={name} data={this.props.data} select={el.getAttribute("select")}/>
                     } else if (f.type=="one2many") {
                         var res=xpath.select("list",el);
                         var list_layout_el=res.length>0?res[0]:null;

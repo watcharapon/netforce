@@ -111,7 +111,7 @@ class List extends Component {
             }.bind(this)()}
             {function() {
                 if (this.readonly) return;
-                <View style={{paddingTop:5}}>
+                return <View style={{paddingTop:5}}>
                     <Button onPress={this.press_new.bind(this)}>
                         <View style={{height:50,backgroundColor:"#37b",alignItems:"center",justifyContent:"center"}}>
                             <Text style={{color:"#fff"}}><Icon name="plus" size={16} color="#eee"/> New {m.string}</Text>
