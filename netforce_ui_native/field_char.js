@@ -26,7 +26,7 @@ class FieldChar extends Component {
 
     render() {
         var val_str=this.state.value;
-        return <TextInput value={val_str} onChangeText={this.onchange.bind(this)}/>
+        return <TextInput value={val_str} onChangeText={this.onchange.bind(this)} style={{height:40, borderColor: 'gray', borderWidth: 1}}/>
     }
 
     onchange(val) {

@@ -5,6 +5,7 @@ import React, {
   StyleSheet,
   TextInput,
   Image,
+  Text,
   View
 } from 'react-native';
 
@@ -32,6 +33,7 @@ class FieldImage extends Component {
         var val=this.state.value;
         return <View style={{alignItems:"center"}}>
             {function() {
+                if (this.state.uploading) return <Text>Uploading...</Text>;
                 if (val) {
                     var uri=rpc.get_file_uri(val);
                     return <Image style={{width:200,height:200,resizeMode:"contain"}} source={{uri:uri}}/>
