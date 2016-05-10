@@ -23,6 +23,7 @@
             <field name="est_sub_tracks" readonly="1">
                 <list>
                     <field name="self_id"/>
+                    <field name="currency_id"/>
                     <field name="balance"/>
                 </list>
             </field>
@@ -32,6 +33,7 @@
             <field name="sub_tracks" readonly="1">
                 <list>
                     <field name="self_id"/>
+                    <field name="currency_id"/>
                     <field name="balance"/>
                 </list>
             </field>
