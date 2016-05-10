@@ -2350,6 +2350,8 @@ class BrowseRecord(object):
             return self.id
         if name == "_model":
             return self._model
+        if name == "_cache":
+            return self.browse_cache
         if not self.id:
             return None
         m = get_model(self._model)
