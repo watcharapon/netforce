@@ -25,8 +25,11 @@ import time
 from netforce import access
 
 def is_holiday(d):
+    settings=get_model("settings").browse(1)
     w=d.weekday()
-    if w==5 or w==6:
+    if w==5 and not settings.work_day_sat:
+        return True
+    if w==6 and not settings.work_day_sun:
         return True
     res=get_model("hr.holiday").search([["date","=",d.strftime("%Y-%m-%d")]])
     if res:
