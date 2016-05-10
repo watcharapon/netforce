@@ -41,6 +41,7 @@
     </tabs>
     <related>
         <field name="milestones"/>
+        <field name="invoices"/>
         <field name="jobs"/>
         <field name="tasks"/>
         <field name="work_time"/>
