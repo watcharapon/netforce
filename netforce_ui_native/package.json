@@ -9,8 +9,10 @@
   },
   "dependencies": {
     "moment": "^2.12.0",
-    "react-native": "^0.20.0",
+    "react": "^0.14.5",
+    "react-native": "^0.25.1",
     "react-native-date": "^1.0.3",
+    "react-native-fm-picker": "0.0.5",
     "react-native-image-picker": "^0.18.3",
     "react-native-maps": "^0.3.0",
     "react-native-mpchart": "git+https://github.com/mikemonteith/react-native-mpchart.git",
