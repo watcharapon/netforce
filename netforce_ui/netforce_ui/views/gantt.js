@@ -24,11 +24,13 @@ var Gantt=NFView.extend({
     _name: "gantt",
     events: {
         "click .run-report": "run_report",
-        "click .nf-zoom-in": "zoom_in",
-        "click .nf-zoom-out": "zoom_out",
         "click .nf-move-up": "move_up",
         "click .nf-move-down": "move_down",
         "click .nf-critical-path": "critical_path",
+        "click .nf-fullscreen": "fullscreen",
+        "click .nf-scale-month": "set_scale_month",
+        "click .nf-scale-day": "set_scale_day",
+        "click .nf-scale-hour": "set_scale_hour",
     },
 
     initialize: function(options) {
@@ -79,38 +81,26 @@ var Gantt=NFView.extend({
         this.data.title=this.options.string;
         this.data.render_search_body=function(ctx) { return that.render_search_body.call(that,ctx); };
         NFView.prototype.render.call(this);
-        var orig_tasks={};
         setTimeout(function() {
-            $("#ganttemplates").loadTemplates();
-            var ge=new GanttMaster();
-            this.ge=ge;
-            var orig_endTransaction=ge.endTransaction.bind(ge);
-            var that=this;
-            ge.endTransaction=function() {
-                log("gantt endTransaction");
-                orig_endTransaction();
-                var new_proj_data=ge.saveProject();
-                log("new_proj_data",new_proj_data);
-                _.each(new_proj_data.tasks,function(task) {
-                    var orig_task=orig_tasks[task.id];
-                    if (!orig_task) return;
-                    if (task.start==orig_task.start && task.duration==orig_task.duration) return;
-                    log("task "+task.id+" modified, saving...",task,orig_task);
-                    orig_tasks[task.id]=task;
-                    var vals={};
-                    vals[that.start_field_name]=moment(task.start).format("YYYY-MM-DD");
-                    vals[that.duration_field_name]=task.duration;
-                    rpc_execute(that.options.model,"write",[[task.id],vals],{},function(err,data) {
-                        if (err) {
-                            throw "Failed to save task "+task.id;
-                        }
-                    });
-                });
+            $("#nf-gantt-content").css({minHeight:500});
+            gantt.config.scale_unit="month";
+            gantt.config.order_branch=true;
+            this.$el.find(".nf-scale-month").addClass("active");
+            gantt.templates.scale_cell_class = function(date){
+                if(date.getDay()==0){
+                    return "weekend";
+                }
             };
-            var workspace=this.$el.find(".nf-gantt-content");
-            workspace.css({height: 960});
-            log("workspace",workspace);
-            ge.init(workspace);
+            gantt.templates.task_cell_class = function(item,date){
+                if(date.getDay()==0){
+                    return "weekend";
+                }
+            };
+            gantt.init("nf-gantt-content");
+            gantt.attachEvent("onAfterTaskUpdate",this.on_after_task_update.bind(this));
+            gantt.attachEvent("onAfterTaskDelete",this.on_after_task_delete.bind(this));
+            gantt.attachEvent("onAfterTaskMove",this.on_after_task_move.bind(this));
+            gantt.attachEvent("onAfterTaskDrag",this.on_after_task_drag.bind(this));
             var gantt_view=get_xml_layout({model:this.options.model,type:"gantt"});
             log("gantt_view",gantt_view);
             this.$layout=$($.parseXML(gantt_view.layout)).children();
@@ -156,28 +146,9 @@ var Gantt=NFView.extend({
                 if (err) {
                     throw "Failed to get gantt data: "+err.message;
                 }
-                var data=_.sortBy(data,function(obj) {
-                    var vals=[];
-                    if (this.group_field_name) {
-                        var group_field_value=render_field_value(obj[this.group_field_name],this.group_field);
-                        vals.push(group_field_value||" ");
-                    }
-                    if (this.subgroup_field_name) {
-                        var subgroup_field_value=render_field_value(obj[this.subgroup_field_name],this.subgroup_field);
-                        vals.push(subgroup_field_value||" ");
-                    }
-                    if (this.subsubgroup_field_name) {
-                        var subsubgroup_field_value=render_field_value(obj[this.subsubgroup_field_name],this.subsubgroup_field);
-                        vals.push(subsubgroup_field_value||" ");
-                    }
-                    var start_field_value=render_field_value(obj[this.start_field_name],this.start_field);
-                    vals.push(start_field_value);
-                    return vals.join("_");
-                }.bind(this));
-                log("sorted gantt data",data);
-                var proj_data={
-                    tasks: [],
-                    canWrite: true,
+                tasks={
+                    data: [],
+                    links: [],
                 };
                 var last_group_value=null;
                 var last_subgroup_value=null;
@@ -199,6 +170,7 @@ var Gantt=NFView.extend({
                         var subsubgroup_value=render_field_value(obj[this.subsubgroup_field_name],this.subsubgroup_field);
                     }
                     console.log("task ",obj.id,"group",group_value,"subgroup",subgroup_value,"subsubgroup",subsubgroup_value);
+                    /*
                     if (group_value!=last_group_value) {
                         console.log("new group",group_value);
                         if (group_value) {
@@ -278,33 +250,25 @@ var Gantt=NFView.extend({
                         });
                         depends=deps.join(",");
                     }
+                    */
                     var level=0;
                     if (group_value) level+=1;
                     if (subgroup_value) level+=1;
                     if (subsubgroup_value) level+=1;
-                    log("depends",depends); 
+                    var progress=obj[this.progress_field_name];
+                    if (progress) progress=progress/100.0;
                     var task={
                         id: obj.id,
-                        name: label_value,
-                        level: level,
-                        start: new moment(start_date).unix()*1000,
+                        text: label_value,
+                        start_date: new Date(start_date),
                         duration: duration,
-                        startIsMilestone: false,
-                        endIsMilestone: false,
-                        depends: depends,
-                        status: "STATUS_ACTIVE",
-                        progress: obj[this.progress_field_name],
-                        assigs: [],
+                        progress: progress,
+                        open: true,
                     };
-                    console.log("add task",task);
-                    proj_data.tasks.push(task);
-                    task_index[task.id]=proj_data.tasks.length;
-                    orig_tasks[task.id]=task;
+                    tasks.data.push(task);
                 }.bind(this));
-                ge.loadProject(proj_data);
-                var proj_data=ge.saveProject(); // XXX: to update group dates
-                this.update_group_dates(proj_data);
-                ge.loadProject(proj_data);
+                console.log("tasks",tasks);
+                gantt.parse(tasks);
             }.bind(this));
         }.bind(this),100);
         return this;
@@ -451,6 +415,70 @@ var Gantt=NFView.extend({
         e.preventDefault();
         this.ge.gantt.showCriticalPath=!this.ge.gantt.showCriticalPath;
         this.ge.redraw();
+    },
+
+    fullscreen: function(e) {
+        e.preventDefault();
+        gantt.expand();
+    },
+
+    on_after_task_update(id,item) {
+        console.log("gantt.on_after_task_update",id,item);
+        var vals={};
+        vals[this.label_field_name]=item.text;
+        vals[this.start_field_name]=moment(item.start_date).format("YYYY-MM-DD");
+        vals[this.duration_field_name]=item.duration;
+        if (this.progress_field_name) {
+            vals[this.progress_field_name]=(item.progress||0)*100;
+        }
+        rpc_execute(this.options.model,"write",[[id],vals],{},function(err) {
+            if (err) {
+                alert("Error: "+err.message);
+                return;
+            }
+        }.bind(this));
+    },
+
+    on_after_task_delete(id,item) {
+        console.log("gantt.on_after_task_delete",id,item);
+        rpc_execute(this.options.model,"delete",[[id]],{},function(err) {
+            if (err) {
+                alert("Error: "+err.message);
+                return;
+            }
+        }.bind(this));
+    },
+
+    on_after_task_move(id,parent,tindex) {
+        console.log("gantt.on_after_task_move",id,parent,tindex);
+    },
+
+    on_after_task_drag(id,mode,e) {
+        console.log("gantt.on_after_task_drag",id,mode,e);
+    },
+
+    set_scale_month(e) {
+        e.preventDefault();
+        this.$el.find(".nf-scale").removeClass("active");
+        this.$el.find(".nf-scale-month").addClass("active");
+        gantt.config.scale_unit="month";
+        gantt.render();
+    },
+
+    set_scale_day(e) {
+        e.preventDefault();
+        this.$el.find(".nf-scale").removeClass("active");
+        this.$el.find(".nf-scale-day").addClass("active");
+        gantt.config.scale_unit="day";
+        gantt.render();
+    },
+
+    set_scale_hour(e) {
+        e.preventDefault();
+        this.$el.find(".nf-scale").removeClass("active");
+        this.$el.find(".nf-scale-hour").addClass("active");
+        gantt.config.scale_unit="hour";
+        gantt.render();
     },
 });
 
