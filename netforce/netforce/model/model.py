@@ -2538,6 +2538,7 @@ def model_to_json(m):
         f_data["string"] = f.string
         if isinstance(f, fields.Char):
             f_data["type"] = "char"
+            f_data["size"] = f.size
         elif isinstance(f, fields.Text):
             f_data["type"] = "text"
         elif isinstance(f, fields.Float):

@@ -15,7 +15,7 @@
         {{#if options.prepend}}
             {{options.prepend}}
         {{/if}}
-        <input type="{{input_type}}" value="{{value}}" class="form-control {{#if options.span}}span{{options.span}}{{/if}} {{#if options.size}}input-{{options.size}}{{/if}}" {{#if disabled}}disabled{{/if}}/>
+        <input type="{{input_type}}" value="{{value}}" maxlength="{{size}}" class="form-control {{#if options.span}}span{{options.span}}{{/if}} {{#if options.size}}input-{{options.size}}{{/if}}" {{#if disabled}}disabled{{/if}}/>
         {{#if options.append}}
             {{options.append}}
         {{/if}}
