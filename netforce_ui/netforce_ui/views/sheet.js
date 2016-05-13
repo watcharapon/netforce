@@ -126,14 +126,16 @@ var Sheet=NFView.extend({
             var model=new NFModel(data,{name:model_name});
             collection.add(model);
             //========== focus field
-            var focus_field='';
-            _.each(that.data.fields,function(field){
-                if(field.focus){focus_field=field.name;}
-            });
-            if (focus_field){
-                var cells=that.$el.find("td[data-field="+focus_field+"]").last();
-                var cell=cells[0];
-                that.focus_cell(cell);
+            if(that.data.fields){
+                var focus_field=that.data.fields[0].name; // set default to first column
+                _.each(that.data.fields,function(field){
+                    if(field.focus){focus_field=field.name;}
+                });
+                if (focus_field){
+                    var cells=that.$el.find("td[data-field="+focus_field+"]").last();
+                    var cell=cells[0];
+                    that.focus_cell(cell);
+                }
             }
         });
     },
