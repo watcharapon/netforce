@@ -261,8 +261,10 @@ var FormView=NFView.extend({
                 that.data.show_background=!that.data.readonly;
                 NFView.prototype.render.call(that);
                 if (that.focus_field) {
-                    var view=that.get_field_view(that.focus_field);
-                    view.focus();
+                    setTimeout(function(){
+                        var view=that.get_field_view(that.focus_field);
+                        view.focus();
+                    },1000);
                 }
             });
         }
@@ -271,6 +273,7 @@ var FormView=NFView.extend({
 
     get_field_view: function(field_name) {
         var view=this.field_views[field_name];
+        log('yes ', this.field_views, field_name);
         if (!view) {
             log(this.field_views);
             throw "Can't find view of field "+field_name;
@@ -484,9 +487,16 @@ var FormView=NFView.extend({
                     tabs_layout: $el,
                     readonly: $el.attr("readonly")||that.readonly,
                     nobackground: $el.attr("readonly")||that.readonly,
+                    form_view: that,
                     context: context
                 };
                 var view=TabsView.make_view(opts);
+                setTimeout(function(){
+                    var focus=opts.form_view.focus_field;
+                    if(focus){
+                        that.focus_field=focus;
+                    }
+                },1000);
                 cell.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
                 col+=span;
             } else if (tag=="group") {

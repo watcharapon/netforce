@@ -61,7 +61,7 @@ var Group=NFView.extend({
             if (tag=="field") {
                 var name=$el.attr("name");
                 var focus=$el.attr("focus");
-                if(focus){
+                if(focus && that.options.form_view){
                     that.options.form_view.focus_field=name;
                 }
                 var model=context.model;
