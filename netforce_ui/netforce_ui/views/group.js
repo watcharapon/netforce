@@ -119,6 +119,7 @@ var Group=NFView.extend({
                     create: $el.attr("create"),
                     search_mode: $el.attr("search_mode"),
                     string: $el.attr("string"),
+                    placeholder: $el.attr("placeholder"),
                     method: $el.attr("method"),
                     show_buttons: $el.attr("show_buttons"),
                     auto_save: $el.attr("auto_save"),

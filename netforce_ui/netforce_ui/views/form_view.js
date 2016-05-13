@@ -373,6 +373,7 @@ var FormView=NFView.extend({
                     search_mode: $el.attr("search_mode"),
                     method: $el.attr("method"),
                     string: $el.attr("string"),
+                    placeholder: $el.attr("placeholder"),
                     form_layout: form_layout,
                     context: ctx
                 };
