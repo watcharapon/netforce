@@ -29,8 +29,7 @@ class FieldText extends Component {
     }
 
     render() {
-        var f=UIParams.get_field(this.props.model,this.props.name);
-        var val_str=utils.field_val_to_str(this.state.value,f);
+        var val_str=this.state.value;
         return <TextInput value={val_str} onChangeText={this.onchange.bind(this)} multiline={true} style={{height:60}}/>
     }
 

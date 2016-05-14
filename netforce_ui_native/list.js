@@ -1,7 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- */
 'use strict';
 import React, {
   AppRegistry,
@@ -93,9 +89,9 @@ class List extends Component {
             }.bind(this)()}
             {function() {
                 if (this.tabs) {
-                    return <ScrollableTabView onChangeTab={this.change_tab.bind(this)} initialPage={this.state.active_tab||0}>
+                    return <ScrollableTabView onChangeTab={this.change_tab.bind(this)} initialPage={this.state.active_tab||0} style={{flex:1}}>
                         {this.tabs.map((t,i)=>{
-                            return <View key={i} tabLabel={t[0]}>
+                            return <View key={i} tabLabel={t[0]} style={{flex:1}}>
                                 {function() {
                                     if (this.state.data==null) {
                                         return <Text>Loading...</Text>

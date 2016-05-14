@@ -7,6 +7,7 @@ import React, {
   TextInput,
   Navigator,
   ListView,
+  NativeModules,
   Image,
   ScrollView,
   View
@@ -14,7 +15,7 @@ import React, {
 
 var rpc=require("./rpc");
 var utils=require("./utils");
-var ImagePickerManager = require('NativeModules').ImagePickerManager;
+var ImagePickerManager = NativeModules.ImagePickerManager;
 var Button=require("./button");
 
 class Page extends Component {

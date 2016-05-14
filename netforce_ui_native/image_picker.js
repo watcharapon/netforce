@@ -5,6 +5,7 @@ import React, {
   Text,
   TextInput,
   Navigator,
+  NativeModules,
   ListView,
   View
 } from 'react-native';
@@ -12,7 +13,7 @@ import React, {
 var utils=require("./utils");
 var Button=require("./button");
 var rpc=require("netforce_ui_native/rpc")
-var ImagePickerManager = require('NativeModules').ImagePickerManager;
+var ImagePickerManager = NativeModules.ImagePickerManager;
 
 class ImagePicker extends Component {
     constructor(props) {

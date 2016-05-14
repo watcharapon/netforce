@@ -4,6 +4,7 @@ import React, {
   Component,
   StyleSheet,
   TextInput,
+  NativeModules,
   Image,
   Text,
   View
@@ -13,7 +14,7 @@ var utils=require("./utils");
 var rpc=require("./rpc");
 var Icon = require('react-native-vector-icons/FontAwesome');
 var Button=require("./button");
-var ImagePickerManager = require('NativeModules').ImagePickerManager;
+var ImagePickerManager = NativeModules.ImagePickerManager;
 
 class FieldImage extends Component {
     constructor(props) {
