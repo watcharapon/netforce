@@ -50,6 +50,7 @@ var FieldChar=NFView.extend({
         this.data.value=model.get(name);
         var field=model.get_field(name);
         this.data.string=field.string;
+        this.data.placeholder=this.options.placeholder;
         this.data.size=this.options.size || field.size;
         if (this.options.string) {
             this.data.string=this.options.string;
