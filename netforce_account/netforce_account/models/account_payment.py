@@ -23,7 +23,7 @@ from netforce.utils import get_data_path, set_data_path, get_file_path
 import time
 from pprint import pprint
 from netforce.access import get_active_company
-
+from decimal import Decimal
 
 class Payment(Model):
     _name = "account.payment"
@@ -241,7 +241,7 @@ class Payment(Model):
                     amt=line.amount or 0
                     if tax:
                         for tax_comp in tax.components:
-                            rate=(tax_comp.rate or 0)/100
+                            rate=(tax_comp.rate or Decimal(0))/100
                             if tax_comp.type in ('vat'):
                                 vat += amt * rate
                             elif tax_comp.type in ('wht'):
@@ -442,6 +442,35 @@ class Payment(Model):
                 }
         obj.post()
 
+    def move_line_get_payment_method(self,ids,context={}):
+        # help other module can easily implement post
+
+        lines=[]
+        settings = get_model("settings").browse(1)
+        obj = self.browse(ids,context=context)[0]
+
+        amt = get_model("currency").convert(
+            obj.amount_payment, obj.currency_id.id, settings.currency_id.id, rate=obj.currency_rate)
+        if obj.type == "out":
+            amt = -amt
+
+        vals = {
+            #"move_id": move_id,
+            #"description": desc, # update in main
+
+            "account_id": obj.account_id.id,
+            "debit": amt > 0 and amt or 0,
+            "credit": amt < 0 and -amt or 0,
+        }
+        if obj.account_id.currency_id.id != settings.currency_id.id:
+            if obj.account_id.currency_id.id != obj.currency_id.id:
+                raise Exception("Invalid account currency for this payment: %s" % obj.account_id.code)
+            vals["amount_cur"] = obj.amount_payment if obj.type == "in" else -obj.amount_payment
+
+        lines.append(vals)
+
+        return lines
+
     def post(self, ids, context={}):
         obj = self.browse(ids)[0]
         settings = get_model("settings").browse(1)
@@ -451,7 +480,8 @@ class Payment(Model):
             if obj.currency_id.id == settings.currency_id.id:
                 currency_rate = 1.0
             else:
-                rate_from = obj.currency_id.get_rate(date=obj.date)
+                rate_type=obj.type=="in" and "sell" or "buy"
+                rate_from = obj.currency_id.get_rate(date=obj.date,rate_type=rate_type)
                 if not rate_from:
                     raise Exception("Missing currency rate for %s" % obj.currency_id.code)
                 rate_to = settings.currency_id.get_rate(date=obj.date)
@@ -493,23 +523,15 @@ class Payment(Model):
             "company_id": obj.company_id.id,
         }
         move_id = get_model("account.move").create(move_vals)
-        lines = []
-        amt = get_model("currency").convert(
-            obj.amount_payment, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
-        if obj.type == "out":
-            amt = -amt
-        line_vals = {
-            "move_id": move_id,
-            "account_id": obj.account_id.id,
-            "description": desc,
-            "debit": amt > 0 and amt or 0,
-            "credit": amt < 0 and -amt or 0,
-        }
-        if obj.account_id.currency_id.id != settings.currency_id.id:
-            if obj.account_id.currency_id.id != obj.currency_id.id:
-                raise Exception("Invalid account currency for this payment: %s" % obj.account_id.code)
-            line_vals["amount_cur"] = obj.amount_payment if obj.type == "in" else -obj.amount_payment
-        get_model("account.move.line").create(line_vals)
+
+        # for payment method lines
+
+        for line_vals in self.move_line_get_payment_method(ids,context=context):
+            line_vals["move_id"] = move_id
+            if not line_vals.get("description",""):
+                line_vals["description"] = desc
+            get_model("account.move.line").create(line_vals)
+
         taxes = {}
         reconcile_ids = []
         total_over = 0
@@ -737,12 +759,26 @@ class Payment(Model):
                     "description": desc,
                     "account_id": settings.unpaid_claim_id.id,
                 }
-                amt = line.amount
+                amount = line.amount
+                amount_cur = None
+
+                if obj.currency_id.id!=settings.currency_id.id:
+                    amount = get_model("currency").convert(
+                        amount, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
+                    amount_cur = line.amount
+
+                if settings.unpaid_claim_id.id != settings.currency_id.id:
+                    amount_cur=None
+
+                line_vals["amount_cur"] = amount_cur
+
                 if obj.type == "out":
-                    line_vals["debit"] = amt
+                    line_vals["debit"] = amount
                 else:
-                    line_vals["credit"] = amt
+                    line_vals["credit"] = amount
+
                 get_model("account.move.line").create(line_vals)
+
             elif line.type == "adjust":
                 cur_amt = get_model("currency").convert(
                     line.amount, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
@@ -1118,9 +1154,11 @@ class Payment(Model):
             rate_type = "buy"
         lines = []
         for exp in get_model("hr.expense").search_browse([["employee_id", "=", employee_id]]):
+            if not exp.amount_due:
+                continue
             lines.append({
                 "expense_id": exp.id,
-                "amount": get_model("currency").convert(exp.amount_total, exp.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type),
+                "amount": get_model("currency").convert(exp.amount_due, exp.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type),
             })
         data["claim_lines"] = lines
         data = self.update_amounts(context)
@@ -1264,6 +1302,8 @@ class Payment(Model):
         elif data["type"] == "out":
             rate_type = "buy"
         for line in data["invoice_lines"]:
+            if not line.get("invoice_id"):
+                continue
             inv = get_model("account.invoice").browse(line["invoice_id"])
             if "currency_rate" in data and data["currency_rate"]:
                 line["amount"] = inv.amount_due/data["currency_rate"]

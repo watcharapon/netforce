@@ -171,9 +171,6 @@ var FieldMany2One=NFView.extend({
                 .on('mousedown',$.proxy(that.menu_mousedown, that))
                 .on('mouseenter', 'li', $.proxy(that.menu_mouseenter, that))
                 .on("click",function(e) {e.preventDefault();});
-            if (!that.data.readonly) {
-                that.$el.find("input").focus();
-            }
             that.$el.find("a.help").tooltip();
         }
         if (value) {

@@ -45,7 +45,7 @@ class SaleOrderLine(Model):
         "state": fields.Selection([("draft", "Draft"), ("confirmed", "Confirmed"), ("done", "Completed"), ("voided", "Voided")], "Status", function="_get_related", function_search="_search_related", function_context={"path": "order_id.state"}, search=True),
         "qty2": fields.Decimal("Secondary Qty"),
         "location_id": fields.Many2One("stock.location", "Location", condition=[["type", "=", "internal"]]),
-        "product_categs": fields.Many2Many("product.categ", "Product Categories", function="_get_related", function_context={"path": "product_id.categs"}, function_search="_search_related", search=True),
+        "product_categ_id": fields.Many2Many("product.categ", "Product Category", function="_get_related", function_context={"path": "product_id.categ_id"}, function_search="_search_related", search=True),
         "discount": fields.Decimal("Disc %"),  # XXX: rename to discount_percent later
         "discount_amount": fields.Decimal("Disc Amt"),
         "qty_avail": fields.Decimal("Qty In Stock", function="get_qty_avail"),
@@ -115,7 +115,7 @@ class SaleOrderLine(Model):
                 order = line.order_id
                 new_cur=get_model("currency").convert(amt, order.currency_id.id, settings.currency_id.id)
                 vals[line.id] = {
-                    "amount": round(amt,2),
+                    "amount": Decimal(round(float(amt),2)), # convert to float because Decimal gives wrong rounding
                     "amount_discount": disc,
                     "promotion_amount": prom_amt,
                     "amount_cur": new_cur and new_cur or None,

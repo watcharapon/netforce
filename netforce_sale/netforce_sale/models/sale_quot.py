@@ -104,10 +104,19 @@ class SaleQuot(Model):
         settings = get_model("settings").browse(1)
         lines=[]
         date = time.strftime("%Y-%m-%d")
-        lines.append({
+        val = {
             "currency_id": settings.currency_id.id,
             "rate": settings.currency_id.get_rate(date,"sell") or 1
-        })
+        }
+        if context.get('action_name'):
+            # default for new quotation create via quotation form
+            lines.append(val)
+        else:
+            # When users create or copy quotation from other modules or methods, one2many field cannot be appended without action key
+            # bacause it must be created in the database along with quotation itself.
+            # If action key such as 'create', 'delete' is missing, the default line will not be created.
+            # So, the action_key 'create' has to be appended into the list also.
+            lines.append(("create",val))
         return lines
 
     _defaults = {
@@ -686,19 +695,26 @@ class SaleQuot(Model):
             "est_costs": [],
         }
         seq=0
-        for obj in self.browse(ids):
+        refs=[]
+        for obj in sorted(self.browse(ids),key=lambda obj: obj.number):
+            refs.append(obj.number)
             seq_map={}
             for line in obj.lines:
                 seq+=1
                 seq_map[line.sequence]=seq
+                qty=line.qty or 0
+                unit_price=line.unit_price or 0
+                amt=qty*unit_price
+                disc=amt*(line.discount or 0)/Decimal(100)
                 line_vals = {
                     "sequence": seq,
                     "product_id": line.product_id.id,
                     "description": line.description,
-                    "qty": line.qty,
+                    "qty": qty,
                     "uom_id": line.uom_id.id,
-                    "unit_price": line.unit_price,
-                    "discount": line.discount,
+                    "unit_price": unit_price,
+                    "discount": disc,
+                    "amount": amt,
                     "tax_id": line.tax_id.id,
                 }
                 vals["lines"].append(("create", line_vals))
@@ -715,6 +731,7 @@ class SaleQuot(Model):
                     "currency_id": cost.currency_id.id,
                 }
                 vals["est_costs"].append(("create",cost_vals))
+        vals['ref']=', '.join([ref for ref in refs])
         new_id = self.create(vals, context=context)
         new_obj = self.browse(new_id)
         return {

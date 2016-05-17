@@ -159,6 +159,7 @@ class WorkTime(Model):
     def get_cost_amount(self,ids,context={}):
         vals={}
         for obj in self.browse(ids):
+            # Use standard price in product in resource
             prod=obj.resource_id.product_id
             amt=(prod.cost_price or 0)*(obj.actual_hours or 0)
             vals[obj.id]=amt

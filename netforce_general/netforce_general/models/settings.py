@@ -147,9 +147,12 @@ class Settings(Model):
         "purchase_copy_picking": fields.Boolean("Auto-copy purchase orders to goods receipt"),
         "purchase_copy_invoice": fields.Boolean("Auto-copy purchase orders to supplier invoice"),
         "lot_expiry_journal_id": fields.Many2One("stock.journal", "Lot Expiry Journal"),
+        "work_day_sat": fields.Boolean("Work On Saturday"),
+        "work_day_sun": fields.Boolean("Work On Sunday"),
     }
     _defaults = {
         "package": "free",
+        "stock_cost_mode": "periodic",
         'stock_cost_auto_compute': True,
     }
 

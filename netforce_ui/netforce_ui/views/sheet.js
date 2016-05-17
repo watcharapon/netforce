@@ -50,6 +50,7 @@ var Sheet=NFView.extend({
                         name: $el.attr("name"),
                         onchange: $el.attr("onchange"),
                         onfocus: $el.attr("onfocus"),
+                        focus: $el.attr("focus"),
                         string: $el.attr("string"),
                         condition: $el.attr("condition")||$el.attr("condition"), // XXX
                         readonly: $el.attr("readonly"),
@@ -117,12 +118,25 @@ var Sheet=NFView.extend({
         e.preventDefault();
         e.stopPropagation();
         var collection=this.context.collection;
+        var that=this;
         var model_name=collection.name;
         var ctx=clean_context(this.context);
         ctx.data=collection.parent_model.get_vals(); // XXX
         rpc_execute(model_name,"default_get",[this.field_names],{context:ctx},function(err,data) {
             var model=new NFModel(data,{name:model_name});
             collection.add(model);
+            //========== focus field
+            if(that.data.fields){
+                var focus_field=that.data.fields[0].name; // set default to first column
+                _.each(that.data.fields,function(field){
+                    if(field.focus){focus_field=field.name;}
+                });
+                if (focus_field){
+                    var cells=that.$el.find("td[data-field="+focus_field+"]").last();
+                    var cell=cells[0];
+                    that.focus_cell(cell);
+                }
+            }
         });
     },
 

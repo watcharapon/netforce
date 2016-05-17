@@ -617,7 +617,6 @@ class Model(object):
         joins, cond, w_args = self._where_calc(cond, context=context)
         args=w_args[:]
         ord_joins, ord_clauses = self._order_calc(order or self._order or "id")
-        # print("CONDITION:",cond)
         q = "SELECT tbl0.id FROM " + self._table + " tbl0"
         if joins:
             q += " " + " ".join(joins)
@@ -2539,6 +2538,7 @@ def model_to_json(m):
         f_data["string"] = f.string
         if isinstance(f, fields.Char):
             f_data["type"] = "char"
+            f_data["size"] = f.size
         elif isinstance(f, fields.Text):
             f_data["type"] = "text"
         elif isinstance(f, fields.Float):
