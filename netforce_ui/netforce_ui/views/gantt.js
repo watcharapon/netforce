@@ -92,7 +92,7 @@ var Gantt=NFView.extend({
         this.data.render_search_body=function(ctx) { return that.render_search_body.call(that,ctx); };
         NFView.prototype.render.call(this);
         setTimeout(function() {
-            $("#nf-gantt-content").css({minHeight:500});
+            $("#nf-gantt-content").css({minHeight:800});
             gantt.config.scale_unit="week";
             gantt.config.date_scale="%M, Week #%W";
             gantt.config.subscales = [
