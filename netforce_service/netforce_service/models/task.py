@@ -90,15 +90,6 @@ class Task(Model):
         "number": _get_number,
     }
 
-    def get_depends_json(self,ids,context={}):
-        vals={}
-        for obj in self.browse(ids):
-            res=[]
-            for dep in obj.depends:
-                res.append((dep.prev_task_id.id,dep.delay))
-            vals[obj.id]=res
-        return vals
-
     def calc_end_date(self,date_start,duration):
         d=datetime.strptime(date_start,"%Y-%m-%d")
         dur=0
@@ -133,5 +124,24 @@ class Task(Model):
     def write(self,ids,*args,**kw):
         super().write(ids,*args,**kw)
         self.function_store(ids)
+
+    def add_link(self,source_id,target_id,context={}):
+        vals={
+            "prev_task_id": source_id,
+            "task_id": target_id,
+        }
+        get_model("task.depend").create(vals)
+
+    def delete_link(self,link_ids,context={}):
+        get_model("task.depend").delete(link_ids)
+
+    def get_depends_json(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            res=[]
+            for dep in obj.depends:
+                res.append((dep.id,dep.prev_task_id.id,dep.delay))
+            vals[obj.id]=res
+        return vals
 
 Task.register()
