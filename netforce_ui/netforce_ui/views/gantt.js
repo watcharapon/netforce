@@ -172,34 +172,9 @@ var Gantt=NFView.extend({
                 if (err) {
                     throw "Failed to get gantt data: "+err.message;
                 }
-<<<<<<< HEAD
                 tasks={
                     data: [],
                     links: [],
-=======
-                /*var data=_.sortBy(data,function(obj) {
-                    var vals=[];
-                    if (this.group_field_name) {
-                        var group_field_value=render_field_value(obj[this.group_field_name],this.group_field);
-                        vals.push(group_field_value||" ");
-                    }
-                    if (this.subgroup_field_name) {
-                        var subgroup_field_value=render_field_value(obj[this.subgroup_field_name],this.subgroup_field);
-                        vals.push(subgroup_field_value||" ");
-                    }
-                    if (this.subsubgroup_field_name) {
-                        var subsubgroup_field_value=render_field_value(obj[this.subsubgroup_field_name],this.subsubgroup_field);
-                        vals.push(subsubgroup_field_value||" ");
-                    }
-                    var start_field_value=render_field_value(obj[this.start_field_name],this.start_field);
-                    vals.push(start_field_value);
-                    return vals.join("_");
-                }.bind(this));*/
-                log("sorted gantt data",data);
-                var proj_data={
-                    tasks: [],
-                    canWrite: true,
->>>>>>> 9020178f05222bc50bf8cb4fa2e3fc25f0f27754
                 };
                 var last_group_id=null;
                 var last_subgroup_id=null;
