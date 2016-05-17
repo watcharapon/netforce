@@ -2996,8 +2996,9 @@ gantt._combine_item_class = function(basic, template, itemId){
 
 
 	if(this.config.highlight_critical_path && this.isCriticalTask){
-		if(this.isCriticalTask(task))
+		if(this.isCriticalTask(task)) {
 			css.push("gantt_critical_task");
+        }
 	}
 
 	if(links.link_landing_area &&

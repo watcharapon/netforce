@@ -26,11 +26,15 @@ var Gantt=NFView.extend({
         "click .run-report": "run_report",
         "click .nf-move-up": "move_up",
         "click .nf-move-down": "move_down",
-        "click .nf-critical-path": "critical_path",
         "click .nf-fullscreen": "fullscreen",
         "click .nf-scale-month": "set_scale_month",
+        "click .nf-scale-week": "set_scale_week",
         "click .nf-scale-day": "set_scale_day",
         "click .nf-scale-hour": "set_scale_hour",
+        "click .nf-critical-path": "critical_path",
+        "click .nf-export-pdf": "export_pdf",
+        "click .nf-export-png": "export_png",
+        "click .nf-export-xls": "export_xls",
     },
 
     initialize: function(options) {
@@ -83,9 +87,19 @@ var Gantt=NFView.extend({
         NFView.prototype.render.call(this);
         setTimeout(function() {
             $("#nf-gantt-content").css({minHeight:500});
-            gantt.config.scale_unit="month";
+            gantt.config.scale_unit="week";
+            gantt.config.date_scale="%M, Week #%W";
+            gantt.config.subscales = [
+                {unit:"day", step:1, date:"%d"}
+            ];
+            gantt.config.min_column_width = 30;
             gantt.config.order_branch=true;
-            this.$el.find(".nf-scale-month").addClass("active");
+            gantt.config.columns = [
+                {name:"text",       label:"Task name",  width:"*", tree:true },
+                {name:"start_date", label:"Start time", align: "center" },
+                {name:"duration",   label:"Duration",   align: "center" }
+            ];
+            this.$el.find(".nf-scale-week").addClass("active");
             gantt.templates.scale_cell_class = function(date){
                 if(date.getDay()==0){
                     return "weekend";
@@ -97,10 +111,16 @@ var Gantt=NFView.extend({
                 }
             };
             gantt.init("nf-gantt-content");
-            gantt.attachEvent("onAfterTaskUpdate",this.on_after_task_update.bind(this));
-            gantt.attachEvent("onAfterTaskDelete",this.on_after_task_delete.bind(this));
-            gantt.attachEvent("onAfterTaskMove",this.on_after_task_move.bind(this));
-            gantt.attachEvent("onAfterTaskDrag",this.on_after_task_drag.bind(this));
+            gantt.clearAll();
+            if (!this.gantt_events) this.gantt_events=[];
+            while (this.gantt_events.length) gantt.detachEvent(this.gantt_events.pop());
+            this.gantt_events.push(gantt.attachEvent("onAfterTaskUpdate",this.on_after_task_update.bind(this)));
+            this.gantt_events.push(gantt.attachEvent("onAfterTaskDelete",this.on_after_task_delete.bind(this)));
+            this.gantt_events.push(gantt.attachEvent("onAfterTaskMove",this.on_after_task_move.bind(this)));
+            this.gantt_events.push(gantt.attachEvent("onAfterTaskDrag",this.on_after_task_drag.bind(this)));
+            this.gantt_events.push(gantt.attachEvent("onAfterLinkAdd",this.on_after_link_add.bind(this)));
+            this.gantt_events.push(gantt.attachEvent("onAfterLinkDelete",this.on_after_link_delete.bind(this)));
+            this.gantt_events.push(gantt.attachEvent("onAfterLinkUpdate",this.on_after_link_update.bind(this)));
             var gantt_view=get_xml_layout({model:this.options.model,type:"gantt"});
             log("gantt_view",gantt_view);
             this.$layout=$($.parseXML(gantt_view.layout)).children();
@@ -150,154 +170,127 @@ var Gantt=NFView.extend({
                     data: [],
                     links: [],
                 };
-                var last_group_value=null;
-                var last_subgroup_value=null;
-                var last_subsubgroup_value=null;
-                var task_index={};
+                var last_group_id=null;
+                var last_subgroup_id=null;
+                var last_subsubgroup_id=null;
+                var group_tasks={};
+                var subgroup_tasks={};
+                var subsubgroup_tasks={};
                 _.each(data,function(obj) {
-                    var label_value=render_field_value(obj[this.label_field_name],this.label_field);
+                    var task_label=render_field_value(obj[this.label_field_name],this.label_field);
                     var start_date=obj[this.start_field_name];
                     if (!start_date) throw "Missing start date for task "+obj.id;
                     var duration=obj[this.duration_field_name];
                     if (duration==null) throw "Missing duration for task "+obj.id;
                     if (this.group_field_name) {
-                        var group_value=render_field_value(obj[this.group_field_name],this.group_field);
+                        var group_val=obj[this.group_field_name];
+                        var group_id=group_val?group_val[0]:null;
+                        var group_label=group_val?group_val[1]:null;
+                        if (group_id!=last_group_id) {
+                            console.log("new group",group_id);
+                            if (group_id) {
+                                var task={
+                                    id: 1000000+group_id, // XXX
+                                    text: group_label,
+                                    type: gantt.config.types.project,
+                                    open: true,
+                                };
+                                console.log("add task group",task);
+                                tasks.data.push(task);
+                                group_tasks[group_id]=task;
+                            }
+                            last_group_id=group_id;
+                        }
+                    } else {
+                        group_id=null;
                     }
                     if (this.subgroup_field_name) {
-                        var subgroup_value=render_field_value(obj[this.subgroup_field_name],this.subgroup_field);
+                        var subgroup_val=obj[this.subgroup_field_name];
+                        var subgroup_id=subgroup_val?subgroup_val[0]:null;
+                        var subgroup_label=subgroup_val?subgroup_val[1]:null;
+                        if (subgroup_id!=last_subgroup_id) {
+                            console.log("new subgroup",subgroup_id);
+                            if (subgroup_id) {
+                                var task={
+                                    id: 2000000+subgroup_id, // XXX
+                                    text: subgroup_label,
+                                    type: gantt.config.types.project,
+                                    open: true,
+                                };
+                                if (group_id) {
+                                    task.parent=group_tasks[group_id].id;
+                                }
+                                console.log("add task subgroup",task);
+                                tasks.data.push(task);
+                                subgroup_tasks[subgroup_id]=task;
+                            }
+                            last_subgroup_id=subgroup_id;
+                        }
+                    } else {
+                        subgroup_id=null;
                     }
                     if (this.subsubgroup_field_name) {
-                        var subsubgroup_value=render_field_value(obj[this.subsubgroup_field_name],this.subsubgroup_field);
-                    }
-                    console.log("task ",obj.id,"group",group_value,"subgroup",subgroup_value,"subsubgroup",subsubgroup_value);
-                    /*
-                    if (group_value!=last_group_value) {
-                        console.log("new group",group_value);
-                        if (group_value) {
-                            var task={
-                                id: Math.floor(Math.random()*100000000), // XXX
-                                name: group_value,
-                                level: 0,
-                                start: new moment(start_date).unix()*1000,
-                                startIsMilestone: false,
-                                endIsMilestone: false,
-                                depends: "",
-                                status: "STATUS_ACTIVE",
+                        var subsubgroup_val=obj[this.subsubgroup_field_name];
+                        var subsubgroup_id=subsubgroup_val?subsubgroup_val[0]:null;
+                        var subsubgroup_label=subsubgroup_val?subsubgroup_val[1]:null;
+                        if (subsubgroup_id!=last_subsubgroup_id) {
+                            console.log("new subsubgroup",subsubgroup_id);
+                            if (subsubgroup_id) {
+                                var task={
+                                    id: 3000000+subsubgroup_id, // XXX
+                                    text: subsubgroup_label,
+                                    type: gantt.config.types.project,
+                                    open: true,
+                                };
+                                if (subgroup_id) {
+                                    task.parent=subgroup_tasks[subgroup_id].id;
+                                } else if (group_id) {
+                                    task.parent=group_tasks[group_id].id;
+                                }
+                                console.log("add task subsubgroup",task);
+                                tasks.data.push(task);
+                                subsubgroup_tasks[subsubgroup_id]=task;
                             }
-                            console.log("add task group",task);
-                            proj_data.tasks.push(task);
+                            last_subsubgroup_id=subsubgroup_id;
                         }
-                        last_group_value=group_value;
-                        last_subgroup_value=null;
-                        last_subsubgroup_value=null;
+                    } else {
+                        subsubgroup_id=null;
                     }
-                    if (subgroup_value!=last_subgroup_value) {
-                        console.log("new subgroup",subgroup_value);
-                        var level=0;
-                        if (group_value) level+=1;
-                        if (subgroup_value) {
-                            var task={
-                                id: Math.floor(Math.random()*100000000), // XXX
-                                name: subgroup_value,
-                                level: level,
-                                start: new moment(start_date).unix()*1000,
-                                startIsMilestone: false,
-                                endIsMilestone: false,
-                                depends: "",
-                                status: "STATUS_ACTIVE",
-                            }
-                            console.log("add task subgroup",task);
-                            proj_data.tasks.push(task);
-                        }
-                        last_subgroup_value=subgroup_value;
-                        last_subsubgroup_value=null;
-                    }
-                    if (subsubgroup_value!=last_subsubgroup_value) {
-                        console.log("new subsubgroup","new:",subsubgroup_value,"old:",last_subsubgroup_value);
-                        if (subsubgroup_value) {
-                            var level=0;
-                            if (group_value) level+=1;
-                            if (subgroup_value) level+=1;
-                            var task={
-                                id: Math.floor(Math.random()*100000000), // XXX
-                                name: subsubgroup_value,
-                                level: level,
-                                start: new moment(start_date).unix()*1000,
-                                startIsMilestone: false,
-                                endIsMilestone: false,
-                                depends: "",
-                                status: "STATUS_ACTIVE",
-                            }
-                            console.log("add task subsubgroup",task);
-                            proj_data.tasks.push(task);
-                        }
-                        last_subsubgroup_value=subsubgroup_value;
-                    }
-                    var depends=null;
-                    if (this.depends_field_name) {
-                        var res=obj[this.depends_field_name];
-                        var deps=[];
-                        _.each(res,function(r) {
-                            var i=task_index[r[0]];
-                            if (!i) {
-                                log("WARNING: Task index not found for task "+r[0]);
-                            }
-                            if (r[1]) {
-                                deps.push(""+i+":"+r[1]);
-                            } else {
-                                deps.push(""+i);
-                            }
-                        });
-                        depends=deps.join(",");
-                    }
-                    */
-                    var level=0;
-                    if (group_value) level+=1;
-                    if (subgroup_value) level+=1;
-                    if (subsubgroup_value) level+=1;
                     var progress=obj[this.progress_field_name];
                     if (progress) progress=progress/100.0;
                     var task={
                         id: obj.id,
-                        text: label_value,
+                        text: task_label,
                         start_date: new Date(start_date),
                         duration: duration,
                         progress: progress,
-                        open: true,
                     };
+                    if (subsubgroup_id) {
+                        task.parent=subsubgroup_tasks[subsubgroup_id].id;
+                    } else if (subgroup_id) {
+                        task.parent=subgroup_tasks[subgroup_id].id;
+                    } else if (group_id) {
+                        task.parent=group_tasks[group_id].id;
+                    }
                     tasks.data.push(task);
+                    if (this.depends_field_name) {
+                        var res=obj[this.depends_field_name];
+                        _.each(res,function(r) {
+                            var link={
+                                id: r[0],
+                                source: r[1],
+                                target: task.id,
+                                type: "0",
+                            };
+                            tasks.links.push(link);
+                        });
+                    }
                 }.bind(this));
                 console.log("tasks",tasks);
                 gantt.parse(tasks);
             }.bind(this));
         }.bind(this),100);
         return this;
-    },
-
-    update_group_dates: function(proj_data) {
-        log("update_group_dates");
-        var parents=[];
-        var prev_task=null;
-        _.each(proj_data.tasks,function(task) {
-            if (prev_task && task.level>prev_task.level) {
-                parents.push(prev_task);
-                prev_task.start=null;
-                prev_task.end=null;
-            } else {
-                parents=parents.slice(0,task.level);
-            }
-            _.each(parents,function(p) {
-                if (!p.start || task.start < p.start) {
-                    p.start=task.start;
-                }
-                if (!p.end || task.end>p.end) {
-                    p.end=task.end;
-                }
-                p.duration=recomputeDuration(p.start,p.end);
-            });
-            prev_task=task;
-        });
-        log("proj_data after update group",proj_data);
     },
 
     render_search_body: function(context) {
@@ -391,32 +384,6 @@ var Gantt=NFView.extend({
         return condition;
     },
 
-    zoom_in: function(e) {
-        e.preventDefault();
-        this.$el.find(".nf-gantt-content").trigger("zoomPlus.gantt");
-    },
-
-    zoom_out: function(e) {
-        e.preventDefault();
-        this.$el.find(".nf-gantt-content").trigger("zoomMinus.gantt");
-    },
-
-    move_up: function(e) {
-        e.preventDefault();
-        this.$el.find(".nf-gantt-content").trigger("moveUpCurrentTask.gantt");
-    },
-
-    move_down: function(e) {
-        e.preventDefault();
-        this.$el.find(".nf-gantt-content").trigger("moveDownCurrentTask.gantt");
-    },
-
-    critical_path: function(e) {
-        e.preventDefault();
-        this.ge.gantt.showCriticalPath=!this.ge.gantt.showCriticalPath;
-        this.ge.redraw();
-    },
-
     fullscreen: function(e) {
         e.preventDefault();
         gantt.expand();
@@ -424,6 +391,7 @@ var Gantt=NFView.extend({
 
     on_after_task_update(id,item) {
         console.log("gantt.on_after_task_update",id,item);
+        if (item.type==gantt.config.types.project) return;
         var vals={};
         vals[this.label_field_name]=item.text;
         vals[this.start_field_name]=moment(item.start_date).format("YYYY-MM-DD");
@@ -457,11 +425,55 @@ var Gantt=NFView.extend({
         console.log("gantt.on_after_task_drag",id,mode,e);
     },
 
+    on_after_link_add(id,item) {
+        console.log("gantt.on_after_link_add",id,item);
+        var source_id=item.source;
+        var target_id=item.target;
+        rpc_execute(this.options.model,"add_link",[source_id,target_id],{},function(err) {
+            if (err) {
+                alert("Error: "+err.message);
+                return;
+            }
+        }.bind(this));
+    },
+
+    on_after_link_delete(id,item) {
+        console.log("gantt.on_after_link_delete",id,item);
+        rpc_execute(this.options.model,"delete_link",[[id]],{},function(err) {
+            if (err) {
+                alert("Error: "+err.message);
+                return;
+            }
+        }.bind(this));
+    },
+
+    on_after_link_update(id,item) {
+        console.log("gantt.on_after_link_update",id,item);
+    },
+
     set_scale_month(e) {
         e.preventDefault();
         this.$el.find(".nf-scale").removeClass("active");
         this.$el.find(".nf-scale-month").addClass("active");
         gantt.config.scale_unit="month";
+        gantt.config.date_scale="%M";
+        gantt.config.subscales = [
+            {unit:"week", step:1, date:"W%W"}
+        ];
+        gantt.config.min_column_width = 30;
+        gantt.render();
+    },
+
+    set_scale_week(e) {
+        e.preventDefault();
+        this.$el.find(".nf-scale").removeClass("active");
+        this.$el.find(".nf-scale-week").addClass("active");
+        gantt.config.scale_unit="week";
+        gantt.config.date_scale="%M, Week #%W";
+        gantt.config.subscales = [
+            {unit:"day", step:1, date:"%d"}
+        ];
+        gantt.config.min_column_width = 30;
         gantt.render();
     },
 
@@ -469,16 +481,51 @@ var Gantt=NFView.extend({
         e.preventDefault();
         this.$el.find(".nf-scale").removeClass("active");
         this.$el.find(".nf-scale-day").addClass("active");
-        gantt.config.scale_unit="day";
+        gantt.config.scale_unit = "day"; 
+        gantt.config.date_scale = "%D %d %M"; 
+        gantt.config.subscales = [
+              {unit:"hour", step:1, date:"%H:00"}
+        ];
+        gantt.config.min_column_width = 40;
         gantt.render();
     },
 
-    set_scale_hour(e) {
+    critical_path: function(e) {
         e.preventDefault();
-        this.$el.find(".nf-scale").removeClass("active");
-        this.$el.find(".nf-scale-hour").addClass("active");
-        gantt.config.scale_unit="hour";
+        var show=gantt.config.highlight_critical_path;
+        if (show) {
+            gantt.config.highlight_critical_path = false;
+            this.$el.find(".nf-critical-path").text("Show Critical Path");
+        } else {
+            gantt.config.highlight_critical_path = true;
+            this.$el.find(".nf-critical-path").text("Hide Critical Path");
+        }
         gantt.render();
+    },
+
+    export_pdf: function(e) {
+        e.preventDefault();
+        gantt.exportToPDF({name:"gantt.pdf"});
+    },
+
+    export_png: function(e) {
+        e.preventDefault();
+        gantt.exportToPNG({name:"gantt.png"});
+    },
+
+    export_xls: function(e) {
+        e.preventDefault();
+        gantt.exportToExcel({name:"gantt.xls"});
+    },
+
+    export_ical: function(e) {
+        e.preventDefault();
+        gantt.exportToICal({name:"gantt.ical"});
+    },
+
+    export_msproject: function(e) {
+        e.preventDefault();
+        gantt.exportToMSProject({name:"gantt.proj"});
     },
 });
 
