@@ -2,6 +2,6 @@
     <field name="date"/>
     <field name="order_id.contact_id"/>
     <field name="product_id"/>
-    <field name="product_categs" child_of="1"/>
+    <field name="product_categ_id"/>
     <field name="order_id.state"/>
 </search>

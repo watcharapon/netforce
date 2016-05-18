@@ -192,6 +192,7 @@ var FieldDecimal=NFView.extend({
     on_focus: function(e) {
         log("field_decimal.on_focus",this);
         register_focus(e.target);
+        $(e.target).select();
     },
 
     blur: function() {
