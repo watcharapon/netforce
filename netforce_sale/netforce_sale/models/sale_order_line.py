@@ -66,6 +66,8 @@ class SaleOrderLine(Model):
         "production_id": fields.Many2One("production.order","Production Order"),
     }
 
+    _order="sequence::numeric"
+
     def create(self, vals, context={}):
         id = super(SaleOrderLine, self).create(vals, context)
         self.function_store([id])
