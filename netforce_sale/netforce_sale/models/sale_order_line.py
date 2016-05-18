@@ -19,6 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
+from netforce.utils import roundup
 from decimal import Decimal
 import math
 
@@ -100,6 +101,7 @@ class SaleOrderLine(Model):
                     prom_pcts[line.product_id.id]+=line.percent
             for line in sale.lines:
                 amt = line.qty * line.unit_price
+                amt = roundup(amt)
                 if line.discount:
                     disc = amt * line.discount / 100
                 else:
