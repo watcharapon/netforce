@@ -485,6 +485,12 @@ class SaleQuot(Model):
                 "tax_id": line.tax_id.id if not line.is_hidden else None,
                 "location_id": prod.location_id.id if prod else None,
             }
+            if prod.locations:
+                line_vals["location_id"] = prod.locations[0].location_id.id
+                for loc in prod.locations:
+                    if loc.stock_qty:
+                        line_vals['location_id']=prod.location_id.id
+                        break
             sale_vals["lines"].append(("create",line_vals))
         for cost in obj.est_costs:
             cost_vals={
