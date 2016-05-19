@@ -698,6 +698,8 @@ class Picking(Model):
             lot_avail_qtys={}
             for bal in get_model("stock.balance").search_browse([["product_id","=",prod.id],["location_id","=",line.location_from_id.id]]):
                 lot_id=bal.lot_id.id
+                if not lot_id:
+                    continue
                 lot_avail_qtys.setdefault(lot_id,0)
                 lot_avail_qtys[lot_id]+=bal.qty_virt
             print("lot_avail_qtys",lot_avail_qtys)
