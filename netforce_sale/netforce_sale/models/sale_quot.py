@@ -308,9 +308,9 @@ class SaleQuot(Model):
             else:
                 tax = 0
             if tax_type == "tax_in":
-                data["amount_subtotal"] += line["amount"] - tax
+                data["amount_subtotal"] += Decimal(line["amount"] - tax)
             else:
-                data["amount_subtotal"] += line["amount"]
+                data["amount_subtotal"] += Decimal(line["amount"])
         data["amount_total"] = data["amount_subtotal"] + data["amount_tax"]
         return data
 
