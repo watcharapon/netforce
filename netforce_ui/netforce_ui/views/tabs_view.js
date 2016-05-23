@@ -82,6 +82,10 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
             var tag=$el.prop("tagName");
             if (tag=="field") {
                 var name=$el.attr("name");
+                var focus=$el.attr("focus");
+                if(focus && that.options.form_view){
+                    that.options.form_view.focus_field=name;
+                }
                 var model=context.model;
                 var field=model.get_field(name);
                 if (field && field.type=="one2many") {
@@ -157,6 +161,7 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                                     condition: $el2.attr("condition"),
                                     readonly: $el2.attr("readonly"),
                                     required: $el2.attr("required"),
+                                    focus: $el2.attr("focus"),
                                     invisible: $el2.attr("invisible"),
                                     onchange: $el2.attr("onchange"),
                                     onfocus: $el2.attr("onfocus"),
@@ -260,6 +265,7 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                     form_layout: $el.attr("form_layout"),
                     columns: $el.attr("columns"),
                     readonly: $el.attr("readonly")||that.options.readonly,
+                    form_view: that.options.form_view,
                     context: context
                 };
                 var view_cls=get_view_cls("group");

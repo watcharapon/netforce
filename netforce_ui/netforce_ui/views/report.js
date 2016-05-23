@@ -469,6 +469,7 @@ var Report=NFView.extend({
             ids=[this.model.id];
         } else {
             ids=null;
+            if (this.context) ctx = this.context;
             if (this.options.defaults) ctx.defaults=this.options.defaults;
         }
         var img=$("<img/>").attr("src","/static/img/spinner.gif").addClass("loading");

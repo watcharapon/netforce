@@ -186,6 +186,14 @@ class Move(Model):
         prod_ids = []
         for obj in self.browse(ids):
             prod_ids.append(obj.product_id.id)
+        move_ids=[]
+        for obj in self.browse(ids):
+            if obj.move_id:
+                move_ids.append(obj.move_id.id)
+        move_ids=list(set(move_ids))
+        for move in get_model("account.move").browse(move_ids):
+            move.void()
+            move.delete()
         super().delete(ids, **kw)
         user_id = get_active_user()
         set_active_user(1)

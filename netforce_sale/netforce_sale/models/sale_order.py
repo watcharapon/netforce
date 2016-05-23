@@ -19,7 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
-from netforce.utils import get_data_path
+from netforce.utils import get_data_path, roundup
 import time
 from netforce.access import get_active_user, set_active_user
 from netforce.access import get_active_company, check_permission_other, set_active_company
@@ -146,10 +146,14 @@ class SaleOrder(Model):
         settings = get_model("settings").browse(1)
         lines=[]
         date = time.strftime("%Y-%m-%d")
-        lines.append({
+        line_vals={
             "currency_id": settings.currency_id.id,
             "rate": settings.currency_id.get_rate(date,"sell") or 1
-        })
+        }
+        if context.get("is_create"):
+            lines.append(('create',line_vals))
+        else:
+            lines.append(line_vals)
         return lines 
 
     _defaults = {
@@ -179,6 +183,7 @@ class SaleOrder(Model):
         return cond
 
     def create(self, vals, context={}):
+        context['is_create']=True #send to function _get_currency_rates
         id = super(SaleOrder, self).create(vals, context)
         self.function_store([id])
         quot_id = vals.get("quot_id")
@@ -327,6 +332,7 @@ class SaleOrder(Model):
             if not line:
                 continue
             amt = (line.get("qty") or 0) * (line.get("unit_price") or 0)
+            amt = roundup(amt)
             if line.get("discount"):
                 disc = amt * line["discount"] / Decimal(100)
                 amt -= disc

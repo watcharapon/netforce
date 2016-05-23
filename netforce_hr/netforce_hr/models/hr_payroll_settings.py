@@ -38,6 +38,8 @@ class Settings(Model):
         'sso_account_id': fields.Many2One("account.account", "SSO Account"),
         'sso_comp_support': fields.Boolean("SSO Company Support"),
         'intg_acc': fields.Boolean("Integrate to Account"),
+        "work_day_sat": fields.Boolean("Work On Saturday"),
+        "work_day_sun": fields.Boolean("Work On Sunday"),
     }
 
 Settings.register()

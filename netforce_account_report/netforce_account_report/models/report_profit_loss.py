@@ -254,7 +254,6 @@ class ReportProfitLoss(Model):
                 acc["balance%d" % i] = comp_totals[i]
             acc["balance_ytd"] = ytd_total
         _set_totals(net_profit)
-        pprint(net_profit)
 
         def _remove_dup_parents(group):
             if not group.get("children"):
@@ -349,7 +348,6 @@ class ReportProfitLoss(Model):
         _add_lines(other_income, sign=-1)
         _add_lines(expenses)
         _add_lines(net_profit, depth=-1, max_depth=-1, sign=-1)
-        pprint(lines)
         data = {
             "date_from": date_from,
             "date_to": date_to,
