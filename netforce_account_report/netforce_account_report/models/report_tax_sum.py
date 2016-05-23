@@ -24,7 +24,6 @@ from dateutil.relativedelta import *
 from netforce import database
 from netforce.access import get_active_company
 
-
 class ReportTaxSum(Model):
     _name = "report.tax.sum"
     _transient = True
@@ -40,6 +39,37 @@ class ReportTaxSum(Model):
         "date_to": lambda *a: (date.today() + relativedelta(day=31)).strftime("%Y-%m-%d"),
         "by_comp": True,
     }
+
+    def group_items(self, items, group_field="", sum_field="",context={}):
+        res=[]
+        ctx = context or {}
+        sum_fields = sum_field.split(",")
+        groups = {}
+        group_list = []
+        for item in items:
+            v = item.get(group_field)
+            group = groups.get(v)
+            if not group:
+                group = {}
+                group[group_field] = v
+                group["group_items"] = []
+                group["context"] = ctx
+                group["sum"] = {}
+                for f in sum_fields:
+                    group["sum"][f] = 0
+                groups[v] = group
+                group_list.append(v)
+            group["group_items"].append(item)
+            for f in sum_fields:
+                v = item.get(f)
+                if v:
+                    group["sum"][f] += v
+        if group_list:
+            for v in group_list:
+                group = groups[v]
+                data = group.copy()
+                res.append(data)
+        return res
 
     def get_report_data(self, ids, context={}):
         company_id = get_active_company()
@@ -72,6 +102,17 @@ class ReportTaxSum(Model):
             res = db.query("SELECT c.id AS comp_id,c.name AS comp_name,c.rate AS comp_rate,r.name AS rate_name,SUM(l.credit-l.debit) AS tax_total,SUM(l.tax_base*sign(l.credit-l.debit)) AS base_total FROM account_move_line l,account_move m,account_tax_component c,account_tax_rate r WHERE m.id=l.move_id AND m.state='posted' AND m.date>=%s AND m.date<=%s AND c.id=l.tax_comp_id AND r.id=c.tax_rate_id AND m.company_id IN %s GROUP BY comp_id,comp_name,comp_rate,rate_name ORDER BY rate_name,comp_name",
                            date_from, date_to, tuple(company_ids))
             data["rate_taxes"] = [dict(r) for r in res]
+
+        items=data.get("rate_taxes") or []
+        rate_taxes=self.group_items(items=items,group_field="comp_name",sum_field="base_total,tax_total", context={})
+
+        items=data.get("comp_taxes") or []
+        comp_taxes=self.group_items(items=items,group_field="comp_name",sum_field="base_total,tax_total", context={})
+
+        data['options']={
+            'rate_taxes': rate_taxes,
+            'comp_taxes': comp_taxes,
+        }
         return data
 
 ReportTaxSum.register()

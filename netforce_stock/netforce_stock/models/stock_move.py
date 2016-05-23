@@ -170,8 +170,8 @@ class Move(Model):
         if "qty" in vals or "state" in vals: # XXX: change this
             for obj in self.browse(ids):
                 prod_ids.append(obj.product_id.id)
-                if obj.related_id:
-                    obj.related_id.function_store() # XXX: very slow, change this
+                #if obj.related_id:
+                #    obj.related_id.function_store() # XXX: very slow, change this (DON'T UNCOMMENT)
         super().write(ids, vals, context=context)
         prod_id = vals.get("product_id")
         if prod_id:
