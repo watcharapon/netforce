@@ -44,6 +44,7 @@ class StockCount(Model):
         "journal_id": fields.Many2One("stock.journal", "Journal"),
         "total_cost_amount": fields.Decimal("Total New Cost Amount",function="get_total_cost_amount"),
     }
+    _order="date desc"
 
     def _get_number(self, context={}):
         while 1:

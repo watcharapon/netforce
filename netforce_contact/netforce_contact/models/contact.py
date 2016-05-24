@@ -19,8 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
-from netforce.access import get_active_user
-from netforce.database import get_connection
+from netforce.access import get_active_company
 from netforce import utils
 
 
@@ -131,15 +130,28 @@ class Contact(Model):
                 return num
             get_model("sequence").increment_number(seq_id, context=context)
 
+    def _get_companies(self,context={}):
+        is_create=context.get("is_create")
+        comp_id=get_active_company()
+        if comp_id:
+            if not is_create:
+                return [comp_id]
+            else:
+                return [('add',[comp_id])]
+
     _defaults = {
         "active": True,
         "type": "org",
         "code": _get_number,
+        'companies': _get_companies,
     }
     _order = "name"
     _constraints=["check_email"]
 
     def create(self, vals, **kw):
+        context=kw.get('context')
+        if context:
+            context['is_create']=True
         if not vals.get("type"):
             if vals.get("name"):
                 vals["type"] = "org"

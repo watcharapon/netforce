@@ -19,7 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
-from netforce.utils import get_data_path
+from netforce.utils import get_data_path, roundup
 import time
 from netforce.access import get_active_user, set_active_user
 from netforce.access import get_active_company, check_permission_other, set_active_company
@@ -332,6 +332,7 @@ class SaleOrder(Model):
             if not line:
                 continue
             amt = (line.get("qty") or 0) * (line.get("unit_price") or 0)
+            amt = roundup(amt)
             if line.get("discount"):
                 disc = amt * line["discount"] / Decimal(100)
                 amt -= disc
