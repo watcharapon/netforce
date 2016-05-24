@@ -204,7 +204,6 @@ class ReportTB(Model):
         for acc in root_accounts:
             _add_lines(acc)
         _add_lines(root_acc, max_depth=0)
-        pprint(lines)
         data = {
             "date": date_to,
             "track_id": track_id,
