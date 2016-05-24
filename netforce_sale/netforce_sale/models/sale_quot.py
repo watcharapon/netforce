@@ -249,9 +249,9 @@ class SaleQuot(Model):
             if not line:
                 continue
             amt = (line.get("qty") or 0) * (line.get("unit_price") or 0)
-            amt = roundup(amt)
+            amt = Decimal(roundup(amt))
             if line.get("discount"):
-                disc = amt * line["discount"] / Decimal(100)
+                disc = Decimal(amt) * Decimal(line["discount"]) / Decimal(100)
                 amt -= disc
             else:
                 disc = 0
