@@ -171,7 +171,6 @@ class ReportTB(Model):
                     "id": acc.get("id"),
                 })
                 return
-            print("xxx", acc)
             children = acc["children"]
             if acc.get("name"):
                 lines.append({
