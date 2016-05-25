@@ -40,6 +40,7 @@ class StockPeriod(Model):
         "num_posted_stock_moves": fields.Integer("Number posted stock movements",function="get_num_stock_moves",function_multi=True),
         "company_id": fields.Many2One("company", "Company"),
     }
+    _order="date_from desc,id desc"
     _defaults={
         "state": "draft",
         "date_from": lambda *a: date.today().strftime("%Y-%m-01"),
