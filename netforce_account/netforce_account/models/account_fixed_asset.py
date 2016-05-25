@@ -23,7 +23,6 @@ from netforce.access import get_active_company
 from netforce import database
 from datetime import *
 from dateutil.relativedelta import *
-from pprint import pprint
 
 
 class FixedAsset(Model):
@@ -251,7 +250,6 @@ class FixedAsset(Model):
                     "debit": amt > 0 and amt or 0,
                     "credit": amt < 0 and -amt or 0,
                 }))
-            pprint(move_vals)
             move_id = get_model("account.move").create(move_vals)
             get_model("account.move").post([move_id])
             for period in get_model("account.fixed.asset.period").browse(date_period_ids):
