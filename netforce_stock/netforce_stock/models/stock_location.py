@@ -23,7 +23,6 @@ from netforce import database
 import datetime
 import time
 from netforce.access import get_active_company
-from pprint import pprint
 
 
 class Location(Model):

@@ -23,7 +23,6 @@ from netforce import access
 from netforce import config
 from netforce import database
 from netforce import utils
-from pprint import pprint
 
 
 class User(Model):

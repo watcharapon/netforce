@@ -22,7 +22,6 @@ from netforce.model import Model, fields, get_model
 from datetime import *
 from dateutil.relativedelta import *
 from netforce.database import get_connection
-from pprint import pprint
 from netforce.access import get_active_company
 import time
 
