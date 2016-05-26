@@ -342,7 +342,7 @@ class Move(Model):
             track_from_id=move.location_from_id.track_id.id
             track_to_id=move.track_id.id or move.location_to_id.track_id.id # XXX
             amt=move.cost_amount or 0
-            if move.qty: # XXX: avoid create double journal entry for LC
+            if not move.move_id: # XXX: avoid create double journal entry for LC for ex
                 accounts.setdefault((acc_from_id,track_from_id,desc),0)
                 accounts.setdefault((acc_to_id,track_to_id,desc),0)
                 accounts[(acc_from_id,track_from_id,desc)]-=amt
