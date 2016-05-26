@@ -349,14 +349,20 @@ class Move(Model):
                     raise Exception("Failed to post stock movements because they have different dates")
             prod=move.product_id
             desc="[%s] %s @ %s %s "%(prod.code,prod.name,round(move.qty,2),move.uom_id.name)
-            acc_from_id=move.location_from_id.account_id.id
-            if not acc_from_id:
-                acc_from_id=prod.stock_in_account_id.id
+            if move.location_from_id.type=="customer" and prod.cogs_account_id:
+                acc_from_id=prod.cogs_account_id.id
+            else:
+                acc_from_id=move.location_from_id.account_id.id
+                if not acc_from_id:
+                    acc_from_id=prod.stock_in_account_id.id
             if not acc_from_id:
                 raise Exception("Missing input account for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
-            acc_to_id=move.location_to_id.account_id.id
-            if not acc_to_id:
-                acc_to_id=prod.stock_out_account_id.id
+            if move.location_to_id.type=="customer" and prod.cogs_account_id:
+                acc_to_id=prod.cogs_account_id.id
+            else:
+                acc_to_id=move.location_to_id.account_id.id
+                if not acc_to_id:
+                    acc_to_id=prod.stock_out_account_id.id
             if not acc_to_id:
                 raise Exception("Missing output account for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
             track_from_id=move.location_from_id.track_id.id
