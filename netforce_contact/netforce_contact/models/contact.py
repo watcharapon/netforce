@@ -150,7 +150,11 @@ class Contact(Model):
 
     def create(self, vals, **kw):
         context=kw.get('context')
-        if context:
+        if not context:
+            kw['context']={
+                'is_create': True,
+            }
+        else:
             context['is_create']=True
         if not vals.get("type"):
             if vals.get("name"):
