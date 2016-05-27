@@ -19,7 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
-from netforce.utils import get_data_path
+from netforce.utils import get_data_path, roundup
 from netforce.database import get_active_db
 import time
 import uuid
@@ -249,6 +249,7 @@ class SaleQuot(Model):
             if not line:
                 continue
             amt = (line.get("qty") or 0) * (line.get("unit_price") or 0)
+            amt = roundup(amt)
             if line.get("discount"):
                 disc = amt * line["discount"] / Decimal(100)
                 amt -= disc
@@ -485,6 +486,12 @@ class SaleQuot(Model):
                 "tax_id": line.tax_id.id if not line.is_hidden else None,
                 "location_id": prod.location_id.id if prod else None,
             }
+            if prod.locations:
+                line_vals["location_id"] = prod.locations[0].location_id.id
+                for loc in prod.locations:
+                    if loc.stock_qty:
+                        line_vals['location_id']=prod.location_id.id
+                        break
             sale_vals["lines"].append(("create",line_vals))
         for cost in obj.est_costs:
             cost_vals={
@@ -695,19 +702,26 @@ class SaleQuot(Model):
             "est_costs": [],
         }
         seq=0
-        for obj in self.browse(ids):
+        refs=[]
+        for obj in sorted(self.browse(ids),key=lambda obj: obj.number):
+            refs.append(obj.number)
             seq_map={}
             for line in obj.lines:
                 seq+=1
                 seq_map[line.sequence]=seq
+                qty=line.qty or 0
+                unit_price=line.unit_price or 0
+                amt=qty*unit_price
+                disc=amt*(line.discount or 0)/Decimal(100)
                 line_vals = {
                     "sequence": seq,
                     "product_id": line.product_id.id,
                     "description": line.description,
-                    "qty": line.qty,
+                    "qty": qty,
                     "uom_id": line.uom_id.id,
-                    "unit_price": line.unit_price,
-                    "discount": line.discount,
+                    "unit_price": unit_price,
+                    "discount": disc,
+                    "amount": amt,
                     "tax_id": line.tax_id.id,
                 }
                 vals["lines"].append(("create", line_vals))
@@ -724,6 +738,7 @@ class SaleQuot(Model):
                     "currency_id": cost.currency_id.id,
                 }
                 vals["est_costs"].append(("create",cost_vals))
+        vals['ref']=', '.join([ref for ref in refs])
         new_id = self.create(vals, context=context)
         new_obj = self.browse(new_id)
         return {
