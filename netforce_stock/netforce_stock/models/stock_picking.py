@@ -417,8 +417,6 @@ class Picking(Model):
                 line_vals["cost_price"] = line.cost_price
                 line_vals["cost_amount"] = line.cost_amount
             vals["lines"].append(("create", line_vals))
-        from pprint import pprint
-        pprint(vals)
         new_id = self.create(vals, {"pick_type": vals["type"]})
         if state in ("planned","approved"):
             self.pending([new_id])

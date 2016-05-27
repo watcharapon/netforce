@@ -21,7 +21,6 @@
 from netforce.model import Model, fields, get_model
 from datetime import *
 from dateutil.relativedelta import *
-from pprint import pprint
 from netforce.access import get_active_company
 
 
@@ -285,7 +284,6 @@ class ReportBalanceSheet(Model):
         _add_lines(liabilities, sign=-1)
         _add_lines(net_assets, depth=-1, max_depth=-1)
         _add_lines(equity, sign=-1)
-        pprint(lines)
         data = {
             "date": date_to,
             "track_id": track_id,

@@ -23,7 +23,6 @@ from datetime import *
 from dateutil.relativedelta import *
 from netforce.access import get_active_company
 from netforce.database import get_connection
-from pprint import pprint
 
 
 class ReportShipCost(Model):

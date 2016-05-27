@@ -23,7 +23,6 @@ from netforce.access import get_active_company
 from datetime import *
 from dateutil.relativedelta import *
 from collections import defaultdict
-from pprint import pprint
 
 
 class ReportDepSchedule(Model):
@@ -96,7 +95,6 @@ class ReportDepSchedule(Model):
                 "total_accum_dep": sum([l["accum_dep"] for l in group["lines"]]),
                 "total_book_val_to": sum([l["book_val_to"] for l in group["lines"]]),
             })
-        pprint(groups)
         data = {
             "company_name": comp.name,
             "date_from": date_from,
