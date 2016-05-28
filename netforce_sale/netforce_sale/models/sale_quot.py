@@ -19,7 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
-from netforce.utils import get_data_path
+from netforce.utils import get_data_path, roundup
 from netforce.database import get_active_db
 import time
 import uuid
@@ -249,8 +249,9 @@ class SaleQuot(Model):
             if not line:
                 continue
             amt = (line.get("qty") or 0) * (line.get("unit_price") or 0)
+            amt = Decimal(roundup(amt))
             if line.get("discount"):
-                disc = amt * line["discount"] / Decimal(100)
+                disc = Decimal(amt) * Decimal(line["discount"]) / Decimal(100)
                 amt -= disc
             else:
                 disc = 0
@@ -307,9 +308,9 @@ class SaleQuot(Model):
             else:
                 tax = 0
             if tax_type == "tax_in":
-                data["amount_subtotal"] += line["amount"] - tax
+                data["amount_subtotal"] += Decimal(line["amount"] - tax)
             else:
-                data["amount_subtotal"] += line["amount"]
+                data["amount_subtotal"] += Decimal(line["amount"])
         data["amount_total"] = data["amount_subtotal"] + data["amount_tax"]
         return data
 
@@ -485,6 +486,12 @@ class SaleQuot(Model):
                 "tax_id": line.tax_id.id if not line.is_hidden else None,
                 "location_id": prod.location_id.id if prod else None,
             }
+            if prod.locations:
+                line_vals["location_id"] = prod.locations[0].location_id.id
+                for loc in prod.locations:
+                    if loc.stock_qty:
+                        line_vals['location_id']=prod.location_id.id
+                        break
             sale_vals["lines"].append(("create",line_vals))
         for cost in obj.est_costs:
             cost_vals={

@@ -20,7 +20,6 @@
 
 from netforce.model import Model, fields, get_model
 import time
-from pprint import pprint
 
 
 class BarcodeIssueMFG(Model):

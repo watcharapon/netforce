@@ -19,8 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
-from netforce.access import get_active_user
-from netforce.database import get_connection
+from netforce.access import get_active_company
 from netforce import utils
 
 
@@ -131,15 +130,32 @@ class Contact(Model):
                 return num
             get_model("sequence").increment_number(seq_id, context=context)
 
+    def _get_companies(self,context={}):
+        is_create=context.get("is_create")
+        comp_id=get_active_company()
+        if comp_id:
+            if not is_create:
+                return [comp_id]
+            else:
+                return [('add',[comp_id])]
+
     _defaults = {
         "active": True,
         "type": "org",
         "code": _get_number,
+        'companies': _get_companies,
     }
     _order = "name"
     _constraints=["check_email"]
 
     def create(self, vals, **kw):
+        context=kw.get('context')
+        if not context:
+            kw['context']={
+                'is_create': True,
+            }
+        else:
+            context['is_create']=True
         if not vals.get("type"):
             if vals.get("name"):
                 vals["type"] = "org"
@@ -150,10 +166,12 @@ class Contact(Model):
                 vals["name"] = vals["first_name"] + " " + vals["last_name"]
             else:
                 vals["name"] = vals["last_name"]
+        self.check_duplicate_code(vals.get('code'))
         new_id = super().create(vals, **kw)
         return new_id
 
     def write(self, ids, vals, set_name=True, **kw):
+        self.check_duplicate_code(vals.get('code'))
         super().write(ids, vals, **kw)
         if set_name:
             for obj in self.browse(ids):
@@ -243,5 +261,11 @@ class Contact(Model):
                 continue
             if not utils.check_email_syntax(obj.email):
                 raise Exception("Invalid email for contact '%s'"%obj.name)
+
+    def check_duplicate_code(self,code,context={}):
+        if code:
+            res=self.search([['code','=',code]])
+            if res:
+                raise Exception("Duplicate code!")
 
 Contact.register()

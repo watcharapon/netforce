@@ -70,6 +70,7 @@ class TaxRate(Model):
 
     # XXX: remove this
     def compute_tax(self, tax_id, amt, tax_type="tax_ex", wht=False):
+        pc_factor=Decimal(100)
         if not tax_id:
             return 0
         if tax_type == "no_tax":
@@ -82,14 +83,18 @@ class TaxRate(Model):
                 wht_rate += comp.rate or 0
             elif comp.type == "vat":
                 vat_rate += comp.rate or 0
+        base_amt = Decimal(0)
         if tax_type == "tax_ex":
             base_amt = amt or 0
         elif tax_type == "tax_in":
-            base_amt = (amt or 0) / (1 + vat_rate / 100)
+            base_amt = (amt or 0) / (1 + vat_rate / pc_factor)
+        base_amt=Decimal(base_amt)
+        wht_rate=Decimal(wht_rate)
+        vat_rate=Decimal(vat_rate)
         if wht:
-            return base_amt * wht_rate / 100
+            return base_amt * wht_rate / pc_factor
         else:
-            return base_amt * vat_rate / 100
+            return base_amt * vat_rate / pc_factor
 
     # XXX: remove this
     # (not used in payment)

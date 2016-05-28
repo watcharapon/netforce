@@ -23,7 +23,6 @@ from datetime import *
 from dateutil.relativedelta import *
 from netforce.access import get_active_company
 from netforce.database import get_connection
-from pprint import pprint
 import time
 
 
@@ -320,7 +319,6 @@ class ReportStockCard(Model):
             "groups": groups,
             "show_qty2": params.get("show_qty2"),
         }
-        #pprint(data)
         return data
 
 ReportStockCard.register()

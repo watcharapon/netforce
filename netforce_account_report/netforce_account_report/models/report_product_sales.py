@@ -21,7 +21,6 @@
 from netforce.model import Model, fields, get_model
 from datetime import *
 from dateutil.relativedelta import *
-from pprint import pprint
 from netforce.access import get_active_company
 
 
@@ -84,7 +83,6 @@ class ReportProductSales(Model):
         for line in lines:
             data["total_qty"] += line["qty"]
             data["total_amount"] += line["amount"]
-        pprint(data)
         return data
 
 ReportProductSales.register()

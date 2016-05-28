@@ -23,7 +23,6 @@ from netforce.database import get_connection
 import time
 import datetime
 import calendar
-from pprint import pprint
 from datetime import datetime, timedelta
 from dateutil.relativedelta import *
 from netforce.access import get_active_company
@@ -187,7 +186,6 @@ class ReportAPDetails(Model):
 
         data["lines"] = list(contacts.values())
         data["lines"].sort(key=lambda c: c["contact_name"])
-        pprint(data)
         return data
 
 ReportAPDetails.register()

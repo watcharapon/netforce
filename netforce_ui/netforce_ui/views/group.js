@@ -60,6 +60,10 @@ var Group=NFView.extend({
             var tag=$el.prop("tagName");
             if (tag=="field") {
                 var name=$el.attr("name");
+                var focus=$el.attr("focus");
+                if(focus && that.options.form_view){
+                    that.options.form_view.focus_field=name;
+                }
                 var model=context.model;
                 var field=model.get_field(name);
                 if (field.type=="one2many") {
@@ -119,6 +123,7 @@ var Group=NFView.extend({
                     create: $el.attr("create"),
                     search_mode: $el.attr("search_mode"),
                     string: $el.attr("string"),
+                    placeholder: $el.attr("placeholder"),
                     method: $el.attr("method"),
                     show_buttons: $el.attr("show_buttons"),
                     auto_save: $el.attr("auto_save"),
@@ -142,6 +147,7 @@ var Group=NFView.extend({
                                     invisible: $el2.attr("invisible"),
                                     onchange: $el2.attr("onchange"),
                                     onfocus: $el2.attr("onfocus"),
+                                    focus: $el2.attr("focus"),
                                     search_mode: $el2.attr("search_mode"),
                                     scale: $el2.attr("scale"),
                                     create: $el2.attr("create"),
@@ -208,7 +214,7 @@ var Group=NFView.extend({
                 var view=Field.make_view(opts);
                 cell.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
                 col+=span;
-                if (that.options.form_view) { // XXX
+                if (that.options.form_view) {
                     that.options.form_view.field_views[name]=view;
                 }
             } else if (tag=="button") {

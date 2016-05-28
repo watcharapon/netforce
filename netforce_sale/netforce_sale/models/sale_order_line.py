@@ -19,6 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
+from netforce.utils import roundup
 from decimal import Decimal
 import math
 
@@ -45,7 +46,7 @@ class SaleOrderLine(Model):
         "state": fields.Selection([("draft", "Draft"), ("confirmed", "Confirmed"), ("done", "Completed"), ("voided", "Voided")], "Status", function="_get_related", function_search="_search_related", function_context={"path": "order_id.state"}, search=True),
         "qty2": fields.Decimal("Secondary Qty"),
         "location_id": fields.Many2One("stock.location", "Location", condition=[["type", "=", "internal"]]),
-        "product_categs": fields.Many2Many("product.categ", "Product Categories", function="_get_related", function_context={"path": "product_id.categs"}, function_search="_search_related", search=True),
+        "product_categ_id": fields.Many2Many("product.categ", "Product Category", function="_get_related", function_context={"path": "product_id.categ_id"}, function_search="_search_related", search=True),
         "discount": fields.Decimal("Disc %"),  # XXX: rename to discount_percent later
         "discount_amount": fields.Decimal("Disc Amt"),
         "qty_avail": fields.Decimal("Qty In Stock", function="get_qty_avail"),
@@ -65,6 +66,8 @@ class SaleOrderLine(Model):
         "agg_act_profit": fields.Decimal("Total Actual Profit", agg_function=["sum", "act_profit_amount"]),
         "production_id": fields.Many2One("production.order","Production Order"),
     }
+
+    _order="sequence::numeric"
 
     def create(self, vals, context={}):
         id = super(SaleOrderLine, self).create(vals, context)
@@ -98,6 +101,7 @@ class SaleOrderLine(Model):
                     prom_pcts[line.product_id.id]+=line.percent
             for line in sale.lines:
                 amt = line.qty * line.unit_price
+                amt = roundup(amt)
                 if line.discount:
                     disc = amt * line.discount / 100
                 else:
