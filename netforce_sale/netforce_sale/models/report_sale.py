@@ -24,7 +24,6 @@ from netforce.database import get_connection
 from netforce.utils import get_file_path
 import time
 from datetime import *
-from pprint import pprint
 from netforce.access import get_active_company
 from . import utils
 

@@ -21,7 +21,6 @@
 from netforce.model import Model, fields, get_model
 from datetime import *
 from dateutil.relativedelta import *
-from pprint import pprint
 from netforce.access import get_active_company
 from decimal import Decimal
 
@@ -160,7 +159,6 @@ class ReportGLDetails(Model):
             acc_vals["credit_total"] = credit_total
             if acc_vals["lines"]:
                 data["accounts"].append(acc_vals)
-        pprint(data)
         return data
 
 ReportGLDetails.register()

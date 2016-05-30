@@ -21,7 +21,6 @@
 from netforce.model import Model, fields, get_model
 from datetime import *
 from dateutil.relativedelta import *
-from pprint import pprint
 from netforce.access import get_active_company
 
 
@@ -171,7 +170,6 @@ class ReportTB(Model):
                     "id": acc.get("id"),
                 })
                 return
-            print("xxx", acc)
             children = acc["children"]
             if acc.get("name"):
                 lines.append({
@@ -205,7 +203,6 @@ class ReportTB(Model):
         for acc in root_accounts:
             _add_lines(acc)
         _add_lines(root_acc, max_depth=0)
-        pprint(lines)
         data = {
             "date": date_to,
             "track_id": track_id,
