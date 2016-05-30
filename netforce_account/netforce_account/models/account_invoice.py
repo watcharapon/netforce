@@ -537,6 +537,8 @@ class Invoice(Model):
         if obj.move_id:
             obj.move_id.void()
             obj.move_id.delete()
+        if obj.reconcile_move_line_id: # XXX: deprecated
+            obj.write({"reconcile_move_line_id":None})
         obj.taxes.delete()
         obj.write({"state": "draft"})
 

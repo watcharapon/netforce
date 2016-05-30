@@ -1,7 +1,13 @@
+/**
+ * Sample React Native App
+ * https://github.com/facebook/react-native
+ */
 'use strict';
 import React, {
-  AppRegistry,
   Component,
+} from 'react';
+import {
+  AppRegistry,
   StyleSheet,
   Text,
   TextInput,
@@ -89,9 +95,9 @@ class List extends Component {
             }.bind(this)()}
             {function() {
                 if (this.tabs) {
-                    return <ScrollableTabView onChangeTab={this.change_tab.bind(this)} initialPage={this.state.active_tab||0} style={{flex:1}}>
+                    return <ScrollableTabView onChangeTab={this.change_tab.bind(this)} initialPage={this.state.active_tab||0}>
                         {this.tabs.map((t,i)=>{
-                            return <View key={i} tabLabel={t[0]} style={{flex:1}}>
+                            return <View key={i} tabLabel={t[0]}>
                                 {function() {
                                     if (this.state.data==null) {
                                         return <Text>Loading...</Text>

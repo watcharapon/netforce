@@ -1,13 +1,14 @@
 'use strict';
 import React, {
-  AppRegistry,
   Component,
+} from 'react';
+import {
+  AppRegistry,
   StyleSheet,
   Text,
   TextInput,
   Navigator,
   ListView,
-  NativeModules,
   Image,
   ScrollView,
   View
@@ -15,7 +16,7 @@ import React, {
 
 var rpc=require("./rpc");
 var utils=require("./utils");
-var ImagePickerManager = NativeModules.ImagePickerManager;
+var ImagePickerManager = require('NativeModules').ImagePickerManager;
 var Button=require("./button");
 
 class Page extends Component {

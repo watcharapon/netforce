@@ -4,8 +4,10 @@
  */
 'use strict';
 import React, {
-  AppRegistry,
   Component,
+} from 'react';
+import {
+  AppRegistry,
   StyleSheet,
   TextInput,
   View
@@ -29,7 +31,8 @@ class FieldText extends Component {
     }
 
     render() {
-        var val_str=this.state.value;
+        var f=UIParams.get_field(this.props.model,this.props.name);
+        var val_str=utils.field_val_to_str(this.state.value,f);
         return <TextInput value={val_str} onChangeText={this.onchange.bind(this)} multiline={true} style={{height:60}}/>
     }
 

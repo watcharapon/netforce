@@ -1,7 +1,9 @@
 'use strict';
 import React, {
-  AppRegistry,
   Component,
+} from 'react';
+import {
+  AppRegistry,
   View,
   Text,
   Image,
@@ -19,10 +21,10 @@ class Navbar extends Component {
         } else {
             var status_height=0;
         }
-        return <View style={{backgroundColor:this.props.color||"#258",height:50,marginTop:status_height,flexDirection:"row",justifyContent:"space-between"}}>
+        return <View style={{backgroundColor:"#258",height:50,marginTop:status_height,flexDirection:"row",justifyContent:"space-between"}}>
             <View style={{position:"absolute",left:0,right:0,bottom:0,top:0,alignItems:"center",flexDirection:"row",justifyContent:"center"}}>
                 <View style={{flexDirection:"row",alignItems:"center",position:"relative",left:-10}}>
-                    <Image source={this.props.logo_src||require('./nf_logo_64.png')} style={{width:24,marginRight:5}} resizeMode="contain"/>
+                    <Image source={require('./nf_logo_64.png')} style={{width:24}} resizeMode="contain"/>
                     <Text style={{fontSize:17,letterSpacing:0.5,color:"#eee",textAlign:"center",fontWeight:"500"}}>{this.props.title}</Text>
                 </View>
             </View>
@@ -40,10 +42,6 @@ class Navbar extends Component {
     }
 
     go_back() {
-        if (this.props.onBack) {
-            this.props.onBack();
-            return;
-        }
         var routes=this.props.navigator.getCurrentRoutes();
         var route=routes[routes.length-2];
         if (route==null) {
