@@ -23,6 +23,7 @@ from netforce.utils import get_data_path, set_data_path, get_file_path
 import time
 from pprint import pprint
 from netforce.access import get_active_company
+from decimal import *
 
 
 class Payment(Model):
@@ -55,7 +56,7 @@ class Payment(Model):
         "amount_wht": fields.Decimal("Withholding Tax", function="get_amount", function_multi=True, store=True),
         "amount_payment": fields.Decimal("Net Amount", function="get_amount", function_multi=True, store=True),
         "move_id": fields.Many2One("account.move", "Journal Entry"),
-        "currency_rate": fields.Decimal("Currency Rate", scale=6),
+        "currency_rate": fields.Decimal("Currency Rate (Pmt->Com)", scale=6),
         "state": fields.Selection([["draft", "Draft"], ["posted", "Posted"], ["voided", "Voided"]], "State", required=True),
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "number": fields.Char("Number", required=True, search=True),
@@ -317,7 +318,11 @@ class Payment(Model):
         if not inv_id:
             return
         inv = get_model("account.invoice").browse(inv_id)
-        line["amount"] = get_model("currency").convert(amount_inv, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type)
+        if line["currency_rate"]:
+            rate=Decimal(1)/line["currency_rate"]
+        else:
+            rate=None
+        line["amount"] = get_model("currency").convert(amount_inv, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type, rate=rate)
         return self.update_amounts(context)
 
     def onchange_amount_payment(self,context):
@@ -333,7 +338,7 @@ class Payment(Model):
         if not inv_id:
             return
         inv = get_model("account.invoice").browse(inv_id)
-        line["amount_invoice"] = get_model("currency").convert(amount_pmt, data["currency_id"], inv.currency_id.id, date=data["date"], rate_type=rate_type)
+        line["amount_invoice"] = get_model("currency").convert(amount_pmt, data["currency_id"], inv.currency_id.id, date=data["date"], rate_type=rate_type, rate=line["currency_rate"])
         return self.update_amounts(context)
 
     def update_amounts(self, context):

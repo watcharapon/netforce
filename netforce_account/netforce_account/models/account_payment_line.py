@@ -42,6 +42,7 @@ class PaymentLine(Model):
         "tax_no": fields.Char("Tax No."),
         "amount_invoice": fields.Decimal("Amount (Inv Cur)"),
         "invoice_currency_id": fields.Many2One("currency", "Invoice Currency", function="_get_related", function_context={"path": "invoice_id.currency_id"}),
+        "currency_rate": fields.Decimal("Currency Rate (Pmt->Inv)"),
     }
 
     def create(self, vals, context={}):

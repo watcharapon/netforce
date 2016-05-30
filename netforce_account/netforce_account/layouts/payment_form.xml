@@ -40,6 +40,7 @@
                                 <field name="invoice_currency_id"/>
                                 <field name="amount_invoice" onchange="onchange_amount_invoice"/>
                                 <field name="amount" onchange="onchange_amount_payment"/>
+                                <field name="currency_rate" onchange="onchange_amount_invoice"/>
                                 <field name="tax_no"/>
                             </list>
                         </field>
