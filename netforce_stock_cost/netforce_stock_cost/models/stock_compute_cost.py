@@ -26,6 +26,7 @@ from collections import deque
 import heapq
 from netforce.utils import print_color
 
+# TODO: cost_method from prod categ
 class ComputeCost(Model):
     _name="stock.compute.cost"
     _transient=True
