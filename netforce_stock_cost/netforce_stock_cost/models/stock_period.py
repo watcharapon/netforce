@@ -55,11 +55,21 @@ class StockPeriod(Model):
         for move in get_model("stock.move").browse(move_ids):
             prod=move.product_id
             acc_from_id=move.location_from_id.account_id.id
+            if move.location_from_id.type=="customer":
+                if prod.cogs_account_id:
+                    acc_from_id=prod.cogs_account_id.id
+                elif prod.categ_id and prod.categ_id.cogs_account_id:
+                    acc_from_id=prod.categ_id.cogs_account_id.id
             if not acc_from_id:
-                raise Exception("Missing account for location '%s'"%move.location_from_id.name)
+                raise Exception("Missing input account for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
             acc_to_id=move.location_to_id.account_id.id
+            if move.location_to_id.type=="customer":
+                if prod.cogs_account_id:
+                    acc_to_id=prod.cogs_account_id.id
+                elif prod.categ_id and prod.categ_id.cogs_account_id:
+                    acc_to_id=prod.categ_id.cogs_account_id.id
             if not acc_to_id:
-                raise Exception("Missing account for location '%s'"%move.location_to_id.name)
+                raise Exception("Missing output account for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
             if move.unit_price is None:
                 raise Exception("Unknown cost price for stock transaction %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
             track_from_id=move.location_from_id.track_id.id
