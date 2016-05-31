@@ -26,6 +26,7 @@ class LandedCost(Model):
     _name = "landed.cost"
     _name_field = "number"
     _string = "Landed Costs"
+    _audit_log = True
     _fields = {
         "number": fields.Char("Number",required=True,search=True),
         "date": fields.DateTime("Date",required=True,search=True),
