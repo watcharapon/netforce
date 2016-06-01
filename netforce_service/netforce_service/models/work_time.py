@@ -165,7 +165,7 @@ class WorkTime(Model):
             vals[obj.id]=amt
         return vals
 
-   def copy_to_invoice_group(self,ids,context={}):
+    def copy_to_invoice_group(self,ids,context={}):
         inv_vals = {
             "type": "out",
             "inv_type": "invoice",
