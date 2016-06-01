@@ -165,4 +165,57 @@ class WorkTime(Model):
             vals[obj.id]=amt
         return vals
 
+   def copy_to_invoice_group(self,ids,context={}):
+        inv_vals = {
+            "type": "out",
+            "inv_type": "invoice",
+            "lines": [],
+        }
+        res_hours={}
+        for obj in self.browse(ids):
+            if obj.invoice_id:
+                raise Exception("Invoice already created for work time %s"%obj.id)
+            project=obj.project_id
+            contact=project.contact_id
+            if inv_vals.get("contact_id"):
+                if contact.id!=inv_vals["contact_id"]:
+                    raise Exception("Different contacts")
+            else:
+                inv_vals["contact_id"]=contact.id
+            resource=obj.resource_id
+            res_hours.setdefault(resource.id,0)
+            res_hours[resource.id]+=line.bill_hours or 0
+        for resource_id,bill_hours in res_hours.items():
+            if not bill_hours:
+                continue
+            resource=get_model("service.resource").browse(resource_id)
+            prod=resource.product_id
+            if not prod:
+                raise Exception("Missing product for resource %s"%resource.name)
+            if not prod.sale_account_id:
+                raise Exception("Missing sales account in product %s"%prod.code)
+            line_vals = {
+                "product_id": prod.id,
+                "description": resource.name,
+                "qty": bill_hours or 0,
+                "uom_id": prod.uom_id.id,
+                "unit_price": prod.sale_price or 0,
+                "account_id": prod.sale_account_id.id,
+                "tax_id": prod.sale_tax_id.id if prod else None,
+                "amount": (bill_hours or 0)*(prod.sale_price or 0),
+            }
+            inv_vals["lines"].append(("create", line_vals))
+        if not inv_vals["lines"]:
+            raise Exception("Nothing to invoice")
+        inv_id = get_model("account.invoice").create(inv_vals, {"type": "out", "inv_type": "invoice"})
+        self.write(ids,{"invoice_id": inv_id})
+        inv = get_model("account.invoice").browse(inv_id)
+        return {
+            "next": {
+                "name": "view_invoice",
+                "active_id": inv_id,
+            },
+            "flash": "Invoice %s created from work time" % inv.number,
+        }
+
 WorkTime.register()
