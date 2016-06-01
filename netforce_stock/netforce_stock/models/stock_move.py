@@ -202,6 +202,7 @@ class Move(Model):
 
     def view_stock_transaction(self, ids, context={}):
         obj = self.browse(ids[0])
+        next = {}
         if obj.picking_id:
             pick = obj.picking_id
             next=pick.view_picking()['next']
