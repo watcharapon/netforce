@@ -155,7 +155,7 @@ class Borrow(Model):
                 "related_id": "product.borrow,%s" % obj.id,
             }
             pick_vals["lines"].append(("create", line_vals))
-        pick_id = get_model("stock.picking").create(pick_vals, context=pick_vals)
+        pick_id = get_model("stock.picking").create(pick_vals, context={'pick_type':'out'})
         pick = get_model("stock.picking").browse(pick_id)
         return {
             "next": {
@@ -199,7 +199,7 @@ class Borrow(Model):
                 "related_id": "product.borrow,%s" % obj.id,
             }
             pick_vals["lines"].append(("create", line_vals))
-        pick_id = get_model("stock.picking").create(pick_vals, context=pick_vals)
+        pick_id = get_model("stock.picking").create(pick_vals, context={'pick_type':'in'})
         pick = get_model("stock.picking").browse(pick_id)
         return {
             "next": {
