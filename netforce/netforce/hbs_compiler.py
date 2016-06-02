@@ -396,6 +396,14 @@ def _compare(this, options, val1, val2, operator="="):
     else:
         return options['inverse'](this)
 
+def _fmt_select(this, val, model=None, field=None):
+    try:
+        if not val or not model or not field:
+            return val
+        return dict(get_model(model)._fields[field].selection)[val]
+    except:
+        return val
+    return val
 
 def _ifeq(this, options, val1, val2):
     if val1 == val2:
@@ -737,6 +745,7 @@ _globals_ = {
         'fmt_date': _fmt_date,
         'fmt_datetime': _fmt_datetime,
         'fmt_bool': _fmt_bool,
+        'fmt_select': _fmt_select,
         'filename': _filename,
         'first': _first,
         'after_first': _after_first,
