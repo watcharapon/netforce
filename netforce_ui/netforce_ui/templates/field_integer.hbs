@@ -15,7 +15,7 @@
             {{value}}
         </span>
     {{else}}
-        <input type="text" value="{{value}}" class="form-control {{#if options.span}}span{{options.span}}{{/if}} {{#if options.size}}input-{{options.size}}{{/if}}"/>
+        <input type="text" {{#if placeholder}} placeholder="{{placeholder}}" {{/if}} value="{{value}}" class="form-control {{#if options.span}}span{{options.span}}{{/if}} {{#if options.size}}input-{{options.size}}{{/if}}"/>
     {{/if}}
     {{#if options.append}}
         {{options.append}}
