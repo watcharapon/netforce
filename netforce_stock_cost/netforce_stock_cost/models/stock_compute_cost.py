@@ -140,7 +140,7 @@ class ComputeCost(Model):
                         loc_from["amt"]-=m["cost_amount"]
                     else:
                         m["cost_amount"]=0
-                print("[%s] move #%s: %s -> %s, %s @ %s (%s)"%(m["date"],m["id"],m["loc_from_id"],m["loc_to_id"],m["conv_qty"],m["cost_amount"],"calc" if loc_from else "read"))
+                #print("[%s] move #%s: %s -> %s, %s @ %s (%s)"%(m["date"],m["id"],m["loc_from_id"],m["loc_to_id"],m["conv_qty"],m["cost_amount"],"calc" if loc_from else "read"))
                 loc_to=locations.get(m["loc_to_id"])
                 if loc_to:
                     loc_to["qty"]+=m["conv_qty"]
