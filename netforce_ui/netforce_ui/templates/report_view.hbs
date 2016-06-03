@@ -40,7 +40,11 @@
                     {{#each cols}}
                         <td>
                             {{#if string}}
-                                {{currency string}}
+                                {{#if is_year}}
+                                    {{string}}
+                                {{else}}
+                                    {{currency string}}
+                                {{/if}}
                             {{else}}
                                 N/A
                             {{/if}}
