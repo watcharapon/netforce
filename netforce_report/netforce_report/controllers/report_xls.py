@@ -91,6 +91,8 @@ class ReportXLS(Controller):
                     f = self._get_field(model=m, field_name=n)
                     if isinstance(f, fields.Many2One):
                         v = v[1] if v else None
+                    if not v:
+                        v='N/A'
                     sheet.write(row, col, v)
                     col += 1
                 sheet.write(row, col, line["_count"])

@@ -25,6 +25,7 @@ var FieldSelection=NFView.extend({
     className: "form-group nf-field",
     events: {
         "change select": "onchange",
+        "contextmenu select": "on_contextmenu",
         "blur select": "blur"
     },
 
@@ -268,6 +269,21 @@ var FieldSelection=NFView.extend({
 
     blur: function() {
         this.trigger("blur");
+    },
+
+    on_contextmenu: function(e) {
+        log("on_contextmenu");
+        e.preventDefault();
+        var view_cls=get_view_cls("contextmenu");
+        var opts={
+            click_event:e,
+            model: this.context.model,
+            field_name: this.options.name
+        };
+        var view=view_cls.make_view(opts);
+        log("view",view,view.el);
+        $("body").append(view.el);
+        view.render();
     }
 });
 

@@ -206,9 +206,11 @@ var ReportView=NFView.extend({
                     _.each(group_fields,function(n) {
                         var f=get_field_path(that.options.model,n);
                         var v=render_field_value(r[n],f);
-                        line.cols.push({
-                            string: v
-                        });
+                        line_vals={
+                            string: v,
+                            'is_year': n.indexOf("year") > -1 ? true : false
+                        };
+                        line.cols.push(line_vals);
                     });
                     line.cols.push({
                         string: r._count
