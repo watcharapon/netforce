@@ -39,7 +39,11 @@
                 <tr>
                     {{#each cols}}
                         <td>
-                            {{currency string}}
+                            {{#if string}}
+                                {{currency string}}
+                            {{else}}
+                                N/A
+                            {{/if}}
                         </td>
                     {{/each}}
                 </tr>
