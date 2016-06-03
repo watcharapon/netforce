@@ -709,9 +709,13 @@ class Invoice(Model):
             if prod.purchase_price is not None:
                 line["unit_price"] = prod.purchase_price
             if prod.purchase_account_id is not None:
-                line["account_id"] = prod.purchase_account_id.id or prod.categ_id.purchase_account_id.id
-            if prod.purchase_tax_id is not None:
-                line["tax_id"] = contact.tax_payable_id.id or prod.purchase_tax_id.id or prod.categ_id.purchase_tax_id.id
+                line["account_id"] = prod.purchase_account_id.id
+            if contact.tax_payable_id:
+                line["tax_id"] = contact.tax_payable_id.id
+            elif prod.purchase_tax_id:
+                line["tax_id"] = prod.purchase_tax_id.id
+            elif prod.categ_id and prod.categ_id.purchase_tax_id:
+                line["tax_id"] = prod.categ_id.purchase_tax_id.id
         data = self.update_amounts(context)
         return data
 
