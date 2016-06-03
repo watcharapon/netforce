@@ -129,6 +129,7 @@ class ReportStockMove(Model):
             "number": obj.picking_id.number,
             "date": obj.date,
             "related": obj.related_id.number,
+            "contact": obj.contact_id.name,
             "product_code": obj.product_id.code,
             "product_name": obj.product_id.name,
             "location_from": obj.location_from_id.name,
@@ -139,6 +140,7 @@ class ReportStockMove(Model):
             "container_from": obj.container_from_id.number,
             "container_to": obj.container_to_id.number,
             "lot": obj.lot_id.number,
+            "tracking": obj.track_id.code,
             "state": state[obj.state],
             "ref": obj.picking_id.ref,
         }
