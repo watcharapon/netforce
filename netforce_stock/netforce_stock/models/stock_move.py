@@ -328,7 +328,8 @@ class Move(Model):
                 if date!=post_date:
                     raise Exception("Failed to post stock movements because they have different dates")
             prod=move.product_id
-            desc="[%s] %s @ %s %s "%(prod.code,prod.name,round(move.qty,2),move.uom_id.name)
+            #desc="[%s] %s @ %s %s "%(prod.code,prod.name,round(move.qty,2),move.uom_id.name) # XXX: too many lines in JE
+            desc="Inventory costing"
             acc_from_id=move.location_from_id.account_id.id
             if move.location_from_id.type=="customer":
                 if prod.cogs_account_id:

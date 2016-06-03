@@ -4,4 +4,8 @@
     <field name="phone"/>
     <field name="state"/>
     <field name="body" height="300"/>
+    <field name="error" attrs='{"invisible":[["state","!=","error"]]}'/>
+    <foot>
+        <button string="Send" type="success" icon="envelope" method="send" states="draft"/>
+    </foot>
 </form>
