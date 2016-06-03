@@ -21,7 +21,6 @@
 from netforce.model import Model, fields, get_model
 from netforce.utils import get_data_path, set_data_path, get_file_path
 import time
-from pprint import pprint
 from netforce.access import get_active_company
 from decimal import Decimal
 
@@ -1310,6 +1309,16 @@ class Payment(Model):
             else:
                 line["amount"] = get_model("currency").convert(inv.amount_due, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type)
         data = self.update_amounts(context)
+        return data
+
+    def onchange_claim(self,context={}):
+        data=context['data']
+        path=context['path']
+        line=get_data_path(data,path,parent=True)
+        exp_id=line['expense_id']
+        if exp_id:
+            exp=get_model('hr.expense').browse(exp_id)
+            line['amount']=exp.amount_due
         return data
 
 Payment.register()

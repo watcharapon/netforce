@@ -22,7 +22,6 @@ from netforce.model import Model, fields, get_model
 from netforce.database import get_connection
 from datetime import *
 from dateutil.relativedelta import *
-from pprint import pprint
 from netforce.access import get_active_company
 
 
@@ -71,7 +70,6 @@ class ReportSaleProduct(Model):
             data["total_amount"] += line["amount"]
         data["lines"] = lines
         data["total_avg_price"] = data["total_amount"] / data["total_qty"] if data["total_qty"] else None
-        pprint(data)
         return data
 
 ReportSaleProduct.register()

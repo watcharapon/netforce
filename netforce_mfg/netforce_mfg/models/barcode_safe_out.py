@@ -20,7 +20,6 @@
 
 from netforce.model import Model, fields, get_model
 import time
-from pprint import pprint
 from netforce.access import get_active_company, get_active_user, check_permission_other
 
 

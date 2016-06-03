@@ -269,7 +269,7 @@ def get_cell_row(addr):
 
 
 def report_render_xls(tmpl_name, data, fast_render=False):
-    print("report_render_xls", tmpl_name, data)
+    #print("report_render_xls", tmpl_name, data)
     tmpl_data = _get_report_template(tmpl_name, "xlsx")
     tmpl_f = BytesIO(tmpl_data)
     zf_in = zipfile.ZipFile(tmpl_f)
@@ -285,7 +285,7 @@ def report_render_xls(tmpl_name, data, fast_render=False):
     strings = []
     for el in tree.findall(".//ns:si", namespaces={"ns": ns}):
         strings.append(el[0].text)
-    print("strings", strings)
+    #print("strings", strings)
 
     f = zf_in.open("xl/styles.xml")
     style_tree = etree.parse(f)

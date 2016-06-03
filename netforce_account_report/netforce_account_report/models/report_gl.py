@@ -21,7 +21,6 @@
 from netforce.model import Model, fields, get_model
 from datetime import *
 from dateutil.relativedelta import *
-from pprint import pprint
 from netforce.access import get_active_company
 
 
@@ -109,7 +108,6 @@ class ReportGL(Model):
         data["total_debit"] = sum(acc["debit"] for acc in accounts)
         data["total_credit"] = sum(acc["credit"] for acc in accounts)
         data["total_balance"] = sum(acc["balance"] for acc in accounts)
-        pprint(data)
         return data
 
     def export_detail_xls(self, ids, context={}):

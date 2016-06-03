@@ -249,9 +249,9 @@ class SaleQuot(Model):
             if not line:
                 continue
             amt = (line.get("qty") or 0) * (line.get("unit_price") or 0)
-            amt = roundup(amt)
+            amt = Decimal(roundup(amt))
             if line.get("discount"):
-                disc = amt * line["discount"] / Decimal(100)
+                disc = Decimal(amt) * Decimal(line["discount"]) / Decimal(100)
                 amt -= disc
             else:
                 disc = 0
@@ -308,9 +308,9 @@ class SaleQuot(Model):
             else:
                 tax = 0
             if tax_type == "tax_in":
-                data["amount_subtotal"] += line["amount"] - tax
+                data["amount_subtotal"] += Decimal(line["amount"] - tax)
             else:
-                data["amount_subtotal"] += line["amount"]
+                data["amount_subtotal"] += Decimal(line["amount"])
         data["amount_total"] = data["amount_subtotal"] + data["amount_tax"]
         return data
 
