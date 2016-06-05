@@ -1779,6 +1779,8 @@ window.NFCollection=Backbone.Collection.extend({
 
     set_vals: function(vals) { // XXX: what if different length?
         log("collection set_vals",vals);
+        var LenV = vals.length;
+        var LenM = this.models.length;
         for (var i=0; i<vals.length; i++) {
             var v=vals[i];
             var m=this.models[i];
@@ -1787,6 +1789,16 @@ window.NFCollection=Backbone.Collection.extend({
                 this.add(m);
             }
             m.set_vals(v);
+        }
+
+        /*onchange one2many */
+        if(LenM > LenV){
+            for(var n = LenV; n < LenM; n++){
+                var m = this.models[n];
+                this.remove(m);
+                var p = this.models[LenV]; /*must do each loop*/
+                this.remove(p);
+            }
         }
     },
 
