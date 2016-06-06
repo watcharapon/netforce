@@ -54,6 +54,7 @@ var FormList=NFView.extend({
         var got_collection=function() {
             that.data.context.collection=that.collection;
             that.data.context.model=null; // XXX
+            that.data.context.readonly=that.options.readonly;
             NFView.prototype.render.call(that);
         }
         if (!this.collection) {

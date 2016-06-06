@@ -139,7 +139,7 @@ class ReportAccountTrans(Model):
             "company_name": comp.name,
             "date_from": date_from,
             "date_to": date_to,
-            "objs": objs,
+            "objs": sorted(objs, key=lambda obj: (obj.get("move_date"),obj.get("move_number"))),
             "totals": {
                 "debit": total_debit,
                 "credit": total_credit,

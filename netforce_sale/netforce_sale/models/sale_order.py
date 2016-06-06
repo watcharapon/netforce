@@ -440,6 +440,28 @@ class SaleOrder(Model):
         if prod.sale_price is not None:
             line["unit_price"] = prod.sale_price * uom.ratio / prod.uom_id.ratio
         data = self.update_amounts(context)
+
+        #update est .....
+        sale = self.browse(int(data['id']))
+        item_costs=Decimal(0)
+        for cost in sale.est_costs:
+            k=(sale.id,cost.sequence)
+            amt=cost.amount or 0
+            if cost.currency_id:
+                rate=sale.get_relative_currency_rate(cost.currency_id.id)
+                amt=amt*rate
+            item_costs+=amt
+        cost=item_costs
+        profit=line['amount']-Decimal(cost)
+        margin=Decimal(profit)*100/Decimal(line['amount']) if line['amount'] else None
+        amount={
+            "est_cost_amount": cost,
+            "est_profit_amount": profit,
+            "est_margin_percent": margin,
+        }
+        line['est_cost_amount'] = amount['est_cost_amount']
+        line['est_profit_amount'] = amount['est_profit_amount']
+        line['est_margin_percent'] = amount['est_margin_percent']
         return data
 
     def get_qty_to_deliver(self, ids):
