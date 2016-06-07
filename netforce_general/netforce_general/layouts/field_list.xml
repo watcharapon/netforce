@@ -1,0 +1,12 @@
+<list model="field">
+    <field name="name"/>
+    <field name="string"/>
+    <field name="type"/>
+    <field name="relation_id"/>
+    <field name="required"/>
+    <field name="readonly"/>
+    <field name="stored"/>
+    <field name="function"/>
+    <field name="default"/>
+    <field name="search"/>
+</list>
