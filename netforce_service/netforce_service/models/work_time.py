@@ -176,15 +176,19 @@ class WorkTime(Model):
             if obj.invoice_id:
                 raise Exception("Invoice already created for work time %s"%obj.id)
             project=obj.project_id
-            contact=project.contact_id
+            contact_id=project.contact_id.id
+            if not contact_id and obj.related_id._model=="rental.order":
+                contact_id=obj.related_id.contact_id.id
+            if not contact_id:
+                raise Exception("Contact not found for worktime %s"%obj.id)
             if inv_vals.get("contact_id"):
-                if contact.id!=inv_vals["contact_id"]:
+                if contact_id!=inv_vals["contact_id"]:
                     raise Exception("Different contacts")
             else:
-                inv_vals["contact_id"]=contact.id
+                inv_vals["contact_id"]=contact_id
             resource=obj.resource_id
             res_hours.setdefault(resource.id,0)
-            res_hours[resource.id]+=line.bill_hours or 0
+            res_hours[resource.id]+=obj.bill_hours or 0
         for resource_id,bill_hours in res_hours.items():
             if not bill_hours:
                 continue
@@ -192,15 +196,18 @@ class WorkTime(Model):
             prod=resource.product_id
             if not prod:
                 raise Exception("Missing product for resource %s"%resource.name)
-            if not prod.sale_account_id:
+            sale_acc_id=prod.sale_account_id.id
+            if not sale_acc_id and prod.categ_id:
+                sale_acc_id=prod.categ_id.sale_account_id.id
+            if not sale_acc_id:
                 raise Exception("Missing sales account in product %s"%prod.code)
             line_vals = {
                 "product_id": prod.id,
                 "description": resource.name,
                 "qty": bill_hours or 0,
                 "uom_id": prod.uom_id.id,
-                "unit_price": prod.sale_price or 0,
-                "account_id": prod.sale_account_id.id,
+                "unit_price": obj.sale_price or 0,
+                "account_id": sale_acc_id,
                 "tax_id": prod.sale_tax_id.id if prod else None,
                 "amount": (bill_hours or 0)*(prod.sale_price or 0),
             }
