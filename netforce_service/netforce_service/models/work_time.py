@@ -177,7 +177,7 @@ class WorkTime(Model):
                 raise Exception("Invoice already created for work time %s"%obj.id)
             project=obj.project_id
             contact_id=project.contact_id.id
-            if not contact_id and obj.related_id._model=="rental.order":
+            if not contact_id and obj.related_id._model=="rental.order": # XXX
                 contact_id=obj.related_id.contact_id.id
             if not contact_id:
                 raise Exception("Contact not found for worktime %s"%obj.id)
@@ -195,6 +195,16 @@ class WorkTime(Model):
                     raise Exception("Different related documents")
             else:
                 inv_vals["related_id"]=related_id
+            if obj.related_id._model=="rental.order": # XXX
+                currency_id=obj.related_id.currency_id.id
+            else:
+                currency_id=None
+            if currency_id:
+                if inv_vals.get("currency_id"):
+                    if currency_id!=inv_vals["currency_id"]:
+                        raise Exception("Different currencies")
+                else:
+                    inv_vals["currency_id"]=currency_id
             resource=obj.resource_id
             k=(resource.id,obj.sale_price or 0)
             res_hours.setdefault(k,0)
