@@ -186,10 +186,20 @@ class WorkTime(Model):
                     raise Exception("Different contacts")
             else:
                 inv_vals["contact_id"]=contact_id
+            if obj.related_id:
+                related_id="%s,%d"%(obj.related_id._model,obj.related_id.id)
+            else:
+                related_id=None
+            if inv_vals.get("related_id"):
+                if related_id!=inv_vals["related_id"]:
+                    raise Exception("Different related documents")
+            else:
+                inv_vals["related_id"]=related_id
             resource=obj.resource_id
-            res_hours.setdefault(resource.id,0)
-            res_hours[resource.id]+=obj.bill_hours or 0
-        for resource_id,bill_hours in res_hours.items():
+            k=(resource.id,obj.sale_price or 0)
+            res_hours.setdefault(k,0)
+            res_hours[k]+=obj.bill_hours or 0
+        for (resource_id,sale_price),bill_hours in res_hours.items():
             if not bill_hours:
                 continue
             resource=get_model("service.resource").browse(resource_id)
@@ -206,10 +216,10 @@ class WorkTime(Model):
                 "description": resource.name,
                 "qty": bill_hours or 0,
                 "uom_id": prod.uom_id.id,
-                "unit_price": obj.sale_price or 0,
+                "unit_price": sale_price,
                 "account_id": sale_acc_id,
                 "tax_id": prod.sale_tax_id.id if prod else None,
-                "amount": (bill_hours or 0)*(prod.sale_price or 0),
+                "amount": (bill_hours or 0)*(sale_price or 0),
             }
             inv_vals["lines"].append(("create", line_vals))
         if not inv_vals["lines"]:
