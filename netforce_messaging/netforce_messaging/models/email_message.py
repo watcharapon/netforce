@@ -163,7 +163,13 @@ class EmailMessage(Model):
     def send_emails(self, context={}):  # FIXME
         print("send_emails")
         mailbox_ids = get_model("email.mailbox").search([["account_id.type", "in", ["smtp", "mailgun"]]])
-        get_model("email.mailbox").send_emails(mailbox_ids)
+        if not mailbox_ids:
+            email_account=config.get("email_account")
+            if email_account:
+                for mail in get_model("email.message").search_browse([["state", "=", "to_send"]], order="id"):
+                    mail.send()
+        else:
+            get_model("email.mailbox").send_emails(mailbox_ids)
 
     def check_sent_emails(self, context={}):
         print("send_sent_emails")
