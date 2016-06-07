@@ -18,7 +18,6 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from netforce.model import Model, fields, get_model
 import smtplib
 import email
 from email.utils import parseaddr, parsedate_tz, formatdate
@@ -36,12 +35,15 @@ from netforce.utils import print_color
 import re
 import os
 import base64
-from netforce.database import get_active_db
 from datetime import *
 import time
 import requests
 import mimetypes
 import json
+
+from netforce import config
+from netforce.model import Model, fields, get_model
+from netforce.database import get_active_db
 
 
 def conv_charset(charset):
@@ -77,7 +79,7 @@ class EmailMessage(Model):
         "in_reject_list": fields.Boolean("Black Listed", function="check_reject_list"),
         "parent_uid": fields.Char("Parent Unique ID", readonly=True, size=256),  # XXX
         "parent_id": fields.Many2One("email.message", "Parent"),
-        "mailbox_id": fields.Many2One("email.mailbox", "Mailbox", required=True, search=True),
+        "mailbox_id": fields.Many2One("email.mailbox", "Mailbox", required=False, search=True),
         "open_detect": fields.Boolean("Open Detect", function="get_open_detect"),
         "num_attach": fields.Integer("# Attach.", function="get_num_attach"),
         "error_message": fields.Text("Error Message"),
@@ -464,9 +466,24 @@ class EmailMessage(Model):
         for obj in self.browse(ids):
             if obj.state not in ("draft","to_send"):
                 continue
+            account=config.get("email_account")
             mailbox = obj.mailbox_id
             if not mailbox:
-                raise Exception("Missing mailbox in email %s" % obj.id)
+                if account:
+                    miss_params=[]
+                    for param in ["host", "password", "port", "type", "user", "security"]:
+                        found=account.get(param)
+                        if not found:
+                            miss_params.append(param)
+                    if miss_params:
+                        raise Exception("server config [email]: missing '%s'"%', '.join(miss_params))
+                    if account.get("type")=='smtp':
+                        obj.send_email_smtp_config()
+                    elif account.get("type")=='mailgun':
+                        obj.send_email_mailgun_config()
+                    continue
+                else:
+                    raise Exception("Missing mailbox in email %s" % obj.id)
             account = mailbox.account_id
             if not account:
                 raise Exception("Missing account in mailbox %s of email %s" % (mailbox.name, obj.id))
@@ -486,6 +503,96 @@ class EmailMessage(Model):
                 "tab_no": 1,
             },
         }
+
+    def send_email_smtp_config(self, ids, context={}):
+        print("send_email_config_smtp", ids)
+        obj = self.browse(ids)[0]
+        if obj.state not in ("draft","to_send"):
+            return
+        try:
+            account=config.get("email_account")
+            if account.get("type") != "smtp":
+                raise Exception("Invalid email account type")
+
+            if account.get("security") == "SSL":
+                server = smtplib.SMTP_SSL(account.get("host"), account.get("port") or 465, timeout=30)
+            else:
+                server = smtplib.SMTP(account.get("host"), account.get("port") or 587, timeout=30)
+            server.ehlo()
+            if account.get("security") == "starttls":
+                server.starttls()
+            if account.get("user"):
+                server.login(account.get("user"), emai_account.get("password"))
+            msg = MIMEMultipart()
+            msg.set_charset("utf-8")
+            msg["From"] = obj.from_addr
+            msg["To"] = obj.to_addrs
+            msg["Subject"] = Header(obj.subject, "utf-8")
+            msg.attach(MIMEText(obj.body, "html", "utf-8"))
+            for attach in obj.attachments:
+                path = utils.get_file_path(attach.file)
+                data = open(path, "rb").read()
+                part = MIMEBase('application', "octet-stream")
+                part.set_payload(data)
+                encode_base64(part)
+                part.add_header('Content-Disposition', 'attachment; filename="%s"' % attach.file)
+                msg.attach(part)
+            to_addrs = obj.to_addrs.split(",")
+            server.sendmail(obj.from_addr, to_addrs, msg.as_string())
+            obj.write({"state": "sent"})
+            server.quit()
+        except Exception as e:
+            print("WARNING: failed to send email %s" % obj.id)
+            import traceback
+            traceback.print_exc()
+            obj.write({"state": "error", "error_message": str(e)})
+
+    def send_email_mailgun_config(self, ids, context={}):
+        print("send_emails_mailgun_config", ids)
+        obj = self.browse(ids)[0]
+        if obj.state not in ("draft","to_send"):
+            return
+        try:
+            account=config.get("email_account")
+            if not account:
+                raise Exception("Missing email account")
+
+            if account.get("type") != "mailgun":
+                raise Exception("Invalid email account type")
+            url = "https://api.mailgun.net/v2/%s/messages" % account.get("user")
+            to_addrs = []
+            for a in obj.to_addrs.split(","):
+                a = a.strip()
+                if not utils.check_email_syntax(a):
+                    raise Exception("Invalid email syntax: %s" % a)
+                to_addrs.append(a)
+            if not to_addrs:
+                raise Exception("Missing recipient address")
+            data = {
+                "from": obj.from_addr,
+                "to": to_addrs,
+                "subject": obj.subject,
+            }
+            if obj.cc_addrs:
+                data["cc"] = [a.strip() for a in obj.cc_addrs.split(",")]
+            data["html"] = obj.body
+            files = []
+            for attach in obj.attachments:
+                path = utils.get_file_path(attach.file)
+                f = open(path, "rb")
+                files.append(("attachment", f))
+            r = requests.post(url, auth=("api", account.get("password")), data=data, files=files,timeout=5)
+            try:
+                res = json.loads(r.text)
+                msg_id = res["id"]
+            except:
+                raise Exception("Invalid mailgun response: %s" % r.text)
+            obj.write({"state": "sent", "message_id": msg_id})
+        except Exception as e:
+            print("WARNING: failed to send email %s" % obj.id)
+            import traceback
+            traceback.print_exc()
+            obj.write({"state": "error", "error_message": str(e)})
 
     def send_email_smtp(self, ids, context={}):
         print("send_email_smtp", ids)
