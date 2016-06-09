@@ -117,7 +117,7 @@ class SaleOrderLine(Model):
                 if prom_amt:
                     amt-=prom_amt
                 order = line.order_id
-                new_cur=get_model("currency").convert(amt, order.currency_id.id, settings.currency_id.id, rate_type="sell")
+                new_cur=get_model("currency").convert(amt, order.currency_id.id, settings.currency_id.id, rate_type="sell", date=sale.date)
                 vals[line.id] = {
                     "amount": Decimal(round(float(amt),2)), # convert to float because Decimal gives wrong rounding
                     "amount_discount": disc,
