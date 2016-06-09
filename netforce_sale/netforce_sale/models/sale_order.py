@@ -95,6 +95,7 @@ class SaleOrder(Model):
         "job_template_id": fields.Many2One("job.template", "Service Order Template"),
         "jobs": fields.One2Many("job", "related_id", "Service Orders"),
         "agg_amount_total": fields.Decimal("Total Amount", agg_function=["sum", "amount_total"]),
+        "agg_amount_total_cur": fields.Decimal("Total Amount (Converted)", agg_function=["sum", "amount_total_cur"]),
         "agg_amount_subtotal": fields.Decimal("Total Amount w/o Tax", agg_function=["sum", "amount_subtotal"]),
         "agg_est_profit": fields.Decimal("Total Estimated Profit", agg_function=["sum", "est_profit_amount"]),
         "agg_act_profit": fields.Decimal("Total Actual Profit", agg_function=["sum", "act_profit_amount"]),

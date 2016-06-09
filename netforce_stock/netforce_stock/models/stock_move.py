@@ -23,6 +23,7 @@ import time
 from netforce import database
 from netforce.access import get_active_user, set_active_user
 from netforce.access import get_active_company
+from pprint import pprint
 
 
 class Move(Model):
@@ -335,11 +336,14 @@ class Move(Model):
         return vals
 
     def post(self,ids,context={}):
-        print("stock.move post",ids)
+        print("StockMove.post",ids)
         accounts={}
         post_date=None
         pick_ids=[]
+        n=0
         for move in self.browse(ids):
+            n+=1
+            print("post stock move %d/%d"%(n,len(ids)))
             if move.move_id:
                 raise Exception("Journal entry already create for stock movement %s"%move.number)
             date=move.date[:10]
@@ -349,7 +353,8 @@ class Move(Model):
                 if date!=post_date:
                     raise Exception("Failed to post stock movements because they have different dates")
             prod=move.product_id
-            desc="[%s] %s @ %s %s "%(prod.code,prod.name,round(move.qty,2),move.uom_id.name)
+            #desc="[%s] %s @ %s %s "%(prod.code,prod.name,round(move.qty,2),move.uom_id.name) # XXX: too many lines in JE
+            desc="Inventory costing"
             acc_from_id=move.location_from_id.account_id.id
             if move.location_from_id.type=="customer":
                 if prod.cogs_account_id:
@@ -399,8 +404,12 @@ class Move(Model):
         context.update({
             'date': move.date,
         })
+        pprint(vals)
+        print("creating draft cost journal entry (%d lines)..."%len(lines))
         move_id=get_model("account.move").create(vals,context=context)
+        print("post cost journal entry")
         get_model("account.move").post([move_id])
+        print(">> finished post cost journal entry")
         get_model("stock.move").write(ids,{"move_id":move_id})
         return move_id
 

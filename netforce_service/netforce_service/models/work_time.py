@@ -165,4 +165,84 @@ class WorkTime(Model):
             vals[obj.id]=amt
         return vals
 
+    def copy_to_invoice_group(self,ids,context={}):
+        inv_vals = {
+            "type": "out",
+            "inv_type": "invoice",
+            "lines": [],
+        }
+        res_hours={}
+        for obj in self.browse(ids):
+            if obj.invoice_id:
+                raise Exception("Invoice already created for work time %s"%obj.id)
+            project=obj.project_id
+            contact_id=project.contact_id.id
+            if not contact_id and obj.related_id._model=="rental.order": # XXX
+                contact_id=obj.related_id.contact_id.id
+            if not contact_id:
+                raise Exception("Contact not found for worktime %s"%obj.id)
+            if inv_vals.get("contact_id"):
+                if contact_id!=inv_vals["contact_id"]:
+                    raise Exception("Different contacts")
+            else:
+                inv_vals["contact_id"]=contact_id
+            if obj.related_id:
+                related_id="%s,%d"%(obj.related_id._model,obj.related_id.id)
+            else:
+                related_id=None
+            if inv_vals.get("related_id"):
+                if related_id!=inv_vals["related_id"]:
+                    raise Exception("Different related documents")
+            else:
+                inv_vals["related_id"]=related_id
+            if obj.related_id._model=="rental.order": # XXX
+                currency_id=obj.related_id.currency_id.id
+            else:
+                currency_id=None
+            if currency_id:
+                if inv_vals.get("currency_id"):
+                    if currency_id!=inv_vals["currency_id"]:
+                        raise Exception("Different currencies")
+                else:
+                    inv_vals["currency_id"]=currency_id
+            resource=obj.resource_id
+            k=(resource.id,obj.sale_price or 0)
+            res_hours.setdefault(k,0)
+            res_hours[k]+=obj.bill_hours or 0
+        for (resource_id,sale_price),bill_hours in res_hours.items():
+            if not bill_hours:
+                continue
+            resource=get_model("service.resource").browse(resource_id)
+            prod=resource.product_id
+            if not prod:
+                raise Exception("Missing product for resource %s"%resource.name)
+            sale_acc_id=prod.sale_account_id.id
+            if not sale_acc_id and prod.categ_id:
+                sale_acc_id=prod.categ_id.sale_account_id.id
+            if not sale_acc_id:
+                raise Exception("Missing sales account in product %s"%prod.code)
+            line_vals = {
+                "product_id": prod.id,
+                "description": resource.name,
+                "qty": bill_hours or 0,
+                "uom_id": prod.uom_id.id,
+                "unit_price": sale_price,
+                "account_id": sale_acc_id,
+                "tax_id": prod.sale_tax_id.id if prod else None,
+                "amount": (bill_hours or 0)*(sale_price or 0),
+            }
+            inv_vals["lines"].append(("create", line_vals))
+        if not inv_vals["lines"]:
+            raise Exception("Nothing to invoice")
+        inv_id = get_model("account.invoice").create(inv_vals, {"type": "out", "inv_type": "invoice"})
+        self.write(ids,{"invoice_id": inv_id})
+        inv = get_model("account.invoice").browse(inv_id)
+        return {
+            "next": {
+                "name": "view_invoice",
+                "active_id": inv_id,
+            },
+            "flash": "Invoice %s created from work time" % inv.number,
+        }
+
 WorkTime.register()
