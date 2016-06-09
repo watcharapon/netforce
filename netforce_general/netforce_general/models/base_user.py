@@ -17,10 +17,10 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
+import random
 
 from netforce.model import Model, fields, get_model
 from netforce import access
-from netforce import config
 from netforce import database
 from netforce import utils
 

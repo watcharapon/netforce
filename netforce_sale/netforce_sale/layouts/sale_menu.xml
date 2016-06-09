@@ -31,10 +31,6 @@
         <item string="Sales by Salesperson" action="sale_report_user"/>
         <item string="Sales by Product Category" action="sale_report_product"/>
         <item string="Sales Profit Report" action="report_sale_profit"/>
-        <item string="Unpaid Sales Report" action="report_unpaid_sale"/>
-        <item string="Sales Payments Report" action="report_sale_payment"/>
-        <divider/>
-        <item string="Demand Forecast Analysis" action="demand_analysis"/>
     </item>
     <item string="Settings">
         <item string="Sales Settings" action="sale_settings"/>

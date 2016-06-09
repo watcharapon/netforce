@@ -192,7 +192,11 @@ var Item=NFView.extend({
                                 return;
                             }
                             if (data && data.flash) {
-                                set_flash("success",data.flash);
+                                if (_.isString(data.flash)) {
+                                    set_flash("success",data.flash);
+                                } else if (_.isObject(data.flash)) {
+                                    set_flash(data.flash.type,data.flash.message);
+                                }
                             }
                             if (data && data.context) {
                                 set_context(data.context);

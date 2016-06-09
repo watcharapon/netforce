@@ -167,7 +167,8 @@ var FormView=NFView.extend({
                 var args=[that.options.search_condition || []];
                 var opts={
                     offset: that.options.offset||0,
-                    limit: that.options.limit||100,
+                    /*limit: that.options.limit||100,*/
+                    /*close for unlimit*/
                 };
                 nf_execute(model_name,"search",args,opts,function(err,data) {
                     if (err) throw "ERROR: "+err;
