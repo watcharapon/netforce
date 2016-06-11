@@ -453,6 +453,9 @@ class Model(object):
                                     cond_list.append("false")
                                 elif op == "not in":
                                     cond_list.append("true")
+                        elif op in ("not like", "not ilike"):
+                            cond_list.append("%s %s %%s" % (col, op))
+                            args.append("%" + val + "%")
                         elif op in ("like", "ilike"):
                             cond_list.append("%s %s %%s" % (col, op))
                             args.append("%" + val + "%")
