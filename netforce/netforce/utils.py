@@ -740,8 +740,8 @@ def date2thai(date, format='%(BY)s-%(m)s-%(d)s', lang='th_TH'):
 
 def roundup(n,scale=2):
     if not n:
-        return n
+        return decimal.Decimal(n)
     if isinstance(n,decimal.Decimal):
         return decimal.Decimal(eval(('{:.%sf}'%scale).format(float(n)+0.00001)))
     else:
-        return eval(('{:.%sf}'%scale).format(n+0.00001))
+        return decimal.Decimal(eval(('{:.%sf}'%scale).format(n+0.00001)))
