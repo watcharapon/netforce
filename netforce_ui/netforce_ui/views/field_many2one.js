@@ -365,9 +365,14 @@ var FieldMany2One=NFView.extend({
             if (!cur_text) {
                 var mr=get_model(this.relation);
                 if (mr.string) {
+                    var new_item=translate('Search more...');
+                    var item=$('<li data-value="_search"><a href="#" style="font-weight:bold">'+new_item+'</a></li>');
+                    items=[item[0]].concat(items);
+
                     var new_item=translate('New '+mr.string);
                     var item=$('<li data-value="_create_link"><a href="#" style="font-weight:bold">'+new_item+'</a></li>');
                     items=[item[0]].concat(items);
+
                 }
             }
             this.$menu.html(items);
@@ -460,6 +465,16 @@ var FieldMany2One=NFView.extend({
                     form.do_onchange(that.options.onchange,path);
                 }
             });
+        } else if (val=="_search") {
+            this.hide_menu();
+            var opts={
+                model: this.relation,
+            };
+            var view=new SearchListView({options:opts});
+            view.render();
+            view.$el.modal();
+            this.$el.append(view.el);
+            //TODO set model
         } else if (val=="_create_link") {
             this.hide_menu();
             var action=find_new_action(this.relation);
