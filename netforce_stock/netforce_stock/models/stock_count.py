@@ -46,6 +46,11 @@ class StockCount(Model):
     }
     _order="date desc"
 
+    def _get_journal(self, context={}):
+        settings=get_model("settings").browse(1)
+        if settings.stock_count_journal_id:
+            return settings.stock_count_journal_id.id
+
     def _get_number(self, context={}):
         while 1:
             num = get_model("sequence").get_number("stock_count")
@@ -61,6 +66,7 @@ class StockCount(Model):
         "date": lambda *a: time.strftime("%Y-%m-%d"),
         "number": _get_number,
         "company_id": lambda *a: get_active_company(),
+        'journal_id': _get_journal,
     }
 
     def delete_lines(self, ids, context={}):
