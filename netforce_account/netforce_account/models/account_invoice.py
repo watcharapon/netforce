@@ -1043,6 +1043,11 @@ class Invoice(Model):
         }
         if settings.logo:
             data["logo"] = get_file_path(settings.logo)
+            data.update({
+                'settings': {
+                    "logo": get_file_path(settings.logo)
+                }
+            });
         for line in inv.lines:
             data["lines"].append({
                 "description": line.description,
