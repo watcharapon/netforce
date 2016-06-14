@@ -135,11 +135,11 @@ var SearchListView=NFView.extend({
             that.collection.condition=condition;
             that.collection.order=that.options.order;
             that.collection.search_condition=condition; // XXX: check this
-            if (that.options.show_full||that.options.show_pagination) { // FIXME
-                that.collection.count=data[1];
-                that.collection.offset=parseInt(that.options.offset);
-                that.collection.limit=that.options.limit||100;
-            }
+            // force show pagination
+            that.collection.count=data[1];
+            that.collection.offset=parseInt(that.options.offset);
+            that.collection.limit=that.options.limit||100;
+
             that.collection.on("click",that.line_click,that);
             /*that.collection.on("reload",that.reload,that);*/
             that.data.context.data=data;

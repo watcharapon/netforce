@@ -20,7 +20,7 @@
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var Pagination=NFView.extend({
+var PaginationPopup=NFView.extend({
     _name: "pagination_popup",
     events: {
         "click .page-link": "click_page",
@@ -136,4 +136,4 @@ var Pagination=NFView.extend({
     }
 });
 
-Pagination.register();
+PaginationPopup.register();
