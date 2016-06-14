@@ -583,6 +583,7 @@ var FieldMany2One=NFView.extend({
     on_focus: function(e) {
         log("m2o.on_focus");
         register_focus(e.target);
+        $(e.target).select();
     },
 
     eval_attrs: function() {

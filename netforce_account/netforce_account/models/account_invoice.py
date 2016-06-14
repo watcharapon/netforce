@@ -699,14 +699,16 @@ class Invoice(Model):
         if prod.uom_id is not None:
             line["uom_id"] = prod.uom_id.id
         if type == "out":
-            if prod.sale_price is not None:
+            if prod.sale_price:
                 line["unit_price"] = prod.sale_price
-            if prod.sale_account_id is not None:
-                line["account_id"] = prod.sale_account_id.id or prod.categ_id.sale_account_id.id
-            if prod.sale_tax_id is not None:
-                line["tax_id"] = contact.tax_receivable_id.id or prod.sale_tax_id.id or prod.categ_id.sale_tax_id.id
+            if prod.sale_account_id:
+                #line["account_id"] = prod.sale_account_id.id or prod.categ_id.sale_account_id.id
+                line["account_id"] = prod.sale_account_id.id
+            if prod.sale_tax_id:
+                #line["tax_id"] = contact.tax_receivable_id.id or prod.sale_tax_id.id or prod.categ_id.sale_tax_id.id
+                line["tax_id"] = prod.sale_tax_id.id
         elif type == "in":
-            if prod.purchase_price is not None:
+            if prod.purchase_price:
                 line["unit_price"] = prod.purchase_price
             if prod.purchase_account_id is not None:
                 line["account_id"] = prod.purchase_account_id.id
