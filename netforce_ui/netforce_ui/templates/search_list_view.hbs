@@ -2,14 +2,23 @@
     <div class="modal-content">
         <div class="modal-header">
             <a class="close" data-dismiss="modal">×</a>
-            <h4>{{popup_title}}</h4>
+            <h4>Search {{popup_title}}</h4>
         </div>
         <div class="modal-body">
             <!-- {{view "flash" context=context}} -->
-            <div class="search"></div>
+            <div>
+                <div class="search" style="padding:10px;"></div>
+            </div>
+            <!--
+            <div class="btn-toolbar nf-btn-toolbar">
+                {{{call render_list_head context}}}
+            </div>
+            -->
             {{view "list" cols=cols group_fields=group_fields navigate=true colors=colors noselect=noselect header_scroll=header_scroll active_id=active_id on_click_item=on_click_item context=context}}
         </div>      
         <div class="modal-footer">
+            {{view "pagination_popup"  context=context}}
+            <!--{{{call render_list_footer context}}}-->
         </div>
     </div>
 </div>

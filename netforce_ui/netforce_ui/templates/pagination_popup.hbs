@@ -1,0 +1,50 @@
+<ul class="pagination" style="float:right;font-size:12px;margin:0 0 20px 0">
+    {{#if page_start}}
+        <li>
+            <a href="#" data-offset="{{page_start.offset}}" class="page-link">&laquo; {{t "Start"}}</a>
+        </li>
+    {{/if}}
+    {{#if page_prev}}
+        <li>
+            <a href="#" data-offset="{{page_prev.offset}}" class="page-link">&lsaquo; {{t "Prev"}}</a>
+        </li>
+    {{/if}}
+    {{#each items}}
+        <li class="{{#if disabled}} disabled{{/if}}{{#if active}} active{{/if}}">
+            <a href="#" data-offset="{{offset}}" class="page-link">{{page}}</a>
+        </li>
+    {{/each}}
+    {{#if page_next}}
+        <li>
+            <a href="#" data-offset="{{page_next.offset}}" class="page-link">{{t "Next"}} &rsaquo;</a>
+        </li>
+    {{/if}}
+    {{#if page_end}}
+        <li>
+            <a href="#" data-offset="{{page_end.offset}}" class="page-link">{{t "End"}} &raquo;</a>
+        </li>
+    {{/if}}
+</ul>
+{{#ifneq options.size "small"}}
+    <div style="float:left;margin:0;line-height:34px;border-right:1px solid #ddd;padding-right:14px;font-size:12px">
+        {{t "Page"}}
+        <select name="p_page" class="span1 page-select" style="position:relative;top:2px">
+            {{#each pages}}
+                <option value="{{offset}}"{{#if active}} selected="selected"{{/if}}>{{page}}</option>
+            {{/each}}
+        </select>
+        {{t "of"}} {{last_page}} <span style="color:#999">({{context.collection.count}} {{t "total items"}})</span>
+    </div>
+    <div style="float:left;margin:0;line-height:34px;padding-left:14px;font-size:12px">
+        <span style="color:#999">{{t "Showing"}}</span>
+        <select name="p_limit" class="span1 limit-select" style="position:relative;top:2px">
+            <option value="10"{{#ifeq context.collection.limit 10}} selected="selected"{{/ifeq}}>10</option>
+            <option value="25"{{#ifeq context.collection.limit 25}} selected="selected"{{/ifeq}}>25</option>
+            <option value="50"{{#ifeq context.collection.limit 50}} selected="selected"{{/ifeq}}>50</option>
+            <option value="100"{{#ifeq context.collection.limit 100}} selected="selected"{{/ifeq}}>100</option>
+            <option value="200"{{#ifeq context.collection.limit 200}} selected="selected"{{/ifeq}}>200</option>
+            <option value="1000"{{#ifeq context.collection.limit 1000}} selected="selected"{{/ifeq}}>1000</option>
+        </select>
+        <span style="color:#999">{{t "items per page"}}</span>
+    </div>
+{{/ifneq}}

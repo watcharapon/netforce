@@ -24,7 +24,7 @@ var SearchView=NFView.extend({
     _name: "search_view",
     events: {
         "click .close": "close",
-        "click .search-btn": "do_search",
+        "click .search-btn2": "do_search",
         "click .clear-btn": "do_clear"
     },
 
@@ -52,6 +52,7 @@ var SearchView=NFView.extend({
         } else {
             this.$layout=layout;
         }
+        this.data.hide_close=that.options.hide_close;
         this.data.render_search_body=function(ctx) { return that.render_search_body.call(that,ctx); };
         this.model=new NFModel({},{name:"_search"});
         this.data.context.model=this.model;
@@ -131,14 +132,17 @@ var SearchView=NFView.extend({
             col=0;
         }
         row.append(cell);
-        cell.append('<button class="btn btn-primary search-btn">Search</button> ');
+        cell.append('<button class="btn btn-primary search-btn2">Search</button> ');
         cell.append('<a class="btn btn-default clear-btn">Clear</a>');
         return body.html();
     },
 
     close: function() {
         this.trigger("close");
-        remove_view_instance(this.cid);
+        if(!this.options.hide_close){
+            // in list view
+            remove_view_instance(this.cid);
+        }
     },
 
     get_condition: function() {

@@ -23,15 +23,21 @@
 var SearchListView=NFView.extend({
     _name: "search_list_view",
     className: "modal nf-modal",
-    events: {
 
+    events: {
+        'click .select-item-btn': 'select_item'
+    },
+
+    select_item: function(e){
+        e.preventDefault();
+        var model=this.collection.findWhere({'_selected': true});
+        this.trigger("close_search",model);
     },
 
     initialize: function(options) {
-        //log("list_view.initialize",this);
         var that=this;
         NFView.prototype.initialize.call(this,options);
-        if (!this.options.model) throw "ListView: missing model";
+        if (!this.options.model) throw "SearchListView: missing model";
         var list_view=get_xml_layout({model:this.options.model,type:"list"});
         var layout=list_view.layout;
         if (_.isString(layout)) {
@@ -40,6 +46,26 @@ var SearchListView=NFView.extend({
         } else {
             this.$list=layout;
         }
+        this.data.render_list_head=function(ctx) { return that.render_list_head.call(that,ctx); };
+        this.data.render_list_footer=function(ctx) { return that.render_list_footer.call(that,ctx); };
+    },
+
+    render_list_head: function(context) {
+        var that=this;
+        var html=$("<div/>");
+        html.append('<button type="button" class="btn btn-sm btn-default select-item-btn" style="white-space:nowrap;"> '+ translate("Select")+"</button>");
+        return html.html();
+    },
+
+    render_list_footer: function(context) {
+        var that=this;
+        var html=$("<div/>");
+        html.append('<button type="button" class="btn btn-default select-item-btn" style="white-space:nowrap;"> '+ translate("Select")+"</button>");
+        return html.html();
+    },
+    line_click: function(model) {
+        log("search_list_view.line_click",this,model);
+        this.trigger("close_search",model);
     },
 
     render: function() {
@@ -102,6 +128,7 @@ var SearchListView=NFView.extend({
             condition=eval_json(condition,ctx);
         }
         var that=this;
+        that.data.popup_title=model.string;
         rpc_execute(model_name,"search_read",[condition],opts,function(err,data) {
             that.collection=new NFCollection(data[0],{name:model_name});
             that.collection.fields=field_names;
@@ -113,15 +140,28 @@ var SearchListView=NFView.extend({
                 that.collection.offset=parseInt(that.options.offset);
                 that.collection.limit=that.options.limit||100;
             }
-            /*that.collection.on("click",that.line_click,that);*/
+            that.collection.on("click",that.line_click,that);
             /*that.collection.on("reload",that.reload,that);*/
             that.data.context.data=data;
             that.data.context.collection=that.collection;
             that.data.context.model_name=model_name;
 
-            that.data.collection=that.collection.toJSON();
+            that.data.context.one_select=true; //XXX
+            that.data.context.search_list_view=that; //XXX
+
+            // clear the old one
+            that.on("one_select_model", function(model){
+                if(model){ 
+                    that.collection.each(function(model2){
+                        if (model.get('id') != model2.get('id')){
+                            model2.set("_selected",false);
+                        }
+                    });
+                }
+            });
+
             NFView.prototype.render.call(that);
-            that.$el.find(".modal-dialog").width(that.options.width || '80%');
+            that.$el.find(".modal-dialog").width(that.options.width || '70%');
 
             that.show_search();
         });
@@ -132,6 +172,7 @@ var SearchListView=NFView.extend({
         log("list_view.show_search");
         var that=this;
         var opts={
+            hide_close: true,
             model: this.options.model
         };
         if (this.options.search_view_xml) {
@@ -143,6 +184,7 @@ var SearchListView=NFView.extend({
         if ($el.length>0) {
             opts.view_layout=$el;
         }
+
         var view=new SearchView({options:opts});
         if (that.search_condition) {
             view.set_condition(that.search_condition);
@@ -151,12 +193,12 @@ var SearchListView=NFView.extend({
         this.$el.find(".search-btn").hide();
         this.$el.find(".search").append(view.el);
 
-        // not work ?
         view.on("search",function() {
             that.search_condition=view.get_condition();
             that.collection.offset=0;
             that.render();
         });
+
     },
 
     reload: function() {
@@ -168,7 +210,6 @@ var SearchListView=NFView.extend({
         this.$el.empty();
         this.$el.append(img);
     },
-
 
     click_tab: function(e) {
         log("list_view.click_tab",this,e);

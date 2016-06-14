@@ -48,6 +48,9 @@ var List=NFView.extend({
     render: function() {
         log("list.render",this);
         this.data.select_model=!this.options.select_group && !this.options.noselect;
+        if(this.context && this.context.one_select){
+            this.data.select_model=false;
+        }
         this.data.select_group=this.options.select_group;
         var collection=this.context.collection;
         var order=collection.order;
