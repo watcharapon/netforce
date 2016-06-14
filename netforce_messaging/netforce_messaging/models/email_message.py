@@ -544,7 +544,7 @@ class EmailMessage(Model):
             account = mailbox.account_id
             if account.type != "mailgun":
                 raise Exception("Invalid email account type")
-            url = "https://api.mailgun.net/v2/%s/messages" % account.user
+            url = "https://api.mailgun.net/v3/%s/messages" % account.user
             to_addrs = []
             for a in obj.to_addrs.split(","):
                 a = a.strip()
