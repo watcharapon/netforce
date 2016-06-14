@@ -34,7 +34,7 @@
         <item string="Goods Issue Report" action="report_goods_issue"/>
     </item>
     <item string="Other">
-        <item string="Stock Ordering" action="stock_order"/>
+        <!--<item string="Stock Ordering" action="stock_order"/>-->
         <item string="Claim Bills" action="claim"/>
         <item string="Borrow Requests" action="borrow"/>
         <divider/>

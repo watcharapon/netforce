@@ -98,7 +98,7 @@ class ComputeCost(Model):
             locations[loc.id]={}
         db=get_connection()
         print("reading...")
-        q="SELECT m.id,m.date,m.product_id,p.cost_method,p.uom_id as prod_uom_id,m.qty,m.uom_id,m.cost_amount,m.location_from_id,m.location_to_id,m.move_id FROM stock_move m,product p WHERE p.cost_method='average' AND p.type='stock' AND p.id=m.product_id AND m.state='done'"
+        q="SELECT m.id,m.date,m.product_id,p.cost_method,p.uom_id as prod_uom_id,m.qty,m.uom_id,m.cost_amount,m.location_from_id,m.location_to_id,m.move_id,m.cost_fixed FROM stock_move m,product p WHERE p.cost_method='average' AND p.type='stock' AND p.id=m.product_id AND m.state='done'"
         args=[]
         product_ids=context.get("product_ids")
         if product_ids:
@@ -120,6 +120,7 @@ class ComputeCost(Model):
                 "cost_amount": r.cost_amount or 0,
                 "loc_from_id": r.location_from_id,
                 "loc_to_id": r.location_to_id,
+                "cost_fixed": r.cost_fixed,
             }
             prod_moves.setdefault(prod_id,[]).append(move)
         prod_ids=sorted(prod_moves.keys())
@@ -133,13 +134,15 @@ class ComputeCost(Model):
             for m in moves:
                 loc_from=locations.get(m["loc_from_id"])
                 if loc_from:
-                    if loc_from["qty"]>=m["conv_qty"]:
-                        cost_price=loc_from["amt"]/loc_from["qty"] if loc_from["qty"] else 0
+                    cost_price=loc_from["amt"]/loc_from["qty"] if loc_from["qty"] else 0
+                    if not m["cost_fixed"]:
                         m["cost_amount"]=round(cost_price*m["conv_qty"],2)
-                        loc_from["qty"]-=m["conv_qty"]
-                        loc_from["amt"]-=m["cost_amount"]
-                    else:
-                        m["cost_amount"]=0
+                    loc_from["qty"]-=m["conv_qty"]
+                    if loc_from["qty"]<0:
+                        loc_from["qty"]=0
+                    loc_from["amt"]-=m["cost_amount"]
+                    if loc_from["amt"]<0:
+                        loc_from["amt"]=0
                 #print("[%s] move #%s: %s -> %s, %s @ %s (%s)"%(m["date"],m["id"],m["loc_from_id"],m["loc_to_id"],m["conv_qty"],m["cost_amount"],"calc" if loc_from else "read"))
                 loc_to=locations.get(m["loc_to_id"])
                 if loc_to:

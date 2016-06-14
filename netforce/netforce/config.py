@@ -41,6 +41,7 @@ def load_config(filename=None):
         "super_password": "admin",
         "web_processes": "8",
         "job_processes": "1",
+        "email_account": {},
     }
     if filename:
         test = open(filename).read()  # XXX: test if have permissions to read
@@ -49,6 +50,9 @@ def load_config(filename=None):
         if parser.has_section("server"):
             for k, v in parser.items("server"):
                 config[k] = v
+        if parser.has_section("email"):
+            for k, v in parser.items("email"):
+                config['email_account'][k] = v
     else:
         print("No configuration file found")
 

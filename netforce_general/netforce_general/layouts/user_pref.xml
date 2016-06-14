@@ -1,9 +1,17 @@
 <form model="user.pref">
     <field name="name"/>
-    <field name="password" password="1"/>
     <field name="email"/>
     <field name="mobile"/>
+    <field name="is_change_password" invisible="1"/>
+    <group attrs='{"invisible":[["is_change_password","=",false]]}'>
+        <separator string="Change Password"/>
+        <field name="old_password" password="1" attrs='{"required":[["is_change_password","=",true]]}' span="12"/>
+        <field name="new_password" password="1" attrs='{"required":[["is_change_password","=",true]]}' span="12"/>
+        <field name="confirm_new_password" password="1" attrs='{"required":[["is_change_password","=",true]]}' span="12"/>
+    </group>
+
     <foot>
+        <button string="Change Password" method="change_password" attrs='{"invisible":[["is_change_password","=",true]]}'/>
         <button string="Save" method="save_changes" type="primary"/>
     </foot>
 </form>

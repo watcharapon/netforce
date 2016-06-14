@@ -46,6 +46,11 @@ class StockCount(Model):
     }
     _order="date desc"
 
+    def _get_journal(self, context={}):
+        settings=get_model("settings").browse(1)
+        if settings.stock_count_journal_id:
+            return settings.stock_count_journal_id.id
+
     def _get_number(self, context={}):
         while 1:
             num = get_model("sequence").get_number("stock_count")
@@ -61,6 +66,7 @@ class StockCount(Model):
         "date": lambda *a: time.strftime("%Y-%m-%d"),
         "number": _get_number,
         "company_id": lambda *a: get_active_company(),
+        'journal_id': _get_journal,
     }
 
     def delete_lines(self, ids, context={}):
@@ -248,7 +254,7 @@ class StockCount(Model):
             }
             #move_id = get_model("stock.move").create(vals)
             number="%s/%s"%(obj.number,line_no)
-            res=db.get("INSERT INTO stock_move (journal_id,date,ref,product_id,lot_id,location_from_id,location_to_id,qty,uom_id,cost_price,cost_amount,related_id,state,number) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'draft',%s) RETURNING id",vals["journal_id"],vals["date"],vals["ref"],vals["product_id"],vals["lot_id"],vals["location_from_id"],vals["location_to_id"],vals["qty"],vals["uom_id"],vals["cost_price"],vals["cost_amount"],vals["related_id"],number)
+            res=db.get("INSERT INTO stock_move (journal_id,date,ref,product_id,lot_id,location_from_id,location_to_id,qty,uom_id,cost_price,cost_amount,related_id,state,number,cost_fixed) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'draft',%s,%s) RETURNING id",vals["journal_id"],vals["date"],vals["ref"],vals["product_id"],vals["lot_id"],vals["location_from_id"],vals["location_to_id"],vals["qty"],vals["uom_id"],vals["cost_price"],vals["cost_amount"],vals["related_id"],number,True)
             move_id=res.id
             move_ids.append(move_id)
         t1=time.time()

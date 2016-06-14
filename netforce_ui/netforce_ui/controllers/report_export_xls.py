@@ -22,6 +22,7 @@ from netforce.controller import Controller
 from netforce.model import get_model
 from netforce.database import get_connection
 from netforce_report import report_render_xls
+from netforce.access import set_active_user, get_active_user, get_active_company, set_active_company
 import time
 
 
@@ -31,17 +32,20 @@ class ExportXLS(Controller):
     def get(self):
         db = get_connection()
         try:
+            user_id = get_active_user()
             model = self.get_argument("model")
             active_id = self.get_argument("active_id")
             active_id = int(active_id)
             method = self.get_argument("method", "get_report_data")
             tmpl_name = self.get_argument("template")
             fast_render = self.get_argument("fast_render", None)
+            set_active_user(1)
             m = get_model(model)
             f = getattr(m, method, None)
             ctx = {}  # XXX
             data = f([active_id], context=ctx)
             out = report_render_xls(tmpl_name, data, fast_render=fast_render)
+            set_active_user(user_id)
             db.commit()
             fname = tmpl_name + "-" + time.strftime("%Y-%m-%dT%H:%M:%S") + ".xlsx"
             self.set_header("Content-Disposition", "attachment; filename=%s" % fname)

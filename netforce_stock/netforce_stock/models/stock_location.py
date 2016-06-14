@@ -59,9 +59,13 @@ class Location(Model):
         db = database.get_connection()
         q = "SELECT location_from_id,location_to_id,SUM(cost_amount) AS amount FROM stock_move WHERE (location_from_id IN %s OR location_to_id IN %s) AND state='done'"
         args = [tuple(ids), tuple(ids)]
+        time_now = time.strftime("%Y-%m-%d")
         if context.get("date_to"):
             q += " AND date<=%s"
             args.append(context["date_to"] + " 23:59:59")
+        else:
+            q += " AND date<=%s"
+            args.append(time_now + " 23:59:59")
         q += " GROUP BY location_from_id,location_to_id"
         res = db.query(q, *args)
         vals = {id: 0 for id in ids}
