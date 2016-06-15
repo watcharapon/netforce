@@ -856,6 +856,8 @@ var FormView=NFView.extend({
                     click_action: $el.attr("click_action"),
                     action: $el.attr("action"),
                     readonly: $el.attr("readonly"),
+                    noadd : $el.attr("noadd"),
+                    nodelete : $el.attr("nodelete"),
                     context: context
                 };
                 var $list=$el.find("list");
