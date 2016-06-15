@@ -1350,4 +1350,8 @@ class SaleOrder(Model):
             "order_id": sale_id,
         }
 
+    def get_template_sale_form(self, ids, context={}):
+        #obj = self.browse(ids)[0]
+        return "sale_form"
+
 SaleOrder.register()
