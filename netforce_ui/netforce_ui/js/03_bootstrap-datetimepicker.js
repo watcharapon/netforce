@@ -69,6 +69,7 @@ THE SOFTWARE.
         init = function () {
             var icon = false, localeData, rInterval;
             picker.options = $.extend({}, defaults, options);
+            picker.is_th = false;
             picker.options.icons = $.extend({}, icons, picker.options.icons);
 
             picker.element = $(element);
@@ -448,12 +449,17 @@ THE SOFTWARE.
             picker.widget.find('.datepicker-days').find('.disabled').removeClass('disabled');
             picker.widget.find('.datepicker-months').find('.disabled').removeClass('disabled');
             picker.widget.find('.datepicker-years').find('.disabled').removeClass('disabled');
-
             var year_fmt;
-            if (picker.options.use_buddhist_date) {
+            var startYear_fmt;
+            var endYear_fmt;
+            if (picker.options.use_buddhist_date){
                 year_fmt=year+543;
+                startYear_fmt=startYear+543;
+                endYear_fmt=endYear+543;
             } else {
                 year_fmt=year;
+                startYear_fmt=startYear;
+                endYear_fmt=endYear;
             }
             picker.widget.find('.datepicker-days th:eq(1)').text(
                 months[month] + ' ' + year_fmt);
@@ -533,8 +539,9 @@ THE SOFTWARE.
 
             html = '';
             year = parseInt(year / 10, 10) * 10;
+            year_fmt -=6;
             yearCont = picker.widget.find('.datepicker-years').find(
-                'th:eq(1)').text(year + '-' + (year + 9)).parents('table').find('td');
+                'th:eq(1)').text(year_fmt + '-' + (year_fmt + 9)).parents('table').find('td');
             picker.widget.find('.datepicker-years').find('th').removeClass('disabled');
             if (startYear > year) {
                 picker.widget.find('.datepicker-years').find('th:eq(0)').addClass('disabled');
@@ -543,9 +550,10 @@ THE SOFTWARE.
                 picker.widget.find('.datepicker-years').find('th:eq(2)').addClass('disabled');
             }
             year -= 1;
+            year_fmt -=1;
             for (i = -1; i < 11; i++) {
-                html += '<span class="year' + (i === -1 || i === 10 ? ' old' : '') + (currentYear === year ? ' active' : '') + ((year < startYear || year > endYear) ? ' disabled' : '') + '">' + year + '</span>';
-                year += 1;
+                html += '<span class="year' + (i === -1 || i === 10 ? ' old' : '') + (currentYear === year_fmt ? ' active' : '') + ((year_fmt < startYear_fmt || year_fmt > endYear_fmt) ? ' disabled' : '') + '">' + year_fmt + '</span>';
+                year_fmt += 1;
             }
             yearCont.html(html);
         },
@@ -643,6 +651,7 @@ THE SOFTWARE.
                 if (!target.is('.disabled')) {
                     switch (target[0].nodeName.toLowerCase()) {
                         case 'th':
+                            picker.is_th = false; //Set Default Value
                             switch (target[0].className) {
                                 case 'picker-switch':
                                     showMode(1);
@@ -678,6 +687,13 @@ THE SOFTWARE.
                                 set();
                                 notifyChange(oldDate, e.type);
                             }
+                            // FIX Thai Calendar In The Third Level (Year) By
+                            // Making Year Conversion Only The First Level (Day) and Second Level(Month)
+                            if (!picker.is_th && picker.options.use_buddhist_date && picker.viewMode != '1'){
+                                picker.viewDate.add(-543,'year');
+                                picker.is_th = true;
+                            }
+                            //-----------------------
                             showMode(-1);
                             fillDate();
                             break;
