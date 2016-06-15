@@ -189,7 +189,7 @@
         <field name="purchase_lines"/>
         <field name="jobs"/>
         <field name="activities"/>
-        <field name="emails"/>
+        <field name="emails" nodelete="1"/>
         <field name="comments"/>
     </related>
 </form>
