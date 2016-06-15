@@ -49,7 +49,7 @@ class SaleOrder(Model):
         "amount_total_words": fields.Char("Total Words", function="get_amount_total_words"),
         "amount_total_cur": fields.Decimal("Total", function="get_amount", function_multi=True, store=True),
         "qty_total": fields.Decimal("Total", function="get_qty_total"),
-        "currency_id": fields.Many2One("currency", "Currency", required=True),
+        "currency_id": fields.Many2One("currency", "Currency", required=True, search=True),
         "quot_id": fields.Many2One("sale.quot", "Quotation", search=True), # XXX: deprecated
         "user_id": fields.Many2One("base.user", "Owner", search=True),
         "tax_type": fields.Selection([["tax_ex", "Tax Exclusive"], ["tax_in", "Tax Inclusive"], ["no_tax", "No Tax"]], "Tax Type", required=True),
@@ -256,7 +256,7 @@ class SaleOrder(Model):
             vals["amount_tax"] = tax
             vals["amount_total"] = (subtotal + tax)
             vals["amount_total_cur"] = get_model("currency").convert(
-                vals["amount_total"], obj.currency_id.id, settings.currency_id.id)
+                vals["amount_total"], obj.currency_id.id, settings.currency_id.id, rate_type="sell", date=obj.date)
             vals["amount_total_discount"] = discount
             res[obj.id] = vals
         return res

@@ -40,9 +40,13 @@ class UserPref(Model):
     _transient = True
     _fields = {
         "name": fields.Char("Name", required=True),
-        "password": fields.Char("Password", required=True),
+        #"password": fields.Char("Password", required=True),
+        "old_password": fields.Char("Old Password"),
+        "new_password": fields.Char("New Password"),
+        "confirm_new_password": fields.Char("Confirm New Password"),
         "email": fields.Char("Email"),
         "mobile": fields.Char("Mobile"),
+        "is_change_password" : fields.Boolean("Change Password"),
     }
 
     def default_get(self, field_names=None, context=None, **kw):
@@ -51,29 +55,54 @@ class UserPref(Model):
         user = get_model("base.user").browse(user_id)
         vals = {
             "name": user.name,
-            "password": user.password,
+            #"password": user.password,
             "email": user.email,
             "mobile": user.mobile,
+            "is_change_password": False,
         }
         set_active_user(user_id)
         return vals
 
+    def change_password(self, ids, context={}):
+        obj = self.browse(ids[0])
+        #XXX
+        obj.write({
+            'is_change_password' : True
+        })
+        return
+
     def save_changes(self, ids, context={}):
+        m_user = get_model("base.user")
         obj = self.browse(ids)[0]
-        check_password(obj.password)
-        vals = {
-            "name": obj.name,
-            "password": obj.password,
-            "email": obj.email,
-            "mobile": obj.mobile,
-        }
         user_id = get_active_user()
+        user = m_user.browse(user_id)
+        if obj.is_change_password:
+            check_pw = get_model("base.user").check_password(user.login, obj.old_password)
+            if not check_pw :
+                raise Exception("The password that you've entered is incorrect")
+            check_password(obj.new_password)
+            if obj.new_password != obj.confirm_new_password :
+                raise Exception("Passwords do not match")
+            if obj.old_password == obj.new_password:
+                raise Exception("Your new password like old password, please define new password")
+            vals = {
+                "name": obj.name,
+                "password": obj.new_password,
+                "email": obj.email,
+                "mobile": obj.mobile,
+            }
+        else:
+            vals = {
+                "name": obj.name,
+                "email": obj.email,
+                "mobile": obj.mobile,
+            }
         set_active_user(1)
         get_model("base.user").write([user_id], vals)
-        obj.write({"password": ""})
         set_active_user(user_id)
-        return {
+        next_action = {
             "next": "_close",
         }
+        return  next_action
 
 UserPref.register()
