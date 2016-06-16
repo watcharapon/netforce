@@ -36,7 +36,7 @@
     <field name="description"/>
     <field name="company_id" invisible="1"/>
     <related>
-        <field name="emails" action="email"/>
+        <field name="emails" action="email" noadd="1"/>
         <field name="activities"/>
         <field name="comments"/>
     </related>
