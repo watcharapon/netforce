@@ -141,6 +141,7 @@ var Group=NFView.extend({
                                 var $el2=$(this);
                                 sub_fields.push({
                                     name: $el2.attr("name"),
+                                    string: $el2.attr("string"),
                                     condition: $el2.attr("condition"),
                                     readonly: $el2.attr("readonly"),
                                     required: $el2.attr("required"),
