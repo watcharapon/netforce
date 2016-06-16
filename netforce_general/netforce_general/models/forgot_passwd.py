@@ -84,8 +84,8 @@ class ForgotPasswd(Model):
         key = ''.join([choice(chars) for _ in range(length)])
         data['key'] = key
         if context :
-            data['show_dbs'] = get_model("login").get_show_dbs()
-            data['db_name'] = get_model("login").get_db_name()
+            data['show_dbs'] = get_model("login").get_show_dbs(context=context)
+            data['db_name'] = get_model("login").get_db_name(context=context)
             if context.get("email"):
                 data['email'] = context.get("email")
         return data
