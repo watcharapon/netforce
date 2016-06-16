@@ -174,6 +174,7 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                                     onfocus: $el2.attr("onfocus"),
                                     create: $el2.attr("create"),
                                     search_mode: $el2.attr("search_mode"),
+                                    string: $el2.attr("string"),
                                     scale: $el2.attr("scale"),
                                     attrs: $el2.attr("attrs")
                                 };
