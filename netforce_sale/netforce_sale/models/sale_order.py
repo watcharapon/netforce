@@ -256,7 +256,7 @@ class SaleOrder(Model):
             vals["amount_tax"] = tax
             vals["amount_total"] = (subtotal + tax)
             vals["amount_total_cur"] = get_model("currency").convert(
-                vals["amount_total"], obj.currency_id.id, settings.currency_id.id)
+                vals["amount_total"], obj.currency_id.id, settings.currency_id.id, rate_type="sell", date=obj.date)
             vals["amount_total_discount"] = discount
             res[obj.id] = vals
         return res
@@ -1349,5 +1349,9 @@ class SaleOrder(Model):
             "flash": "Sale Return %s created from sales order %s" % (sale.number, obj.number),
             "order_id": sale_id,
         }
+
+    def get_template_sale_form(self, ids, context={}):
+        #obj = self.browse(ids)[0]
+        return "sale_form"
 
 SaleOrder.register()

@@ -125,7 +125,7 @@
                 <field name="contact_id" invisible="1"/>
             </form>
         </field>
-        <field name="emails"/>
+        <field name="emails" noadd="1"/>
         <field name="activities"/>
         <field name="sales"/>
         <field name="comments"/>
