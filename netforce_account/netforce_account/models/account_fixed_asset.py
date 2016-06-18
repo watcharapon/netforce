@@ -40,7 +40,7 @@ class FixedAsset(Model):
         "track2_id": fields.Many2One("account.track.categ", "Tracking-2", condition=[["type", "=", "2"]], search=True),
         "price_purchase": fields.Decimal("Purchase Price", required=True),
         "description": fields.Text("Description"),
-        "type_id": fields.Many2One("account.fixed.asset.type", "Asset Type", required=True),
+        "type_id": fields.Many2One("account.fixed.asset.type", "Asset Type", required=True, search=True),
         "dep_rate": fields.Decimal("Depreciation Rate (%)", required=True),
         "dep_method": fields.Selection([["line", "Straight Line"], ["decline", "Declining Balance"]], "Depreciation Method", required=True, search=True),
         "accum_dep_account_id": fields.Many2One("account.account", "Accum. Depr. Account", required=True, search=True),

@@ -6,7 +6,7 @@
                 <th></th>
                 {{#each fields}}
                     <th style="{{#ifeq align "right"}}text-align:right;{{/ifeq}}{{#if invisible}}display:none;{{/if}}">
-                        {{field_label name context=../context}}
+                        {{field_label name context=../context string=string}}
                     </th>
                 {{/each}}
                 <th></th>
