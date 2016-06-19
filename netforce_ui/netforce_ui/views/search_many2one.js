@@ -33,6 +33,7 @@ var SearchMany2One=NFView.extend({
         e.preventDefault();
         remove_view_instance(this.cid);
         var view_cid="."+this.cid;
+        // remove backdrop
         $(view_cid).remove();
     },
 

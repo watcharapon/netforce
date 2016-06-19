@@ -477,23 +477,21 @@ var FieldMany2One=NFView.extend({
             view.render();
             view.$el.modal({backdrop: 'static', keyboard: false, view_cid: view.cid});
             this.$el.append(view.el);
-
             that.disable_blur=true;
 
-            view.on("close_search",function(select_model){
+            view.on("close_search",function(select_item){
                 view.$el.modal("hide");
-                if(select_model){
-                    // update field
+                if(select_item){
                     var name=that.options.name;
                     var model=that.context.model;
-                    var val_id=select_model.get("id");
+                    var val_id=select_item.get("id");
                     var ids=[val_id];
                     rpc_execute(that.relation,"name_get",[ids],{},function(err,data) {
                         that.data.value_name=data[0][1];
                         model.set(name,[val_id,data[0][1]],{silent:true});
                         that.render();
                     });
-
+                    // keep scrollbar after close other popup
                     if($('.modal').hasClass('in')) {
                         $('body').addClass('modal-open');
                     };
