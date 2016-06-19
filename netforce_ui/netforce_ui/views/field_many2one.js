@@ -497,6 +497,11 @@ var FieldMany2One=NFView.extend({
                         that.data.value_name=data[0][1];
                         model.set(name,[val_id,data[0][1]],{silent:true});
                         that.render();
+                        var form=that.context.form;
+                        if (that.options.onchange) {
+                            var path=model.get_path(name);
+                            form.do_onchange(that.options.onchange,path);
+                        }
                     });
                     // keep scrollbar after close other popup
                     if($('.modal').hasClass('in')) {
