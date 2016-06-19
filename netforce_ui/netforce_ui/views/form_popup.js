@@ -166,6 +166,7 @@ var FormPopup=NFView.extend({
                     link: $el.attr("link"),
                     view: $el.attr("view"),
                     count: $el.attr("count"),
+                    string: $el.attr("string"),
                     form_layout: form_layout,
                     context: context
                 };
