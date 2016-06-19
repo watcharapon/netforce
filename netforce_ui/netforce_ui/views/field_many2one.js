@@ -473,6 +473,10 @@ var FieldMany2One=NFView.extend({
                 model: this.relation,
                 condition: this.eval_condition()
             };
+
+            if(this.data.required){
+                this.$el.removeClass("nf-required-field");
+            }
             var view=new SearchMany2One({options:opts});
             view.render();
             view.$el.modal({backdrop: 'static', keyboard: false, view_cid: view.cid});
@@ -480,6 +484,9 @@ var FieldMany2One=NFView.extend({
             that.disable_blur=true;
 
             view.on("close_search",function(select_item){
+                if(that.data.required){
+                    that.$el.addClass("nf-required-field");
+                }
                 view.$el.modal("hide");
                 if(select_item){
                     var name=that.options.name;
