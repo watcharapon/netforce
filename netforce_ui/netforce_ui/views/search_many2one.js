@@ -20,12 +20,20 @@
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var SearchListView=NFView.extend({
-    _name: "search_list_view",
+var SearchMany2One=NFView.extend({
+    _name: "search_many2one",
     className: "modal nf-modal",
 
     events: {
+        'click .close-modal': 'close_modal',
         'click .select-item-btn': 'select_item'
+    },
+
+    close_modal: function(e) {
+        e.preventDefault();
+        remove_view_instance(this.cid);
+        var view_cid="."+this.cid;
+        $(view_cid).remove();
     },
 
     select_item: function(e){
@@ -162,7 +170,6 @@ var SearchListView=NFView.extend({
 
             NFView.prototype.render.call(that);
             that.$el.find(".modal-dialog").width(that.options.width || '70%');
-
             that.show_search();
         });
         return this;
@@ -223,4 +230,4 @@ var SearchListView=NFView.extend({
 
 });
 
-SearchListView.register();
+SearchMany2One.register();

@@ -473,9 +473,9 @@ var FieldMany2One=NFView.extend({
                 model: this.relation,
                 condition: this.eval_condition()
             };
-            var view=new SearchListView({options:opts});
+            var view=new SearchMany2One({options:opts});
             view.render();
-            view.$el.modal({backdrop: 'static', keyboard: false});
+            view.$el.modal({backdrop: 'static', keyboard: false, view_cid: view.cid});
             this.$el.append(view.el);
 
             that.disable_blur=true;
@@ -499,10 +499,6 @@ var FieldMany2One=NFView.extend({
                     };
                 }
             });
-
-            /*view.on("hide",function(){*/
-            /*that.disable_blur=false;*/
-            /*});*/
 
         } else if (val=="_create_link") {
             this.hide_menu();
