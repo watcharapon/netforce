@@ -35,6 +35,9 @@ var SearchMany2One=NFView.extend({
         var view_cid="."+this.cid;
         // remove backdrop
         $(view_cid).remove();
+        if(!$('.modal').hasClass('in')) {
+            $("body").css({"overflow-y":"scroll"});
+        }
     },
 
     select_item: function(e){
@@ -171,6 +174,7 @@ var SearchMany2One=NFView.extend({
 
             NFView.prototype.render.call(that);
             that.$el.find(".modal-dialog").width(that.options.width || '70%');
+            $("body").css({"overflow-y":"hidden"});
             that.show_search();
         });
         return this;
