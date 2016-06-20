@@ -17,6 +17,7 @@ import java.util.HashMap;
 
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JRExporterParameter;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JRPrintPage;
@@ -27,6 +28,7 @@ import net.sf.jasperreports.engine.query.JRQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRProperties;  
 import net.sf.jasperreports.engine.export.JRXlsExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
+import net.sf.jasperreports.engine.export.oasis.JROdtExporter;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -108,6 +110,13 @@ public class NFReportServer extends AbstractHandler
                 print.setProperty("net.sf.jasperreports.export.xls.white.page.background","false");
                 exp.exportReport();
                 report_data=output.toByteArray();
+            } else if (format.equals("odt")) {
+                ByteArrayOutputStream output=new ByteArrayOutputStream();
+                JROdtExporter exp = new JROdtExporter();
+                exp.setParameter(JRExporterParameter.JASPER_PRINT, print);
+                exp.setParameter(JRExporterParameter.OUTPUT_FILE, output);
+                exp.exportReport();
+                report_data=output.toByteArray();
             } else {
                 throw new ServletException("Invalid format: "+format);
             }
@@ -123,6 +132,9 @@ public class NFReportServer extends AbstractHandler
         } else if (format.equals("xls")) {
             response.setContentType("application/vnd.ms-excel");
             response.setHeader("Content-Disposition","attachment; filename=report.xls");
+        } else if (format.equals("odt")) {
+            response.setContentType("application/vnd.oasis.opendocument.text");
+            response.setHeader("Content-Disposition","attachment; filename=report.odt");
         } else {
             throw new ServletException("Invalid format: "+format);
         }
