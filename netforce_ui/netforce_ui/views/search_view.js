@@ -52,6 +52,7 @@ var SearchView=NFView.extend({
         } else {
             this.$layout=layout;
         }
+        this.data.hide_close=that.options.hide_close;
         this.data.render_search_body=function(ctx) { return that.render_search_body.call(that,ctx); };
         this.model=new NFModel({},{name:"_search"});
         this.data.context.model=this.model;
@@ -138,7 +139,10 @@ var SearchView=NFView.extend({
 
     close: function() {
         this.trigger("close");
-        remove_view_instance(this.cid);
+        if(!this.options.hide_close){
+            // in list view
+            remove_view_instance(this.cid);
+        }
     },
 
     get_condition: function() {
