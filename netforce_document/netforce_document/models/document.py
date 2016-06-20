@@ -32,6 +32,7 @@ class Document(Model):
     _name = "document"
     _string = "Document"
     _audit_log = True
+    _name_field="file"
     _fields = {
         "file": fields.File("File"),
         "categ_id": fields.Many2One("document.categ", "Category", search=True),
