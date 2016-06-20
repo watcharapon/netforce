@@ -124,7 +124,11 @@ def _get_report_path(name, params={}):
             for c in char_replace:
                 img_fname_obj.replace(c,"")
             img_fname_objs = img_fname_obj.split(".")
-            obj = params
+            obj = []
+            if isinstance(params,list):
+                obj = params[0] #FIXME
+            else:
+                obj = params
             for k in img_fname_objs:
                 obj = obj[k]
             img_fname = obj
@@ -217,7 +221,7 @@ def get_report_jasper(report, data, params={}, format="pdf"):
 
 def get_report_jasper_multi_page(report, datas, params={}, format="pdf"):
     print("get_report_jasper_multi_page")
-    report_path = _get_report_path(report)
+    report_path = _get_report_path(report,datas)
     datas2 = [conv_jasper_data(data, report_path) for data in datas]
     params = {
         "report": report_path,
