@@ -1,0 +1,23 @@
+<form model="copy.pr2po">
+    <field name="contact_id" span="4" onchange="onchange_contact" condition='[["supplier","=",true]]' string="Supplier"/>
+    <field name="bill_address_id" span="4" />
+    <field name="ship_address_id" span="4" />
+    <field name="ship_address_id" span="4" />
+    <field name="lines" nolabel="1">
+        <list>
+            <field name="product_id" onchange="onchange_product"/>
+            <field name="description"/>
+            <field name="qty" onchange="update_amount"/>
+            <field name="uom_id"/>
+            <field name="unit_price" onchange="update_amount"/>
+            <field name="location_id"/>
+            <field name="amount"/>
+        </list>
+    </field>
+    <field name="complete" span="4"/>
+    <field name="request_id" invisible="1"/>
+    <foot>
+        <button string="Copy" method="copy" type="success"/>
+    </foot>
+</form>
+

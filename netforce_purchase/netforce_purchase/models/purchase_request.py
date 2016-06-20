@@ -27,6 +27,7 @@ from netforce.utils import get_data_path
 class PurchaseRequest(Model):
     _name = "purchase.request"
     _string = "Purchase Request"
+    _name_field="number"
     _fields = {
         "number": fields.Char("Number", required=True, search=True),
         "ref": fields.Char("Ref", search=True),
@@ -38,6 +39,7 @@ class PurchaseRequest(Model):
         "employee_id": fields.Many2One("hr.employee", "Employee", required=True, search=True),
         "state": fields.Selection([("draft", "Draft"), ("waiting_approval", "Waiting Approval"), ("waiting_po", "Waiting PO"), ("done", "Completed"), ("voided", "Voided")], "Status", required=True),
         "lines": fields.One2Many("purchase.request.line", "request_id", "Lines"),
+        "purchase_lines": fields.One2Many("purchase.order", "request_id", "Purchases"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "request_by_id": fields.Many2One("base.user", "Request By", required=True, readonly=True),
         "approve_by_id": fields.Many2One("base.user", "Approved By", readonly=True),
@@ -85,6 +87,7 @@ class PurchaseRequest(Model):
         line['description'] = product.description if product.description else "-"
         line['uom_id'] = product.uom_id.id
         return data
+
 
     def btn_submit(self, ids, context={}):
         obj = self.browse(ids)

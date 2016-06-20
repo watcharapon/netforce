@@ -36,6 +36,7 @@ class PurchaseOrder(Model):
     _fields = {
         "number": fields.Char("Number", required=True, search=True),
         "ref": fields.Char("Ref", search=True),
+        "request_id": fields.Many2One("purchase.request", "Request"),
         "contact_id": fields.Many2One("contact", "Supplier", required=True, search=True),
         "customer_id": fields.Many2One("contact", "Customer", search=True),
         "date": fields.Date("Date", required=True, search=True),

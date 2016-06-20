@@ -18,14 +18,22 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from . import purchase_order
-from . import purchase_order_line
-from . import report_purchase
-from . import purchase_type
-from . import report_commission_po
-from . import purchase_request
-from . import purchase_request_line
-from . import purchase_return
-from . import purchase_return_line
-from . import copy_pr2po
-from . import copy_pr2po_line
+
+from netforce.model import Model, fields
+
+
+class CopyPR2POLine(Model):
+    _name="copy.pr2po.line"
+    _trasient=True
+    _fields={
+        'pr2po_id': fields.Many2One("copy.pr2po","PR2PO", required=True, on_delete="cascade"),
+        "product_id": fields.Many2One("product", "Product"),
+        "description": fields.Text("Description", required=True),
+        "qty": fields.Decimal("Qty", required=True),
+        "unit_price": fields.Decimal("Unit Price", required=True),
+        "uom_id": fields.Many2One("uom", "UoM", required=True),
+        'amount': fields.Decimal("Amount",readonly=True),
+        "location_id": fields.Many2One("stock.location", "Location", required=True, condition=[["type", "=", "internal"]]),
+    }
+
+CopyPR2POLine.register()
