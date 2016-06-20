@@ -188,6 +188,12 @@ class Report(Controller):
                     fname = template + "-" + time.strftime("%Y-%m-%dT%H:%M:%S") + ".odt"
                     self.set_header("Content-Disposition", "attachment; filename=%s" % fname)
                     self.set_header("Content-Type", "application/vnd.oasis.opendocument.text")
+                elif format == 'docx':
+                    fname = template + "-" + time.strftime("%Y-%m-%dT%H:%M:%S") + ".docx"
+                    self.set_header("Content-Disposition", "attachment; filename=%s" % fname)
+                    self.set_header(
+                        "Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
                 else:
                     raise Exception("Invalid format: %s" % format)
                 self.write(out)
