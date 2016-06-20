@@ -163,9 +163,7 @@ class Document(Model):
             path2 = utils.get_file_path(filename2)
             os.rename(path, path2)
         return {
-            "vals": {
-                "file": filename2,
-            }
+            "file": filename2,
         }
 
     def get_expired(self, ids, context={}):
