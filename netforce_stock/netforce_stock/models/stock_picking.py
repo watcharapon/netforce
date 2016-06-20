@@ -851,4 +851,8 @@ class Picking(Model):
         data=self.update_cost_price(context)
         return data
 
+    def get_template_picking(self, ids, context={}):
+        obj=self.browse(ids)[0]
+        return "pick_"+obj.type+"_form"
+
 Picking.register()
