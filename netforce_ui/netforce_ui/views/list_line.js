@@ -48,6 +48,9 @@ var ListLine=NFView.extend({
             }
         });
         this.data.select_model=!list_view.options.noselect && !list_view.options.select_group;
+        if(list_view.context && list_view.context.one_select){
+            this.data.select_model=false;
+        }
         this.data.select_group=list_view.options.select_group;
         NFView.prototype.render.call(this);
         for (var color in colors) {
@@ -88,9 +91,24 @@ var ListLine=NFView.extend({
     line_select: function(e) {
         e.preventDefault();
         e.stopPropagation();
+
         var val=$(e.target).is(":checked");
         var model=this.context.model;
         model.set("_selected",val);
+
+        var that=this;
+        if(that.context.one_select){
+            $("input[type=checkbox]").prop("checked",false);
+            $(e.target).prop("checked",val);
+            // clear the old one
+            var list_view=that.options.list_view;
+            slv=list_view.context.search_list_view;
+            if(slv){
+                slv.trigger("one_select_model", model);
+            }
+        }
+
+
     },
 
     eval_colors: function() {

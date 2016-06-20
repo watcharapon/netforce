@@ -436,13 +436,14 @@ Handlebars.registerHelper("loop",function(options) {
 
 Handlebars.registerHelper("field_label",function(name,options) {
     var ctx=options.hash.context;
+    var string=options.hash.string;
     if (ctx.model) {
         model_name=ctx.model.name;
     } else if (ctx.collection) {
         model_name=ctx.collection.name;
     }
     var field=get_field(model_name,name);
-    return translate(field.string);
+    return translate(string || field.string);
 });
 
 function format_date(val,options) {

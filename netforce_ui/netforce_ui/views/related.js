@@ -112,6 +112,12 @@ var Related=NFView.extend({
                 if (that.collection.length==0) {
                     that.$el.find(".btn-delete").hide();
                 }
+                if(that.options.noadd){
+                    that.$el.find(".nf-btn-add").hide();
+                }
+                if(that.options.nodelete){
+                    that.$el.find(".nf-btn-delete").hide();
+                }
             });
         } else if (field.type=="many2many") { // XXX
             rpc_execute(model.name,"read",[[model.id],[this.field_name]],{},function(err,data) {

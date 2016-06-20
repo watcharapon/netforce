@@ -24,7 +24,7 @@ var FieldMany2One=NFView.extend({
     _name: "field_many2one",
     className: "form-group nf-field",
     events: {
-        "mousedown button": "btn_mousedown",
+        "mousedown button.nf-m2o-dropdown": "btn_mousedown",
         "keydown input": "keydown", // check FF (keypress?)
         "blur input": "blur",
         "focus input": "on_focus",
@@ -365,9 +365,16 @@ var FieldMany2One=NFView.extend({
             if (!cur_text) {
                 var mr=get_model(this.relation);
                 if (mr.string) {
+                    if(items && items.length>1){
+                        var new_item=translate('Search More...');
+                        var item=$('<li data-value="_search"><a href="#" style="font-weight:bold">'+new_item+'</a></li>');
+                        items=[item[0]].concat(items);
+                    }
+
                     var new_item=translate('New '+mr.string);
                     var item=$('<li data-value="_create_link"><a href="#" style="font-weight:bold">'+new_item+'</a></li>');
                     items=[item[0]].concat(items);
+
                 }
             }
             this.$menu.html(items);
@@ -460,6 +467,49 @@ var FieldMany2One=NFView.extend({
                     form.do_onchange(that.options.onchange,path);
                 }
             });
+        } else if (val=="_search") {
+            this.hide_menu();
+            var opts={
+                model: this.relation,
+                condition: this.eval_condition()
+            };
+
+            if(this.data.required){
+                this.$el.removeClass("nf-required-field");
+            }
+            var view=new SearchMany2One({options:opts});
+            view.render();
+            view.$el.modal({backdrop: 'static', keyboard: false, view_cid: view.cid});
+            this.$el.append(view.el);
+            that.disable_blur=true;
+
+            view.on("close_search",function(select_item){
+                if(that.data.required){
+                    that.$el.addClass("nf-required-field");
+                }
+                view.$el.modal("hide");
+                if(select_item){
+                    var name=that.options.name;
+                    var model=that.context.model;
+                    var val_id=select_item.get("id");
+                    var ids=[val_id];
+                    rpc_execute(that.relation,"name_get",[ids],{},function(err,data) {
+                        that.data.value_name=data[0][1];
+                        model.set(name,[val_id,data[0][1]],{silent:true});
+                        that.render();
+                        var form=that.context.form;
+                        if (that.options.onchange) {
+                            var path=model.get_path(name);
+                            form.do_onchange(that.options.onchange,path);
+                        }
+                    });
+                    // keep scrollbar after close other popup
+                    if($('.modal').hasClass('in')) {
+                        $('body').addClass('modal-open');
+                    };
+                }
+            });
+
         } else if (val=="_create_link") {
             this.hide_menu();
             var action=find_new_action(this.relation);
@@ -672,7 +722,7 @@ var FieldMany2One=NFView.extend({
         log("view",view,view.el);
         $("body").append(view.el);
         view.render();
-    }
+    },
 });
 
 FieldMany2One.register();

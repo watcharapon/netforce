@@ -1,6 +1,8 @@
 <div class="nf-search">
     <form>
-        <button type="button" class="close">&times;</button>
+        {{#unless hide_close}}
+            <button type="button" class="close">&times;</button>
+        {{/unless}}
         {{{call render_search_body context}}}
     </form>
 </div>

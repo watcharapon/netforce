@@ -158,7 +158,7 @@
                 <field name="create_job"/>
             </form>
         </field>
-        <field name="emails"/>
+        <field name="emails" noadd="1"/>
         <field name="comments"/>
     </related>
 </form>
