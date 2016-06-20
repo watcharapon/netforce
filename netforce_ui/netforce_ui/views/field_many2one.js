@@ -481,7 +481,6 @@ var FieldMany2One=NFView.extend({
             view.render();
             view.$el.modal({backdrop: 'static', keyboard: false, view_cid: view.cid});
             this.$el.append(view.el);
-
             that.disable_blur=true; // FIXME
 
             view.on("close_search",function(select_item){
