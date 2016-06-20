@@ -24,7 +24,7 @@ var SearchView=NFView.extend({
     _name: "search_view",
     events: {
         "click .close": "close",
-        "click .search-btn2": "do_search",
+        "click .search-btn": "do_search",
         "click .clear-btn": "do_clear"
     },
 
@@ -132,7 +132,7 @@ var SearchView=NFView.extend({
             col=0;
         }
         row.append(cell);
-        cell.append('<button class="btn btn-primary search-btn2">Search</button> ');
+        cell.append('<button class="btn btn-primary search-btn">Search</button> ');
         cell.append('<a class="btn btn-default clear-btn">Clear</a>');
         return body.html();
     },
