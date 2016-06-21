@@ -1,11 +1,7 @@
 <form model="purchase.request" attrs='{"readonly":[["state","in",["waiting_po","done","voided"]]]}' show_company="1">
     <head>
         <field name="state"/>
-        <button string="Print" dropdown="1">
-            <item string="PDF" action="report_purchase_request_form" action_options="convert=pdf"/>
-            <item string="ODT" action="report_purchase_request_form"/>
-            <item string="Select Template" action="print_select_template" action_options="report_action=report_purchase_request_form&amp;template_type=purchase_request"/>
-        </button>
+        <button string="Print" icon="print" action="report_purchase_request_form"/>
         <button string="Options" dropdown="1" align="right">
             <item string="Copy To Purchase Order" action="copy_pr2po" states="waiting_po"/>
             <item string="To Draft" method="btn_draft" states="waiting_po,done,voided"/>

@@ -115,8 +115,10 @@ var Sheet=NFView.extend({
     },
 
     add_line: function(e) {
-        e.preventDefault();
-        e.stopPropagation();
+        if(e){
+            e.preventDefault();
+            e.stopPropagation();
+        }
         var collection=this.context.collection;
         var that=this;
         var model_name=collection.name;
