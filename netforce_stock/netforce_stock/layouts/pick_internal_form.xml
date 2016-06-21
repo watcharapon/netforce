@@ -1,7 +1,11 @@
 <form model="stock.picking" attrs='{"readonly":[["state","in",["done","voided"]]]}' show_company="1">
     <head>
         <field name="state"/>
-        <button string="Print" icon="print" action="report_pick_internal_form"/>
+        <button string="Print" icon="print" dropdown="1">
+            <item string="PDF" action="report_pick_internal_form" action_options="convert=pdf"/>
+            <item string="ODT" action="report_pick_internal_form"/>
+            <item string="Select Template" action="print_select_template" action_options="report_action=report_pick_internal_form&amp;template_type=goods_transfer"/>
+        </button>
         <button string="Options" dropdown="1" align="right">
             <item string="Copy" method="copy"/>
             <divider/>
