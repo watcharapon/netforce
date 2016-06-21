@@ -249,6 +249,9 @@ class PurchaseOrder(Model):
             line["tax_id"] = prod.purchase_tax_id.id
         if prod.location_id:
             line["location_id"] = prod.location_id.id
+        elif prod.locations:
+            line["location_id"] = prod.locations[0].location_id.id
+            #TODO
         data = self.update_amounts(context)
         return data
 

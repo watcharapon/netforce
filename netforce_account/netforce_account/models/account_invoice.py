@@ -849,7 +849,8 @@ class Invoice(Model):
                 "amount": line.amount,
             }
             vals["lines"].append(("create", line_vals))
-        new_id = self.create(vals, context={"type": obj.type, "inv_type": obj.inv_type})
+        ctx={"type": obj.type, "inv_type": obj.inv_type, "date": context.get("date")}
+        new_id = self.create(vals, context=ctx)
         new_obj = self.browse(new_id)
         if obj.type == "out":
             msg = "Invoice %s copied to %s" % (obj.number, new_obj.number)

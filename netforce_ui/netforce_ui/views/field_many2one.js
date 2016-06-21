@@ -481,7 +481,7 @@ var FieldMany2One=NFView.extend({
             view.render();
             view.$el.modal({backdrop: 'static', keyboard: false, view_cid: view.cid});
             this.$el.append(view.el);
-            that.disable_blur=true;
+            that.disable_blur=true; // FIXME
 
             view.on("close_search",function(select_item){
                 if(that.data.required){
@@ -508,6 +508,11 @@ var FieldMany2One=NFView.extend({
                         $('body').addClass('modal-open');
                     };
                 }
+
+                if(!$('.modal').hasClass('in')) {
+                    $("body").css({"overflow-y":"scroll"});
+                }
+
             });
 
         } else if (val=="_create_link") {
