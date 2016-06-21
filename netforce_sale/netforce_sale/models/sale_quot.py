@@ -473,7 +473,7 @@ class SaleQuot(Model):
             "currency_rates": [],
         }
         for line in obj.lines:
-            if not line.qty or not line.uom_id or not line.unit_price:
+            if not line.qty:
                 continue
             prod=line.product_id
             line_vals={
@@ -481,7 +481,7 @@ class SaleQuot(Model):
                 "product_id": prod.id,
                 "description": line.description,
                 "qty": line.qty,
-                "uom_id": line.uom_id.id,
+                "uom_id": line.uom_id and line.uom_id.id or None,
                 "unit_price": line.unit_price if not line.is_hidden else 0,
                 "discount": line.discount if not line.is_hidden else 0,
                 "discount_amount": line.discount_amount if not line.is_hidden else 0,
