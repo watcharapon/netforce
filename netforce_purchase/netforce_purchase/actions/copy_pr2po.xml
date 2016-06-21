@@ -1,5 +1,5 @@
 <action>
-    <field name="string">Copy Purchase Order</field>
+    <field name="string">Copy Purchase To Order</field>
     <field name="view_cls">form_popup</field>
     <field name="model">copy.pr2po</field>
     <field name="target">_popup</field>
