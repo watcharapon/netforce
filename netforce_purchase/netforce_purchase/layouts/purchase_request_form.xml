@@ -3,7 +3,7 @@
         <field name="state"/>
         <button string="Print" icon="print" action="report_purchase_request_form"/>
         <button string="Options" dropdown="1" align="right">
-            <item string="Copy To Purchase Order" action="copy_pr2po" states="waiting_po"/>
+            <item string="Copy To Purchase" action="copy_pr2po" states="waiting_po"/>
             <item string="To Draft" method="btn_draft" states="waiting_po,done,voided"/>
             <item string="Void" method="btn_void" confirm="Are you sure you want to void this purchase request?" states="waiting_approva,waiting_po,done"/>
         </button>
