@@ -2,7 +2,6 @@
     <field name="contact_id" span="4" onchange="onchange_contact" condition='[["supplier","=",true]]' string="Supplier"/>
     <field name="bill_address_id" span="4" />
     <field name="ship_address_id" span="4" />
-    <field name="ship_address_id" span="4" />
     <field name="lines" nolabel="1">
         <list>
             <field name="product_id" onchange="onchange_product"/>
