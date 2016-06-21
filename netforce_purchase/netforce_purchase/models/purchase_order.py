@@ -200,6 +200,9 @@ class PurchaseOrder(Model):
             if not line:
                 continue
             amt = Decimal(((line.get("qty") or 0) * (line.get("unit_price") or 0)) - (line.get("discount_amount") or 0))
+            if line.get("discount_percent"):
+                disc = amt * line["discount_percent"] / Decimal(100)
+                amt -= disc
             line["amount"] = amt
             new_cur=get_model("currency").convert(amt, int(data.get("currency_id")), settings.currency_id.id)
             line['amount_cur']=new_cur and new_cur or None
