@@ -165,7 +165,13 @@ class Model(object):
             raise Exception("No such field %s in %s" % (name, self._name))
         return self._fields[name]
 
+    def default_get_data(self, field_names=None, context={}, load_m2o=True):
+        vals=self.default_get(field_names, context, load_m2o)
+        return vals, context.get('field_default')
+
     def default_get(self, field_names=None, context={}, load_m2o=True):
+        if not context.get('field_default'):
+            context['field_default']={}
         vals = {}
         if field_names is None:
             field_names = self._defaults.keys()
@@ -194,6 +200,8 @@ class Model(object):
                     n = r.field
                     f = self._fields[n]
                     v = r.value
+                    fd=','.join([self._name, n, str(user_id)])
+                    context['field_default'].setdefault(fd,v)
                     if v:
                         if isinstance(f, fields.Many2One):
                             v = int(v)

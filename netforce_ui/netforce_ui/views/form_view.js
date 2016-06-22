@@ -217,8 +217,10 @@ var FormView=NFView.extend({
                 field_names: field_names,
                 context: ctx
             };
-            nf_execute(model_name,"default_get",[],opts,function(err,data) {
+            nf_execute(model_name,"default_get_data",[],opts,function(err,res) {
                 if (err) throw "ERROR: "+err;
+                var data=res[0];
+                that.data.context.field_default=res[1];
                 that.model=new NFModel(data,{name:model_name});
                 that.model.on("reload",that.reload,that);
                 that.data.context.data=data;

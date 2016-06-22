@@ -121,6 +121,11 @@ var FieldSelection=NFView.extend({
         if (!check_package(pkg)) {
             this.data.disabled=true;
         }
+        var field_default=this.context.field_default;
+        var fd=model.name+","+name+","+this.context.user_id;
+        if(field_default && field_default[fd]){
+            this.data.default_value=true;
+        }
         NFView.prototype.render.call(that);
         var err=model.get_field_error(name);
         if (err) {
