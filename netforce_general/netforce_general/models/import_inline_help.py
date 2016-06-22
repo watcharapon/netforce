@@ -21,6 +21,9 @@
 from netforce.model import Model, fields, get_model
 import requests
 import json
+import html2text
+import urllib
+import re
 
 CLIENT_ID = "702491289059-n8l95ggji87ugprscg0c2neuvhohaf7a.apps.googleusercontent.com"
 CLIENT_SECRET = "t0Sq4WNRV0vLK_9kg83uAh0H"
@@ -51,7 +54,42 @@ def get_help_content(doc_id, token):
     html = r.text
     html = html.replace("background-color:#ffffff;padding:72pt 72pt 72pt 72pt", "")
     html = html.replace("max-width:468pt", "")
-    html = '<base target="_parent" />' + html
+    def _replace(m):
+        s=m.group(1)
+        return 'href="%s"'%urllib.parse.unquote(s)
+    html=re.sub(r'href="http://www.google.com/url\?q=(.*?)"',_replace,html)
+    def check_link(string):
+        out = ""
+        is_c = False
+        is_last_key = False
+        link = ""
+        key= ""
+        for char in string:
+            if is_last_key:
+                if char=="(":
+                    continue
+                elif char==")":
+                    is_last_key=False
+                    out += '<a href="%s">%s</a>'%(link,key)
+                    link = ""
+                    key= ""
+                    is_c=False
+                    continue
+                else:
+                    link+=char
+            elif char == '[':
+                is_c = True
+            elif char == ']':
+                is_c=False
+                is_last_key=True
+            elif is_c:
+                key+=char
+            else:
+                out+=char
+        return out
+    text=html2text.html2text(html)
+    text = check_link(text)
+    html = '<base target="_parent" />' + text
     return html
 
 
@@ -109,10 +147,10 @@ class Import(Model):
             if res:
                 page_id = res[0]
                 page = get_model("inline.help").browse(page_id)
-                if page.modif_date < info["modif_date"]:
-                    info["content"] = get_help_content(item["id"], token)
-                    print("update existing help", page.action)
-                    page.write(info)
+                #if page.modif_date < info["modif_date"]:
+                info["content"] = get_help_content(item["id"], token)
+                print("update existing help", page.action)
+                page.write(info)
             else:
                 info["content"] = get_help_content(item["id"], token)
                 print("create new help", info["action"])

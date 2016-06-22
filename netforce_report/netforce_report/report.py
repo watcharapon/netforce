@@ -131,14 +131,17 @@ def _get_report_path(name, params={}):
                 obj = params
             for k in img_fname_objs:
                 obj = obj[k]
-            img_fname = obj
-            img_path = utils.get_file_path(img_fname)
-            if os.path.exists(img_path):
-                img_path2 = os.path.join(report_dir, img_fname)
-                shutil.copyfile(img_path, img_path2)
+            if obj:
+                img_fname = obj
+                img_path = utils.get_file_path(img_fname)
+                if os.path.exists(img_path):
+                    img_path2 = os.path.join(report_dir, img_fname)
+                    shutil.copyfile(img_path, img_path2)
+                else:
+                    _extract_report_file(img_fname, report_dir)
+                el.text = '"' + os.path.join(report_dir, img_fname) + '"'
             else:
-                _extract_report_file(img_fname, report_dir)
-            el.text = '"' + os.path.join(report_dir, img_fname) + '"'
+                el.text = ''
     report_xml = etree.tostring(tree, pretty_print=True).decode()
     f = open(report_path, "w")
     f.write(report_xml)
