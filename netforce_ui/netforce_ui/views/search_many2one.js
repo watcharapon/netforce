@@ -173,7 +173,7 @@ var SearchMany2One=NFView.extend({
             });
 
             NFView.prototype.render.call(that);
-            that.$el.find(".modal-dialog").width(that.options.width || '70%');
+            that.$el.find(".modal-dialog").width(that.options.width || '80%');
             $("body").css({"overflow-y":"hidden"});
             that.show_search();
         });

@@ -725,7 +725,11 @@ var FieldMany2One=NFView.extend({
         };
         var view=view_cls.make_view(opts);
         log("view",view,view.el);
-        $("body").append(view.el);
+        if($(".modal").hasClass("in")){
+            $(".modal").append(view.el);
+        }else{
+            $("body").append(view.el);
+        }
         view.render();
     },
 });
