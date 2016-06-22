@@ -74,7 +74,7 @@ function rpc_execute(model,method,args,opts,cb) {
             params: params
         }),
         dataType: "json",
-        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        contentType: "application/json;charset=UTF-8",
         success: function(data) {
             if (data.error) {
                 log("RPC ERROR",model,method,data.error.message);
