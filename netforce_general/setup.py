@@ -25,4 +25,7 @@ setup(
     name="netforce_general",
     version="3.1.0",
     description="General module",
+    install_requires=[
+        "html2text>=2016.5.29"
+    ],
 )
