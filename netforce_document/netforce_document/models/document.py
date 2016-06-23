@@ -78,12 +78,6 @@ class Document(Model):
     }
     _constraints = ["_check_date"]
 
-    def default_get(self, field_names=None, context={}, **kw): # FIX for tag related can not get default
-        data={}
-        #FIXME for add model in fields related but not get defaults
-        data['date'] = time.strftime("%Y-%m-%d")
-        return data
-
     def _check_date(self, ids, context={}):
         for obj in self.browse(ids):
             if obj.expiry_date:
@@ -139,7 +133,7 @@ class Document(Model):
         filename = data["file"]
         if not filename:
             return
-        categ_id = data["categ_id"]
+        categ_id = data.get("categ_id")
         if not categ_id:
             return
         categ = get_model("document.categ").browse(categ_id)

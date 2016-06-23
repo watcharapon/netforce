@@ -167,7 +167,7 @@ class Model(object):
 
     def default_get(self, field_names=None, context={}, load_m2o=True):
         vals = {}
-        if field_names is None:
+        if not field_names:
             field_names = self._defaults.keys()
         for n in field_names:
             v = self._defaults.get(n)
