@@ -139,6 +139,11 @@ var Search=NFView.extend({
                         v=v.replace(/%/g,"");
                         search_model.set(n,v);
                     }
+                } else if (f.type=="integer") {
+                    var r=search_model.get(n)||[null,null];
+                    if (op==">=") r[0]=v;
+                    else if (op=="<=") r[1]=v;
+                    search_model.set(n,r);
                 } else if (f.type=="float") {
                     var r=search_model.get(n)||[null,null];
                     if (op==">=") r[0]=v;
@@ -174,7 +179,7 @@ var Search=NFView.extend({
             if (!v) continue;
             var f=get_field(this.context.collection.name,n);
             var sf=model.get_field(n);
-            if ((f.type=="float") || (f.type=="date") || (f.type=='decimal')) {
+            if ((f.type=='integer') || (f.type=="float") || (f.type=="date") || (f.type=='decimal')) {
                 if (v[0]) {
                     var clause=[n,">=",v[0]];
                     condition.push(clause);
