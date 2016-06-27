@@ -35,6 +35,9 @@ var SearchMany2One=NFView.extend({
         var view_cid="."+this.cid;
         // remove backdrop
         $(view_cid).remove();
+        if(!$('.modal').hasClass('in')) {
+            $("body").css({"overflow-y":"scroll"});
+        }
     },
 
     select_item: function(e){
@@ -170,7 +173,8 @@ var SearchMany2One=NFView.extend({
             });
 
             NFView.prototype.render.call(that);
-            that.$el.find(".modal-dialog").width(that.options.width || '70%');
+            that.$el.find(".modal-dialog").width(that.options.width || '80%');
+            $("body").css({"overflow-y":"hidden"});
             that.show_search();
         });
         return this;
@@ -200,7 +204,7 @@ var SearchMany2One=NFView.extend({
         view.render();
         this.$el.find(".search-btn").hide();
         this.$el.find(".search").append(view.el);
-
+        this.$el.find(".modal-body, .nf-search, .form-group, .nf-field").css({"margin": "0px", "margin-bottom":"15px"});
         view.on("search",function() {
             that.search_condition=view.get_condition();
             that.collection.offset=0;

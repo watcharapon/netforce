@@ -32,6 +32,7 @@ class Document(Model):
     _name = "document"
     _string = "Document"
     _audit_log = True
+    _name_field="file"
     _fields = {
         "file": fields.File("File"),
         "categ_id": fields.Many2One("document.categ", "Category", search=True),
@@ -132,7 +133,7 @@ class Document(Model):
         filename = data["file"]
         if not filename:
             return
-        categ_id = data["categ_id"]
+        categ_id = data.get("categ_id")
         if not categ_id:
             return
         categ = get_model("document.categ").browse(categ_id)
@@ -162,9 +163,7 @@ class Document(Model):
             path2 = utils.get_file_path(filename2)
             os.rename(path, path2)
         return {
-            "vals": {
-                "file": filename2,
-            }
+            "file": filename2,
         }
 
     def get_expired(self, ids, context={}):

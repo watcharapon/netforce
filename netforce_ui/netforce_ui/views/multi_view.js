@@ -140,10 +140,14 @@ var MultiView=NFView.extend({
             this.$el.append(view.el);
             this.subviews[view.cid]=view;
         } else if (this.mode=="page") {
+            var search_cond=this.options.search_condition; 
+            if (search_cond && search_cond=='[]'){ //XXX
+                search_cond=null;
+            }
             var opts={
                 model: this.options.model,
                 active_id: this.options.active_id,
-                search_condition: this.options.search_condition,
+                search_condition: search_cond,
                 tab_no: this.options.tab_no,
                 related_tab: this.options.related_tab,
                 offset: this.options.offset,

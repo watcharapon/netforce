@@ -202,6 +202,7 @@ var SheetLine=NFView.extend({
                 that.sheet_view.focus_cell(next_cell);
             } else {
                 focus_next();
+                that.sheet_view.add_line();
             }
         });
         field_view.on("focus_prev",function() {
