@@ -2401,6 +2401,7 @@ class BrowseRecord(object):
                 #print("BrowseRecord call %s %s %s"%(m._name,self.id,name))
                 return f([self.id], *a, **kw)
             return call
+        db=database.get_connection()
         model_cache = self.browse_cache.setdefault(self._model, {})
         cache = model_cache.setdefault(self.id, {})
         if not name in cache:
@@ -2445,10 +2446,14 @@ class BrowseRecord(object):
                         val = r[n]
                         if val:
                             r_model, r_id = val.split(",")
-                            r_id = int(r_id)
-                            r_ids = r_model_ids[r_model]
-                            r[n] = BrowseRecord(
-                                r_model, r_id, r_ids, context=self.context, browse_cache=self.browse_cache)
+                            found=db.query("select id from "+r_model.replace(".","_")+" where id="+r_id)
+                            if not found:
+                                r[n] = BrowseRecord(None, None, [], context=self.context, browse_cache=self.browse_cache)
+                            else:
+                                r_id = int(r_id)
+                                r_ids = r_model_ids[r_model]
+                                r[n] = BrowseRecord(
+                                    r_model, r_id, r_ids, context=self.context, browse_cache=self.browse_cache)
                         else:
                             r[n] = BrowseRecord(None, None, [], context=self.context, browse_cache=self.browse_cache)
             for r in res:
