@@ -135,6 +135,11 @@ var FieldText=NFView.extend({
         var name=this.options.name;
         var model=this.context.model;
         model.set(name,val,{silent:true});
+        if (this.options.onchange) {
+            var path=model.get_path(name);
+            var form=this.context.form;
+            form.do_onchange(this.options.onchange,path);
+        }
     },
 
     focus: function() {
