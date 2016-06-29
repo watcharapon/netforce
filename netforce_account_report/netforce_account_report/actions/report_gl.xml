@@ -4,5 +4,6 @@
     <field name="model">report.gl</field>
     <field name="report_template">report_gl</field>
     <field name="report_template_xls">account_gl_summary</field>
+    <field name="fast_render">1</field>
     <field name="menu">account_menu</field>
 </action>

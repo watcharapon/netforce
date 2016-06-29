@@ -481,6 +481,7 @@ def report_render_xls(tmpl_name, data, fast_render=False):
         print("number of pieces: %d" % len(sheet_tmpl.split("{{")))
         print("rendering template...")
         if fast_render:  # FIXME; remove need for this!!! (make new compiler faster)
+            print(">>> FAST RENDER!!!")
             sheet_xml = template.render_template_old(sheet_tmpl, data)
         else:
             sheet_xml = template.render_template(sheet_tmpl, data)
