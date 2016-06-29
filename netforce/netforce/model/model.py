@@ -67,6 +67,7 @@ class Model(object):
     _inherit = None
     _defaults = {}
     _order = None
+    _order_expression = None
     _key = None
     _name_field = None
     _code_field = None
@@ -623,12 +624,16 @@ class Model(object):
         q = "SELECT tbl0.id FROM " + self._table + " tbl0"
         if joins:
             q += " " + " ".join(joins)
-        if ord_joins:
-            q += " " + " ".join(ord_joins)
+        if not self._order_expression:
+            if ord_joins:
+                q += " " + " ".join(ord_joins)
         if cond:
             q += " WHERE (" + cond + ")"
-        if ord_clauses:
-            q += " ORDER BY " + ",".join(ord_clauses)
+        if not self._order_expression:
+            if ord_clauses:
+                q += " ORDER BY " + ",".join(ord_clauses)
+        else:
+            q += "ORDER BY "+self._order_expression
         if offset is not None:
             q += " OFFSET %s"
             args.append(offset)
