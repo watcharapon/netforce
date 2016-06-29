@@ -7,9 +7,10 @@ class Migration(Migration):
 
     def migrate(self):
         db=get_connection()
-        profiles=db.query("SELECT id, name FROM profile")
+        profiles=db.query("SELECT id, name, active FROM profile")
         for profile in profiles:
-            db.execute("UPDATE profile SET active=%s WHERE id=%s","true",profile.id)
-            print("set active for profile %s"%profile.name)
+            if not profile.active:
+                db.execute("UPDATE profile SET active=%s WHERE id=%s","true",profile.id)
+                print("set active for profile %s"%profile.name)
 
 Migration.register()
