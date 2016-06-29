@@ -70,7 +70,7 @@ class CreditAlloc(Model):
                 "lines": [],
             }
             move_id = get_model("account.move").create(move_vals)
-            cur_total = get_model("currency").convert(obj.amount, cred.currency_id.id, settings.currency_id.id)
+            cur_total = get_model("currency").convert(obj.amount, cred.currency_id.id, settings.currency_id.id, rate=cred.currency_rate)
             if inv.type == "in":
                 sign = 1
             else:

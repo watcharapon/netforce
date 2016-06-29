@@ -1,4 +1,4 @@
-<form model="document">
+<form model="document" attrs='{"readonly":[["state","=","verified"]]}'>
     <head>
         <field name="state"/>
         <button string="Options" dropdown="1">
@@ -8,15 +8,14 @@
             <item string="To Draft" method="to_draft" states="verified"/>
         </button>
     </head>
-    <group attrs='{"readonly":[["state","=","verified"]]}'>
-        <field name="contact_id"/>
-        <field name="categ_id" onchange="onchange_categ"/>
-        <field name="file" onchange="onchange_file" target="_blank"/>
-        <field name="date" onchange="onchange_file"/>
-        <field name="expiry_date"/>
-        <field name="related_id"/>
-        <field name="description"/>
-    </group>
+    <field name="contact_id"/>
+    <field name="categ_id" onchange="onchange_categ"/>
+    <field name="file" onchange="onchange_file" target="_blank"/>
+    <field name="date" onchange="onchange_file"/>
+    <field name="expiry_date"/>
+    <field name="related_id"/>
+    <field name="description"/>
+    <newline/>
     <field name="share"/>
     <foot>
         <button string="Verified" method="to_verified" type="success" states="draft"/>

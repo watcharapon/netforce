@@ -133,7 +133,7 @@ class Document(Model):
         filename = data["file"]
         if not filename:
             return
-        categ_id = data["categ_id"]
+        categ_id = data.get("categ_id")
         if not categ_id:
             return
         categ = get_model("document.categ").browse(categ_id)

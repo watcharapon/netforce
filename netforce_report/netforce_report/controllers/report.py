@@ -167,6 +167,9 @@ class Report(Controller):
                 else:
                     out = get_report_jasper(template, data, format=format)
                 db = get_connection()
+                convert = action_vals.get("convert")
+                if convert:
+                    format = convert
                 if db:
                     db.commit()
                 if format == "pdf":
@@ -181,6 +184,16 @@ class Report(Controller):
                     fname = template + "-" + time.strftime("%Y-%m-%dT%H:%M:%S") + ".ods"
                     self.set_header("Content-Disposition", "attachment; filename=%s" % fname)
                     self.set_header("Content-Type", "application/vnd.oasis.opendocument.spreadsheet")
+                elif format == "odt":
+                    fname = template + "-" + time.strftime("%Y-%m-%dT%H:%M:%S") + ".odt"
+                    self.set_header("Content-Disposition", "attachment; filename=%s" % fname)
+                    self.set_header("Content-Type", "application/vnd.oasis.opendocument.text")
+                elif format == 'docx':
+                    fname = template + "-" + time.strftime("%Y-%m-%dT%H:%M:%S") + ".docx"
+                    self.set_header("Content-Disposition", "attachment; filename=%s" % fname)
+                    self.set_header(
+                        "Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
                 else:
                     raise Exception("Invalid format: %s" % format)
                 self.write(out)

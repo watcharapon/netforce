@@ -76,7 +76,7 @@ var SearchView=NFView.extend({
             else if (orig_field.type=="reference") search_field={type:"reference",string:orig_field.string,selection:orig_field.selection};
             else if (orig_field.type=="float") search_field={type:"float_range",string:orig_field.string};
             else if (orig_field.type=="decimal") search_field={type:"float_range",string:orig_field.string};
-            else if (orig_field.type=="integer") search_field={type:"float_range",string:orig_field.string}; // XXX
+            else if (orig_field.type=="integer") search_field={type:"integer_range",string:orig_field.string};
             else if (orig_field.type=="date" || orig_field.type=="datetime") search_field={type:"date_range",string:orig_field.string};
             else if (orig_field.type=="boolean") search_field={type:"selection",selection:[["yes","Yes"],["no","No"]],string:orig_field.string};
             else if (orig_field.type=="many2many") {
@@ -157,7 +157,7 @@ var SearchView=NFView.extend({
             if (!v) return;
             var f=model_cls.fields[n];
             var sf=that.model.get_field(n);
-            if ((f.type=="float") || (f.type=="date") || (f.type=="decimal")) {
+            if ((f.type=="integer") || (f.type=="float") || (f.type=="date") || (f.type=="decimal")) {
                 if (v[0]) {
                     var clause=[n,">=",v[0]];
                     condition.push(clause);
@@ -240,7 +240,7 @@ var SearchView=NFView.extend({
                     that.model.set(n,v);
                     log(n,"<-",v);
                 }
-            } else if ((f.type=="date")||(f.type=="float")) {
+            } else if ((f.type=="date")||(f.type=="float")||(f.type=="integer")) {
                 var r=that.model.get(n)||[null,null];
                 if (op==">=") r[0]=v;
                 else if (op=="<=") r[1]=v;

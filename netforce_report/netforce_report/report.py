@@ -85,7 +85,7 @@ def _extract_report_file(fname, report_dir):
         raise Exception("Report file not found: %s" % fname)
 
 
-def _get_report_path(name):
+def _get_report_path(name, params={}):
     fname = name + ".jrxml"
     report_dir = tempfile.mkdtemp()
     print("report_dir", report_dir)
@@ -117,6 +117,31 @@ def _get_report_path(name):
             else:
                 _extract_report_file(img_fname, report_dir)
             el.text = '"' + os.path.join(report_dir, img_fname) + '"'
+        p = re.match("^\{(.*)\}$", expr)
+        if p: #for detect {settings.logo}
+            img_fname_obj = p.group(1)
+            char_replace = ["{","}"]
+            for c in char_replace:
+                img_fname_obj.replace(c,"")
+            img_fname_objs = img_fname_obj.split(".")
+            obj = []
+            if isinstance(params,list):
+                obj = params[0] #FIXME
+            else:
+                obj = params
+            for k in img_fname_objs:
+                obj = obj[k]
+            if obj:
+                img_fname = obj
+                img_path = utils.get_file_path(img_fname)
+                if os.path.exists(img_path):
+                    img_path2 = os.path.join(report_dir, img_fname)
+                    shutil.copyfile(img_path, img_path2)
+                else:
+                    _extract_report_file(img_fname, report_dir)
+                el.text = '"' + os.path.join(report_dir, img_fname) + '"'
+            else:
+                el.text = ''
     report_xml = etree.tostring(tree, pretty_print=True).decode()
     f = open(report_path, "w")
     f.write(report_xml)
@@ -181,7 +206,7 @@ def conv_jasper_data(data, report_path):  # XXX: improve this
 
 
 def get_report_jasper(report, data, params={}, format="pdf"):
-    report_path = _get_report_path(report)
+    report_path = _get_report_path(report,data)
     data2 = conv_jasper_data(data, report_path)
     params = {
         "report": report_path,
@@ -199,7 +224,7 @@ def get_report_jasper(report, data, params={}, format="pdf"):
 
 def get_report_jasper_multi_page(report, datas, params={}, format="pdf"):
     print("get_report_jasper_multi_page")
-    report_path = _get_report_path(report)
+    report_path = _get_report_path(report,datas)
     datas2 = [conv_jasper_data(data, report_path) for data in datas]
     params = {
         "report": report_path,
@@ -456,6 +481,7 @@ def report_render_xls(tmpl_name, data, fast_render=False):
         print("number of pieces: %d" % len(sheet_tmpl.split("{{")))
         print("rendering template...")
         if fast_render:  # FIXME; remove need for this!!! (make new compiler faster)
+            print(">>> FAST RENDER!!!")
             sheet_xml = template.render_template_old(sheet_tmpl, data)
         else:
             sheet_xml = template.render_template(sheet_tmpl, data)
