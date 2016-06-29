@@ -43,6 +43,7 @@ class Template(Model):
 
     def create_email(self, ids, data={}, name_id=None, related_id=None, mailbox_id=None, context={}):
         obj = self.browse(ids)[0]
+        cc_addrs = None
         try:
             from_addr = render_template(obj.from_addr or "", data)
         except:
@@ -94,6 +95,7 @@ class Template(Model):
             "attachments": attachments,
             "name_id": name_id,
             "related_id": related_id,
+            "cc_addrs" : cc_addrs,
         }
         if mailbox_id:
             vals["mailbox_id"] = mailbox_id

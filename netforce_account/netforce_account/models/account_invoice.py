@@ -864,6 +864,50 @@ class Invoice(Model):
             "flash": msg,
         }
 
+    def copy_to_debit_note(self, ids, context):
+        obj = self.browse(ids)[0]
+        vals = {
+            "type": obj.type,
+            "inv_type": "debit",
+            "ref": obj.number,
+            "contact_id": obj.contact_id.id,
+            "bill_address_id": obj.bill_address_id.id,
+            "currency_id": obj.currency_id.id,
+            "currency_rate": obj.currency_rate,
+            "tax_type": obj.tax_type,
+            "memo": obj.memo,
+            "tax_no": obj.tax_no,
+            "pay_method_id": obj.pay_method_id.id,
+            "original_invoice_id": obj.id,
+            "lines": [],
+        }
+        if obj.related_id:
+            vals["related_id"] = "%s,%s" % (obj.related_id._model, obj.related_id.id)
+        for line in obj.lines:
+            line_vals = {
+                "product_id": line.product_id.id,
+                "description": line.description,
+                "qty": line.qty,
+                "uom_id": line.uom_id.id,
+                "unit_price": line.unit_price,
+                "tax_id": line.tax_id.id,
+                "account_id": line.account_id.id,
+                "sale_id": line.sale_id.id,
+                "purch_id": line.purch_id.id,
+                "amount": line.amount,
+            }
+            vals["lines"].append(("create", line_vals))
+        new_id = self.create(vals, context={"type": vals["type"], "inv_type": vals["inv_type"]})
+        new_obj = self.browse(new_id)
+        msg = "Debit note %s created from invoice %s" % (new_obj.number, obj.number)
+        return {
+            "next": {
+                "name": "view_invoice",
+                "active_id": new_id,
+            },
+            "flash": msg,
+        }
+
     def copy_to_credit_note(self, ids, context):
         obj = self.browse(ids)[0]
         vals = {
