@@ -29,8 +29,17 @@ class PricelistAdd(Model):
         "pricelist_id": fields.Many2One("price.list", "Price List", required=True, on_delete="cascade"),
         "product_categs": fields.Many2Many("product.categ", "Product Categories"),
     }
+
+    def _get_pricelist(self, context={}):
+        refer_id=context.get("ref_id")
+        if refer_id:
+            return refer_id
+        pricelist_ids=get_model("price.list").search([])
+        if pricelist_ids:
+            return max(pricelist_ids) #get the last one
+
     _defaults = {
-        "pricelist_id": lambda self, ctx: ctx["refer_id"],
+        "pricelist_id": _get_pricelist,
     }
 
     def add_products(self, ids, context={}):
@@ -50,7 +59,7 @@ class PricelistAdd(Model):
                 base_price = prod.volume or 0
             else:
                 raise Exception("Invalid base price type")
-            price = utils.round_amount(base_price * factor, pricelist.rounding, pricelist.rounding_method)
+            price = utils.round_amount(float(base_price * factor), float(pricelist.rounding), pricelist.rounding_method)
             vals = {
                 "list_id": pricelist.id,
                 "product_id": prod.id,
