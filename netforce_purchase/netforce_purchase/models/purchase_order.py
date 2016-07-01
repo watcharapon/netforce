@@ -395,7 +395,7 @@ class PurchaseOrder(Model):
                 # 3. if not get from product category
                 categ=prod.categ_id
                 if categ and not purch_acc_id:
-                    purch_acc_id= categ.purchase_account_id and categ.purchase_account_id.id and None
+                    purch_acc_id= categ.purchase_account_id and categ.purchase_account_id.id or None
 
             #if not purch_acc_id:
                 #raise Exception("Missing purchase account configure for product [%s]" % prod.name)
