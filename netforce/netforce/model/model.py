@@ -1347,7 +1347,8 @@ class Model(object):
                         else:
                             if n not in todo:
                                 v = obj[n]
-                                todo[n] = [v]
+                                if v:
+                                    todo[n] = [v]
                     elif isinstance(f, fields.Selection):
                         v = obj[n]
                         if v:

@@ -43,6 +43,7 @@ class Move(Model):
         "cost_price_cur": fields.Decimal("Cost Price (Cur)",scale=6), # in picking currency
         "cost_price": fields.Decimal("Cost Price", scale=6),  # in company currency
         "cost_amount": fields.Decimal("Cost Amount"), # in company currency
+        "cost_fixed": fields.Boolean("Cost Fixed"), # don't calculate cost
         "state": fields.Selection([("draft", "Draft"), ("pending", "Planned"), ("approved", "Approved"), ("done", "Completed"), ("voided", "Voided")], "Status", required=True),
         "stock_count_id": fields.Many2One("stock.count", "Stock Count"),
         "move_id": fields.Many2One("account.move", "Journal Entry"),
