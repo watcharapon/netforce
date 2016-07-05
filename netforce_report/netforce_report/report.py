@@ -1083,7 +1083,7 @@ def report_render_jsx(tmpl_name, data):
         "data": utils.json_dumps(data),
     }
     url = "http://localhost:9991/"
-    r = requests.get(url, params=params)
+    r = requests.post(url, data=params, timeout=15)
     if r.status_code != 200:
         raise Exception("Failed to render JSX report (%s)" % r.status_code)
     return r.content

@@ -1,4 +1,5 @@
 var express=require("express");
+var bodyParser=require("body-parser");
 var fs=require("fs");
 var babel=require("babel-core");
 var React=require("react");
@@ -6,18 +7,20 @@ var ReactDOMServer=require("react-dom/server");
 var exec = require('child_process').exec;
 
 var app=express();
+app.use(bodyParser.urlencoded({ extended: false ,limit:"10mb"}));
 
 const PORT=9991;
 
-app.get("/",function(req,res) {
+app.post("/",function(req,res) {
     console.log("render report");
     try {
-        if (!req.query.template) throw "Missing template";
-        var template=req.query.template;
+        console.log("body",req.body);
+        if (!req.body.template) throw "Missing template";
+        var template=req.body.template;
         console.log("template: "+template);
-        if (!req.query.data) throw "Missing data";
-        var data=JSON.parse(req.query.data);
-        console.log("data: "+data);
+        if (!req.body.data) throw "Missing data";
+        var data=JSON.parse(req.body.data);
+        //console.log("data: "+data);
         fs.readFile(template,"utf8",function(err,tmpl_jsx) {
             if (err) {
                 console.log("Failed to read template");
@@ -44,7 +47,7 @@ app.get("/",function(req,res) {
                 return;
             }
             var html=ReactDOMServer.renderToString(el);
-            console.log("html",html);
+            //console.log("html",html);
             fs.writeFile("/tmp/report.html",html,function(err) {
                 if (err) {
                     console.log("Failed to write html");
