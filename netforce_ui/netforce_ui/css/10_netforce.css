@@ -315,3 +315,6 @@ a.nf-list-header {
   filter: alpha(opacity=50);
   opacity: .5;
 }
+
+.view-list { table-layout: fixed; }
+.view-list td { word-wrap: break-word; }
