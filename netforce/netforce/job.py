@@ -30,11 +30,12 @@ import threading
 import traceback
 import sys
 from netforce import utils
+import os
 
 _check_times = None
 
 def run_job(dbname, job):
-    print("run_job %s '%s'"%(dbname, job["name"]))
+    print("run_job dbname=%s pid=%s job='%s'"%(dbname, os.getpid(), job["name"]))
     database.connections.clear()
     set_active_user(1)
     database.set_active_db(dbname)
@@ -88,7 +89,9 @@ def run_job(dbname, job):
 
 def start():
     global _check_times
+    print("Running jobs in process %s..."%os.getpid())
     dbname = config.get("database")
+    schema = config.get("schema")
     if dbname:
         check_dbs = [dbname]
     else:
@@ -100,7 +103,7 @@ def start():
     _check_times = manager.dict({db: t for db in check_dbs})
     for dbname in check_dbs:
         print("resetting jobs of db '%s'"%dbname)
-        db=database.connect(dbname)
+        db=database.connect(dbname,schema)
         res=db.execute("UPDATE cron_job SET state='waiting' WHERE state in ('running','error')")
         db.commit()
     job_pool = Pool(processes=int(config.get("job_processes")))
@@ -114,7 +117,7 @@ def start():
                     continue
                 _check_times[dbname] = t0 + timedelta(seconds=60)
                 print("Checking for scheduled jobs in database %s..." % dbname)
-                db = database.connect(dbname)
+                db = database.connect(dbname,schema)
                 db.begin()
                 res = db.query("SELECT * FROM cron_job WHERE state='waiting' ORDER BY date")
                 db.commit()

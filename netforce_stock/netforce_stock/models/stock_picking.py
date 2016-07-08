@@ -39,7 +39,7 @@ class Picking(Model):
         "contact_id": fields.Many2One("contact", "Contact", search=True),
         "date": fields.DateTime("Date", required=True, search=True),
         "state": fields.Selection([("draft", "Draft"), ("pending", "Planned"), ("approved", "Approved"), ("done", "Completed"), ("voided", "Voided")], "Status", required=True),
-        "lines": fields.One2Many("stock.move", "picking_id", "Lines"),
+        "lines": fields.One2Many("stock.move", "picking_id", "Stock Movements"),
         "move_id": fields.Many2One("account.move", "Journal Entry"),
         "product_id": fields.Many2One("product", "Product", store=False, function_search="search_product"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
@@ -55,7 +55,7 @@ class Picking(Model):
         "done_by_id": fields.Many2One("base.user", "Completed By", readonly=True),
         "done_approved_by_id": fields.Many2One("base.user", "Approved By", readonly=True),
         "employee_id": fields.Many2One("hr.employee", "Employee"),
-        "ship_method_id": fields.Many2One("ship.method", "Shipping Method"),
+        "ship_method_id": fields.Many2One("ship.method", "Shipping Method",search=True),
         "ship_tracking": fields.Char("Tracking Number"),
         "documents": fields.One2Many("document", "related_id", "Documents"),
         "ship_cost": fields.Decimal("Shipping Cost"),
@@ -67,6 +67,9 @@ class Picking(Model):
         "product_id2": fields.Many2One("product","Product",store=False,function_search="search_product2",search=True), #XXX ICC
         "sequence": fields.Decimal("Sequence",function="_get_related",function_context={"path":"ship_address_id.sequence"}),
         "delivery_slot_id": fields.Many2One("delivery.slot","Delivery Slot"),
+        "ship_state": fields.Selection([["wait_pick","Waiting Pickup"],["in_transit","In Transit"],["delivered","Delivered"]],"Shipping Status"),
+        "from_coords": fields.Char("Source Coordinates",function="get_from_coords"),
+        "to_coords": fields.Char("Destination Coordinates",function="get_to_coords"),
     }
     _order = "date desc,number desc"
 
@@ -149,9 +152,23 @@ class Picking(Model):
                 if obj.related_id and not move.related_id:
                     move.write({"related_id":"%s,%d"%(obj.related_id._model,obj.related_id.id)})
             obj.write({"state": "pending", "pending_by_id": user_id})
+            obj.check_stock()
+
+    def check_stock(self,ids,context={}):
+        print("stock_picking.check_stock",ids)
+        obj=self.browse(ids)[0]
+        for move in obj.lines:
+            prod=move.product_id
+            if not prod.check_lot_neg_stock:
+                continue
+            if not move.lot_id:
+                continue
+            qty_virt=get_model("stock.balance").get_qty_virt(move.location_from_id.id,prod.id,move.lot_id.id) # XXX: improve speed
+            print("loc_id=%s prod_id=%s lot_id=%s => qty_virt=%s"%(move.location_from_id.id,prod.id,move.lot_id.id,qty_virt))
+            if qty_virt<0:
+                raise Exception("Lot %s is out of stock (product %s)"%(move.lot_id.number,prod.code))
 
     def approve(self, ids, context={}):
-        user_id = get_active_user()
         for obj in self.browse(ids):
             for move in obj.lines:
                 move.write({"state": "approved", "date": obj.date})
@@ -187,7 +204,6 @@ class Picking(Model):
             obj.write({"state":"done","done_by_id":user_id},context=context)
             obj.set_currency_rate()
         self.check_order_qtys(ids)
-        self.create_bundle_pickings(ids)
         self.trigger(ids,"done")
 
     def check_order_qtys(self, ids, context={}):
@@ -247,6 +263,7 @@ class Picking(Model):
         if data["type"] == "in":
             if prod.purchase_price is not None:
                 line["cost_price_cur"] = prod.purchase_price
+        self.update_cost_price(context=context)
         return data
 
     def copy_to_invoice(self, ids, context):
@@ -306,6 +323,7 @@ class Picking(Model):
                 "number": number,
                 "contact_id": obj.contact_id.id,
                 "currency_id": obj.currency_id.id,
+                "currency_rate": obj.currency_rate,
                 "lines": [],
             }
             for line in obj.lines:
@@ -539,46 +557,6 @@ class Picking(Model):
         data["lines"] = lines
         return data
 
-    def create_bundle_pickings(self, ids, context={}):
-        for obj in self.browse(ids):
-            pick_vals = {
-                "type": obj.type,
-                "journal_id": obj.journal_id.id,
-                "date": obj.date,
-                "contact_id": obj.contact_id.id,
-                "ship_address_id": obj.ship_address_id.id,
-                "ref": obj.ref,
-                "related_id": "stock.picking,%d" % obj.id,
-                "lines": [],
-            }
-            for move in obj.lines:
-                prod = move.product_id
-                if prod.type != "bundle":
-                    continue
-                res = get_model("bom").search([["product_id", "=", prod.id]])
-                if not res:
-                    raise Exception("BoM not found for bundle product %s" % prod.code)
-                bom_id = res[0]
-                bom = get_model("bom").browse(bom_id)
-                qty = get_model("uom").convert(move.qty, move.uom_id.id, bom.uom_id.id)
-                ratio = qty / bom.qty
-                for comp in bom.lines:
-                    line_vals = {
-                        "product_id": comp.product_id.id,
-                        "qty": comp.qty * ratio,
-                        "uom_id": comp.uom_id.id,
-                        "location_from_id": move.location_from_id.id,
-                        "location_to_id": move.location_to_id.id,
-                        "lot_id": move.lot_id.id,
-                        "packaging_id": move.packaging_id.id,
-                        "num_packages": move.num_packages,
-                        "notes": move.notes,
-                    }
-                    pick_vals["lines"].append(("create", line_vals))
-            if pick_vals["lines"]:
-                pick_id = get_model("stock.picking").create(pick_vals, context={"pick_type": obj.type})
-                get_model("stock.picking").set_done([pick_id])
-
     def approve_done(self, ids, context={}):
         obj = self.browse(ids)[0]
         user_id = get_active_user()
@@ -768,5 +746,65 @@ class Picking(Model):
         line["cost_price"]=cost_price
         line["cost_amount"]=cost_amount
         return data
+
+    def get_from_coords(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            coords=None
+            for line in obj.lines:
+                loc=line.location_from_id
+                addr=loc.address_id
+                if addr and addr.coordinates:
+                    coords=addr.coordinates
+                    break
+            vals[obj.id]=coords
+        return vals
+
+    def get_to_coords(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            addr=obj.ship_address_id
+            if addr and addr.coordinates:
+                coords=addr.coordinates
+            else:
+                coords=None
+            vals[obj.id]=coords
+        return vals
+
+    def create_delivery_order(self,ids,context={}):
+        for obj in self.browse(ids):
+            if obj.ship_tracking:
+                raise Exception("Delivery order already created for picking %s"%obj.number)
+            meth=obj.ship_method_id
+            if not meth:
+                raise Exception("Missing shipping method for picking %s"%obj.number)
+            from_coords=obj.from_coords
+            if not from_coords:
+                raise Exception("Missing source coordinates for picking %s"%obj.number)
+            to_coords=obj.to_coords
+            if not to_coords:
+                raise Exception("Missing destination coordinates for picking %s"%obj.number)
+            item_desc=", ".join(["%sx%s"%(int(l.qty),l.product_id.code) for l in obj.lines])
+            delivery_date=obj.date[:10] # XXX
+            ctx={
+                "from_coords": from_coords,
+                "to_coords": to_coords,
+                "item_desc": item_desc,
+                "delivery_date": delivery_date,
+                "contact_id": obj.contact_id.id,
+            }
+            if obj.delivery_slot_id:
+                ctx["time_slot"]=obj.delivery_slot_id.name
+            try:
+                res=meth.create_delivery_order(context=ctx)
+                if not res:
+                    raise Exception("No handler found")
+                tracking_no=res["tracking_no"]
+                obj.write({"ship_tracking": tracking_no,"ship_state": "wait_pick"})
+                return {
+                    "flash": "Delivery order %s created successfully for picking %s"%(tracking_no,obj.number),
+                }
+            except Exception as e:
+                raise Exception("Failed to create delivery order for picking %s: %s"%(obj.number,e))
 
 Picking.register()

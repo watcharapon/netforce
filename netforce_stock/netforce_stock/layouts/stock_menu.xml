@@ -54,6 +54,6 @@
         <item string="Shipping Terms" action="ship_term"/>
         <item string="Storage Types" action="store_type"/>
         <item string="Packagings" action="packaging"/>
-        <item string="Messengers" action="messenger"/>
+        <item string="Delivery Slots" action="delivery_slot"/>
     </item>
 </menu>

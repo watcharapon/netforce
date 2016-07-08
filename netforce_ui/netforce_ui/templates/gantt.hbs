@@ -1,17 +1,36 @@
-<div class="page-header">
-    <h3>{{title}}</h3>
+<div class="page-header nf-page-header">
+    <h1>{{title}}</h1>
 </div>
-<div class="btn-toolbar">
+{{#view "form" border="1" context=context}}
+    {{#view "form_body" background="1" context=context}}
+        {{{call ../../render_search_body context}}}
+    {{/view}}
+{{/view}}
+<style>
+.weekend{ background: #f4f7f4 !important;}
+</style>
+<div class="btn-toolbar nf-btn-toolbar">
+    <a href="#" class="btn btn-primary run-report">Run Report</a>
     <div class="btn-group">
-        <button class="btn btn-back"><i class="icon-chevron-left"></i></button>
-        <button class="btn btn-forward"><i class="icon-chevron-right"></i></button>
+      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Export <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu">
+        <li><a href="#" class="nf-export-pdf">PDF</a></li>
+        <li><a href="#" class="nf-export-png">PNG</a></li>
+        <li><a href="#" class="nf-export-pdf">XLS</a></li>
+        <li><a href="#" class="nf-export-ical">ICal</a></li>
+        <li><a href="#" class="nf-export-msproject">MSProject</a></li>
+      </ul>
     </div>
-    <button class="btn btn-mode {{#ifeq mode 'today'}} active {{/ifeq}}" data-mode="today">Today</button>
-    <div class="btn-group" data-toggle="buttons-radio">
-        <button class="btn btn-mode {{#ifeq mode 'month'}} active {{/ifeq}}" data-mode="month">Month</button>
-        <button class="btn btn-mode {{#ifeq mode 'week'}} active {{/ifeq}}" data-mode="week">Week</button>
-        <button class="btn btn-mode {{#ifeq mode 'day'}} active {{/ifeq}}" data-mode="day">Day</button>
+    <!--<a href="#" class="btn btn-default nf-critical-path pull-right">Show Critical Path</a>-->
+    <a href="#" class="btn btn-default nf-fullscreen pull-right"><span class="glyphicon glyphicon-fullscreen"></span> Fullscreen</a>
+    <div class="btn-group pull-right">
+      <button type="button" class="btn btn-default nf-scale-month nf-scale">Month</button>
+      <button type="button" class="btn btn-default nf-scale-week nf-scale">Week</button>
+      <button type="button" class="btn btn-default nf-scale-day nf-scale">Day</button>
+      <!--<button type="button" class="btn btn-default nf-scale-hour nf-scale">Hour</button>-->
     </div>
-    <center><h2>{{sub_title}}</h2></center>
 </div>
-<svg></svg>
+<div id="nf-gantt-content" style="z-index:99;background-color:#fff"></div>
+<script src="http://export.dhtmlx.com/gantt/api.js"></script>  

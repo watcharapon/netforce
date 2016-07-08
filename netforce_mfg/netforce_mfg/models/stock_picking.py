@@ -67,7 +67,6 @@ class StockPicking(Model):
             obj.write({"state":"done","done_by_id":user_id},context=context)
             obj.set_currency_rate()
         self.check_order_qtys(ids)
-        self.create_bundle_pickings(ids)
         production_ids=self.get_update_production_orders(ids)
         if production_ids:
             get_model("production.order").update_status(production_ids)

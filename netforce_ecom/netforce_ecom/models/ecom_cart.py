@@ -63,8 +63,8 @@ class Cart(Model):
         "bill_first_name": fields.Char("First Name"),
         "bill_last_name": fields.Char("Last Name"),
         "bill_company": fields.Char("Company"),
-        "bill_address": fields.Char("Address",size=256),
-        "bill_address2": fields.Char("Address2",size=256),
+        "bill_address": fields.Char("Address"),
+        "bill_address2": fields.Char("Address2"),
         "bill_city": fields.Char("City"),
         "bill_country_id": fields.Many2One("country", "Country"),
         "bill_province_id": fields.Many2One("province", "Province"),
@@ -76,8 +76,8 @@ class Cart(Model):
         "ship_first_name": fields.Char("First Name"),
         "ship_last_name": fields.Char("Last Name"),
         "ship_company": fields.Char("Company"),
-        "ship_address": fields.Char("Address",size=256),
-        "ship_address2": fields.Char("Address2",size=256),
+        "ship_address": fields.Char("Address"),
+        "ship_address2": fields.Char("Address2"),
         "ship_city": fields.Char("City"),
         "ship_country_id": fields.Many2One("country", "Country"),
         "ship_province_id": fields.Many2One("province", "Province"),
@@ -97,7 +97,7 @@ class Cart(Model):
         "ip_addr": fields.Char("IP Address",readonly=True,search=True),
         "state": fields.Selection([["draft","Draft"],["confirmed","Confirmed"],["done","Completed"],["canceled","Canceled"]],"Status",required=True),
         "website_id": fields.Many2One("website","Website",required=True,search=True),
-        "pricelist_id": fields.Many2One("price.list","Price List"),
+        "pricelist_id": fields.Many2One("price.list","Price List"), # TODO: remove this field
         "sale_orders": fields.One2Many("sale.order","related_id","Sales Orders"),
         "display_promotions": fields.Many2Many("sale.promotion", "Display Promotions", function="get_display_promotions"),
         "payments": fields.One2Many("account.payment","related_id","Payments"),
@@ -631,16 +631,18 @@ class Cart(Model):
         vals = {
             "website_id": website_id,
         }
-        if website.sale_channel_id:
-            vals["pricelist_id"]=website.sale_channel_id.pricelist_id.id
-        user_id = access.get_active_user()
-        if user_id:
-            vals["user_id"] = user_id
-            user=get_model("base.user").browse(user_id)
-            contact =user.contact_id
-            vals["contact_id"] = contact.id
-            if contact.sale_price_list_id.id:
-                vals["pricelist_id"] =contact.sale_price_list_id.id 
+        #if website.sale_channel_id:
+            #vals["pricelist_id"]=website.sale_channel_id.pricelist_id.id
+        #user_id = access.get_active_user()
+        #if user_id:
+                #user_id=int(user_id)
+                #user=get_model("base.user").browse(user_id)
+                #contact = user.contact_id
+                #pricelist_ids=[website.sale_channel_id.pricelist_id.id]
+                #for group in contact.groups:
+                    #if group.sale_price_list_id:
+                        #pricelist_ids.append(group.sale_price_list_id.id)
+                #vals["pricelist_id"] = pricelist_ids
         cart_id = self.create(vals)
         self.set_default_address([cart_id])
         return cart_id
@@ -693,8 +695,39 @@ class Cart(Model):
     def add_product(self, ids, product_id, description, qty, images):
         print("Cart.add_product", ids, "product_id", product_id, "description", description, "qty", qty, "images", images)
         obj = self.browse(ids)[0]
+
+        #website_id=self.request.headers.get("X-Website-ID")
+        #if website_id:
+            #website_id=int(website_id)
+        #else:
+        res=get_model("website").search([["state","=","active"]])
+        if not res:
+            raise Exception("No website found")
+        website_id=res[0]
+        self.website_id=website_id
+        website=get_model("website").browse(website_id)
+        vals = {
+            "website_id": website_id,
+        }
+        
+        pricelist_ids=[website.sale_channel_id.pricelist_id.id]
+        user_id = access.get_active_user()
+        if user_id:
+            user_id=int(user_id)
+            user=get_model("base.user").browse(user_id)
+            contact = user.contact_id
+            if contact.groups:
+                for group in contact.groups:
+                    if group.sale_price_list_id:
+                        pricelist_ids.append(group.sale_price_list_id.id)
+            vals["pricelist_ids"] = pricelist_ids
+
+        #contact=user.contact_id ...
+        #pricelist_ids=[  website pricelist ]
+        #pricelist_ids.append(contact.get_price_lists())
         ctx={
-            "pricelist_id": obj.pricelist_id.id,
+            #"pricelist_id": obj.pricelist_id.id, # TODO: remove
+            "pricelist_ids": pricelist_ids,# get from contact of user,
         }
         product = get_model("product").browse(product_id,context=ctx)
         master=product.parent_id
@@ -1529,7 +1562,7 @@ class Cart(Model):
         for obj in self.browse(ids):
             amount_total_words = th_utils.num2word(float(obj.amount_total))
             vals[obj.id] = amount_total_words
-        return vals
+            return vals
 
     def void(self, ids, context={}):
         for obj in self.browse(ids):

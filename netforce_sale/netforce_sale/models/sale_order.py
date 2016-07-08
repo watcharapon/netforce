@@ -1,4 +1,4 @@
-# Copyright (c) 2012-2015 Netforce Co. Ltd.
+# copyright (c) 2012-2015 Netforce Co. Ltd.
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -53,10 +53,10 @@ class SaleOrder(Model):
         "quot_id": fields.Many2One("sale.quot", "Quotation", search=True), # XXX: deprecated
         "user_id": fields.Many2One("base.user", "Owner", search=True),
         "tax_type": fields.Selection([["tax_ex", "Tax Exclusive"], ["tax_in", "Tax Inclusive"], ["no_tax", "No Tax"]], "Tax Type", required=True),
-        "invoice_lines": fields.One2Many("account.invoice.line", "sale_id", "Invoice Lines"),
-        "invoices": fields.One2Many("account.invoice", "related_id", "Invoices"),
+        "invoice_lines": fields.One2Many("account.invoice.line", "related_id", "Invoice Lines"),
+        "invoices": fields.Many2Many("account.invoice", "Invoices", function="get_invoices"),
         "pickings": fields.Many2Many("stock.picking", "Stock Pickings", function="get_pickings"),
-        "is_delivered": fields.Boolean("Delivered", function="get_delivered"),
+        "is_delivered": fields.Boolean("Shipped", function="get_delivered"),
         "is_paid": fields.Boolean("Paid", function="get_paid"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "activities": fields.One2Many("activity", "related_id", "Activities"),
@@ -91,10 +91,11 @@ class SaleOrder(Model):
         "sequence_id": fields.Many2One("sequence", "Number Sequence"),
         "stock_moves": fields.One2Many("stock.move", "related_id", "Stock Movements"),
         "state_label": fields.Char("Status Label", function="get_state_label"),  # XXX: not needed
-        "ship_tracking": fields.Char("Tracking Numbers", function="get_ship_tracking"),
+        "ship_tracking": fields.Char("Tracking Numbers", function="get_ship_tracking"), # XXX: deprecated
         "job_template_id": fields.Many2One("job.template", "Service Order Template"),
         "jobs": fields.One2Many("job", "related_id", "Service Orders"),
         "agg_amount_total": fields.Decimal("Total Amount", agg_function=["sum", "amount_total"]),
+        "agg_amount_total_cur": fields.Decimal("Total Amount (Converted)", agg_function=["sum", "amount_total_cur"]),
         "agg_amount_subtotal": fields.Decimal("Total Amount w/o Tax", agg_function=["sum", "amount_subtotal"]),
         "agg_est_profit": fields.Decimal("Total Estimated Profit", agg_function=["sum", "est_profit"]),
         "agg_act_profit": fields.Decimal("Total Actual Profit", agg_function=["sum", "act_profit"]),
@@ -120,6 +121,8 @@ class SaleOrder(Model):
         "product_id": fields.Many2One("product","Product",store=False,function_search="search_product",search=True),
         "currency_rates": fields.One2Many("custom.currency.rate","related_id","Currency Rates"),
         "delivery_slot_id": fields.Many2One("delivery.slot","Delivery Slot"),
+        "transaction_no": fields.Char("Payment Transaction No.",search=True),
+        "voucher_id": fields.Many2One("sale.voucher","Voucher"),
     }
 
     def _get_number(self, context={}):
@@ -430,7 +433,6 @@ class SaleOrder(Model):
     def copy_to_picking(self, ids, context={}):
         id = ids[0]
         obj = self.browse(id)
-        pick_vals = {}
         contact = obj.contact_id
         res = get_model("stock.location").search([["type", "=", "customer"]])
         if not res:
@@ -440,51 +442,66 @@ class SaleOrder(Model):
         if not res:
             raise Exception("Warehouse not found")
         wh_loc_id = res[0]
-
-        for obj_line in obj.lines:
-            picking_key = obj_line.ship_method_id and obj_line.ship_method_id.id or 0
-            if picking_key in pick_vals: continue
-            if not obj.due_date:
-                raise Exception("Missing due date in sales order %s"%obj.number)
-            pick_vals[picking_key] = {
-                "type": "out",
-                "ref": obj.number,
-                "related_id": "sale.order,%s" % obj.id,
-                "contact_id": contact.id,
-                "ship_address_id": obj.ship_address_id.id,
-                "lines": [],
-                "state": "draft",
-                "ship_method_id": obj_line.ship_method_id.id or obj.ship_method_id.id,
-                "company_id": obj.company_id.id,
-                "date": obj.due_date+" 00:00:00",
-                'delivery_slot_id': obj.delivery_slot_id.id,
-            }
-            if contact and contact.pick_out_journal_id:
-                pick_vals[picking_key]["journal_id"] = contact.pick_out_journal_id.id
+        pick_vals = {}
         for line in obj.lines:
-            picking_key = line.ship_method_id and line.ship_method_id.id or 0
             prod = line.product_id
             if not prod:
                 continue
-            if prod.type not in ("stock", "consumable"):
+            if prod.type not in ("stock", "consumable", "bundle"):
                 continue
             if line.qty <= 0:
                 continue
             qty_remain = (line.qty_stock or line.qty) - line.qty_delivered
             if qty_remain <= 0:
                 continue
+            ship_method_id = line.ship_method_id.id or obj.ship_method_id.id
+            due_date = line.due_date or obj.due_date
+            if not due_date:
+                raise Exception("Missing due date for sales order %s"%obj.number)
+            pick_key = (ship_method_id,due_date)
+            if pick_key not in pick_vals:
+                pick_vals[pick_key] = {
+                    "type": "out",
+                    "ref": obj.number,
+                    "related_id": "sale.order,%s" % obj.id,
+                    "contact_id": contact.id,
+                    "ship_address_id": obj.ship_address_id.id,
+                    "lines": [],
+                    "state": "draft",
+                    "ship_method_id": ship_method_id,
+                    "company_id": obj.company_id.id,
+                    "date": due_date+" 00:00:00",
+                }
+                if contact and contact.pick_out_journal_id:
+                    pick_vals[pick_key]["journal_id"] = contact.pick_out_journal_id.id
             line_vals = {
                 "product_id": prod.id,
+                "lot_id": line.lot_id.id,
                 "qty": qty_remain,
                 "uom_id": prod.uom_id.id if line.qty_stock else line.uom_id.id,
                 "location_from_id": line.location_id.id or wh_loc_id,
                 "location_to_id": cust_loc_id,
                 "related_id": "sale.order,%s" % obj.id,
             }
-            pick_vals[picking_key]["lines"].append(("create", line_vals))
-        for picking_key, picking_value in pick_vals.items():
-            if not picking_value["lines"]: Exception("Nothing left to deliver")
-            pick_id = get_model("stock.picking").create(picking_value, context={"pick_type": "out"})
+            pick_vals[pick_key]["lines"].append(("create", line_vals))
+            if prod.type=="bundle":
+                if not prod.components:
+                    raise Exception("No components for bundle product %s"%prod.code)
+                for comp in prod.components:
+                    comp_prod=comp.component_id
+                    line_vals = {
+                        "product_id": comp_prod.id,
+                        "qty": qty_remain*comp.qty,
+                        "uom_id": comp_prod.uom_id.id,
+                        "location_from_id": line.location_id.id or wh_loc_id,
+                        "location_to_id": cust_loc_id,
+                        "related_id": "sale.order,%s" % obj.id,
+                    }
+                    pick_vals[pick_key]["lines"].append(("create", line_vals))
+        if not pick_vals:
+            Exception("Nothing left to deliver")
+        for pick_key, pick_val in pick_vals.items():
+            pick_id = get_model("stock.picking").create(pick_val, context={"pick_type": "out"})
             pick = get_model("stock.picking").browse(pick_id)
         return {
             "next": {
@@ -498,113 +515,106 @@ class SaleOrder(Model):
 
     def copy_to_invoice(self, ids, context={}):
         print("sale.copy_to_invoice",ids)
-        obj = self.browse(ids[0])
-        company_id=get_active_company()
-        set_active_company(obj.company_id.id) # XXX
-        try:
-            ship_method_ids=[]
-            ship_method_amts={}
-            ship_amt_total=0
-            for line in obj.lines:
-                ship_method_ids.append(line.ship_method_id.id)
-                ship_method_amts.setdefault(line.ship_method_id.id,0)
-                ship_method_amts[line.ship_method_id.id]+=line.amount
-                ship_amt_total+=line.amount
-            ship_method_ids=list(set(ship_method_ids))
-            inv_ids=[]
-            for ship_method_id in ship_method_ids:
-                contact = obj.contact_id
+        inv_vals=None
+        for obj in self.browse(ids):
+            if obj.state!="confirmed":
+                continue
+            if inv_vals is None:
                 inv_vals = {
                     "type": "out",
                     "inv_type": "invoice",
-                    "ref": obj.number,
-                    "related_id": "sale.order,%s" % obj.id,
-                    "contact_id": contact.id,
+                    "contact_id": obj.contact_id.id,
                     "bill_address_id": obj.bill_address_id.id,
                     "currency_id": obj.currency_id.id,
                     "tax_type": obj.tax_type,
                     "pay_method_id": obj.pay_method_id.id,
                     "lines": [],
                     "company_id": obj.company_id.id,
+                    "due_date": obj.due_date or obj.date,
                 }
-                if contact.sale_journal_id:
-                    inv_vals["journal_id"] = contact.sale_journal_id.id
-                    if contact.sale_journal_id.sequence_id:
-                        inv_vals["sequence_id"] = contact.sale_journal_id.sequence_id.id
-                for line in obj.lines:
-                    if not line.unit_price:
-                        continue
-                    if line.ship_method_id.id!=ship_method_id:
-                        continue
-                    prod = line.product_id
-                    remain_qty = line.qty - line.qty_invoiced
-                    if remain_qty <= 0:
-                        continue
-                    sale_acc_id=None
-                    if prod:
-                        sale_acc_id=prod.sale_account_id.id
-                        if not sale_acc_id and prod.parent_id:
-                            sale_acc_id=prod.parent_id.sale_account_id.id
-                    line_vals = {
-                        "product_id": prod.id,
-                        "description": line.description,
-                        "qty": remain_qty,
-                        "uom_id": line.uom_id.id,
-                        "unit_price": line.unit_price,
-                        "discount": line.discount,
-                        "discount_amount": line.discount_amount,
-                        "account_id": sale_acc_id,
-                        "tax_id": line.tax_id.id,
-                        "amount": line.qty*line.unit_price*(1-(line.discount or Decimal(0))/100)-(line.discount_amount or Decimal(0)),
-                    }
-                    inv_vals["lines"].append(("create", line_vals))
-                    if line.promotion_amount:
-                        prom_acc_id=None
-                        if prod:
-                            prom_acc_id=prod.sale_promotion_account_id.id
-                            if not prom_acc_id and prod.parent_id:
-                                prom_acc_id=prod.parent_id.sale_promotion_account_id.id
-                        if not prom_acc_id:
-                            prom_acc_id=sale_acc_id
-                        line_vals = {
-                            "product_id": prod.id,
-                            "description": "Promotion on product %s"%prod.code,
-                            "account_id": prom_acc_id,
-                            "tax_id": line.tax_id.id,
-                            "amount": -line.promotion_amount,
-                        }
-                        inv_vals["lines"].append(("create", line_vals))
-                for line in obj.used_promotions:
-                    if line.product_id or line.percent:
-                        continue
-                    ratio=ship_method_amts[ship_method_id]/ship_amt_total if ship_amt_total else 0
-                    prom=line.promotion_id
-                    prod = prom.product_id
-                    line_vals = {
-                        "product_id": prod.id,
-                        "description": prom.name,
-                        "account_id": prod and prod.sale_account_id.id or None,
-                        "tax_id": prod and prod.sale_tax_id.id or None,
-                        "amount": -line.amount*ratio,
-                    }
-                    inv_vals["lines"].append(("create", line_vals))
-                if not inv_vals["lines"]:
+                set_active_company(obj.company_id.id) # XXX
+            else:
+                if obj.contact_id.id!=inv_vals["contact_id"]:
+                    raise Exception("Sales orders are for different customers")
+                if obj.bill_address_id.id!=inv_vals["bill_address_id"]:
+                    raise Exception("Sales orders have different billing address")
+                if obj.currency_id.id!=inv_vals["currency_id"]:
+                    raise Exception("Sales orders have different currencies")
+                if obj.tax_type!=inv_vals["tax_type"]:
+                    raise Exception("Sales orders have different tax types")
+                if obj.pay_method_id.id!=inv_vals["pay_method_id"]:
+                    raise Exception("Sales orders have different payment methods")
+                if obj.company_id.id!=inv_vals["company_id"]:
+                    raise Exception("Sales orders are in different companies")
+            for line in obj.lines:
+                if not line.unit_price:
                     continue
-                inv_id = get_model("account.invoice").create(inv_vals, {"type": "out", "inv_type": "invoice"})
-                inv_ids.append(inv_id)
-            if not inv_ids:
-                raise Exception("Nothing to invoice")
-            print("inv_ids",inv_ids)
-            return {
-                "next": {
-                    "name": "view_invoice",
-                    "active_id": inv_ids[0],
-                },
-                "flash": "Invoice created from sales order %s" % obj.number,
-                "invoice_id": inv_ids[0],
-            }
-        finally:
-            set_active_company(company_id)
+                prod = line.product_id
+                remain_qty = line.qty - line.qty_invoiced
+                if remain_qty <= 0:
+                    continue
+                sale_acc_id=None
+                if prod:
+                    sale_acc_id=prod.sale_account_id.id
+                    if not sale_acc_id and prod.parent_id:
+                        sale_acc_id=prod.parent_id.sale_account_id.id
+                    if not sale_acc_id and prod.categ_id and prod.categ_id.sale_account_id:
+                        sale_acc_id=prod.categ_id.sale_account_id.id
+                line_vals = {
+                    "product_id": prod.id,
+                    "description": line.description,
+                    "qty": remain_qty,
+                    "uom_id": line.uom_id.id,
+                    "unit_price": line.unit_price,
+                    "discount": line.discount,
+                    "discount_amount": line.discount_amount,
+                    "account_id": sale_acc_id,
+                    "tax_id": line.tax_id.id,
+                    "amount": line.qty*line.unit_price*(1-(line.discount or Decimal(0))/100)-(line.discount_amount or Decimal(0)),
+                    "related_id": "sale.order,%d"%obj.id,
+                }
+                inv_vals["lines"].append(("create", line_vals))
+                if line.promotion_amount:
+                    prom_acc_id=None
+                    if prod:
+                        prom_acc_id=prod.sale_promotion_account_id.id
+                        if not prom_acc_id and prod.parent_id:
+                            prom_acc_id=prod.parent_id.sale_promotion_account_id.id
+                    if not prom_acc_id:
+                        prom_acc_id=sale_acc_id
+                    line_vals = {
+                        "product_id": prod.id,
+                        "description": "Promotion on product %s"%prod.code,
+                        "account_id": prom_acc_id,
+                        "tax_id": line.tax_id.id,
+                        "amount": -line.promotion_amount,
+                    }
+                    inv_vals["lines"].append(("create", line_vals))
+            for line in obj.used_promotions:
+                if line.product_id or line.percent:
+                    continue
+                prom=line.promotion_id
+                prod = prom.product_id
+                line_vals = {
+                    "product_id": prod.id,
+                    "description": prom.name,
+                    "account_id": prod and prod.sale_account_id.id or None,
+                    "tax_id": prod and prod.sale_tax_id.id or None,
+                    "amount": -line.amount,
+                }
+                inv_vals["lines"].append(("create", line_vals))
+        if not inv_vals["lines"]:
+            raise Exception("Nothing to invoice")
+        inv_id = get_model("account.invoice").create(inv_vals, {"type": "out", "inv_type": "invoice"})
+        inv=get_model("account.invoice").browse(inv_id)
+        return {
+            "next": {
+                "name": "view_invoice",
+                "active_id": inv_id,
+            },
+            "flash": "Invoice %s created from sales order" % inv.number,
+            "invoice_id": inv_id,
+        }
 
     def get_delivered(self, ids, context={}):
         vals = {}
@@ -625,11 +635,12 @@ class SaleOrder(Model):
         vals = {}
         for obj in self.browse(ids):
             amt_paid = 0
-            for inv in obj.invoices:
+            for inv_line in obj.invoice_lines:
+                inv=inv_line.invoice_id
                 if inv.state != "paid":
                     continue
-                amt_paid += inv.amount_total
-            is_paid = amt_paid >= obj.amount_total
+                amt_paid += inv_line.amount
+            is_paid = amt_paid >= obj.amount_subtotal # XXX: check this for tax-in
             vals[obj.id] = is_paid
         return vals
 
@@ -710,6 +721,11 @@ class SaleOrder(Model):
         data["price_list_id"] = contact.sale_price_list_id.id if contact else None
         data["bill_address_id"] = contact.get_address(pref_type="billing") if contact else None
         data["ship_address_id"] = contact.get_address(pref_type="shipping") if contact else None
+        if contact.currency_id:
+            data["currency_id"] = contact.currency_id.id
+        else:
+            settings = get_model("settings").browse(1)
+            data["currency_id"] = settings.currency_id.id
         return data
 
     def check_delivered_qtys(self, ids, context={}):
@@ -934,9 +950,8 @@ class SaleOrder(Model):
             track_nos = []
             for pick in obj.pickings:
                 if pick.ship_tracking:
-                    if pick.ship_tracking:
-                        track_nos.append(pick.ship_tracking)
-            vals[obj.id] = ",".join(track_nos)
+                    track_nos.append(pick.ship_tracking)
+            vals[obj.id] = ", ".join(track_nos)
         return vals
 
     def get_pickings(self, ids, context={}):
@@ -1227,5 +1242,117 @@ class SaleOrder(Model):
             rate_to=obj.currency_id.get_rate(obj.date) or Decimal(1)
             rate=rate_from/rate_to
         return rate
+
+    def copy_to_sale_return(self,ids,context={}):
+        for obj in self.browse(ids):
+            order_vals = {}
+            order_vals = {
+                "contact_id":obj.contact_id.id,
+                "date":obj.date,
+                "ref":obj.number,
+                "due_date":obj.due_date,
+                "currency_id":obj.currency_id.id,
+                "tax_type":obj.tax_type,
+                "bill_address_id":obj.bill_address_id.id,
+                "ship_address_id":obj.ship_address_id.id,
+                "lines":[],
+            }
+            for line in obj.lines:
+                line_vals = {
+                    "product_id":line.product_id.id,
+                    "description":line.description,
+                    "qty":line.qty,
+                    "uom_id":line.uom_id.id,
+                    "unit_price":line.unit_price,
+                    "discount":line.discount,
+                    "discount_amount":line.discount_amount,
+                    "tax_id":line.tax_id.id,
+                    "amount":line.amount,
+                    "location_id":line.location_id.id,
+                }
+                order_vals["lines"].append(("create", line_vals))
+            sale_id = get_model("sale.return").create(order_vals)
+            sale = get_model("sale.return").browse(sale_id)
+        return {
+            "next": {
+                "name": "sale_return",
+                "mode": "form",
+                "active_id": sale_id,
+            },
+            "flash": "Sale Return %s created from sales order %s" % (sale.number, obj.number),
+            "order_id": sale_id,
+        }
+
+    def create_invoice_payment(self,ids,context={}):
+        obj=self.browse(ids[0])
+        if obj.is_paid:
+            raise Exception("Sales order %s is alredy paid"%obj.number)
+        if obj.invoices:
+            raise Exception("There are already invoices created for sales order %s"%obj.number)
+        res=obj.copy_to_invoice()
+        inv_id=res["invoice_id"]
+        inv=get_model("account.invoice").browse(inv_id)
+        inv.post()
+        method=obj.pay_method_id
+        if not method:
+            raise Exception("Missing payment method for sales order %s"%obj.number)
+        if not method.account_id:
+            raise Exception("Missing account for payment method %s"%method.name)
+        transaction_no=context.get("transaction_no")
+        pmt_vals={
+            "type": "in",
+            "pay_type": "invoice",
+            "contact_id": inv.contact_id.id,
+            "account_id": method.account_id.id,
+            "lines": [],
+            "company_id": inv.company_id.id,
+            "transaction_no": transaction_no,
+        }
+        line_vals={
+            "invoice_id": inv_id,
+            "amount": inv.amount_total,
+        }
+        pmt_vals["lines"].append(("create",line_vals))
+        pmt_id=get_model("account.payment").create(pmt_vals,context={"type": "in"})
+        get_model("account.payment").post([pmt_id])
+        for pick in obj.pickings: # XXX
+            if pick.state=="pending":
+                pick.approve()
+
+    def pay_online(self,ids,context={}):
+        print("SaleOrder.pay_online",ids)
+        obj=self.browse(ids[0])
+        set_active_company(obj.company_id.id) # XXX
+        pay_method_id=context.get("pay_method_id")
+        if pay_method_id:
+            method=get_model("payment.method").browse(pay_method_id)
+            obj.write({"pay_method_id":method.id})
+        else:
+            method=obj.pay_method_id
+            if not method:
+                raise Exception("Missing payment method for sales order %s"%obj.number)
+        ctx={
+            "amount": obj.amount_total,
+            "currency_id": obj.currency_id.id,
+            "order_number": obj.number,
+            "details": "Order %s"%obj.number,
+            "contact_id": obj.contact_id.id,
+            "sale_id": obj.id,
+        }
+        res=method.start_payment(context=ctx)
+        if not res:
+            raise Exception("Failed to start online payment for sales order %s"%obj.number)
+        transaction_no=res["transaction_no"]
+        print("transaction_no: %s"%transaction_no)
+        obj.write({"transaction_no":transaction_no})
+        if res.get("payment_done"):
+            obj.create_invoice_payment()
+        return {
+            "transaction_no": transaction_no,
+            "next": res.get("payment_action"),
+        }
+
+    def payment_received(self,ids,context={}):
+        print("SaleOrder.payment_received",ids)
 
 SaleOrder.register()

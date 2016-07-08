@@ -87,43 +87,54 @@ def load_modules(modules):
     for mod in modules:
         module.load_module(mod)
 
-MODULE_VERSION = None
+_version_name = None
+_version_code = None
+
+def set_module_version(version_name,version_code):
+    global _version_name,_version_code
+    _version_name=version_name
+    _version_code=version_code
 
 
-def set_module_version(v):
-    global MODULE_VERSION
-    MODULE_VERSION = v
+def get_module_version_name():
+    return _version_name
 
-
-def get_module_version():
-    return MODULE_VERSION
+def get_module_version_code():
+    return _version_code
 
 web_proc=None
 job_proc=None
 
 def on_sigterm(signum,frame):
-    print("Received SIGTERM")
+    print("Received SIGTERM pid=%s"%os.getpid())
     print("Kill all child processes...")
     root = psutil.Process(os.getpid())
-    pids=[os.get_pid()]
-    for child in root.children(recursive=True):
-        pids.append(child.pid)
-    for pid in pids:
+    sub_pids=[]
+    for child in root.get_children(recursive=True):
+        sub_pids.append(child.pid)
+    print("kill sub_pids",sub_pids)
+    for pid in sub_pids:
         try:
             proc=psutil.Process(pid)
             proc.kill()
         except Exception as e:
             print("WARNING: failed to kill process %s: %s"%(pid,e))
+    print("#"*80)
+    print("ALL CHILD PROCESS KILLED, KILLING ROOT PROCESS IN 5 SECONDS...")
+    print("#"*80)
+    time.sleep(5);
+    root.kill()
 
 def run_server():
     global NUM_PROCESSES
     parser = argparse.ArgumentParser(description="Netforce server")
     parser.add_argument("-v", "--version", action="store_true", help="Show version information")
     parser.add_argument("-d", "--db", metavar="DB", help="Database")
+    parser.add_argument("-s", "--schema", metavar="SCHEMA", help="Database schema")
     parser.add_argument("-u", "--update", action="store_true", help="Update database schema")
     parser.add_argument("-M", "--migrate", metavar="FROM_VERSION", help="Apply version migrations")
     parser.add_argument("-l", "--load", metavar="MODULE", help="Load module data")
-    parser.add_argument("-s", "--export_static", action="store_true", help="Update static files")
+    parser.add_argument("-S", "--export_static", action="store_true", help="Update static files")
     parser.add_argument("-t", "--test", action="store_true", help="Run unit tests")
     parser.add_argument("-D", "--devel", action="store_true", help="Development mode")
     parser.add_argument("-m", "--minify", action="store_true", help="Minify js/css")
@@ -137,17 +148,19 @@ def run_server():
         print("running in development mode...")
     config.load_config()
     if args.version:
-        version = get_module_version()
+        version = get_module_version_name()
         print(version)
         return
     dbname = args.db or config.get("database")
     if dbname:
         database.set_active_db(dbname)
+    schema = args.schema or config.get("schema")
+    if schema:
+        database.set_active_schema(schema)
     ipc.init()
     if args.update:
-        model.update_db(force=args.force)
-        db = database.get_connection()
-        db.commit()
+        with database.Transaction():
+            model.update_db(force=args.force)
         return
     if args.migrate is not None:
         migration.apply_migrations(from_version=args.migrate)

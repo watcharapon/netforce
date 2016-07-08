@@ -18,6 +18,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
+from datetime import *
 import time
 
 from netforce.model import Model, fields
@@ -64,5 +65,15 @@ class Holiday(Model):
             date = '-'.join([yearnow, m, d])
             res.update({date})
         return list(res)
+
+    def is_holiday(self,ds):
+        d=datetime.strptime(ds,"%Y-%m-%d")
+        w=d.weekday()
+        if w==5 or w==6:
+            return True
+        res=self.search([["date","=",ds]])
+        if res:
+            return True
+        return False
 
 Holiday.register()

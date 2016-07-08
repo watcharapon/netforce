@@ -50,9 +50,9 @@ class PurchaseOrder(Model):
         "qty_total": fields.Decimal("Total Quantity", function="get_qty_total"),
         "currency_id": fields.Many2One("currency", "Currency", required=True),
         "tax_type": fields.Selection([["tax_ex", "Tax Exclusive"], ["tax_in", "Tax Inclusive"], ["no_tax", "No Tax"]], "Tax Type", required=True),
-        "invoice_lines": fields.One2Many("account.invoice.line", "purch_id", "Invoice Lines"),
+        "invoice_lines": fields.One2Many("account.invoice.line", "related_id", "Invoice Lines"),
         #"stock_moves": fields.One2Many("stock.move","purch_id","Stock Moves"),
-        "invoices": fields.One2Many("account.invoice", "related_id", "Invoices"),
+        "invoices": fields.Many2Many("account.invoice", "Invoices", function="get_invoices"),
         "pickings": fields.Many2Many("stock.picking", "Stock Pickings", function="get_pickings"),
         "is_delivered": fields.Boolean("Delivered", function="get_delivered"),
         "is_paid": fields.Boolean("Paid", function="get_paid"),
@@ -79,6 +79,7 @@ class PurchaseOrder(Model):
         "agg_amount_subtotal": fields.Decimal("Total Amount w/o Tax", agg_function=["sum", "amount_subtotal"]),
         "user_id": fields.Many2One("base.user", "Owner", search=True),
         "emails": fields.One2Many("email.message", "related_id", "Emails"),
+        "related_id": fields.Reference([["sale.order","Sales Order"],["stock.consign","Consignment Stock"]],"Related To"),
     }
     _order = "date desc,number desc"
 
@@ -373,6 +374,13 @@ class PurchaseOrder(Model):
             remain_qty = line.qty - line.qty_invoiced
             if remain_qty <= 0:
                 continue
+            purch_acc_id=None
+            if prod:
+                purch_acc_id=prod.purchase_account_id.id
+                if not purch_acc_id and prod.parent_id:
+                    purch_acc_id=prod.parent_id.purchase_account_id.id
+                if not purch_acc_id and prod.categ_id and prod.categ_id.purchase_account_id:
+                    purch_acc_id=prod.categ_id.purchase_account_id.id
             line_vals = {
                 "product_id": prod.id,
                 "description": line.description,
@@ -416,11 +424,12 @@ class PurchaseOrder(Model):
         vals = {}
         for obj in self.browse(ids):
             amt_paid = 0
-            for inv in obj.invoices:
+            for inv_line in obj.invoice_lines:
+                inv=inv_line.invoice_id
                 if inv.state != "paid":
                     continue
-                amt_paid += inv.amount_total
-            is_paid = amt_paid >= obj.amount_total
+                amt_paid += inv_line.amount
+            is_paid = amt_paid >= obj.amount_subtotal
             vals[obj.id] = is_paid
         return vals
 
@@ -495,6 +504,11 @@ class PurchaseOrder(Model):
         contact = get_model("contact").browse(contact_id)
         data["payment_terms"] = contact.payment_terms
         data["price_list_id"] = contact.purchase_price_list_id.id
+        if contact.currency_id:
+            data["currency_id"] = contact.currency_id.id
+        else:
+            settings = get_model("settings").browse(1)
+            data["currency_id"] = settings.currency_id.id
         return data
 
     def check_received_qtys(self, ids, context={}):

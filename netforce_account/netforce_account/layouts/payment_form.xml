@@ -37,7 +37,10 @@
                         <field name="invoice_lines" nolabel="1" count="5">
                             <list>
                                 <field name="invoice_id" condition='[["state","=","waiting_payment"],["contact_id","=",parent.contact_id],["company_id","=",parent.company_id]]' onchange="onchange_invoice" click_action="view_invoice"/>
-                                <field name="amount" onchange="update_amounts"/>
+                                <field name="invoice_currency_id"/>
+                                <field name="amount_invoice" onchange="onchange_amount_invoice"/>
+                                <field name="amount" onchange="onchange_amount_payment"/>
+                                <field name="currency_rate" onchange="onchange_amount_invoice"/>
                                 <field name="tax_no"/>
                             </list>
                         </field>
@@ -46,6 +49,7 @@
                         <field name="adjust_lines" nolabel="1" count="5">
                             <list>
                                 <field name="account_id" condition='[["type","!=","view"],["company_id","=",parent.company_id]]'/>
+                                <field name="description"/>
                                 <field name="tax_comp_id"/>
                                 <field name="tax_base"/>
                                 <field name="track_id"/>
@@ -134,6 +138,8 @@
             <field name="sequence_id" condition='[["type","in",["pay_in","pay_out"]]]' onchange="onchange_sequence"/>
             <newline/>
             <field name="currency_rate"/>
+            <newline/>
+            <field name="transaction_no"/>
         </tab>
     </tabs>
     <field name="company_id" invisible="1"/>

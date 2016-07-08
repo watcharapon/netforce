@@ -140,6 +140,7 @@ class StockOrder(Model):
         }
 
     def create_mo(self,ids,context={}):
+        print("StockOrder.create_mo",ids)
         obj=self.browse(ids[0])
         n=0
         for line in obj.lines:
@@ -164,7 +165,7 @@ class StockOrder(Model):
             order_date=line.date
             if not prod.mfg_lead_time:
                 raise Exception("Missing manufacturing lead time in product %s"%prod.code)
-            due_date=(datetime.strptime(order_date,"%Y-%m-%d")+timedelta(days=prod.mfg_lead_time)).strftime("%Y-%m-%d")
+            due_date=(datetime.strptime(order_date,"%Y-%m-%d")+timedelta(days=prod.mfg_lead_time-1)).strftime("%Y-%m-%d") # XXX: -1
             order_vals = {
                 "product_id": prod.id,
                 "qty_planned": line.qty,
@@ -182,6 +183,7 @@ class StockOrder(Model):
             get_model("production.order").create_operations([order_id])
             if obj.confirm_orders:
                 get_model("production.order").confirm([order_id])
+                get_model("production.order").in_progress([order_id])
             n+=1
         return {
             "num_orders": n,

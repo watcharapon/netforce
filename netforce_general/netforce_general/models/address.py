@@ -19,7 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields
-
+from netforce import access
 
 class Address(Model):
     _name = "address"
@@ -52,13 +52,20 @@ class Address(Model):
         "phone": fields.Char("Phone"),
         "fax": fields.Char("Fax"),
         "contact_id": fields.Many2One("contact", "Contact"),  # XXX: use reference?
-        #"company_id": fields.Many2One("company","Company"), # XXX: not used any more
         "settings_id": fields.Many2One("settings", "Settings"),
         "lead_id": fields.Many2One("sale.lead", "Lead"),
         "employee_id": fields.Many2One("hr.employee", "Employee"),
         "related_id": fields.Reference([], "Related To"),
         "address_text": fields.Text("Address Text", function="get_address_text"),
         "sequence": fields.Decimal("Sequence"),
+        "company_id": fields.Many2One("company","Company"),
+        "comments": fields.Text("Comments"),
+        "coordinates": fields.Char("Coordinates"),
+        "mobile": fields.Char("Mobile"),
+        "name": fields.Char("Address Name"),
+    }
+    _defaults={
+        "company_id": lambda *a: access.get_active_company(),
     }
 
     def get_address_text(self, ids, context={}):

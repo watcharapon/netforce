@@ -72,6 +72,8 @@
             <field name="payment_methods"/>
             <separator/>
             <field name="events"/>
+            <separator/>
+            <field name="sale_lead_time_nostock"/>
         </tab>
         <tab string="Purchasing">
             <field name="can_purchase"/>
@@ -138,16 +140,20 @@
                 <field name="stock_qty"/>
             </group>
             <separator/>
-            <field name="ship_methods"/>
-            <separator/>
             <field name="require_qty2"/>
             <field name="qty2_factor"/>
             <separator/>
             <field name="require_lot"/>
             <field name="lot_select"/>
+            <field name="check_lot_neg_stock"/>
             <separator/>
             <field name="stock_plan_horizon"/>
             <field name="max_qty_loss"/>
+        </tab>
+        <tab string="Delivery">
+            <field name="ship_methods"/>
+            <newline/>
+            <field name="delivery_weekdays"/>
         </tab>
         <tab string="Ecommerce">
             <field name="is_published"/>

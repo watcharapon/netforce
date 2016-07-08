@@ -64,11 +64,11 @@ class Template(Model):
             body = render_template(obj.body.replace("&quot;",'"'), data)
         except:
             raise Exception("Failed to render 'Body' in template: %s" % obj.body)
-        if obj.related_id and not related_id:
+        if obj.related and not related_id:
             try:
-                related_id = render_template(obj.related_id or "", data)
+                related_id = render_template(obj.related or "", data)
             except:
-                raise Exception("Failed to render 'From Address' in template: %s" % obj.name)
+                raise Exception("Failed to render 'Related To' in template: %s" % obj.name)
         attachments = []
         if obj.attachments:
             try:

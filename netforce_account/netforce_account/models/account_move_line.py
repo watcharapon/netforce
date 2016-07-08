@@ -61,7 +61,7 @@ class MoveLine(Model):
         "is_account_reconciled": fields.Boolean("Is Reconciled?", function="_is_account_reconciled"),
         "empty_contact": fields.Boolean("Empty Contact", store=False, function_search="_search_empty_contact", search=True),
         "tax_no": fields.Char("Tax No."),
-        "tax_date": fields.Date("Tax Date"),
+        "tax_date": fields.Date("Tax Invoice Date"),
         "sequence": fields.Integer("Sequence"),
         "amount_cur": fields.Decimal("Currency Amt"),
     }
@@ -110,6 +110,14 @@ class MoveLine(Model):
                     acc=get_model("account.account").browse(acc_id)
                     raise Exception("Can only reconcile transactions of same account (%s / %s)"%(obj.account_id.code,acc.code))
         self.write(all_ids, {"reconcile_id": rec_id})
+        inv_ids=[]
+        for obj in self.browse(all_ids):
+            move=obj.move_id
+            rel=move.related_id
+            if rel._model=="account.invoice":
+                inv_ids.append(rel.id)
+        if inv_ids:
+            get_model("account.invoice").function_store(inv_ids)
 
     def unreconcile_manual(self, ids, context={}):
         all_ids = ids[:]

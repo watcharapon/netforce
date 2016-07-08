@@ -64,6 +64,14 @@ class Controller(tornado.web.RequestHandler):
         if not dbname:
             dbname = self.get_cookie("dbname")
         database.set_active_db(dbname)
+        schema = None
+        if config.get("schema"):
+            schema = config.get("schema")
+        elif self.request.headers.get("X-Schema"):
+            schema = self.request.headers.get("X-Schema")
+        elif self.get_cookie("schema"):
+            schema = self.get_cookie("schema")
+        database.set_active_schema(schema)
         template.set_active_theme(None)
         locale = self.get_cookie("locale") or "en_US"
         netforce.locale.set_active_locale(locale)

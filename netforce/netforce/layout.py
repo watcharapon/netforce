@@ -63,7 +63,10 @@ def load_xml_layouts():
     print("  %d layouts loaded"%len(_xml_layouts))
 
 
-def layouts_to_json(modules=None):
-    if modules is None:
-        return _xml_layouts
-    return {n:v for n,v in _xml_layouts.items() if v["module"] in modules}
+def layouts_to_json(modules=None,mobile_only=None):
+    layouts= _xml_layouts
+    if modules:
+        layouts={n:v for n,v in layouts.items() if v["module"] in modules}
+    if mobile_only: 
+        layouts={n:v for n,v in layouts.items() if v["type"] in ("menu_mobile","list_mobile","form_mobile")}
+    return layouts

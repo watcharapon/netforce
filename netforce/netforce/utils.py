@@ -341,7 +341,8 @@ def compare_version(v1, v2):
 
 def get_db_version():
     db = database.get_connection()
-    res = db.get("SELECT * FROM pg_class WHERE relname='settings'")
+    schema = database.get_active_schema() or "public"
+    res = db.get("SELECT * FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname='settings' AND nspname=%s",schema)
     if not res:
         return None
     res = db.get("SELECT * FROM settings WHERE id=1")
@@ -352,7 +353,8 @@ def get_db_version():
 
 def set_db_version(version):
     db = database.get_connection()
-    res = db.get("SELECT * FROM pg_class WHERE relname='settings'")
+    schema = database.get_active_schema() or "public"
+    res = db.get("SELECT * FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname='settings' AND nspname=%s",schema)
     if not res:
         raise Exception("Missing settings table")
     res = db.get("SELECT * FROM settings WHERE id=1")
@@ -363,7 +365,8 @@ def set_db_version(version):
 
 def is_empty_db():
     db = database.get_connection()
-    res = db.get("SELECT * FROM pg_class WHERE relname='settings'")
+    schema = database.get_active_schema() or "public"
+    res = db.get("SELECT * FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname='settings' AND nspname=%s",schema)
     if not res:
         return True
     res = db.get("SELECT * FROM settings WHERE id=1")
@@ -373,9 +376,9 @@ def is_empty_db():
 
 def init_db():
     db = database.get_connection()
-    db.execute("INSERT INTO settings (id) VALUES (1)")
+    db.execute("INSERT INTO profile (id,name,default_model_perms) VALUES (1,'System Admin','full')")
+    db.execute("INSERT INTO settings (id,anon_profile_id) VALUES (1,1)")
     enc_pass=encrypt_password('1234')
-    db.execute("INSERT INTO profile (id,name) VALUES (1,'System Admin')")
     db.execute("INSERT INTO base_user (id,login,password,name,profile_id,active) VALUES (1,'admin',%s,'Admin',1,true)",enc_pass)
     db.execute("INSERT INTO company (id,name) VALUES (1,'Test Company')")
 
@@ -551,3 +554,17 @@ class XmlRpcCookieTransport(xmlrpc.client.Transport):
             cookie = header.split(";", 1)[0]
             self._cookies.append(cookie)
         return super().parse_response(response)
+
+def create_thumbnails(fname):
+    print("create_thumbnails",fname)
+    dbname = database.get_active_db()
+    if not dbname:
+        return None
+    fdir = os.path.join(os.getcwd(), "static", "db", dbname, "files")
+    path=os.path.join(fdir,fname)
+    basename,ext=os.path.splitext(fname)
+    for s in [512,256,128,64,32]:
+        fname_thumb = basename + "-resize-%s"%s + ext
+        path_thumb = os.path.join(fdir, fname_thumb)
+        print("path_thumb",path_thumb)
+        os.system(r"convert -resize %sx%s\> '%s' '%s'" % (s,s,path, path_thumb))

@@ -152,6 +152,7 @@ class Products(BaseController):
     def get(self):
         db = get_connection()
         try:
+            description =""
             ctx = self.context
             categ_id=self.get_argument("categ_id",None)
             if categ_id:
@@ -192,6 +193,18 @@ class Products(BaseController):
                     "name": categ.name, "image": categ.image if categ.sub_categories else None,
                     "last_level_categs": get_last_level(categ),
                 }
+
+                if categ.description:
+                    description = categ.description
+                else:
+                    desc = categ
+                    while desc.parent_id:
+                        desc = desc.parent_id
+                        if desc.description:
+                            description = desc.description
+                            break;
+                if description:
+                    ctx["title_description"] = description
                 while categ.parent_id:
                     categ = categ.parent_id
                 cond_filter_categ.append(["categ_id","child_of",categ.id])
@@ -221,14 +234,18 @@ class Products(BaseController):
                 "pricelist_id": website.sale_channel_id.pricelist_id.id if website.sale_channel_id else None,
                 "product_filter": cond,
             }
+
             user_id=self.get_cookie("user_id",None)
             if user_id:
                 user_id=int(user_id)
                 user=get_model("base.user").browse(user_id)
                 contact = user.contact_id
-                if contact.sale_price_list_id.id:
-                    browse_ctx["pricelist_id"] =contact.sale_price_list_id.id 
-                
+                pricelist_ids=[website.sale_channel_id.pricelist_id.id]
+                if contact.groups:
+                    for group in contact.groups:
+                        if group.sale_price_list_id:
+                            pricelist_ids.append(group.sale_price_list_id.id)
+                browse_ctx["pricelist_ids"]=pricelist_ids
             products = get_model("product").search_browse(condition=cond,order=sort_by,context=browse_ctx)
 
             cond_filter_supp = cond[:]

@@ -2,6 +2,8 @@
     <field name="name"/>
     <field name="code"/>
     <field name="sequence"/>
+    <field name="type"/>
+    <separator/>
     <field name="exclude_ship_methods"/>
     <field name="ship_product_id"/>
     <related>

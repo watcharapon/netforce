@@ -19,12 +19,9 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
-import uuid
 import time
-from urllib.request import urlopen
-from urllib.parse import urlencode
+import requests
 import re
-
 
 class SmsMessage(Model):
     _name = "sms.message"
@@ -35,13 +32,12 @@ class SmsMessage(Model):
         "date": fields.DateTime("Date", required=True, search=True),
         "phone": fields.Char("Phone Number", required=True, size=256, search=True),
         "body": fields.Text("Body", search=True),
-        "state": fields.Selection([["draft", "Draft"], ["to_send", "To Send"], ["sent", "Sent"], ["error", "Error"]], "Status", required=True),
-        "uuid": fields.Char("UUID"),
+        "state": fields.Selection([["draft", "Draft"], ["to_send", "To Send"], ["sent", "Sent"], ["error", "Error"]], "Status", required=True, search=True),
+        "error": fields.Text("Error Message"),
     }
     _order = "date desc"
     _defaults = {
         "state": "draft",
-        "uuid": lambda *a: str(uuid.uuid4()),
         "date": lambda *a: time.strftime("%Y-%m-%d %H:%M:%S"),
     }
 
@@ -49,35 +45,79 @@ class SmsMessage(Model):
         for obj in self.browse(ids):
             obj.write({"state": "to_send"})
 
-    def send_messages(self, context={}):
-        ids = self.search([["state", "=", "to_send"]])
+    def send(self,ids,context={}):
+        print("SMSMessage.send",ids)
         for obj in self.browse(ids):
-            try:
-                acc = obj.account_id
-                if not acc:
-                    res = get_model("sms.account").search([["type", "=", "thaibulksms"]])
-                    if res:
-                        acc = get_model("sms.account").browse(res[0])
-                        obj.write({"account_id": acc.id})
-                if not acc:
-                    raise Exception("Missing SMS account")
-                params = {
-                    'username': acc.username,
-                    'password': acc.password,
-                    'msisdn': obj.phone,
-                    'message': obj.body[:160].encode('tis-620'),
-                    'sender': acc.sender
-                }
-                url = "https://secure.thaibulksms.com/sms_api.php?" + urlencode(params)
-                res = urlopen(url, timeout=10).read().decode()
-                if res.find("<Status>1</Status>") == -1:
-                    raise Exception(res)
-                obj.write({"state": "sent"})
-            except Exception as e:
-                print("Failed to send SMS: %s" % e)
-                import traceback
-                traceback.print_exc()
-                obj.write({"state": "error"})
-                get_model("log").log("Failed to send SMS", str(e))
+            acc=obj.account_id
+            if not acc:
+                raise Exception("Missing account in SMS %s"%obj.id)
+            if acc.type=="twilio":
+                obj.send_twilio()
+            elif acc.type=="thaibulksms":
+                obj.send_thaibulksms()
+            elif acc.type=="smsmkt":
+                obj.send_smsmkt()
+            else:
+                raise Exception("Invalid SMS account type: %s"%acc.type)
+
+    def send_twilio(self,ids,context={}):
+        obj=self.browse(ids[0])
+        try:
+            acc=obj.account_id
+            url="https://api.twilio.com/2010-04-01/Accounts/%s/Messages"%acc.username
+            params={
+                "To": obj.phone,
+                "From": acc.sender,
+                "Body": obj.body,
+            }
+            r=requests.post(url,data=params,auth=(acc.username,acc.password))
+            if r.status_code!=201:
+                raise Exception("Failed to send SMS with Twilio (status_code=%s)"%r.status_code)
+            obj.write({"state": "sent"})
+        except Exception as e:
+            obj.write({"state": "error"})
+            obj.write({"state": "error","error":str(e)})
+            raise e
+
+    def send_thaibulksms(self,ids,context={}):
+        obj=self.browse(ids[0])
+        try:
+            acc=obj.account_id
+            url = "https://secure.thaibulksms.com/sms_api.php"
+            params={
+                'username': acc.username,
+                'password': acc.password,
+                'msisdn': obj.phone,
+                'message': obj.body[:160].encode('tis-620'),
+                'sender': acc.sender,
+            }
+            r=requests.get(url,data=params)
+            if r.content.find("<Status>1</Status>") == -1:
+                raise Exception("Failed to send SMS with ThaiBulkSMS)"%r.status_code)
+            obj.write({"state": "sent"})
+        except Exception as e:
+            obj.write({"state": "error","error":str(e)})
+            raise e
+
+    def send_smsmkt(self,ids,context={}):
+        obj=self.browse(ids[0])
+        try:
+            acc=obj.account_id
+            url="https://member.smsmkt.com/SMSLink/SendMsg/index.php"
+            params={
+                "Username": acc.username,
+                "Password": acc.password,
+                "Msnlist": obj.phone,
+                'Msg': obj.body,
+                "Sender": acc.sender,
+            }
+            url+="?User=%(Username)s&Password=%(Password)s&Msnlist=%(Msnlist)s&Msg=%(Msg)s&Sender=%(Sender)s"%params
+            r=requests.get(url,timeout=15)
+            if r.status_code!=200:
+                raise Exception("Failed to send SMS")
+            obj.write({"state": "sent"})
+        except Exception as e:
+            obj.write({"state": "error","error":str(e)})
+            raise e
 
 SmsMessage.register()

@@ -560,13 +560,13 @@ class EmailMessage(Model):
             }
             if obj.cc_addrs:
                 data["cc"] = [a.strip() for a in obj.cc_addrs.split(",")]
-            data["html"] = obj.body
+            data["html"] = obj.body or "<html><body></body></html>"
             files = []
             for attach in obj.attachments:
                 path = utils.get_file_path(attach.file)
                 f = open(path, "rb")
                 files.append(("attachment", f))
-            r = requests.post(url, auth=("api", account.password), data=data, files=files,timeout=5)
+            r = requests.post(url, auth=("api", account.password), data=data, files=files,timeout=15)
             try:
                 res = json.loads(r.text)
                 msg_id = res["id"]

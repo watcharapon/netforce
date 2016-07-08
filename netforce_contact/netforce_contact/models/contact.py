@@ -29,13 +29,14 @@ class Contact(Model):
     _string = "Contact"
     _audit_log = True
     _export_field = "name"
+    _key = ["code"]
     _fields = {
         "user_id": fields.Many2One("base.user", "User"),
         "type": fields.Selection([["person", "Individual"], ["org", "Organization"]], "Contact Type", required=True, search=True),
         "customer": fields.Boolean("Customer", search=True),
         "supplier": fields.Boolean("Supplier", search=True),
         "name": fields.Char("Name", required=True, search=True, translate=True, size=256),
-        "code": fields.Char("Code", search=True),
+        "code": fields.Char("Code", search=True, required=True),
         "phone": fields.Char("Phone", search=True),
         "fax": fields.Char("Fax"),
         "website": fields.Char("Website"),
@@ -170,28 +171,18 @@ class Contact(Model):
         print("currency_id", currency_id)
         vals = {}
         for obj in self.browse(ids):
-            out_credit = 0
-            in_credit = 0
-            for inv in obj.invoices:
-                if inv.state != "waiting_payment":
-                    continue
-                if inv.inv_type not in ("credit", "prepay", "overpay"):
-                    continue
-                if currency_id and inv.currency_id.id != currency_id:
-                    continue
-                if inv.type == "out":
-                    if currency_id:
-                        out_credit += inv.amount_credit_remain or 0
-                    else:
-                        out_credit += inv.amount_credit_remain_cur or 0
-                elif inv.type == "in":
-                    if currency_id:
-                        in_credit += inv.amount_credit_remain or 0
-                    else:
-                        in_credit += inv.amount_credit_remain_cur or 0
+            ctx={
+                "contact_id": obj.id,
+            }
+            r_credit = 0
+            p_credit = 0
+            for acc in get_model("account.account").search_browse([["type","=","cust_deposit"]],context=ctx):
+                r_credit-=acc.balance
+            for acc in get_model("account.account").search_browse([["type","=","sup_deposit"]],context=ctx):
+                p_credit+=acc.balance
             vals[obj.id] = {
-                "receivable_credit": out_credit,
-                "payable_credit": in_credit,
+                "receivable_credit": r_credit,
+                "payable_credit": p_credit, # TODO
             }
         return vals
 
@@ -243,5 +234,43 @@ class Contact(Model):
                 continue
             if not utils.check_email_syntax(obj.email):
                 raise Exception("Invalid email for contact '%s'"%obj.name)
+
+    def find_address(self,ids,addr_vals,context={}):
+        obj=self.browse(ids[0])
+        addr_id=None
+        for addr in obj.addresses:
+            if "address" in addr_vals and addr_vals["address"]!=addr.address:
+                continue
+            if "address2" in addr_vals and addr_vals["address2"]!=addr.address2:
+                continue
+            if "city" in addr_vals and addr_vals["city"]!=addr.city:
+                continue
+            if "postal_code" in addr_vals and addr_vals["postal_code"]!=addr.postal_code:
+                continue
+            if "country_id" in addr_vals and addr_vals["country_id"]!=addr.country_id.id:
+                continue
+            if "province_id" in addr_vals and addr_vals["province_id"]!=addr.province_id.id:
+                continue
+            if "district_id" in addr_vals and addr_vals["district_id"]!=addr.district_id.id:
+                continue
+            if "subdistrict_id" in addr_vals and addr_vals["subdistrict_id"]!=addr.subdistrict_id.id:
+                continue
+            if "phone" in addr_vals and addr_vals["phone"]!=addr.phone:
+                continue
+            if "first_name" in addr_vals and addr_vals["phone"]!=addr.first_name:
+                continue
+            if "last_name" in addr_vals and addr_vals["last_name"]!=addr.last_name:
+                continue
+            addr_id=addr.id
+            break
+        return addr_id
+
+    def add_address(self,ids,addr_vals,context={}):
+        addr_id=self.find_address(ids)
+        if not addr_id:
+            vals=addr_vals.copy()
+            vals["contact_id"]=ids[0]
+            addr_id=get_model("address").create(vals)
+        return addr_id
 
 Contact.register()

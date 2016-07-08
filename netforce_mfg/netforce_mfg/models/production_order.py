@@ -597,7 +597,7 @@ class ProductionOrder(Model):
             if not prod.suppliers:
                 raise Exception("Missing supplier for product '%s'" % prod.name)
             supplier_id = prod.suppliers[0].supplier_id.id
-            suppliers.setdefault(supplier_id, []).append((prod.id, line.qty_planned, line.uom_id.id))
+            suppliers.setdefault(supplier_id, []).append((prod.id, line.qty_planned, line.uom_id.id,line.location_id.id))
         if not suppliers:
             raise Exception("No purchase orders to create")
         order_ids = []
@@ -607,7 +607,7 @@ class ProductionOrder(Model):
                 "ref": obj.number,
                 "lines": [],
             }
-            for prod_id, qty, uom_id in lines:
+            for prod_id, qty, uom_id,location_id in lines:
                 prod = get_model("product").browse(prod_id)
                 line_vals = {
                     "product_id": prod_id,
@@ -617,6 +617,7 @@ class ProductionOrder(Model):
                     "unit_price": prod.purchase_price or 0,
                     "tax_id": prod.purchase_tax_id.id,
                     "sale_id": obj.sale_id.id,
+                    "location_id" : location_id,
                 }
                 order_vals["lines"].append(("create", line_vals))
             order_id = get_model("purchase.order").create(order_vals)
@@ -1033,7 +1034,7 @@ class ProductionOrder(Model):
     def complete_production_moves(self,ids,context={}):
         obj=self.browse(ids[0])
         for pick in obj.pickings:
-            if pick.state in ("in","out"):
+            if pick.type in ("in","out"):
                 pick.set_done()
 
     def get_pickings(self, ids, context={}):

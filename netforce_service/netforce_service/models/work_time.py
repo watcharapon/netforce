@@ -27,6 +27,7 @@ import datetime
 class WorkTime(Model):
     _name = "work.time"
     _string = "Work Time"
+    _name_field="date"
     _fields = {
         "resource_id": fields.Many2One("service.resource", "Resource", required=True, search=True, on_delete="cascade"),
         "resource_type": fields.Selection([["person","Person"],["machine","Machine"]],"Resource Type",function="_get_related",function_search="_search_related",function_context={"path":"resource_id.type"},search=True),
@@ -48,6 +49,10 @@ class WorkTime(Model):
         "state": fields.Selection([["waiting_approval", "Waiting Approval"], ["approved", "Approved"], ["rejected", "Rejected"]], "Status", required=True),
         "agg_actual_hours_total": fields.Decimal("Actual Hours Total", agg_function=["sum", "actual_hours"]),
         "agg_bill_hours_total": fields.Decimal("Billable Hours Total", agg_function=["sum", "bill_hours"]),
+        "track_entries": fields.One2Many("account.track.entry","related_id","Tracking Entries"),
+        "track_id": fields.Many2One("account.track.categ","Tracking",function="get_track_categ"),
+        "cost_amount": fields.Decimal("Cost Amount",function="get_cost_amount"),
+        "invoice_id": fields.Many2One("account.invoice","Invoice"),
     }
     _order = "date,resource_id.name"
 
@@ -63,6 +68,12 @@ class WorkTime(Model):
         "resource_id": get_resource,
         "state": "waiting_approval",
     }
+
+    def name_get(self,ids,context={}):
+        res=[]
+        for obj in self.browse(ids):
+            res.append((obj.id,"Work Time %s / %s"%(obj.resource_id.name,obj.date)))
+        return res
 
     def create(self, vals, **kw):
         new_id = super().create(vals, **kw)
@@ -98,8 +109,28 @@ class WorkTime(Model):
         return [["date", ">=", d0.strftime("%Y-%m-%d")], ["date", "<=", d1.strftime("%Y-%m-%d")]]
 
     def approve(self, ids, context={}):
+        res=get_model("uom").search([["name","=","Hour"]])
+        if not res:
+            raise Exception("Hour UoM not found")
+        hour_uom_id=res[0]
         for obj in self.browse(ids):
             obj.write({"state": "approved"})
+            amt=obj.cost_amount
+            track=obj.track_id
+            if track and amt:
+                if track.currency_id:
+                    settings=get_model("settings").browse(1)
+                    amt=get_model("currency").convert(amt,settings.currency_id.id,track.currency_id.id)
+                vals={
+                    "track_id": obj.track_id.id,
+                    "date": obj.date,
+                    "amount": -amt,
+                    "product_id": obj.resource_id.product_id.id,
+                    "qty": obj.actual_hours or 0,
+                    "uom_id": hour_uom_id,
+                    "related_id": "work.time,%s"%obj.id,
+                }
+                get_model("account.track.entry").create(vals)
 
     def reject(self, ids, context={}):
         for obj in self.browse(ids):
@@ -108,6 +139,7 @@ class WorkTime(Model):
     def waiting_approval(self, ids, context={}):
         for obj in self.browse(ids):
             obj.write({"state": "waiting_approval"})
+            obj.track_entries.delete()
 
     def onchange_product(self, context={}):
         data = context["data"]
@@ -115,5 +147,70 @@ class WorkTime(Model):
         prod = get_model("product").browse(prod_id)
         data["unit_price"] = prod.cost_price
         return data
+
+    def get_track_categ(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            track_id=obj.project_id.track_id.id
+            rel=obj.related_id
+            if rel.track_id:
+                track_id=rel.track_id.id
+            vals[obj.id]=track_id
+        return vals
+
+    def get_cost_amount(self,ids,context={}):
+        vals={}
+        for obj in self.browse(ids):
+            prod=obj.resource_id.product_id
+            amt=(prod.cost_price or 0)*(obj.actual_hours or 0)
+            vals[obj.id]=amt
+        return vals
+
+    def copy_to_invoice(self,ids,context={}):
+        inv_vals = {
+            "type": "out",
+            "inv_type": "invoice",
+            "lines": [],
+        }
+        for obj in self.browse(ids):
+            if obj.invoice_id:
+                raise Exception("Invoice already created for work time %s"%obj.id)
+            project=obj.project_id 
+            contact=project.contact_id
+            if inv_vals.get("contact_id"):
+                if contact.id!=inv_vals["contact_id"]:
+                    raise Exception("Different contacts")
+            else:
+                inv_vals["contact_id"]=contact.id
+            resource=obj.resource_id
+            prod=resource.product_id
+            if not prod:
+                raise Exception("Missing product for work time %d"%obj.id)
+            if not prod.sale_account_id:
+                raise Exception("Missing sales account in product %s"%prod.code)
+            line_vals = {
+                "product_id": prod.id,
+                "description": obj.description or "/",
+                "qty": line.bill_hours or 0,
+                "uom_id": prod.uom_id.id,
+                "unit_price": prod.sale_price or 0,
+                "account_id": prod.sale_account_id.id,
+                "tax_id": prod.sale_tax_id.id if prod else None,
+                "amount": (line.bill_hours or 0)*(prod.sale_price or 0),
+                "related_id": "work.time,%s"%obj.id,
+            }
+            inv_vals["lines"].append(("create", line_vals))
+        if not inv_vals["lines"]:
+            raise Exception("Nothing to invoice")
+        inv_id = get_model("account.invoice").create(inv_vals, {"type": "out", "inv_type": "invoice"})
+        self.write(ids,{"invoice_id": inv_id})
+        inv = get_model("account.invoice").browse(inv_id)
+        return {
+            "next": {
+                "name": "view_invoice",
+                "active_id": inv_id,
+            },
+            "flash": "Invoice %s created from work time" % inv.number,
+        }
 
 WorkTime.register()

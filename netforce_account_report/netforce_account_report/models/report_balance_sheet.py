@@ -79,7 +79,7 @@ class ReportBalanceSheet(Model):
         track2_id = params.get("track2_id")
         if track2_id:
             track2_id = int(track2_id)
-        bs_types = ["bank", "cash", "cheque", "receivable", "cur_asset", "noncur_asset",
+        bs_types = ["bank", "cash", "cheque", "receivable", "cur_asset", "noncur_asset", "sup_deposit",
                     "fixed_asset", "payable", "cust_deposit", "cur_liability", "noncur_liability", "equity"]
         ctx = {
             "date_to": date_to,
@@ -129,7 +129,7 @@ class ReportBalanceSheet(Model):
             parent.setdefault("children", []).append(acc)
         assets = {
             "name": "Assets",
-            "types": ["bank", "cash", "cheque", "receivable", "cur_asset", "noncur_asset", "fixed_asset"],
+            "types": ["bank", "cash", "cheque", "receivable", "cur_asset", "noncur_asset", "fixed_asset", "sup_deposit"],
         }
         liabilities = {
             "name": "Liabilities",

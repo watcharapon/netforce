@@ -30,11 +30,10 @@ class Account(Model):
     _name_field = "name"
     _fields = {
         "name": fields.Char("Account Name", required=True, search=True),
-        "type": fields.Selection([["thaibulksms", "Thai Bulk SMS"]], "Type", required=True),
+        "type": fields.Selection([["twilio","Twilio"],["thaibulksms","Thai Bulk SMS"],["smsmkt","SMSMKT"]], "Type", required=True),
         "sender": fields.Char("Sender", required=True),
         "username": fields.Char("User", required=True),
         "password": fields.Char("Password", required=True),
-        "uuid": fields.Char("UUID"),
     }
     _defaults = {
         "uuid": lambda *a: str(uuid.uuid4()),

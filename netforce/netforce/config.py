@@ -39,7 +39,7 @@ def load_config(filename=None):
         "db_user": "postgres",
         "db_password": "postgres",
         "super_password": "admin",
-        "web_processes": "8",
+        "web_processes": "4",
         "job_processes": "1",
     }
     if filename:
@@ -48,6 +48,9 @@ def load_config(filename=None):
         parser.read(filename)
         if parser.has_section("server"):
             for k, v in parser.items("server"):
+                config[k] = v
+        if parser.has_section("url"):
+            for k, v in parser.items("url"):
                 config[k] = v
     else:
         print("No configuration file found")

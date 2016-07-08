@@ -26,12 +26,14 @@ class Packaging(Model):
     _string = "Packaging"
     _fields = {
         "name": fields.Char("Name", required=True),
+        "code": fields.Char("Code"),
         "description": fields.Text("Description"),
         "width": fields.Decimal("Width"),
         "height": fields.Decimal("Height"),
         "length": fields.Decimal("Length"),
         "weight": fields.Decimal("Weight"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
+        "product_id": fields.Many2One("product","Product"),
     }
     _order = "name"
 

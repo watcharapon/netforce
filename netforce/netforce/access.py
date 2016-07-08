@@ -139,6 +139,15 @@ def get_permissions(model):
                 "view_all": False,
                 "modif_all": False,
             }
+        elif res.default_model_perms == "readonly":
+            perms = {
+                "read": True,
+                "create": False,
+                "write": False,
+                "delete": False,
+                "view_all": False,
+                "modif_all": False,
+            }
         else:
             perms = {
                 "read": False,

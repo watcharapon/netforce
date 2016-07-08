@@ -204,7 +204,10 @@ def make_js(minify=False):
             for fname in sorted(pkg_resources.resource_listdir(m, "js")):
                 if not fname.endswith("js"):
                     continue
-                res = pkg_resources.resource_string(m, "js/"+fname).decode("utf-8")
+                try:
+                    res = pkg_resources.resource_string(m, "js/"+fname).decode("utf-8")
+                except:
+                    raise Exception("Failed to load file %s"%fname)
                 data.append(res)
         if pkg_resources.resource_exists(m, "views"): # XXX: merge this with js dir?
             for fname in sorted(pkg_resources.resource_listdir(m, "views")):
@@ -266,7 +269,7 @@ def make_css(minify=False):
 def make_ui_params():
     print("building ui_params...")
     data = {}
-    data["version"] = netforce.get_module_version()
+    data["version"] = netforce.get_module_version_name()
     data["models"] = model.models_to_json()
     data["actions"] = action.actions_to_json()
     data["layouts"] = layout.layouts_to_json()

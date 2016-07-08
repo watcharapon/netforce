@@ -36,7 +36,7 @@ class Profile(Model):
         "login_company_id": fields.Many2One("company", "Login Company"),
         "prevent_login": fields.Boolean("Prevent Login"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
-        "default_model_perms": fields.Selection([["full", "Full Access"], ["no", "No Access"]], "Default Model Permissions"),
+        "default_model_perms": fields.Selection([["full", "Full Access"], ["readonly","Read-only Access"], ["no", "No Access"]], "Default Model Permissions"),
         "default_menu_access": fields.Selection([["visible", "Visible"], ["hidden", "Hidden"]], "Default Menu Access"),
     }
     _order = "name"

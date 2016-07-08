@@ -1,8 +1,6 @@
 <list model="address">
     <field name="type"/>
-    <field name="first_name"/>
-    <field name="last_name"/>
-    <field name="company"/>
+    <field name="name"/>
     <field name="address"/>
     <field name="address2"/>
     <field name="city"/>
@@ -10,5 +8,5 @@
     <field name="country_id"/>
     <field name="province_id"/>
     <field name="phone"/>
-    <field name="sequence"/>
+    <field name="coordinates"/>
 </list>

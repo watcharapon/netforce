@@ -1,4 +1,4 @@
-<form model="stock.period" attrs='{"readonly":[["state","=","posted"]]}'>
+<form model="stock.period" attrs='{"readonly":[["state","=","posted"]]}' show_company="1">
     <head>
         <field name="state"/>
         <button string="Options" dropdown="1">
@@ -14,6 +14,7 @@
     <divider/>
     <field name="num_stock_moves"/>
     <field name="num_posted_stock_moves"/>
+    <field name="company_id" invisible="1"/>
     <foot>
         <button string="Post" method="post" type="success" states="draft"/>
     </foot>

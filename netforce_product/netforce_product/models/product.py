@@ -21,13 +21,13 @@
 from netforce.model import Model, fields, get_model
 from netforce import database
 from netforce.database import get_active_db
+from netforce import utils
 import os.path
 from PIL import Image, ImageChops
 from netforce import access
 from decimal import Decimal
 import time
 import math
-
 
 class Product(Model):
     _name = "product"
@@ -134,6 +134,7 @@ class Product(Model):
         "payment_methods": fields.Many2Many("payment.method","Payment Methods"),
         "locations": fields.One2Many("product.location","product_id","Warehouses"),
         "stock_qty": fields.Decimal("Total Stock Qty",function="get_stock_qty"),
+        "stock_lots": fields.Many2Many("stock.lot","Lots In Stock",function="get_stock_lots"),
         "state": fields.Selection([["draft","Draft"],["approved","Approved"]],"Status"),
         "sale_uom_id": fields.Many2One("uom", "Sales Order UoM"),
         "sale_invoice_uom_id": fields.Many2One("uom","Sales Invoice UoM"),
@@ -167,6 +168,10 @@ class Product(Model):
         "ecom_lot_before_invoice": fields.Boolean("Require Lot Before Invoicing"),
         "product_origin": fields.Char("Product Origin"),
         "stock_balances": fields.One2Many("stock.balance","product_id","Stock Balances"),
+        "check_lot_neg_stock": fields.Boolean("Check Lot Negative Stock"),
+        "sale_lead_time_nostock": fields.Integer("Sale Lead Time When Out Of Stock (Days)"),
+        "ship_methods": fields.Many2Many("ship.method", "Shipping Methods"),
+        "delivery_weekdays": fields.Char("Delivery Weekday Constraints"),
     }
 
     _defaults = {
@@ -247,7 +252,6 @@ class Product(Model):
             "stock_in_account_id": obj.stock_in_account_id.id,
             "stock_out_account_id": obj.stock_out_account_id.id,
             "bin_location": obj.bin_location,
-            "subbrand": obj.subbrand,
             "sale_company_id": obj.sale_company_id.id,
             "attributes": [],
         }
@@ -492,9 +496,29 @@ class Product(Model):
         vals={}
         for obj in self.browse(ids):
             qty=0
-            for loc in obj.locations:
-                qty+=loc.stock_qty or 0
+            for bal in get_model("stock.balance").search_browse([["product_id","=",obj.id]]):
+                qty+=bal.qty_virt # XXX: check this
             vals[obj.id]=qty
+        return vals
+
+    def get_stock_lots(self,ids,context={}):
+        db=database.get_connection()
+        res=db.query("SELECT b.product_id,b.location_id,p.sale_price,l.id AS lot_id,l.number,l.weight,SUM(b.qty_virt) AS qty FROM stock_balance b JOIN stock_lot l ON l.id=b.lot_id JOIN product p ON p.id=b.product_id WHERE b.product_id IN %s GROUP BY b.product_id,b.location_id,p.sale_price,l.id,l.number,l.weight ORDER BY l.expiry_date,l.received_date",tuple(ids))
+        lots={}
+        prod_lots={}
+        for r in res:
+            k=(r.product_id,r.lot_id)
+            if k not in lots:
+                lot_vals={
+                    "id": r.lot_id,
+                    "qty": 0,
+                }
+                lots[k]=lot_vals
+                prod_lots.setdefault(r.product_id,[]).append(lot_vals)
+            lots[k]["qty"]+=r.qty
+        vals={}
+        for obj in self.browse(ids):
+            vals[obj.id]=[l["id"] for l in prod_lots.get(obj.id,[]) if l["qty"]>0]
         return vals
 
     def to_draft(self,ids,context={}):
@@ -546,5 +570,12 @@ class Product(Model):
             factor=obj.sale_to_invoice_uom_factor or 1
             vals[obj.id]=math.ceil((obj.sale_price or 0)*factor)
         return vals
+
+    def create_thumbnails(self,ids,context={}):
+        print("Product.create_thumbnails",ids)
+        for obj in self.browse(ids):
+            if not obj.image:
+                continue
+            utils.create_thumbnails(obj.image)
 
 Product.register()

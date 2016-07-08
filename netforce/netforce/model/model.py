@@ -115,12 +115,13 @@ class Model(object):
 
     def update_db(self):
         db = database.get_connection()
-        res = db.get("SELECT * FROM pg_class WHERE relname=%s", self._table)
+        schema = database.get_active_schema() or "public"
+        res = db.get("SELECT * FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname=%s AND n.nspname=%s", self._table, schema)
         if not res:
             db.execute("CREATE TABLE %s (id SERIAL, PRIMARY KEY (id))" % self._table)
         else:
             res = db.query(
-                "SELECT * FROM pg_attribute a WHERE attrelid=(SELECT oid FROM pg_class WHERE relname=%s) AND attnum>0 AND attnotnull", self._table)
+                "SELECT * FROM pg_attribute a WHERE attrelid=(SELECT pg_class.oid FROM pg_class JOIN pg_catalog.pg_namespace n ON n.oid=pg_class.relnamespace WHERE relname=%s AND n.nspname=%s) AND attnum>0 AND attnotnull", self._table, schema)
             for r in res:
                 n = r.attname
                 if n == "id":
@@ -134,13 +135,14 @@ class Model(object):
 
     def update_db_constraints(self):  # XXX: move to update_db
         db = database.get_connection()
+        schema = database.get_active_schema() or "public"
         constraints = self._sql_constraints[:]
         # if self._key: # XXX
         #    constraints.append(("key_uniq","unique ("+", ".join([n for n in self._key])+")",""))
         for (con_name, con_def, _) in constraints:
             full_name = "%s_%s" % (self._table, con_name)
             res = db.get(
-                "SELECT conname, pg_catalog.pg_get_constraintdef(oid,true) AS condef FROM pg_constraint WHERE conname=%s", full_name)
+                "SELECT conname, pg_catalog.pg_get_constraintdef(pg_constraint.oid,true) AS condef FROM pg_constraint JOIN pg_catalog.pg_namespace n ON n.oid=pg_constraint.connamespace WHERE conname=%s AND n.nspname=%s", full_name, schema)
             if res:
                 if con_def == res["condef"].lower():
                     continue
@@ -153,9 +155,10 @@ class Model(object):
 
     def update_db_indexes(self):
         db = database.get_connection()
+        schema = database.get_active_schema() or "public"
         for field_names in self._indexes:
             idx_name = self._table + "_" + "_".join(field_names) + "_idx"
-            res = db.get("SELECT * FROM pg_index i,pg_class c WHERE c.oid=i.indexrelid AND c.relname=%s", idx_name)
+            res = db.get("SELECT * FROM pg_index i,pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE c.oid=i.indexrelid AND c.relname=%s AND n.nspname=%s", idx_name, schema)
             if not res:
                 print("creating index %s" % idx_name)
                 db.execute("CREATE INDEX " + idx_name + " ON " + self._table + " (" + ",".join(field_names) + ")")
@@ -253,6 +256,10 @@ class Model(object):
             vals["create_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
         if not vals.get("create_uid"):
             vals["create_uid"] = access.get_active_user()
+        if not vals.get("write_time"):
+            vals["write_time"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        if not vals.get("write_uid"):
+            vals["write_uid"] = access.get_active_user()
         store_fields = [n for n in vals if self._fields[n].store]
         cols = store_fields[:]
         q = "INSERT INTO " + self._table
@@ -329,6 +336,16 @@ class Model(object):
         self.audit_log("create", {"id": new_id, "vals": vals})
         self.trigger([new_id], "create")
         return new_id
+
+    def copy(self,ids,vals,context={}):
+        for obj in self.browse(ids):
+            create_vals={}
+            for n,f in self._fields.items():
+                if not f.store:
+                    continue
+                create_vals[n]=obj[n]
+            create_vals.update(vals)
+            self.create(create_vals,context=context)
 
     def _expand_condition(self, condition, context={}):
         new_condition = []
@@ -1227,17 +1244,35 @@ class Model(object):
         path = context.get("path")
         if not path:
             raise Exception("Missing path")
-        fields = path.split(".")
+        fnames = path.split(".")
         vals = {}
-        # i=0
         for obj in self.browse(ids):
-            # print("XXX",i)
-            # i+=1
-            val = obj
-            for field in fields:
-                val = val[field]
-            if isinstance(val, BrowseRecord):
-                val = val.id
+            parent = obj
+            parent_m=get_model(obj._model)
+            for n in fnames[:-1]:
+                f=parent_m._fields[n]
+                if not isinstance(f,(fields.Many2One,fields.Reference)):
+                    raise Exception("Invalid field path for model %s: %s"%(self._name,path))
+                parent = parent[n]
+                if not parent:
+                    parent=None
+                    break
+                parent_m=get_model(parent._model)
+            if not parent:
+                val=None
+            else:
+                n=fnames[-1]
+                val=parent[n]
+                if n!="id":
+                    f=parent_m._fields.get(n)
+                    if not f:
+                        val=None
+                    else:
+                        if isinstance(f,(fields.Many2One,fields.Reference)):
+                            val = val.id
+                        elif isinstance(f,(fields.One2Many,fields.Many2Many)):
+                            val=[v.id for v in val]
+                
             vals[obj.id] = val
         return vals
 
@@ -1312,7 +1347,8 @@ class Model(object):
                         else:
                             if n not in todo:
                                 v = obj[n]
-                                todo[n] = [v]
+                                if v:
+                                    todo[n] = [v]
                     elif isinstance(f, fields.Selection):
                         v = obj[n]
                         if v:
@@ -1425,7 +1461,7 @@ class Model(object):
                     elif isinstance(f, fields.Selection):
                         found = None
                         for k, s in f.selection:
-                            if v == s:
+                            if v == s and k!="_group":
                                 found = k
                                 break
                         if found is None:
@@ -1638,6 +1674,8 @@ class Model(object):
             out={"data":res}
         def _fill_m2o(m, vals):
             for k, v in vals.items():
+                if k=="id":
+                    continue
                 if not v:
                     continue
                 f = m._fields[k]
@@ -1947,8 +1985,8 @@ class Model(object):
                         r[n]=[rvals[v] for v in r[n]]
         return res
 
-    def search_read_path(self, condition, field_paths, context={}):
-        ids=self.search(condition,context=context)
+    def search_read_path(self, condition, field_paths, context={}, **kw):
+        ids=self.search(condition,context=context,**kw)
         return self.read_path(ids,field_paths,context=context)
 
     def save_data(self,data,context={}):
@@ -2005,6 +2043,20 @@ class Model(object):
             keys.append([k, obj.id, obj.write_time])
         return keys
 
+    def sync_check_keys(self, keys, context={}):
+        res=[]
+        for k in keys:
+            obj_id=self.sync_find_key(k)
+            if obj_id:
+                obj=self.browse(obj_id) # XXX: speed
+                mtime=obj.write_time
+                if not mtime:
+                    raise Exception("Internal error: missing write_time for %s.%d"%(self._name,obj_id))
+            else:
+                mtime=None
+            res.append((k,mtime))
+        return res
+
     def sync_export(self, ids, context={}):
         # print("Model.sync_export",self._name,ids)
         data = []
@@ -2014,7 +2066,7 @@ class Model(object):
                 f = self._fields[n]
                 if not f.store and not isinstance(f, fields.Many2Many):
                     continue
-                if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
+                if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Decimal, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
                     vals[n] = obj[n]
                 elif isinstance(f, fields.Many2One):
                     v = obj[n]
@@ -2079,8 +2131,11 @@ class Model(object):
             try:
                 vals = {}
                 for n, v in rec.items():
-                    f = self._fields[n]
-                    if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
+                    f = self._fields.get(n)
+                    if not f:
+                        print("WARNING: no such field %s in %s"%(n,self._name))
+                        continue
+                    if isinstance(f, (fields.Char, fields.Text, fields.Float, fields.Decimal, fields.Integer, fields.Date, fields.DateTime, fields.Selection, fields.Boolean)):
                         vals[n] = v
                     elif isinstance(f, fields.Many2One):
                         if v:
@@ -2296,6 +2351,8 @@ class BrowseRecord(object):
             return self.id
         if name == "_model":
             return self._model
+        if name == "_cache":
+            return self.browse_cache
         if not self.id:
             return None
         m = get_model(self._model)
@@ -2373,7 +2430,7 @@ def update_db(force=False):
     print("update_db")
     access.set_active_user(1)
     db_version = utils.get_db_version() or "0"
-    mod_version = netforce.get_module_version()
+    mod_version = netforce.get_module_version_name()
     if utils.compare_version(db_version, mod_version) == 0:
         print("Database is already at version %s" % mod_version)
         if not force:

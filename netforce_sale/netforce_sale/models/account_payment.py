@@ -32,11 +32,12 @@ class Payment(Model):
             for line in obj.invoice_lines:
                 inv=line.invoice_id
                 rel=inv.related_id
-                if not rel:
-                    continue
-                if rel._model!="sale.order":
-                    continue
-                sale_ids.append(rel.id)
+                if rel and rel._model=="sale.order":
+                    sale_ids.append(rel.id)
+                for inv_line in inv.lines:
+                    rel=inv_line.related_id
+                    if rel and rel._model=="sale.order":
+                        sale_ids.append(rel.id)
         sale_ids=list(set(sale_ids))
         unpaid_sale_ids=[]
         for sale in get_model("sale.order").browse(sale_ids):
@@ -47,7 +48,8 @@ class Payment(Model):
         for sale in get_model("sale.order").browse(unpaid_sale_ids):
             if sale.is_paid:
                 paid_sale_ids.append(sale.id)
-        get_model("sale.order").trigger(paid_sale_ids,"paid")
+        if paid_sale_ids:
+            get_model("sale.order").trigger(paid_sale_ids,"paid")
         return res
 
 Payment.register()

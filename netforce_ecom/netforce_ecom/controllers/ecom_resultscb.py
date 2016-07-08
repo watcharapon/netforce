@@ -34,8 +34,9 @@ class ResultSCB(BaseController):
     _path = "/ecom_resultscb"
 
     def post(self):
-        try:
-            db = get_connection()
+        #try:
+        with database.Transaction():
+            #db = get_connection()
             print("########################################")
             print("#######Result Payment Online SCB########")
             print("#############     POST    ##############")
@@ -87,8 +88,9 @@ class ResultSCB(BaseController):
                     res = get_model("sale.order").search_browse([["number", "=", ref_no]])
                     if res:  # XXX Inquiry double check
                         sale = res[0]
-                        sale.import_scb_payment()
-                        db.commit()
+                        if not sale.is_paid:
+                            sale.import_scb_payment()
+                            #db.commit()
                         #sale_date = time.strptime(sale.date, '%Y-%m-%d')
                         #date = time.strftime('%Y%m%d%H%M%S', sale_date)
                         # qs = urllib.parse.urlencode([
@@ -132,16 +134,16 @@ class ResultSCB(BaseController):
                         # cart.copy_to_sale()
                         #print("Payment Created")
                         # db.commit()
-        except Exception as e:
-            db = get_connection()
-            db.rollback
-            import traceback
-            audit_log("Failed to get result payment from scb", details=traceback.format_exc())
-            traceback.print_exc()
+        #except Exception as e:
+            #db = get_connection()
+            #db.rollback
+            #import traceback
+            #audit_log("Failed to get result payment from scb", details=traceback.format_exc())
+            #traceback.print_exc()
 
     def get(self):
-        try:
-            db = get_connection()
+        #try:
+        with database.Transaction():
             print("########################################")
             print("#######Result Payment Online SCB########")
             print("#############     GET     ##############")
@@ -169,11 +171,11 @@ class ResultSCB(BaseController):
                     raise Exception("no URL server in website settings")
                 mid = self.get_argument("mid", None)
                 print(mid)
-                if mid != settings.scb_mid:
+                if mid != website.scb_mid:
                     raise Exception("Mercahant id does not match")
                 terminal = self.get_argument("terminal", None)
                 print(terminal)
-                if terminal != settings.scb_terminal:
+                if terminal != website.scb_terminal:
                     raise Exception("Terminal id does not match")
                 command = self.get_argument("command", None)
                 print(command)
@@ -193,13 +195,14 @@ class ResultSCB(BaseController):
                     res = get_model("ecom.cart").search_browse([["id", "=", ref_no]])
                     if res:  # XXX Inquiry double check
                         sale = res[0]
-                        sale.import_scb_payment()
-                        db.commit()
-        except Exception as e:
-            db = get_connection()
-            db.rollback
-            import traceback
-            audit_log("Failed to get result payment from scb", details=traceback.format_exc())
-            traceback.print_exc()
+                        if not sale.is_paid:
+                            sale.import_scb_payment()
+                            #db.commit()
+        #except Exception as e:
+            #db = get_connection()
+            #db.rollback
+            #import traceback
+            #audit_log("Failed to get result payment from scb", details=traceback.format_exc())
+            #traceback.print_exc()
 
 ResultSCB.register()

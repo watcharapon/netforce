@@ -61,9 +61,12 @@ class Product(BaseController):
                 user_id=int(user_id)
                 user=get_model("base.user").browse(user_id)
                 contact = user.contact_id
-                if contact.sale_price_list_id.id:
-                    browse_ctx["pricelist_id"] = contact.sale_price_list_id.id 
-
+                pricelist_ids=[website.sale_channel_id.pricelist_id.id]
+                if contact.groups:
+                    for group in contact.groups:
+                        if group.sale_price_list_id:
+                            pricelist_ids.append(group.sale_price_list_id.id)
+                browse_ctx["pricelist_ids"]=pricelist_ids
             product_id = self.get_argument("product_id")
             product_id = int(product_id)
             prod = get_model("product").browse([product_id],context=browse_ctx)[0]
