@@ -468,7 +468,9 @@ class SaleReturn(Model):
                     sale_acc_id=None
                     if prod:
                         #1. get account from product
-                        sale_acc_id=prod.sale_account_id and prod.sale_account_id.id or None
+                        sale_acc_id=prod.sale_return_account_id and prod.sale_return_account_id.id
+                        if not sale_acc_id and prod.sale_account_id:
+                            sale_acc_id=prod.sale_account_id.id
                         # 2. if not get from master/parent product
                         if not sale_acc_id and prod.parent_id:
                             sale_acc_id=prod.parent_id.sale_account_id.id
