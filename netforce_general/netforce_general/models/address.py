@@ -19,6 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields
+from netforce.access import get_active_company
 
 
 class Address(Model):
@@ -59,6 +60,11 @@ class Address(Model):
         "related_id": fields.Reference([], "Related To"),
         "address_text": fields.Text("Address Text", function="get_address_text"),
         "sequence": fields.Decimal("Sequence"),
+        'company_id': fields.Many2One("company","Company"),
+    }
+
+    _defaults={
+        'company_id': lambda *a: get_active_company(),
     }
 
     def get_address_text(self, ids, context={}):
