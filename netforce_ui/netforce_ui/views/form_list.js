@@ -75,6 +75,12 @@ var FormList=NFView.extend({
                     //log("orig_ids",that.collection.orig_ids);
                     that.collection.on("add",that.render,that);
                     that.collection.on("remove",that.render,that);
+                    that.collection.each(function(model2){
+                        var form_data=_.findWhere(data,{'id': model2.get('id')});
+                        if(form_data){
+                            model2.set_orig_data(form_data);
+                        }
+                    });
                     model.set(name,that.collection);
                     got_collection();
                 });
