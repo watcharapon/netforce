@@ -125,34 +125,17 @@ class SaleReturn(Model):
     def create(self, vals, context={}):
         id = super().create(vals, context)
         self.function_store([id])
-        quot_id = vals.get("quot_id")
-        if quot_id:
-            get_model("sale.quot").function_store([quot_id])
         return id
 
     def write(self, ids, vals, **kw):
-        quot_ids = []
-        for obj in self.browse(ids):
-            if obj.quot_id:
-                quot_ids.append(obj.quot_id.id)
         super().write(ids, vals, **kw)
         self.function_store(ids)
-        quot_id = vals.get("quot_id")
-        if quot_id:
-            quot_ids.append(quot_id)
-        if quot_ids:
-            get_model("sale.quot").function_store(quot_ids)
 
     def delete(self, ids, **kw):
-        quot_ids = []
         for obj in self.browse(ids):
             if obj.state in ("confirmed", "done"):
                 raise Exception("Can not delete sales order in this status")
-            if obj.quot_id:
-                quot_ids.append(obj.quot_id.id)
         super(self).delete(ids, **kw)
-        if quot_ids:
-            get_model("sale.quot").function_store(quot_ids)
 
     def get_amount(self, ids, context={}):
         res = {}
@@ -207,7 +190,7 @@ class SaleReturn(Model):
                 "mode": "form",
                 "active_id": obj.id,
             },
-            "flash": "Sales return %s confirmed" % obj.number,
+            "flash": "Sales Return %s confirmed" % obj.number,
         }
 
     def done(self, ids, context={}):
@@ -560,7 +543,6 @@ class SaleReturn(Model):
             "currency_id": obj.currency_id.id,
             "tax_type": obj.tax_type,
             "user_id": obj.user_id.id,
-            "quot_id": obj.quot_id.id,
             "lines": [],
         }
         for line in obj.lines:
@@ -580,11 +562,11 @@ class SaleReturn(Model):
         new_obj = self.browse(new_id)
         return {
             "next": {
-                "name": "sale",
+                "name": "sale_return",
                 "mode": "form",
                 "active_id": new_id,
             },
-            "flash": "Sales order %s copied to %s" % (obj.number, new_obj.number),
+            "flash": "Sales Return %s copied to %s" % (obj.number, new_obj.number),
             "sale_id": new_id,
         }
 
