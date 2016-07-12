@@ -1349,4 +1349,11 @@ class SaleOrder(Model):
         #obj = self.browse(ids)[0]
         return "sale_form"
 
+    def update_cost_amount(self,context={}):
+        data=context['data']
+        path=context['path']
+        line=get_data_path(data,path,parent=True)
+        line['amount']=(line['qty'] or 0) *(line['landed_cost'] or 0)
+        return data
+
 SaleOrder.register()
