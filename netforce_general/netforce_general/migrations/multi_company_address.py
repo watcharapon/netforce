@@ -8,7 +8,7 @@ class Migration(Migration):
     def migrate(self):
         companies=get_model("company").search_read([]) 
         if companies:
-            companies=sorted(companies, key=lambda c: c['id'])
+            companies=sorted(companies, key=lambda c: c['id']) # looking for the first company
             default_company_id=companies[0]['id']
             for addr in get_model("address").search_browse([]):
                 company_id=default_company_id
