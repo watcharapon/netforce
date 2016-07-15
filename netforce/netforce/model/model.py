@@ -94,6 +94,8 @@ class Model(object):
             model_cls._fields.update(cls._fields or {})
             model_cls._defaults = parent_cls._defaults.copy()
             model_cls._defaults.update(cls._defaults)
+            model_cls._order=cls._order
+            model_cls._order_expression=cls._order_expression
         else:
             if not cls._name:
                 raise Exception("Missing model name in %s" % cls)

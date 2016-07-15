@@ -52,7 +52,7 @@ class SaleQuotLine(Model):
         "parent_sequence": fields.Char("Parent Sequence",function="get_is_hidden",function_multi=True),
         "est_margin_percent_input": fields.Decimal("Est. Margin % Input"),
     }
-    _order_expression="(case when sequence ~ '^[0-9]+$' then length(sequence) end), sequence"
+    _order_expression="(substring(sequence, '^[0-9]+'))::int,sequence"
 
     def create(self, vals, context={}):
         id = super(SaleQuotLine, self).create(vals, context)
