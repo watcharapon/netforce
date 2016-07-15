@@ -100,7 +100,7 @@ class Settings(Model):
         "version": fields.Char("Version"),
         "tax_no": fields.Char("Tax ID Number", multi_company=True),
         "branch_no": fields.Char("Branch Number", multi_company=True),
-        "addresses": fields.One2Many("address", "settings_id", "Addresses"),
+        "addresses": fields.One2Many("address", "settings_id", "Addresses", multi_company=True),
         "date_format": fields.Char("Date Format"),
         "use_buddhist_date": fields.Boolean("Use Buddhist Date"),
         "phone": fields.Char("Phone", multi_company=True),
