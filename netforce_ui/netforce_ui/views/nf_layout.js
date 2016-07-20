@@ -26,7 +26,6 @@ var NFLayout=NFView.extend({
     render: function() {
         //log("nf_layout.render",this);
         var that=this;
-
         var mainmenu_view=get_xml_layout({name:"main_menu"});
         var doc=$.parseXML(mainmenu_view.layout);
         this.data.mainmenu_items=[];
@@ -45,7 +44,14 @@ var NFLayout=NFView.extend({
                     color: $el.attr("color"),
                     disabled: $el.attr("disabled")
                 };
-                that.data.mainmenu_items.push(item);
+
+                if(!_.isEmpty(nf_hidden) && nf_hidden['main_menu']){
+                    if(!nf_hidden['main_menu'][item['string']]){
+                        that.data.mainmenu_items.push(item);
+                    }
+                }else{
+                    that.data.mainmenu_items.push(item);
+                }
             }
         });
         //log("mainmenu_items",this.data.mainmenu_items);
@@ -69,6 +75,15 @@ var NFLayout=NFView.extend({
                     icon: $el.attr("icon"),
                     submenu_items: []
                 };
+                function add_sub_item(item2){
+                    if(!_.isEmpty(nf_hidden) && nf_hidden['sub_menu']){
+                        if(!nf_hidden['sub_menu'][item2['string']]){
+                            item.submenu_items.push(item2);
+                        }
+                    }else{
+                        item.submenu_items.push(item2);
+                    }
+                }
                 $el.children().each(function() {
                     var $el2=$(this);
                     var tag=$el2.prop("tagName");
@@ -85,22 +100,29 @@ var NFLayout=NFView.extend({
                             pkg: $el2.attr("pkg")
                         };
                         if (item2.action && !check_menu_permission(item2.action)) return;
-                        item.submenu_items.push(item2);
+                        add_sub_item(item2);
                     } else if (tag=="divider") {
                         var item2={
                             type: "divider"
                         };
-                        item.submenu_items.push(item2);
+                        add_sub_item(item2);
                     } else if (tag=="header") {
                         var item2={
                             type: "header",
                             string: $el2.attr("string")
                         };
-                        item.submenu_items.push(item2);
+                        add_sub_item(item2);
                     }
                 });
                 if (!item.action && !item.url && item.submenu_items.length==0) return;
-                that.data.menu_items.push(item);
+
+                if(!_.isEmpty(nf_hidden) && nf_hidden['sub_menu']){
+                    if(!nf_hidden['sub_menu'][item['string']]){
+                        that.data.menu_items.push(item);
+                    }
+                }else{
+                    that.data.menu_items.push(item);
+                }
             }
         });
         log("menu_items",this.data.menu_items);

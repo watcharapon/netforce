@@ -312,6 +312,12 @@ var FormView=NFView.extend({
             var tag=$el.prop("tagName");
             if (tag=="field") {
                 var name=$el.attr("name");
+                if(!_.isEmpty(nf_hidden) && nf_hidden['field']){
+                    var hide_field=nf_hidden['field'][that.options.model];
+                    if(hide_field && hide_field[name]){
+                        return;
+                    }
+                }
                 var focus=$el.attr("focus");
                 if(focus){that.focus_field=name;}
                 var field=that.model.get_field(name);

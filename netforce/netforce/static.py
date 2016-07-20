@@ -184,16 +184,13 @@ _js_file = None
 def get_css_file():
     return _css_file
 
-
 def get_js_file():
     return _js_file
-
 
 def clear_js():
     print("clear_js")
     global js_hash
     js_hash = None
-
 
 def make_js(minify=False):
     print("building js...")
@@ -263,7 +260,6 @@ def make_css(minify=False):
             _css_file="netforce-%s.css"%h
         print("  => static/css/%s" % _css_file)
 
-
 def make_ui_params():
     print("building ui_params...")
     data = {}
@@ -279,7 +275,6 @@ def make_ui_params():
         s = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
         open("static/ui_params.json", "w").write(s)
 
-
 def check_ui_params_db():
     dbname = database.get_active_db()
     if not dbname:
@@ -287,7 +282,6 @@ def check_ui_params_db():
     res = glob.glob("static/db/%s/ui_params_db.json" % dbname)
     if not res:
         make_ui_params_db()
-
 
 def make_ui_params_db():
     print("building ui_params_db...")
@@ -302,6 +296,22 @@ def make_ui_params_db():
         for r in res:
             trans.setdefault(r.code, {})[r.original] = r.translation
         data["translations"] = trans
+
+        hidden = {}
+        db = database.get_connection()
+        res = db.query("SELECT h.type, h.name, h.field_name, h.model_id, m.name as model  FROM hidden as h left join model as m on m.id=h.model_id")
+        for r in res:
+            if r.type=='field':
+                r_value=r.field_name
+                hidden.setdefault(r.type, {})[r.model]={}
+                hidden[r.type][r.model][r_value]=True
+            elif r.type in ('tab', 'button'):
+                hidden.setdefault(r.type, {})[r.model]={}
+                hidden[r.type][r.model][r.name]=True
+            else:
+                hidden.setdefault(r.type, {})[r.name] = True
+        data["hidden"] = hidden
+
         settings = get_model("settings").browse(1)
         data["date_format"] = settings.date_format or "YYYY-MM-DD"
         data["use_buddhist_date"] = settings.use_buddhist_date and True or False
@@ -319,8 +329,14 @@ def make_ui_params_db():
     finally:
         set_active_user(user_id)
 
-
 def clear_translations():
+    print("clear_translations")
+    dbname = database.get_active_db()
+    res = glob.glob("static/db/%s/ui_params_db.json" % dbname)
+    for f in res:
+        os.remove(f)
+
+def clear_ui_params_db():
     print("clear_translations")
     dbname = database.get_active_db()
     res = glob.glob("static/db/%s/ui_params_db.json" % dbname)

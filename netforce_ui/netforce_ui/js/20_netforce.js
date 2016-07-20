@@ -992,6 +992,16 @@ function set_actions() {
 }
 
 nf_templates=null;
+nf_hidden={};
+
+function set_hidden() {
+    if (ui_params) {
+        nf_hidden=_.clone(ui_params.hidden);
+    }
+    if (ui_params_db) {
+        _.extend(nf_hidden,ui_params_db.hidden)
+    }
+}
 
 function set_templates() {
     if (ui_params) {
@@ -1027,6 +1037,7 @@ function load_ui_params_db(cb) {
             set_layouts();
             set_actions();
             set_templates();
+            set_hidden();
             nf_open_db();
             cb();
         },
