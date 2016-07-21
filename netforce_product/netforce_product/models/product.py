@@ -56,6 +56,7 @@ class Product(Model):
         "stock_out_account_id": fields.Many2One("account.account", "Stock Output Account", multi_company=True), # XXX: deprecated
         "cogs_account_id": fields.Many2One("account.account", "Cost Of Goods Sold Account", multi_company=True),
         "purchase_account_id": fields.Many2One("account.account", "Purchase Account", multi_company=True),
+        "purchase_return_account_id": fields.Many2One("account.account", "Purchase Returns Account", multi_company=True),
         "purchase_tax_id": fields.Many2One("account.tax.rate", "Purchase Tax"),
         "supplier_id": fields.Many2One("contact", "Default Supplier"),  # XXX: deprecated
         "sale_account_id": fields.Many2One("account.account", "Sales Account", multi_company=True),

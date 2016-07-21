@@ -358,11 +358,6 @@ class SaleOrder(Model):
 
     def onchange_product(self, context):
         data = context["data"]
-        contact_id = data.get("contact_id")
-        if contact_id:
-            contact = get_model("contact").browse(contact_id)
-        else:
-            contact = None
         path = context["path"]
         line = get_data_path(data, path, parent=True)
         prod_id = line.get("product_id")
@@ -394,7 +389,7 @@ class SaleOrder(Model):
             line["location_id"] = prod.locations[0].location_id.id
             for loc in prod.locations:
                 if loc.stock_qty:
-                    line['location_id']=prod.location_id.id
+                    line['location_id']=loc.location_id.id
                     break
         data = self.update_amounts(context)
         return data
@@ -1353,5 +1348,12 @@ class SaleOrder(Model):
     def get_template_sale_form(self, ids, context={}):
         #obj = self.browse(ids)[0]
         return "sale_form"
+
+    def update_cost_amount(self,context={}):
+        data=context['data']
+        path=context['path']
+        line=get_data_path(data,path,parent=True)
+        line['amount']=(line['qty'] or 0) *(line['landed_cost'] or 0)
+        return data
 
 SaleOrder.register()

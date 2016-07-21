@@ -50,6 +50,9 @@ def load_config(filename=None):
         if parser.has_section("server"):
             for k, v in parser.items("server"):
                 config[k] = v
+        if parser.has_section("url"):
+            for k, v in parser.items("url"):
+                config[k] = v
         if parser.has_section("email"):
             for k, v in parser.items("email"):
                 config['email_account'][k] = v

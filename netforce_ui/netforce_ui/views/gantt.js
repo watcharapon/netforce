@@ -395,7 +395,7 @@ var Gantt=NFView.extend({
         gantt.expand();
     },
 
-    on_after_task_update(id,item) {
+    on_after_task_update: function(id,item) {
         console.log("gantt.on_after_task_update",id,item);
         if (item.type==gantt.config.types.project) return;
         var vals={};
@@ -413,7 +413,7 @@ var Gantt=NFView.extend({
         }.bind(this));
     },
 
-    on_after_task_delete(id,item) {
+    on_after_task_delete: function(id,item) {
         console.log("gantt.on_after_task_delete",id,item);
         rpc_execute(this.options.model,"delete",[[id]],{},function(err) {
             if (err) {
@@ -423,15 +423,15 @@ var Gantt=NFView.extend({
         }.bind(this));
     },
 
-    on_after_task_move(id,parent,tindex) {
+    on_after_task_move: function(id,parent,tindex) {
         console.log("gantt.on_after_task_move",id,parent,tindex);
     },
 
-    on_after_task_drag(id,mode,e) {
+    on_after_task_drag: function(id,mode,e) {
         console.log("gantt.on_after_task_drag",id,mode,e);
     },
 
-    on_after_link_add(id,item) {
+    on_after_link_add: function(id,item) {
         console.log("gantt.on_after_link_add",id,item);
         var source_id=item.source;
         var target_id=item.target;
@@ -443,7 +443,7 @@ var Gantt=NFView.extend({
         }.bind(this));
     },
 
-    on_after_link_delete(id,item) {
+    on_after_link_delete: function(id,item) {
         console.log("gantt.on_after_link_delete",id,item);
         rpc_execute(this.options.model,"delete_link",[[id]],{},function(err) {
             if (err) {
@@ -453,11 +453,11 @@ var Gantt=NFView.extend({
         }.bind(this));
     },
 
-    on_after_link_update(id,item) {
+    on_after_link_update: function(id,item) {
         console.log("gantt.on_after_link_update",id,item);
     },
 
-    set_scale_month(e) {
+    set_scale_month: function(e) {
         e.preventDefault();
         this.$el.find(".nf-scale").removeClass("active");
         this.$el.find(".nf-scale-month").addClass("active");
@@ -470,7 +470,7 @@ var Gantt=NFView.extend({
         gantt.render();
     },
 
-    set_scale_week(e) {
+    set_scale_week: function(e) {
         e.preventDefault();
         this.$el.find(".nf-scale").removeClass("active");
         this.$el.find(".nf-scale-week").addClass("active");
@@ -483,7 +483,7 @@ var Gantt=NFView.extend({
         gantt.render();
     },
 
-    set_scale_day(e) {
+    set_scale_day: function(e) {
         e.preventDefault();
         this.$el.find(".nf-scale").removeClass("active");
         this.$el.find(".nf-scale-day").addClass("active");
