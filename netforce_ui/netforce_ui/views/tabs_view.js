@@ -64,6 +64,7 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
             }
             tabs.push(tab);
         });
+        if(!tabs.length) return;
 
         if(tabs){tabs[0]['active']=true;} // set active first tab
         this.tabs=tabs;
