@@ -310,7 +310,7 @@ def make_ui_params_db():
                     hidden[r.type][r.model]={}
                 if r.field_name not in hidden[r.type][r.model].keys():
                     hidden[r.type][r.model][r.field_name]=True
-            elif r.type in ('tab', 'button'):
+            elif r.type in ('tab', 'button','item'):
                 if r.model not in hidden[r.type].keys():
                     hidden[r.type][r.model]={}
                 hidden[r.type][r.model][r.name]=True
