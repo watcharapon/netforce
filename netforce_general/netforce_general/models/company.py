@@ -29,6 +29,7 @@ class Company(Model):
     _string = "Company"
     _key = ["name"]
     _audit_log = True
+    _export_field="code"
     _fields = {
         "name": fields.Char("Company Name", required=True, search=True, translate=True),
         "code": fields.Char("Company Code", search=True),
