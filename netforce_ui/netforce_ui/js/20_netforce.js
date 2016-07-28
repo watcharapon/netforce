@@ -1489,6 +1489,7 @@ window.NFModel=Backbone.Model.extend({
                 if (_.isArray(v)) v=v[0];
             } else if (f.type=="one2many") {
                 if (!v) continue;
+                if (_.isArray(v) && v.length < 1) continue;
                 v=v.get_vals();
             }
             vals[n]=v;
