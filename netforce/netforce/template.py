@@ -19,6 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from .module import get_loaded_modules, read_module_file
+from netforce.locale import _
 import os.path
 import os
 import re
@@ -282,6 +283,8 @@ def _each(data, items, options={}):
         html += options["inner"](data)
     return html
 
+def _translate(data, val, options={}):
+    return _(val)
 
 def _currency(data, val, options={}):
     h = options.get("hash", {})
@@ -560,6 +563,7 @@ _helpers = {
     "with": _with,
     "each": _each,
     "currency": _currency,
+    "t": _translate,
     "fmt_qty": _fmt_qty,
     "fmt_date": _fmt_date,
     "first": _first,
