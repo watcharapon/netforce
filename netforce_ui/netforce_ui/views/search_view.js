@@ -108,9 +108,11 @@ var SearchView=NFView.extend({
             if (tag=="field") {
                 var name=$el.attr("name");
                 var field=model.get_field(name);
+                var inc=2;
                 var cell=$('<div class="col-sm-2"/>');
                 if(field.type=='datetime_range'){
                     cell=$('<div class="col-sm-3"/>');
+                    inc=3;
                 }
                 if (col+2>11) { // XXX
                     row=$('<div class="row"/>');
@@ -124,7 +126,7 @@ var SearchView=NFView.extend({
                 };
                 var view=Field.make_view(opts);
                 cell.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
-                col+=2;
+                col+=inc;
             } else if (tag=="newline") {
                 row=$('<div class="row"/>');
                 body.append(row);
