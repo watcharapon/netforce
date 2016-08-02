@@ -110,7 +110,7 @@ var Button=NFView.extend({
             }
         }
 
-        if(!_.isEmpty(nf_hidden) && nf_hidden['button'] && model){
+        if(nf_hidden['button'] && model){
             var hide_button=nf_hidden['button'][model.name];
             if(hide_button && hide_button[name]){
                 this.$el.hide();

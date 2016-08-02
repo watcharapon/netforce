@@ -45,7 +45,7 @@ var NFLayout=NFView.extend({
                     disabled: $el.attr("disabled")
                 };
 
-                if(!_.isEmpty(nf_hidden) && nf_hidden['main_menu']){
+                if(nf_hidden['main_menu']){
                     if(!nf_hidden['main_menu'][item['string']]){
                         that.data.mainmenu_items.push(item);
                     }
@@ -116,7 +116,7 @@ var NFLayout=NFView.extend({
                 });
                 if (!item.action && !item.url && item.submenu_items.length==0) return;
 
-                if(!_.isEmpty(nf_hidden) && nf_hidden['sub_menu']){
+                if(nf_hidden['sub_menu']){
                     if(!nf_hidden['sub_menu'][item['string']]){
                         that.data.menu_items.push(item);
                     }
