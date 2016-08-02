@@ -56,8 +56,15 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                 tab_id: _.uniqueId("tab"),
                 tab_layout: $el
             }
+            if(!_.isEmpty(nf_hidden) && nf_hidden['tab']){
+                var hide_tab=nf_hidden['tab'][that.context.model.name];
+                if(hide_tab && hide_tab[tab['string']]){
+                    return;
+                }
+            }
             tabs.push(tab);
         });
+        if(!tabs.length) return;
 
         if(tabs){tabs[0]['active']=true;} // set active first tab
         this.tabs=tabs;
