@@ -737,7 +737,7 @@ class Model(object):
                     f = self._fields[n]
                     if isinstance(f, fields.Many2One):
                         val = str(val)
-                    elif isinstance(f, fields.Float):
+                    elif isinstance(f, (fields.Float, fields.Decimal)):
                         val = str(val)
                     elif isinstance(f, fields.Char):
                         pass
@@ -928,7 +928,7 @@ class Model(object):
                                 r[n]=v
                             else:
                                 r[n]=None
-                elif isinstance(f, fields.Float):
+                elif isinstance(f, (fields.Float, fields.Decimal)):
                     for r in res:
                         k = (r["id"], n)
                         if k not in vals:
