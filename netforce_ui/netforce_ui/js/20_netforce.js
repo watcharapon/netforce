@@ -482,26 +482,6 @@ function parse_date(val) {
     return val2;
 }
 
-function format_date(val,options) {
-    if (!val) return null;
-    if (ui_params_db && ui_params_db.use_buddhist_date) {
-        var year=parseInt(val.substr(0,4));
-        var year2=year+543;
-        val=""+year2+val.substr(4);
-    }
-    if (options && options.hash && options.hash.fmt) {
-        var fmt=options.hash.fmt;
-    } else {
-        if (ui_params_db && ui_params_db.date_format) {
-            var fmt=ui_params_db.date_format;
-        } else {
-            var fmt="YYYY-MM-DD HH:mm:ss";
-        }
-    }
-    var val2=moment(val,"YYYY-MM-DD HH:mm:ss").format(fmt);
-    return val2;
-}
-
 function parse_datetime(val) {
     if (!val) return null;
     if (ui_params_db.date_format) {
