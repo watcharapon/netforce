@@ -21,7 +21,7 @@
     </group>
     <field name="lines" nolabel="1">
         <list>
-            <field name="product_id" onchange="onchange_product"/>
+            <field name="product_id" condition='[["can_purchase","=",true]]' onchange="onchange_product"/>
             <field name="description"/>
             <field name="qty"/>
             <field name="uom_id"/>

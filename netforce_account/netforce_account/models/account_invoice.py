@@ -702,11 +702,16 @@ class Invoice(Model):
             if prod.sale_price:
                 line["unit_price"] = prod.sale_price
             if prod.sale_account_id:
-                #line["account_id"] = prod.sale_account_id.id or prod.categ_id.sale_account_id.id
                 line["account_id"] = prod.sale_account_id.id
-            if prod.sale_tax_id:
-                #line["tax_id"] = contact.tax_receivable_id.id or prod.sale_tax_id.id or prod.categ_id.sale_tax_id.id
+            elif prod.categ_id and prod.categ_id.sale_account_id:
+                line["account_id"] = prod.categ_id.sale_account_id.id
+
+            if contact.tax_receivable_id:
+                line["tax_id"] = contact.tax_receivable_id.id
+            elif prod.sale_tax_id:
                 line["tax_id"] = prod.sale_tax_id.id
+            elif prod.categ_id and prod.categ_id.sale_tax_id:
+                line["tax_id"] = prod.categ_id.sale_tax_id.id
         elif type == "in":
             if prod.purchase_price:
                 line["unit_price"] = prod.purchase_price
