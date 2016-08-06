@@ -77,7 +77,8 @@ var SearchView=NFView.extend({
             else if (orig_field.type=="float") search_field={type:"float_range",string:orig_field.string};
             else if (orig_field.type=="decimal") search_field={type:"float_range",string:orig_field.string};
             else if (orig_field.type=="integer") search_field={type:"integer_range",string:orig_field.string};
-            else if (orig_field.type=="date" || orig_field.type=="datetime") search_field={type:"date_range",string:orig_field.string};
+            else if (orig_field.type=="date") search_field={type:"date_range",string:orig_field.string};
+            else if (orig_field.type=="datetime") search_field={type:"datetime_range",string:orig_field.string};
             else if (orig_field.type=="boolean") search_field={type:"selection",selection:[["yes","Yes"],["no","No"]],string:orig_field.string};
             else if (orig_field.type=="many2many") {
                 search_field={type:"many2one",relation:orig_field.relation,string:orig_field.string};
@@ -100,12 +101,19 @@ var SearchView=NFView.extend({
         var row=$('<div class="row"/>');
         body.append(row);
         var col=0;
+        var model=context.model;
         this.$layout.children().each(function() {
             var $el=$(this);
             var tag=$el.prop("tagName");
             if (tag=="field") {
                 var name=$el.attr("name");
+                var field=model.get_field(name);
+                var inc=2;
                 var cell=$('<div class="col-sm-2"/>');
+                if(field.type=='datetime_range'){
+                    cell=$('<div class="col-sm-3"/>');
+                    inc=3;
+                }
                 if (col+2>11) { // XXX
                     row=$('<div class="row"/>');
                     body.append(row);
@@ -118,7 +126,7 @@ var SearchView=NFView.extend({
                 };
                 var view=Field.make_view(opts);
                 cell.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
-                col+=2;
+                col+=inc;
             } else if (tag=="newline") {
                 row=$('<div class="row"/>');
                 body.append(row);
@@ -168,11 +176,13 @@ var SearchView=NFView.extend({
                 }
             } else if (f.type=="datetime") {
                 if (v[0]) {
-                    var clause=[n,">=",v[0]+" 00:00:00"];
+                /*var clause=[n,">=",v[0]+" 00:00:00"];*/
+                    var clause=[n,">=",v[0]];
                     condition.push(clause);
                 }
                 if (v[1]) {
-                    var clause=[n,"<=",v[1]+" 23:59:59"];
+                /*var clause=[n,"<=",v[1]+" 23:59:59"];*/
+                    var clause=[n,"<=",v[1]];
                     condition.push(clause);
                 }
             } else if ((f.type=="many2one") && (sf.type=="many2one")) {
@@ -248,8 +258,10 @@ var SearchView=NFView.extend({
                 log(n,"<-",r);
             } else if (f.type=="datetime") {
                 var r=that.model.get(n)||[null,null];
-                if (op==">=") r[0]=v.substr(0,10);
-                else if (op=="<=") r[1]=v.substr(0,10);
+                /*if (op==">=") r[0]=v.substr(0,10);*/
+                if (op==">=") r[0]=v;
+                /*else if (op=="<=") r[1]=v.substr(0,10);*/
+                else if (op=="<=") r[1]=v;
                 that.model.set(n,r);
                 log(n,"<-",r);
             } else if (f.type=="many2many") {

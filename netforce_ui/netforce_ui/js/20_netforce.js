@@ -482,6 +482,22 @@ function parse_date(val) {
     return val2;
 }
 
+function parse_datetime(val) {
+    if (!val) return null;
+    if (ui_params_db.date_format) {
+        var fmt=ui_params_db.date_format;
+    } else {
+        var fmt="YYYY-MM-DD HH:mm:ss";
+    }
+    var val2=moment(val,fmt).format("YYYY-MM-DD HH:mm:ss");
+    if (ui_params_db && ui_params_db.use_buddhist_date) {
+        var year=parseInt(val2.substr(0,4));
+        var year2=year-543;
+        val2=""+year2+val2.substr(4);
+    }
+    return val2;
+}
+
 function format_datetime(val) {
     if (!val) return null;
     if (ui_params_db && ui_params_db.use_buddhist_date) {
@@ -587,6 +603,7 @@ function field_value(name,context,link,target,m2o_link,click_action,show_image,s
                 var v=field.selection[i];
                 if (v[0]==val) {
                     val=v[1];
+                    val=translate(val);
                     break;
                 }
             }
@@ -1488,6 +1505,7 @@ window.NFModel=Backbone.Model.extend({
                 if (_.isArray(v)) v=v[0];
             } else if (f.type=="one2many") {
                 if (!v) continue;
+                if (_.isArray(v) && v.length < 1) continue;
                 v=v.get_vals();
             }
             vals[n]=v;
