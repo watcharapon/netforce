@@ -256,6 +256,11 @@ class Payment(Model):
                             cred_amt += alloc.amount
                         if inv.inv_type in ("invoice", "credit", "debit"):
                             pay_ratio = line.amount / (inv.amount_total - cred_amt)  # XXX: check this again
+                            adjust_inv_taxes={}
+                            for tax in inv.taxes:
+                                comp=tax.tax_comp_id
+                                adjust_inv_taxes.setdefault(comp.id,0)
+                                adjust_inv_taxes[comp.id]+=tax.tax_amount
                             for invline in inv.lines:
                                 invline_amt = invline.amount * pay_ratio
                                 tax = invline.tax_id
@@ -268,7 +273,7 @@ class Payment(Model):
                                     for comp_id, tax_amt in tax_comps.items():
                                         comp = get_model("account.tax.component").browse(comp_id)
                                         if comp.type == "vat":
-                                            inv_vat += tax_amt
+                                            inv_vat += adjust_inv_taxes.get(comp_id) or tax_amt
                                         elif comp.type == "wht":
                                             inv_wht -= tax_amt
                                 else:
@@ -354,6 +359,11 @@ class Payment(Model):
                 inv_vat = 0
                 if inv.inv_type in ("invoice", "credit", "debit"):
                     pay_ratio = line["amount"] / inv.amount_total
+                    adjust_inv_taxes={}
+                    for tax in inv.taxes:
+                        comp=tax.tax_comp_id
+                        adjust_inv_taxes.setdefault(comp.id,0)
+                        adjust_inv_taxes[comp.id]+=tax.tax_amount
                     for invline in inv.lines:
                         invline_amt = invline.amount * pay_ratio
                         tax = invline.tax_id
@@ -366,7 +376,7 @@ class Payment(Model):
                             for comp_id, tax_amt in tax_comps.items():
                                 comp = get_model("account.tax.component").browse(comp_id)
                                 if comp.type == "vat":
-                                    inv_vat += tax_amt
+                                    inv_vat += adjust_inv_taxes.get(comp_id) or tax_amt
                                 elif comp.type == "wht":
                                     wht -= tax_amt
                         else:
