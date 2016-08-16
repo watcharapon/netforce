@@ -297,11 +297,17 @@ class Model(object):
                     f = self._fields[n]
                     if isinstance(f, fields.Many2One):
                         val = str(val)
-                    elif isinstance(f, fields.Float):
+                    elif isinstance(f, (fields.Float,fields.Decimal)):
                         val = str(val)
                     elif isinstance(f, fields.Char):
                         pass
                     elif isinstance(f, fields.File):
+                        pass
+                    elif isinstance(f, fields.Text):
+                        pass
+                    elif isinstance(f, fields.Boolean):
+                        pass
+                    elif isinstance(f, fields.Date):
                         pass
                     else:
                         raise Exception("Multicompany field not yet implemented: %s" % n)
@@ -737,11 +743,17 @@ class Model(object):
                     f = self._fields[n]
                     if isinstance(f, fields.Many2One):
                         val = str(val)
-                    elif isinstance(f, fields.Float):
+                    elif isinstance(f, (fields.Float, fields.Decimal)):
                         val = str(val)
                     elif isinstance(f, fields.Char):
                         pass
                     elif isinstance(f, fields.File):
+                        pass
+                    elif isinstance(f, fields.Text):
+                        pass
+                    elif isinstance(f, fields.Boolean):
+                        pass
+                    elif isinstance(f, fields.Date):
                         pass
                     else:
                         raise Exception("Multicompany field not yet implemented: %s" % n)
@@ -937,9 +949,24 @@ class Model(object):
                         if v is not None and v.isnumeric():
                         #if v is not None:
                             r[n] = float(v)
+                elif isinstance(f, fields.Decimal):
+                    for r in res:
+                        k = (r["id"], n)
+                        if k not in vals:
+                            continue
+                        v = vals[k]
+                        if v is not None and v.isnumeric():
+                        #if v is not None:
+                            r[n] = Decimal(v)
                 elif isinstance(f, fields.Char):
                     pass
                 elif isinstance(f, fields.File):
+                    pass
+                elif isinstance(f, fields.Text):
+                    pass
+                elif isinstance(f, fields.Boolean):
+                    pass
+                elif isinstance(f, fields.Date):
                     pass
                 else:  # TODO: add more field types...
                     raise Exception("Multicompany field not yet implemented: %s" % n)

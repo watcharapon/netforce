@@ -60,12 +60,15 @@ var InlineForm=NFView.extend({
         var model_name=this.options.model;
         var field_names=[];
         this.$form.find("field").each(function() {
+            //field m2m not show data!
+            /*
             if ($(this).parents("field").length>0) {
                 return;
             }
             if ($(this).parents("related").length>0) {
                 return;
             }
+            */
             field_names.push($(this).attr("name"));
         });
         if (this.options.active_id) {
@@ -152,6 +155,7 @@ var InlineForm=NFView.extend({
                     link: $el.attr("link"),
                     action: $el.attr("action"),
                     target: $el.attr("target"),
+                    click_action: $el.attr("click_action"),
                     form_layout: form_layout,
                     context: context
                 };

@@ -108,7 +108,8 @@ var Search=NFView.extend({
             else if (orig_field.type=="float") search_field={type:"float_range",string:orig_field.string};
             else if (orig_field.type=="decimal") search_field={type:"float_range",string:orig_field.string};
             else if (orig_field.type=="integer") search_field={type:"float_range",string:orig_field.string}; // XXX
-            else if (orig_field.type=="date" || orig_field.type=="datetime") search_field={type:"date_range",string:orig_field.string};
+            else if (orig_field.type=="date") search_field={type:"date_range",string:orig_field.string};
+            else if (orig_field.type=="datetime") search_field={type:"datetime_range",string:orig_field.string};
             else if (orig_field.type=="boolean") search_field={type:"selection",selection:[["yes","Yes"],["no","No"]],string:orig_field.string};
             if (!search_field) return;
             search_model.fields[f.name]=search_field;

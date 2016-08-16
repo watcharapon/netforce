@@ -30,6 +30,7 @@ class User(Model):
     _key = ["login"]
     _name_field = "login"
     _string = "User"
+    _audit_log = True
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "login": fields.Char("Login", required=True, search=True),

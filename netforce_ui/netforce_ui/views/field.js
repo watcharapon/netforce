@@ -88,6 +88,9 @@ var Field=NFView.extend({
                 case "date_range":
                     view_name="field_date_range";
                     break;
+                case "datetime_range":
+                    view_name="field_datetime_range";
+                    break;
                 default:
                     throw "Invalid field type: "+type;
             }
