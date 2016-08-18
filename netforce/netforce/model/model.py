@@ -868,8 +868,12 @@ class Model(object):
             #print("<<< READ",self._name)
             return []
         if not field_names:
-            field_names = [n for n, f in self._fields.items() if not isinstance(
-                f, (fields.One2Many, fields.Many2Many)) and not (not f.store and not f.function)]
+            field_names = []
+            for n, f in self._fields.items():
+                if isinstance(f, (fields.Many2Many)):
+                    field_names.append(n)
+                elif not isinstance(f, (fields.One2Many)) and not (not f.store and not f.function):
+                    field_names.append(n)
         field_names = list(set(field_names))  # XXX
         cols = ["id"] + [n for n in field_names if self.get_field(n).store]
         q = "SELECT " + ",".join(['"%s"' % col for col in cols]) + " FROM " + self._table
