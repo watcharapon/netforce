@@ -87,7 +87,7 @@
             <group attrs='{"invisible":[["pay_type","!=","prepay"]]}'>
                 <field name="prepay_lines" nolabel="1">
                     <list>
-                        <field name="description"/>
+                        <field name="description" onfocus="get_line_desc"/>
                         <field name="qty" onchange="update_amounts"/>
                         <field name="unit_price" onchange="update_amounts"/>
                         <field name="account_id" onchange="onchange_account"/>
@@ -106,7 +106,7 @@
             <group attrs='{"invisible":[["pay_type","!=","overpay"]]}'>
                 <field name="overpay_lines" nolabel="1">
                     <list>
-                        <field name="description"/>
+                        <field name="description" onfocus="get_line_desc"/>
                         <field name="amount" onchange="update_amounts"/>
                         <field name="track_id"/>
                         <field name="track2_id"/>
