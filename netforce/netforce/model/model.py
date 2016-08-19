@@ -260,7 +260,10 @@ class Model(object):
             f = self._fields[n]
             if isinstance(f, fields.Char):
                 if f.password and v:
-                    vals[n] = utils.encrypt_password(v)
+                    if f.encrypt:
+                        vals[n] = utils.encrypt_password(v)
+                    else:
+                        vals[n] = v
             elif isinstance(f, fields.Json):
                 if not isinstance(v, str):
                     vals[n] = utils.json_dumps(v)
@@ -682,7 +685,10 @@ class Model(object):
                     vals[n] = utils.json_dumps(v)  # XXX
             elif isinstance(f, fields.Char):
                 if f.password and v:
-                    vals[n] = utils.encrypt_password(v)
+                    if f.encrypt:
+                        vals[n] = utils.encrypt_password(v)
+                    else:
+                        vals[n] = v
         db = database.get_connection()
         if check_time:
             q = "SELECT MAX(write_time) AS write_time FROM " + self._table + \
@@ -2587,6 +2593,7 @@ def model_to_json(m):
         if isinstance(f, fields.Char):
             f_data["type"] = "char"
             f_data["size"] = f.size
+            f_data["password"] = f.password
         elif isinstance(f, fields.Text):
             f_data["type"] = "text"
         elif isinstance(f, fields.Float):
