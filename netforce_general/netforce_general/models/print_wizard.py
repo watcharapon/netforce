@@ -39,6 +39,8 @@ class PrintWizard(Model):
 
     def get_print_ids(self, ctx={}):
         refer_id = ctx.get("refer_id")
+        if not refer_id:
+            return
         if refer_id:
             ids = [int(refer_id)]
         else:

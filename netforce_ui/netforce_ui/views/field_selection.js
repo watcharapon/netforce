@@ -25,6 +25,7 @@ var FieldSelection=NFView.extend({
     className: "form-group nf-field",
     events: {
         "change select": "onchange",
+        "contextmenu select": "on_contextmenu",
         "blur select": "blur"
     },
 
@@ -59,12 +60,14 @@ var FieldSelection=NFView.extend({
         if (attrs.readonly!==undefined) {
             this.data.readonly=attrs.readonly;
         }
+
         var perms=get_field_permissions(model.name,name);
         if (!perms.perm_write) {
             this.data.readonly=true;
         }
         //log("readonly",this.data.readonly);
         var required=field.required||this.options.required;
+        if (attrs.required!=null) required=attrs.required;
         if (required && !this.data.readonly) {
             this.$el.addClass("nf-required-field");
         }
@@ -268,6 +271,25 @@ var FieldSelection=NFView.extend({
 
     blur: function() {
         this.trigger("blur");
+    },
+
+    on_contextmenu: function(e) {
+        log("on_contextmenu");
+        e.preventDefault();
+        var view_cls=get_view_cls("contextmenu");
+        var opts={
+            click_event:e,
+            model: this.context.model,
+            field_name: this.options.name
+        };
+        var view=view_cls.make_view(opts);
+        log("view",view,view.el);
+        if($(".modal").hasClass("in")){
+            $(".modal").append(view.el);
+        }else{
+            $("body").append(view.el);
+        }
+        view.render();
     }
 });
 

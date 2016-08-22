@@ -1,4 +1,4 @@
-<input class="hidden-input-before" style="position:absolute;left:-100%"/>
+<!--<input class="hidden-input-before" style="position:absolute;left:-100%"/>-->
 <div style="overflow-x:auto;margin-bottom:20px">
     <table class="table table-condensed table-bordered" style="background-color: #f8f8f8;margin-bottom:0">
         <thead>
@@ -6,7 +6,7 @@
                 <th></th>
                 {{#each fields}}
                     <th style="{{#ifeq align "right"}}text-align:right;{{/ifeq}}{{#if invisible}}display:none;{{/if}}">
-                        {{field_label name context=../context}}
+                        {{field_label name context=../context string=string}}
                     </th>
                 {{/each}}
                 <th></th>
@@ -19,7 +19,7 @@
         </tbody>
     </table>
 </div>
-<input class="hidden-input-after" style="position:absolute;left:-100%"/>
+<!--<input class="hidden-input-after" style="position:absolute;left:-100%"/>-->
 {{#if show_add}}
     <div style="margin-top:-13px;margin-bottom:10px">
         <a href="#" class="btn btn-default btn-sm nf-sheet-add-line">

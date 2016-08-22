@@ -45,6 +45,7 @@ class Move(Model):
         "cost_price": fields.Decimal("Cost Price", scale=6),  # in company currency
         "unit_price": fields.Decimal("Cost Price", scale=6),  # deprecated  change to cost_price
         "cost_amount": fields.Decimal("Cost Amount"), # in company currency
+        "cost_fixed": fields.Boolean("Cost Fixed"), # don't calculate cost
         "state": fields.Selection([("draft", "Draft"), ("pending", "Planned"), ("approved", "Approved"), ("done", "Completed"), ("voided", "Voided")], "Status", required=True),
         "stock_count_id": fields.Many2One("stock.count", "Stock Count"),
         "move_id": fields.Many2One("account.move", "Journal Entry"),
@@ -361,6 +362,11 @@ class Move(Model):
                     acc_from_id=prod.cogs_account_id.id
                 elif prod.categ_id and prod.categ_id.cogs_account_id:
                     acc_from_id=prod.categ_id.cogs_account_id.id
+            elif move.location_from_id.type=="internal":
+                if prod.stock_account_id:
+                    acc_from_id=prod.stock_account_id.id
+                elif prod.categ_id and prod.categ_id.stock_account_id:
+                    acc_from_id=prod.categ_id.stock_account_id.id
             if not acc_from_id:
                 raise Exception("Missing input account for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
             acc_to_id=move.location_to_id.account_id.id
@@ -369,6 +375,11 @@ class Move(Model):
                     acc_to_id=prod.cogs_account_id.id
                 elif prod.categ_id and prod.categ_id.cogs_account_id:
                     acc_to_id=prod.categ_id.cogs_account_id.id
+            elif move.location_to_id.type=="internal":
+                if prod.stock_account_id:
+                    acc_to_id=prod.stock_account_id.id
+                elif prod.categ_id and prod.categ_id.stock_account_id:
+                    acc_to_id=prod.categ_id.stock_account_id.id
             if not acc_to_id:
                 raise Exception("Missing output account for stock movement %s (date=%s, ref=%s, product=%s)"%(move.id,move.date,move.ref,prod.name))
             track_from_id=move.location_from_id.track_id.id

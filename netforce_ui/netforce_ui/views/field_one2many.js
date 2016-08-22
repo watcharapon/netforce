@@ -33,7 +33,6 @@ var FieldOne2Many=NFView.extend({
         if (this.options.invisible) return;
         var model=this.context.model;
         var name=this.options.name;
-        //log("name",name);
         var field=model.get_field(name);
         this.data.string=field.string;
         var relation=field.relation;

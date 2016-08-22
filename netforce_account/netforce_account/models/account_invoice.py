@@ -92,6 +92,7 @@ class Invoice(Model):
         "quarter": fields.Char("Quarter", sql_function=["quarter", "date"]),
         "month": fields.Char("Month", sql_function=["month", "date"]),
         "week": fields.Char("Week", sql_function=["week", "date"]),
+        "note" : fields.Text("Note"),
     }
     _order = "date desc,number desc"
 
@@ -699,19 +700,30 @@ class Invoice(Model):
         if prod.uom_id is not None:
             line["uom_id"] = prod.uom_id.id
         if type == "out":
-            if prod.sale_price is not None:
+            if prod.sale_price:
                 line["unit_price"] = prod.sale_price
-            if prod.sale_account_id is not None:
-                line["account_id"] = prod.sale_account_id.id or prod.categ_id.sale_account_id.id
-            if prod.sale_tax_id is not None:
-                line["tax_id"] = contact.tax_receivable_id.id or prod.sale_tax_id.id or prod.categ_id.sale_tax_id.id
+            if prod.sale_account_id:
+                line["account_id"] = prod.sale_account_id.id
+            elif prod.categ_id and prod.categ_id.sale_account_id:
+                line["account_id"] = prod.categ_id.sale_account_id.id
+
+            if contact.tax_receivable_id:
+                line["tax_id"] = contact.tax_receivable_id.id
+            elif prod.sale_tax_id:
+                line["tax_id"] = prod.sale_tax_id.id
+            elif prod.categ_id and prod.categ_id.sale_tax_id:
+                line["tax_id"] = prod.categ_id.sale_tax_id.id
         elif type == "in":
-            if prod.purchase_price is not None:
+            if prod.purchase_price:
                 line["unit_price"] = prod.purchase_price
             if prod.purchase_account_id is not None:
-                line["account_id"] = prod.purchase_account_id.id or prod.categ_id.purchase_account_id.id
-            if prod.purchase_tax_id is not None:
-                line["tax_id"] = contact.tax_payable_id.id or prod.purchase_tax_id.id or prod.categ_id.purchase_tax_id.id
+                line["account_id"] = prod.purchase_account_id.id
+            if contact.tax_payable_id:
+                line["tax_id"] = contact.tax_payable_id.id
+            elif prod.purchase_tax_id:
+                line["tax_id"] = prod.purchase_tax_id.id
+            elif prod.categ_id and prod.categ_id.purchase_tax_id:
+                line["tax_id"] = prod.categ_id.purchase_tax_id.id
         data = self.update_amounts(context)
         return data
 
@@ -843,12 +855,57 @@ class Invoice(Model):
                 "amount": line.amount,
             }
             vals["lines"].append(("create", line_vals))
-        new_id = self.create(vals, context={"type": obj.type, "inv_type": obj.inv_type})
+        ctx={"type": obj.type, "inv_type": obj.inv_type, "date": context.get("date")}
+        new_id = self.create(vals, context=ctx)
         new_obj = self.browse(new_id)
         if obj.type == "out":
             msg = "Invoice %s copied to %s" % (obj.number, new_obj.number)
         else:
             msg = "Invoice copied"
+        return {
+            "next": {
+                "name": "view_invoice",
+                "active_id": new_id,
+            },
+            "flash": msg,
+        }
+
+    def copy_to_debit_note(self, ids, context):
+        obj = self.browse(ids)[0]
+        vals = {
+            "type": obj.type,
+            "inv_type": "debit",
+            "ref": obj.number,
+            "contact_id": obj.contact_id.id,
+            "bill_address_id": obj.bill_address_id.id,
+            "currency_id": obj.currency_id.id,
+            "currency_rate": obj.currency_rate,
+            "tax_type": obj.tax_type,
+            "memo": obj.memo,
+            "tax_no": obj.tax_no,
+            "pay_method_id": obj.pay_method_id.id,
+            "original_invoice_id": obj.id,
+            "lines": [],
+        }
+        if obj.related_id:
+            vals["related_id"] = "%s,%s" % (obj.related_id._model, obj.related_id.id)
+        for line in obj.lines:
+            line_vals = {
+                "product_id": line.product_id.id,
+                "description": line.description,
+                "qty": line.qty,
+                "uom_id": line.uom_id.id,
+                "unit_price": line.unit_price,
+                "tax_id": line.tax_id.id,
+                "account_id": line.account_id.id,
+                "sale_id": line.sale_id.id,
+                "purch_id": line.purch_id.id,
+                "amount": line.amount,
+            }
+            vals["lines"].append(("create", line_vals))
+        new_id = self.create(vals, context={"type": vals["type"], "inv_type": vals["inv_type"]})
+        new_obj = self.browse(new_id)
+        msg = "Debit note %s created from invoice %s" % (new_obj.number, obj.number)
         return {
             "next": {
                 "name": "view_invoice",
@@ -1039,6 +1096,10 @@ class Invoice(Model):
         }
         if settings.logo:
             data["logo"] = get_file_path(settings.logo)
+            #support settings.logo
+            data['settings']={
+                "logo": get_file_path(settings.logo)
+            }
         for line in inv.lines:
             data["lines"].append({
                 "description": line.description,

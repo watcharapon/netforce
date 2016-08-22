@@ -49,7 +49,7 @@ class SaleOrder(Model):
         "amount_total_words": fields.Char("Total Words", function="get_amount_total_words"),
         "amount_total_cur": fields.Decimal("Total", function="get_amount", function_multi=True, store=True),
         "qty_total": fields.Decimal("Total", function="get_qty_total"),
-        "currency_id": fields.Many2One("currency", "Currency", required=True),
+        "currency_id": fields.Many2One("currency", "Currency", required=True, search=True),
         "quot_id": fields.Many2One("sale.quot", "Quotation", search=True), # XXX: deprecated
         "user_id": fields.Many2One("base.user", "Owner", search=True),
         "tax_type": fields.Selection([["tax_ex", "Tax Exclusive"], ["tax_in", "Tax Inclusive"], ["no_tax", "No Tax"]], "Tax Type", required=True),
@@ -95,6 +95,7 @@ class SaleOrder(Model):
         "job_template_id": fields.Many2One("job.template", "Service Order Template"),
         "jobs": fields.One2Many("job", "related_id", "Service Orders"),
         "agg_amount_total": fields.Decimal("Total Amount", agg_function=["sum", "amount_total"]),
+        "agg_amount_total_cur": fields.Decimal("Total Amount (Converted)", agg_function=["sum", "amount_total_cur"]),
         "agg_amount_subtotal": fields.Decimal("Total Amount w/o Tax", agg_function=["sum", "amount_subtotal"]),
         "agg_est_profit": fields.Decimal("Total Estimated Profit", agg_function=["sum", "est_profit_amount"]),
         "agg_act_profit": fields.Decimal("Total Actual Profit", agg_function=["sum", "act_profit_amount"]),
@@ -255,7 +256,7 @@ class SaleOrder(Model):
             vals["amount_tax"] = tax
             vals["amount_total"] = (subtotal + tax)
             vals["amount_total_cur"] = get_model("currency").convert(
-                vals["amount_total"], obj.currency_id.id, settings.currency_id.id)
+                vals["amount_total"], obj.currency_id.id, settings.currency_id.id, rate_type="sell", date=obj.date)
             vals["amount_total_discount"] = discount
             res[obj.id] = vals
         return res
@@ -357,11 +358,6 @@ class SaleOrder(Model):
 
     def onchange_product(self, context):
         data = context["data"]
-        contact_id = data.get("contact_id")
-        if contact_id:
-            contact = get_model("contact").browse(contact_id)
-        else:
-            contact = None
         path = context["path"]
         line = get_data_path(data, path, parent=True)
         prod_id = line.get("product_id")
@@ -393,7 +389,7 @@ class SaleOrder(Model):
             line["location_id"] = prod.locations[0].location_id.id
             for loc in prod.locations:
                 if loc.stock_qty:
-                    line['location_id']=prod.location_id.id
+                    line['location_id']=loc.location_id.id
                     break
         data = self.update_amounts(context)
         return data
@@ -1348,5 +1344,16 @@ class SaleOrder(Model):
             "flash": "Sale Return %s created from sales order %s" % (sale.number, obj.number),
             "order_id": sale_id,
         }
+
+    def get_template_sale_form(self, ids, context={}):
+        #obj = self.browse(ids)[0]
+        return "sale_form"
+
+    def update_cost_amount(self,context={}):
+        data=context['data']
+        path=context['path']
+        line=get_data_path(data,path,parent=True)
+        line['amount']=(line['qty'] or 0) *(line['landed_cost'] or 0)
+        return data
 
 SaleOrder.register()

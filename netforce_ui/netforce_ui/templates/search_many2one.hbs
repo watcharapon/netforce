@@ -1,0 +1,14 @@
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <a class="close-modal">×</a>
+            <h4>Search {{popup_title}}</h4>
+        </div>
+        <div class="modal-body">
+            <div>
+                <div class="search" style="padding:10px;"></div>
+            </div>
+            {{view "list" cols=cols group_fields=group_fields navigate=true colors=colors noselect=noselect header_scroll=header_scroll active_id=active_id on_click_item=on_click_item context=context}}
+        </div>      
+    </div>
+</div>

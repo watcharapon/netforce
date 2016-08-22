@@ -167,7 +167,8 @@ var FormView=NFView.extend({
                 var args=[that.options.search_condition || []];
                 var opts={
                     offset: that.options.offset||0,
-                    limit: that.options.limit||100,
+                    /*limit: that.options.limit||100,*/
+                    /*close for unlimit*/
                 };
                 nf_execute(model_name,"search",args,opts,function(err,data) {
                     if (err) throw "ERROR: "+err;
@@ -399,6 +400,7 @@ var FormView=NFView.extend({
                                         create: $el2.attr("create"),
                                         search_mode: $el2.attr("search_mode"),
                                         scale: $el2.attr("scale"),
+                                        string: $el2.attr("string"),
                                         attrs: $el2.attr("attrs")
                                     };
                                     if ($el2.attr("readonly")) {
@@ -855,6 +857,8 @@ var FormView=NFView.extend({
                     click_action: $el.attr("click_action"),
                     action: $el.attr("action"),
                     readonly: $el.attr("readonly"),
+                    noadd : $el.attr("noadd"),
+                    nodelete : $el.attr("nodelete"),
                     context: context
                 };
                 var $list=$el.find("list");

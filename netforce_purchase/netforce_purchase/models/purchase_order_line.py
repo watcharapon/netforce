@@ -42,11 +42,13 @@ class PurchaseOrderLine(Model):
         "sale_id": fields.Many2One("sale.order", "Sales Order"),
         "location_id": fields.Many2One("stock.location", "Location", condition=[["type", "=", "internal"]]),
         "product_categs": fields.Many2Many("product.categ", "Product Categories", function="_get_related", function_context={"path": "product_id.categs"}, function_search="_search_related", search=True),
+        "product_categ_id": fields.Many2Many("product.categ", "Product Category", function="_get_related", function_context={"path": "product_id.categ_id"}, function_search="_search_related", search=True),
         "agg_amount": fields.Decimal("Total Amount", agg_function=["sum", "amount"]),
         "agg_qty": fields.Decimal("Total Order Qty", agg_function=["sum", "qty"]),
         "agg_amount_cur": fields.Decimal("Total Amount Cur", agg_function=["sum", "amount_cur"]),
         "ship_method_id": fields.Many2One("ship.method", "Shipping Method"),
         "discount_amount": fields.Decimal("Disc Amt"),
+        "discount_percent": fields.Decimal("Disc %"),
         "qty_stock": fields.Decimal("Qty (Stock UoM)"),
     }
     _order = "order_id desc,id"

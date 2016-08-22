@@ -21,10 +21,10 @@
     </group>
     <field name="lines" nolabel="1">
         <list>
-            <field name="product_id" onchange="onchange_product"/>
+            <field name="product_id" condition='[["can_purchase","=",true]]' onchange="onchange_product"/>
             <field name="description"/>
-            <field name="qty" onchange="onchange_qty"/>
-            <field name="uom_id" onchange="update_amounts"/>
+            <field name="qty"/>
+            <field name="uom_id"/>
             <field name="location_id"/>
             <field name="purchase_order_id" attrs='{"readonly":[["parent.state","in",["done","voided"]]]}'/>
         </list>

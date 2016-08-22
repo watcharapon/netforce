@@ -34,12 +34,13 @@
             </group>
             <field name="lines" nolabel="1">
                 <list onchange="update_amounts">
-                    <field name="product_id" onchange="onchange_product"/>
+                    <field name="product_id" condition='[["can_purchase","=",true]]' onchange="onchange_product"/>
                     <field name="description"/>
                     <field name="qty" onchange="onchange_qty"/>
                     <field name="uom_id" onchange="update_amounts"/>
                     <field name="unit_price" onchange="update_amounts"/>
                     <field name="tax_id" onchange="update_amounts"/>
+                    <field name="discount_percent" onchange="update_amounts"/>
                     <field name="discount_amount" onchange="update_amounts"/>
                     <field name="amount"/>
                     <field name="amount_cur"/>

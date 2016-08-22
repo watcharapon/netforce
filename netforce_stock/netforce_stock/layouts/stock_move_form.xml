@@ -23,6 +23,7 @@
             <separator/>
             <field name="cost_price"/>
             <field name="cost_amount"/>
+            <field name="cost_fixed"/>
             <field name="qty2"/>
             <separator/>
             <field name="move_id"/>

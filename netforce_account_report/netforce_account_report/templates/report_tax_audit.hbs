@@ -23,6 +23,7 @@
             <th>Account</th>
             <th>Contact</th>
             <th>Number</th>
+            <th>Tax No.</th>
             <th>Reference</th>
             <th>Details</th>
             <th>Base</th>
@@ -36,6 +37,7 @@
                 <td>{{account_name}} ({{account_code}})</td>
                 <td>{{contact_name}}</td>
                 <td>{{number}}</td>
+                <td>{{tax_no}}</td>
                 <td>{{ref}}</td>
                 <td>{{description}}</td>
                 <td>{{currency base_amount}}</td>
@@ -43,7 +45,7 @@
             </tr>
         {{/each}}
         <tr>
-            <td colspan="6"></td>
+            <td colspan="7"></td>
             <th>{{currency base_total}}</th>
             <th>{{currency tax_total}}</th>
         </tr>

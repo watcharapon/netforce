@@ -7,6 +7,7 @@
     <field name="number"/>
     <field name="date"/>
     <field name="contact_id"/>
+    <field name="ref"/>
     <field name="related_id"/>
     <field name="ship_method_id"/>
     <field name="ship_tracking"/>
