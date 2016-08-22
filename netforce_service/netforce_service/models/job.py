@@ -94,7 +94,7 @@ class Job(Model):
         "labor_cost": fields.Decimal("Labor Cost", function="get_cost", function_multi=True),
         "part_cost": fields.Decimal("Parts Cost", function="get_cost", function_multi=True),
         "other_cost": fields.Decimal("Other Cost", function="get_cost", function_multi=True),
-        "total_cost": fields.Decimal("Total Cost", function="get_cost", function_multi=True),
+        "total_cost": fields.Decimal("Total Cost", function="get_cost", function_multi=True, store=True),
         "labor_sell": fields.Decimal("Labor Selling", function="get_sell", function_multi=True),
         "part_sell": fields.Decimal("Parts Selling", function="get_sell", function_multi=True),
         "other_sell": fields.Decimal("Other Selling", function="get_sell", function_multi=True),
@@ -236,7 +236,7 @@ class Job(Model):
                 "uom_id": line.uom_id.id,
                 "location_from_id": prod_loc_id and prod_loc_id.id or wh_loc_id,
                 "location_to_id": obj.location_id.id or cust_loc_id,
-                "tracking_id": obj.tracking_id.id,
+                "track_id": obj.track_id and obj.track_id.id or None,
             }
             vals["lines"].append(("create", line_vals))
         if not vals["lines"]:
@@ -274,6 +274,7 @@ class Job(Model):
                 "unit_price": line.unit_price,
                 "account_id": prod.sale_account_id.id if prod else None,
                 "tax_id": prod.sale_tax_id.id if prod else None,
+                "track_id": obj.track_id.id if obj.track_id else None,
                 "amount": line.amount,
             }
             inv_vals["lines"].append(("create", line_vals))
