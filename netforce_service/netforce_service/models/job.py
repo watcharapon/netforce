@@ -236,7 +236,7 @@ class Job(Model):
                 "uom_id": line.uom_id.id,
                 "location_from_id": prod_loc_id and prod_loc_id.id or wh_loc_id,
                 "location_to_id": obj.location_id.id or cust_loc_id,
-                "tracking_id": obj.tracking_id.id,
+                "track_id": obj.track_id and obj.track_id.id or None,
             }
             vals["lines"].append(("create", line_vals))
         if not vals["lines"]:
@@ -274,6 +274,7 @@ class Job(Model):
                 "unit_price": line.unit_price,
                 "account_id": prod.sale_account_id.id if prod else None,
                 "tax_id": prod.sale_tax_id.id if prod else None,
+                "track_id": obj.track_id.id if obj.track_id else None,
                 "amount": line.amount,
             }
             inv_vals["lines"].append(("create", line_vals))
