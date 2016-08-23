@@ -21,6 +21,7 @@
  */
 
 NF_TIMEOUT=1; // seconds
+nf_hidden={};
 
 window.log=function() {
     if (this.console) {
@@ -1009,7 +1010,6 @@ function set_actions() {
 }
 
 nf_templates=null;
-nf_hidden={};
 
 function set_hidden() {
     if (ui_params) {
