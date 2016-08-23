@@ -186,8 +186,11 @@ class Move(Model):
 
     def delete(self, ids, **kw):
         prod_ids = []
+        job_ids = []
         for obj in self.browse(ids):
             prod_ids.append(obj.product_id.id)
+            if obj.related_id and obj.related_id._model == 'job':
+                job_ids.append(obj.related_id.id)
         move_ids=[]
         for obj in self.browse(ids):
             if obj.move_id:
@@ -201,6 +204,8 @@ class Move(Model):
         set_active_user(1)
         get_model("product").write(prod_ids, {"update_balance": True})
         set_active_user(user_id)
+        # update service order cost
+        get_model("job").function_store(job_ids)
 
     def view_stock_transaction(self, ids, context={}):
         obj = self.browse(ids[0])

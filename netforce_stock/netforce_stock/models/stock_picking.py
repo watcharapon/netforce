@@ -541,6 +541,13 @@ class Picking(Model):
             date = vals["date"]
             move_ids = get_model("stock.move").search([["picking_id", "in", ids]])
             get_model("stock.move").write(move_ids, {"date": date})
+        #update service order cost
+        job_ids=[]
+        for obj in self.browse(ids):
+            if obj.related_id._model == 'job':
+                job_ids.append(obj.related_id.id)
+        if job_ids:
+            get_model('job').function_store(job_ids)
 
     def get_qty_total(self, ids, context={}):
         res = {}
