@@ -94,7 +94,7 @@ class Job(Model):
         "labor_cost": fields.Decimal("Labor Cost", function="get_cost", function_multi=True),
         "part_cost": fields.Decimal("Parts Cost", function="get_cost", function_multi=True),
         "other_cost": fields.Decimal("Other Cost", function="get_cost", function_multi=True),
-        "total_cost": fields.Decimal("Total Cost", function="get_cost", function_multi=True, store=True),
+        "total_cost": fields.Decimal("Total Cost", function="get_cost", function_multi=True),
         "labor_sell": fields.Decimal("Labor Selling", function="get_sell", function_multi=True),
         "part_sell": fields.Decimal("Parts Selling", function="get_sell", function_multi=True),
         "other_sell": fields.Decimal("Other Selling", function="get_sell", function_multi=True),
