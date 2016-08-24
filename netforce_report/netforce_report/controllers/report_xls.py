@@ -29,6 +29,7 @@ except:
 import io
 import time
 import json
+import decimal
 
 
 class ReportXLS(Controller):
@@ -56,10 +57,13 @@ class ReportXLS(Controller):
             if subgroup_field:
                 group_fields.append(subgroup_field)
             agg_fields = []
+            total_agg_fields = {}
             if agg_field:
                 agg_fields.append(agg_field)
+                total_agg_fields[agg_field] = {'total': 0, 'col_index': 0}
             if agg_field2:
                 agg_fields.append(agg_field2)
+                total_agg_fields[agg_field2] = {'total': 0, 'col_index': 0}
             order = ",".join(group_fields)
             lines = m.read_group(group_fields, agg_fields, condition, order=order)
 
@@ -67,6 +71,8 @@ class ReportXLS(Controller):
             book = xlsxwriter.Workbook(out)
             fmt_header = book.add_format({'bold': True, "bg_color": "#cccccc"})
             bold = book.add_format({'bold': True})
+            fmt_number = book.add_format()
+            fmt_number.set_num_format('#,##0.00')
             sheet = book.add_worksheet()
             col = 0
             for n in group_fields:
@@ -81,6 +87,7 @@ class ReportXLS(Controller):
                 f = m._fields[n]
                 sheet.write(0, col, f.string, fmt_header)
                 sheet.set_column(col, col, 20)
+                total_agg_fields[n]['col_index'] = col
                 col += 1
 
             row = 1
@@ -99,9 +106,17 @@ class ReportXLS(Controller):
                 col += 1
                 for n in agg_fields:
                     v = line[n]
-                    sheet.write(row, col, v)
+                    sheet.write(row, col, v, fmt_number)
+                    if type(v) in [int, float, decimal.Decimal]:
+                        total_agg_fields[n]['total'] += v or 0
                     col += 1
                 row += 1
+            if agg_fields:
+                row+=1
+                sheet.write(row, 0, "Total")
+                for n in agg_fields:
+                    sheet.write(row, total_agg_fields[n]['col_index'], total_agg_fields[n]['total'], fmt_number)
+            row += 1
             book.close()
 
             fname = "report-" + time.strftime("%Y-%m-%dT%H:%M:%S") + ".xlsx"
