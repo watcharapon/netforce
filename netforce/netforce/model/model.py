@@ -171,7 +171,7 @@ class Model(object):
         return self._fields[name]
 
     def default_get_data(self, field_names=None, context={}, load_m2o=True):
-        vals=self.default_get(field_names, context, load_m2o)
+        vals=self.default_get(field_names=field_names, context=context, load_m2o=load_m2o)
         return vals, context.get('field_default')
 
     def default_get(self, field_names=None, context={}, load_m2o=True):
