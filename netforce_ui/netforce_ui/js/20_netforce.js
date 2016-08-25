@@ -1506,6 +1506,7 @@ window.NFModel=Backbone.Model.extend({
             } else if (f.type=="one2many") {
                 if (!v) continue;
                 if (_.isArray(v) && v.length < 1) continue;
+                if (!v instanceof NFCollection) continue; // cannot add new line because v is a function
                 v=v.get_vals();
             }
             vals[n]=v;
