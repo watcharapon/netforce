@@ -42,6 +42,16 @@ class Migration(object):
 
 
 def apply_migrations(from_version):
+    if 'name=' in from_version:
+        mig_name=from_version.replace("name=","")
+        for mig_cls in _migrations:
+            if mig_cls._name==mig_name:
+                mig = mig_cls()
+                print("Applying migration %s..." % mig._name)
+                set_active_user(1)
+                set_active_company(None)
+                mig.migrate()
+        return
     to_version = get_db_version()
     print("Applying migrations from version %s to %s..." % (from_version, to_version))
     for mig_cls in sorted(_migrations, key=lambda m: (m._version, m._name)):
