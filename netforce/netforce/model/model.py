@@ -249,7 +249,7 @@ class Model(object):
         """
         except_models=['company','log','field.default']
         if not access.allow_create_transaction() and not self._transient and self._name not in except_models:
-            raise Exception("Permission denied!")
+            raise Exception("This company not allow to create transaction!")
 
     def create(self, vals, context={}):
         self.check_permission_company()
