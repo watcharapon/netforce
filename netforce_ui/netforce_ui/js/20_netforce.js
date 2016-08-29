@@ -1082,6 +1082,9 @@ function exec_action_ready(action) {
         var res=confirm(action_opts.confirm);
         if (!res) return;
     }
+
+    ui_log(action.name);
+
     if (action_opts.context) {
         if (_.isString(action_opts.context)) {
             var ctx=_.extend({},global_ctx,action);
@@ -2540,4 +2543,20 @@ $(function() {
 function nf_get_version() {
     if (!ui_params) return null;
     return ui_params.version;
+}
+
+function ui_log(action_name) {
+    if (!action_name) return;
+    var cookies=get_cookies();
+    var keep_ui_log=cookies.keep_ui_log;
+    if (!keep_ui_log) return;
+    var action=get_action(action_name);
+    if (action.name=='ui_log') return;
+    if (nf_models && !nf_models["ui.log"]) return;
+
+    var args=[action.name, action.model, action.string || action.name];
+    log("ui.log ", args);
+    rpc_execute("ui.log","log",args,{},function(err,data) {
+        if(err) alert("ERROR "+err.message);
+    });
 }
