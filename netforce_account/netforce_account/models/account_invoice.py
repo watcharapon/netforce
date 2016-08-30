@@ -564,7 +564,8 @@ class Invoice(Model):
             tax=get_model("currency").round(inv.currency_id.id,tax)
             vals["amount_subtotal"] = subtotal
             if inv.taxes:
-                tax=sum(t.tax_amount for t in inv.taxes)
+                tax_cur=sum(t.tax_amount for t in inv.taxes)
+                tax=get_model("currency").convert(tax_cur,settings.currency_id.id,inv.currency_id.id,rate=1/inv.currency_rate if inv.currency_rate else None)
             vals["amount_tax"] = tax
             if inv.tax_type == "tax_in":
                 vals["amount_rounding"] = sum(l.amount for l in inv.lines) - (subtotal + tax)
