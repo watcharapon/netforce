@@ -52,6 +52,7 @@ class Template(Model):
             to_addrs = render_template(obj.to_addrs or "", data)
         except:
             raise Exception("Failed to render 'To Addresses' in template: %s" % obj.name)
+        to_addrs=",".join([x for x in to_addrs.split(",") if x.strip()]) # get rid of empty string or email
         if obj.cc_addrs:
             try:
                 cc_addrs = render_template(obj.cc_addrs or "", data)
