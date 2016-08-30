@@ -116,7 +116,7 @@ class Lead(Model):
                 "contact_id": addr.contact_id.id,
                 "company_id": addr.company_id.id,
                 "settings_id": addr.settings_id.id,
-                "lead_id": addr.lead_id.id,
+                #"lead_id": addr.lead_id.id,
                 "employee_id": addr.employee_id.id,
                 #"related_id": addr.related_id.id, #XXX
                 "address_text": addr.address_text,
