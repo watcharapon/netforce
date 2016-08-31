@@ -71,10 +71,12 @@ class ReportXLS(Controller):
             book = xlsxwriter.Workbook(out)
             fmt_header = book.add_format({'bold': True, "bg_color": "#cccccc"})
             bold = book.add_format({'bold': True})
-            fmt_number = book.add_format()
-            fmt_number.set_num_format('#,##0.00')
+            bold_border = book.add_format({'bold': True, "align": "right", "bottom": True, "top": True})
+            fmt_number = book.add_format({"num_format": '#,##0.00'})
+            fmt_total = book.add_format({'bold': True, "bottom": True, "top": True, "num_format": '#,##0.00'})
             sheet = book.add_worksheet()
             col = 0
+            total_count_col = 0
             for n in group_fields:
                 f = self._get_field(model=m, field_name=n)
                 sheet.write(0, col, f.string, fmt_header)
@@ -82,6 +84,7 @@ class ReportXLS(Controller):
                 col += 1
             sheet.write(0, col, "Count", fmt_header)
             sheet.set_column(col, col, 20)
+            last_col_group = col
             col += 1
             for n in agg_fields:
                 f = m._fields[n]
@@ -103,6 +106,7 @@ class ReportXLS(Controller):
                     sheet.write(row, col, v)
                     col += 1
                 sheet.write(row, col, line["_count"])
+                total_count_col += line["_count"]
                 col += 1
                 for n in agg_fields:
                     v = line[n]
@@ -111,11 +115,12 @@ class ReportXLS(Controller):
                         total_agg_fields[n]['total'] += v or 0
                     col += 1
                 row += 1
-            if agg_fields:
-                row+=1
-                sheet.write(row, 0, "Total")
+            # render total
+            if group_fields or agg_fields:
+                sheet.write(row, last_col_group-1, "Total", bold_border)
+                sheet.write(row, last_col_group, total_count_col, bold_border)
                 for n in agg_fields:
-                    sheet.write(row, total_agg_fields[n]['col_index'], total_agg_fields[n]['total'], fmt_number)
+                    sheet.write(row, total_agg_fields[n]['col_index'], total_agg_fields[n]['total'], fmt_total)
             row += 1
             book.close()
 
