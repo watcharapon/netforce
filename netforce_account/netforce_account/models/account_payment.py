@@ -1282,7 +1282,7 @@ class Payment(Model):
         data = context["data"]
         path = context['path']
         line = get_data_path(data,path,parent=True)
-        if line['tax_base'] and line['tax_comp_id']:
+        if line and line.get('tax_base') and line.get('tax_comp_id'):
             tax_comp=get_model("account.tax.component").browse(line['tax_comp_id'])
             rate=(tax_comp.rate or 0)/100
             tax_base=line['tax_base'] or 0
