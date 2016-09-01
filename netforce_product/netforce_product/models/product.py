@@ -323,8 +323,8 @@ class Product(Model):
         purchase_duty_percent = data.get("purchase_duty_percent")
         purchase_ship_percent = data.get("purchase_ship_percent")
         if purchase_price:
-            landed_cost = purchase_price * \
-                (1 + (purchase_duty_percent or 0) / 100) * (1 + (purchase_ship_percent or 0) / 100)
+            landed_cost = Decimal(purchase_price) * \
+                Decimal(1 + (purchase_duty_percent or 0) / 100) * Decimal(1 + (purchase_ship_percent or 0) / 100)
             landed_cost_conv = landed_cost * (purchase_currency_rate or 1) 
         else:
             landed_cost = None
