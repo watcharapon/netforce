@@ -956,8 +956,7 @@ class Model(object):
                         if k not in vals:
                             continue
                         v = vals[k]
-                        if v is not None and v.isnumeric():
-                        #if v is not None:
+                        if v is not None:
                             r[n] = float(v)
                 elif isinstance(f, fields.Decimal):
                     for r in res:
@@ -965,8 +964,7 @@ class Model(object):
                         if k not in vals:
                             continue
                         v = vals[k]
-                        if v is not None and v.isnumeric():
-                        #if v is not None:
+                        if v is not None:
                             r[n] = Decimal(v)
                 elif isinstance(f, fields.Char):
                     pass
