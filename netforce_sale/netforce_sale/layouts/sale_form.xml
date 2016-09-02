@@ -186,7 +186,7 @@
         </field>
         <field name="invoices" click_action="view_invoice"/>
         <field name="pickings"/>
-        <field name="purchase_lines"/>
+        <field name="purchase_lines" click_action="view_purchase"/>
         <field name="jobs"/>
         <field name="activities"/>
         <field name="emails" nodelete="1"/>

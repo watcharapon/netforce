@@ -582,4 +582,14 @@ class PurchaseOrder(Model):
             line['amount_cur']=new_cur and new_cur or None
         return data
 
+    def view_purchase(self, ids, context={}):
+        obj=get_model("purchase.order.line").browse(ids)[0]
+        return {
+            'next': {
+                'name': 'purchase',
+                'active_id': obj.order_id.id,
+                'mode': 'form',
+            },
+        }
+
 PurchaseOrder.register()
