@@ -33,7 +33,9 @@ class AllocWizard(Model):
         "amount_remain": fields.Decimal("Remaining Credit", readonly=True),
     }
 
-    def default_get(self, context={}, **kw):
+    def default_get(self,field_names={},context={},**kw):
+        if "credit_id" not in context:
+            return {}
         credit_id = int(context["credit_id"])
         cred = get_model("account.invoice").browse(credit_id)
         contact_id = cred.contact_id.id

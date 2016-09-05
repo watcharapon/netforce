@@ -24,7 +24,15 @@ from netforce import database
 from netforce import utils
 from netforce import access
 import xmlrpc
+from xmlrpc.client import Marshaller
+from decimal import Decimal
 
+def dump_decimal(self, value, write):
+    write("<value><double>")
+    write(str(value))
+    write("</double></value>\n")
+
+Marshaller.dispatch[Decimal] = dump_decimal
 
 class XmlRpc(Controller):
     _path = "/xmlrpc"

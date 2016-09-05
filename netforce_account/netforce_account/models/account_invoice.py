@@ -300,11 +300,9 @@ class Invoice(Model):
         total_base = 0
         total_tax = 0
         for line in obj.lines:
-            cur_amt = get_model("currency").convert(
-                line.amount, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
             tax_id = line.tax_id
             if tax_id and obj.tax_type != "no_tax":
-                base_amt = get_model("account.tax.rate").compute_base(tax_id, cur_amt, tax_type=obj.tax_type)
+                base_amt = get_model("account.tax.rate").compute_base(tax_id, line.amount, tax_type=obj.tax_type)
                 if settings.rounding_account_id:
                     base_amt=get_model("currency").round(obj.currency_id.id,base_amt)
                 tax_comps = get_model("account.tax.rate").compute_taxes(tax_id, base_amt, when="invoice")
@@ -313,7 +311,7 @@ class Invoice(Model):
                     tax_vals["tax_amt"] += tax_amt
                     tax_vals["base_amt"] += base_amt
             else:
-                base_amt = cur_amt
+                base_amt = line.amount
         for comp_id, tax_vals in taxes.items():
             comp = get_model("account.tax.component").browse(comp_id)
             acc_id = comp.account_id.id
@@ -428,14 +426,18 @@ class Invoice(Model):
                 acc_id = comp.account_id.id
                 if not acc_id:
                     raise Exception("Missing account for tax component %s" % comp.name)
-                amt = sign * tax.tax_amount
+                tax_amt = get_model("currency").convert(
+                    tax.tax_amount, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
+                base_amt = get_model("currency").convert(
+                    tax.base_amount, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
+                amt = sign * tax_amt
                 line_vals = {
                     "description": desc,
                     "account_id": acc_id,
                     "credit": amt > 0 and amt or 0,
                     "debit": amt < 0 and -amt or 0,
                     "tax_comp_id": comp.id,
-                    "tax_base": tax.base_amount,
+                    "tax_base": base_amt,
                     "contact_id": contact.id,
                     "invoice_id": obj.id,
                     "tax_no": tax.tax_no,

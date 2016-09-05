@@ -78,11 +78,27 @@ class WorkTime(Model):
     def create(self, vals, **kw):
         new_id = super().create(vals, **kw)
         self.function_store([new_id])
+        if 'job_id' in vals:
+            get_model('job').function_store([vals['job_id']])
         return new_id
 
     def write(self, ids, vals, **kw):
         super().write(ids, vals, **kw)
         self.function_store(ids)
+        job_ids=[]
+        for obj in self.browse(ids):
+            if obj.job_id:
+                job_ids.append(obj.job_id.id)
+        if job_ids:
+            get_model('job').function_store(job_ids)
+
+    def delete(self, ids, context={}):
+        job_ids=[]
+        for obj in self.browse(ids):
+            if obj.job_id:
+                job_ids.append(obj.job_id.id)
+        super().delete(ids)
+        get_model('job').function_store(job_ids)
 
     def get_week(self, ids, context={}):
         vals = {}

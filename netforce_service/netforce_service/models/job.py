@@ -94,10 +94,11 @@ class Job(Model):
         "labor_cost": fields.Decimal("Labor Cost", function="get_cost", function_multi=True),
         "part_cost": fields.Decimal("Parts Cost", function="get_cost", function_multi=True),
         "other_cost": fields.Decimal("Other Cost", function="get_cost", function_multi=True),
-        "total_cost": fields.Decimal("Total Cost", function="get_cost", function_multi=True),
+        "total_cost": fields.Decimal("Total Cost", function="get_cost", function_multi=True, store=True),
         "labor_sell": fields.Decimal("Labor Selling", function="get_sell", function_multi=True),
         "part_sell": fields.Decimal("Parts Selling", function="get_sell", function_multi=True),
         "other_sell": fields.Decimal("Other Selling", function="get_sell", function_multi=True),
+        "total_sell": fields.Decimal("Total Cost", function="get_sell", function_multi=True, store=True),
         "done_approved_by_id": fields.Many2One("base.user", "Approved By", readonly=True),
         "multi_visit_code_id": fields.Many2One("reason.code", "Multi Visit Reason Code", condition=[["type", "=", "service_multi_visit"]]),
         "late_response_code_id": fields.Many2One("reason.code", "Late Response Reason Code", condition=[["type", "=", "service_late_response"]]),
@@ -147,6 +148,11 @@ class Job(Model):
         "date_open": lambda *a: time.strftime("%Y-%m-%d"),
     }
 
+    def create(self, vals, **kw):
+        new_id = super().create(vals, **kw)
+        self.function_store([new_id])
+        return new_id
+
     def write(self, ids, vals, **kw):
         if vals.get("state") == "done":
             vals["date_close"] = time.strftime("%Y-%m-%d")
@@ -154,6 +160,7 @@ class Job(Model):
                 if not obj.done_approved_by_id:
                     raise Exception("Service order has to be approved first")
         super().write(ids, vals, **kw)
+        self.function_store(ids)
 
     def get_total(self, ids, context={}):
         vals = {}
@@ -236,7 +243,7 @@ class Job(Model):
                 "uom_id": line.uom_id.id,
                 "location_from_id": prod_loc_id and prod_loc_id.id or wh_loc_id,
                 "location_to_id": obj.location_id.id or cust_loc_id,
-                "tracking_id": obj.tracking_id.id,
+                "track_id": obj.track_id and obj.track_id.id or None,
             }
             vals["lines"].append(("create", line_vals))
         if not vals["lines"]:
@@ -274,6 +281,7 @@ class Job(Model):
                 "unit_price": line.unit_price,
                 "account_id": prod.sale_account_id.id if prod else None,
                 "tax_id": prod.sale_tax_id.id if prod else None,
+                "track_id": obj.track_id.id if obj.track_id else None,
                 "amount": line.amount,
             }
             inv_vals["lines"].append(("create", line_vals))
@@ -323,7 +331,7 @@ class Job(Model):
         for obj in self.browse(ids):
             labor_cost = 0
             for time in obj.work_time:
-                labor_cost += time.amount or 0
+                labor_cost += time.cost or time.cost_amount or 0
             other_cost = 0
             for line in obj.lines:
                 if line.type != "other":
@@ -338,7 +346,7 @@ class Job(Model):
             part_cost = 0
             for pick in obj.pickings:
                 for move in pick.lines:
-                    amt = move.qty * (move.unit_price or 0)
+                    amt = move.qty * (move.unit_price or move.cost_price or 0)
                     if move.location_to_id.id == job_loc_id and move.location_from_id.id != job_loc_id:
                         part_cost += amt
                     elif move.location_from_id.id == job_loc_id and move.location_to_id.id != job_loc_id:
@@ -368,6 +376,7 @@ class Job(Model):
                 "labor_sell": labor_sell,
                 "part_sell": part_sell,
                 "other_sell": other_sell,
+                "total_sell": labor_sell + part_sell + other_sell,
             }
         return vals
 
