@@ -69,6 +69,7 @@ var NFLayout=NFView.extend({
                     icon: $el.attr("icon"),
                     submenu_items: []
                 };
+                var hide_item=false;
                 $el.children().each(function() {
                     var $el2=$(this);
                     var tag=$el2.prop("tagName");
@@ -84,13 +85,18 @@ var NFLayout=NFView.extend({
                             perm_check_admin: $el2.attr("perm_check_admin"),
                             pkg: $el2.attr("pkg")
                         };
-                        if (item2.action && !check_menu_permission(item2.action)) return;
+                        if (item2.action && !check_menu_permission(item2.action)){
+                            hide_item=true;
+                            return;
+                        }
                         item.submenu_items.push(item2);
                     } else if (tag=="divider") {
                         var item2={
+                            hide: hide_item,
                             type: "divider"
                         };
                         item.submenu_items.push(item2);
+                        hide_item=false;
                     } else if (tag=="header") {
                         var item2={
                             type: "header",
@@ -99,9 +105,30 @@ var NFLayout=NFView.extend({
                         item.submenu_items.push(item2);
                     }
                 });
+
+                var sub_items=[];
+                _.each(item.submenu_items, function(item){
+                    if(!item.hide){
+                        sub_items.push(item);
+                    }else if(!_.isEmpty(sub_items) && sub_items[sub_items.length-1].type!='divider'){
+                        sub_items.push(item);
+                    }
+                });
+                while(true){
+                    if(!_.isEmpty(sub_items) && sub_items[sub_items.length-1].type=='divider'){
+                        sub_items=sub_items.splice(0,sub_items.length-1);
+                    }else if(!_.isEmpty(sub_items) && sub_items[sub_items.length-1].type=='header'){
+                        sub_items=sub_items.splice(0,sub_items.length-1);
+                    }else{
+                        break;
+                    }
+                }
+                item.submenu_items=sub_items;
+
                 if (!item.action && !item.url && item.submenu_items.length==0) return;
                 that.data.menu_items.push(item);
             }
+
         });
         log("menu_items",this.data.menu_items);
         this.data.title=$(doc).find("menu").attr("string");

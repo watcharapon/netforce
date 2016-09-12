@@ -60,4 +60,11 @@ class OrderPoint(Model):
         super().delete(ids, **kw)
         get_model("product").write(prod_ids, {"update_balance": True})
 
+    def onchange_product(self, context={}):
+        data=context['data']
+        product_id=data['product_id']
+        product=get_model('product').browse(product_id)
+        data['uom_id']=product.uom_id.id
+        return data
+
 OrderPoint.register()
