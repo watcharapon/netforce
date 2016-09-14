@@ -135,7 +135,7 @@ class SaleReturn(Model):
         for obj in self.browse(ids):
             if obj.state in ("confirmed", "done"):
                 raise Exception("Can not delete sales order in this status")
-        super(self).delete(ids, **kw)
+        super().delete(ids, **kw)
 
     def get_amount(self, ids, context={}):
         res = {}

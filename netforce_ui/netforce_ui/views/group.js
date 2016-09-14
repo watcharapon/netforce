@@ -143,6 +143,7 @@ var Group=NFView.extend({
                                     name: $el2.attr("name"),
                                     string: $el2.attr("string"),
                                     condition: $el2.attr("condition"),
+                                    click_action: $el2.attr("click_action"),
                                     readonly: $el2.attr("readonly"),
                                     required: $el2.attr("required"),
                                     invisible: $el2.attr("invisible"),
