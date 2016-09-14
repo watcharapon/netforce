@@ -392,6 +392,7 @@ var FormView=NFView.extend({
                                         name: $el2.attr("name"),
                                         condition: $el2.attr("condition")||$el2.attr("condition"), // XXX
                                         readonly: $el2.attr("readonly"),
+                                        click_action: $el2.attr("click_action"),
                                         required: $el2.attr("required"),
                                         invisible: $el2.attr("invisible"),
                                         onchange: $el2.attr("onchange"),
