@@ -604,6 +604,7 @@ function field_value(name,context,link,target,m2o_link,click_action,show_image,s
                 if (v[0]==val) {
                     val=v[1];
                     val=translate(val);
+                    if(val instanceof Handlebars.SafeString) val=val.toString();
                     break;
                 }
             }
