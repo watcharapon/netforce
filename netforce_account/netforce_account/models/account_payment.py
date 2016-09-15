@@ -586,6 +586,7 @@ class Payment(Model):
             elif line.type=="invoice":
                 inv = line.invoice_id
                 inv_taxes = {}
+                tax_vals = {}
                 if inv.inv_type in ("invoice", "credit", "debit"):
                     line_vals = {
                         "move_id": move_id,
@@ -673,8 +674,9 @@ class Payment(Model):
                                         "amount_tax": tax_amt,
                                     }
                                     inv_taxes[comp_id] = tax_vals
-                            tax_vals["amount_base"] = get_model("currency").round(inv.currency_id.id, tax_vals['amount_base'])
-                            tax_vals["amount_tax"] = get_model("currency").round(inv.currency_id.id, tax_vals['amount_tax'])
+                            if tax_vals:
+                                tax_vals["amount_base"] = get_model("currency").round(inv.currency_id.id, tax_vals['amount_base'])
+                                tax_vals["amount_tax"] = get_model("currency").round(inv.currency_id.id, tax_vals['amount_tax'])
                 elif inv.inv_type == "overpay":
                     line_vals = {
                         "move_id": move_id,
