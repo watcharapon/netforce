@@ -1,4 +1,7 @@
 <list model="landed.cost">
+    <top replace="1">
+        <button string="Import" action="import_data" action_options='{"import_model":"landed.cost","next":"landed_cost"}' icon="download"/>
+    </top>
     <head>
         <button string="Merge Landed Costs" method="merge_lc"/>
     </head>
