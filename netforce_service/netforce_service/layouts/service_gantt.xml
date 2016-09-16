@@ -1,4 +1,4 @@
-<gantt model="service.resource.alloc" group_field="job_id" xsubgroup_field="resource_id" xsubsubgroup_field="service_item_id"  start_field="time_start" duration_field="duration" label_field="description" progress_field="progress" depends_field="depends_json">
+<gantt model="service.resource.alloc" group_field="job_id" xsubgroup_field="resource_id" xsubsubgroup_field="service_item_id"  start_field="time_start" duration_field="duration" label_field="resource_id" progress_field="progress" depends_field="depends_json">
     <field name="description"/>
     <field name="resource_id"/>
 </gantt>
