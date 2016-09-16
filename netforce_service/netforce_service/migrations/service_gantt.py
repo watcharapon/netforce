@@ -7,6 +7,7 @@ class Migration(migration.Migration):
 
     def migrate(self):
         src_alloc_ids=get_model("service.resource.alloc").search([])
-        get_model("service.resource.alloc").function_store(src_alloc_ids)
+        get_model("service.resource.alloc").write(src_alloc_ids, {'duration': 0})
+        #get_model("service.resource.alloc").function_store(src_alloc_ids)
 
 Migration.register()
