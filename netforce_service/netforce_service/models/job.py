@@ -149,6 +149,13 @@ class Job(Model):
     }
 
     def create(self, vals, **kw):
+        if 'project_id' not in vals.keys():
+            project_id=get_model("project").create({
+                'contact_id': vals['contact_id'],
+                'name': vals['number'],
+                'number': vals['number'],
+            })
+            vals['project_id']=project_id
         new_id = super().create(vals, **kw)
         self.create_track([new_id])
         self.function_store([new_id])

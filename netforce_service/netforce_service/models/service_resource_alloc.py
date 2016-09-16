@@ -127,6 +127,8 @@ class ResourceAlloc(Model):
         super().write(ids,vals,**kw)
         self.function_store(ids)
 
+    def delete_link(self,link_ids,context={}):
+        get_model("service.resource.alloc.depend").delete(link_ids)
 
 
 ResourceAlloc.register()

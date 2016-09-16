@@ -63,9 +63,25 @@ class WorkTime(Model):
             return None
         return res[0]
 
+    def get_default_project(self, context={}):
+        defaults=context.get('defaults', {})
+        data=context.get('data',{})
+        return data.get('project_id')
+
+    def get_default_related(self, context={}):
+        defaults=context.get('defaults', {})
+        data=context.get('data',{})
+        job_number=data.get("number")
+        if job_number:
+            for job_id in get_model("job").search([['number','=', job_number]]):
+                data['job_id']=job_id
+        return "job,%s"%(job_id)
+
     _defaults = {
         "date": lambda *a: time.strftime("%Y-%m-%d"),
         "resource_id": get_resource,
+        "project_id": get_default_project,
+        "related_id": get_default_related,
         "state": "waiting_approval",
     }
 
