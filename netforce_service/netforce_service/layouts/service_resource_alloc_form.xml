@@ -9,6 +9,8 @@
     <field name="duration"/>
     <newline/>
     <field name="progress"/>
+    <newline/>
+    <field name="description"/>
     <related>
         <field name="depends">
             <list>
