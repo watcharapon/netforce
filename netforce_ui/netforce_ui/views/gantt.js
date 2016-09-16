@@ -184,6 +184,7 @@ var Gantt=NFView.extend({
                 var subsubgroup_tasks={};
                 _.each(data,function(obj) {
                     var task_label=render_field_value(obj[this.label_field_name],this.label_field);
+                    if(task_label=="null") task_label="undefined";
                     var start_date=obj[this.start_field_name];
                     if (!start_date) throw "Missing start date for task "+obj.id;
                     var duration=obj[this.duration_field_name];

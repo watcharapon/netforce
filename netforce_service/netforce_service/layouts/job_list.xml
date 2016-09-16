@@ -2,7 +2,7 @@
     <field name="number"/>
     <field name="contact_id"/>
     <field name="project_id"/>
-    <field name="resource_id"/>
+    <!--<field name="resource_id"/>-->
     <field name="due_date"/>
     <field name="service_type_id"/>
     <field name="priority"/>
