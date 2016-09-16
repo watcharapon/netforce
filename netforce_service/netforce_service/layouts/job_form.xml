@@ -124,6 +124,7 @@
                 <field name="cost_amount"/>
             </list>
         </field>
+        <field name="pickings"/>
         <field name="stock_moves"/>
         <field name="invoices"/>
         <field name="activities"/>

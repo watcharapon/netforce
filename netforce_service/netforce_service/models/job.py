@@ -150,6 +150,7 @@ class Job(Model):
 
     def create(self, vals, **kw):
         new_id = super().create(vals, **kw)
+        self.create_track([new_id])
         self.function_store([new_id])
         return new_id
 
