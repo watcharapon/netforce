@@ -86,7 +86,7 @@ class Task(Model):
 
     _defaults={
         "date_created": lambda *a: time.strftime("%Y-%m-%d %H:%M:%S"),
-        "state": "new",
+        "state": "open",
         "number": _get_number,
     }
 
