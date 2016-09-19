@@ -6,6 +6,7 @@
         <button string="Options" dropdown="1" align="right">
             <item string="Copy To Goods Receipt" method="copy_to_picking" states="confirmed"/>
             <item string="Copy To Supplier Invoice" method="copy_to_invoice" states="confirmed"/>
+            <item string="Copy To Purchase Return" method="copy_to_purchase_return" state="done"/>
             <item string="Copy" method="copy"/>
             <divider/>
             <item string="To Draft" method="to_draft" states="confirmed,done"/>
