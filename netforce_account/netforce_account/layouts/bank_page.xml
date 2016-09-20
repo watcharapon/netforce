@@ -49,6 +49,7 @@
                 <field name="description"/>
                 <field name="debit"/>
                 <field name="credit"/>
+                <field name="amount_cur"/>
             </list>
         </field>
     </related>
