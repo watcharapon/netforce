@@ -19,9 +19,11 @@
                 <field name="description"/>
                 <field name="debit"/>
                 <field name="credit"/>
+                <field name="amount_cur"/>
             </list>
         </field>
         <field name="account_balance" span="6" offset="6"/>
+        <field name="account_balance_cur" span="6" offset="6"/>
     </group>
     <field name="account_id" invisible="1"/>
 </grid>
