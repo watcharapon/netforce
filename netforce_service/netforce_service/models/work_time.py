@@ -69,13 +69,14 @@ class WorkTime(Model):
         return data.get('project_id')
 
     def get_default_related(self, context={}):
-        defaults=context.get('defaults', {})
-        data=context.get('data',{})
-        job_number=data.get("number")
+        defaults = context.get('defaults', {})
+        data = context.get('data',{})
+        job_number = data.get("number")
+        job_id = None
         if job_number:
             for job_id in get_model("job").search([['number','=', job_number]]):
                 data['job_id']=job_id
-        return "job,%s"%(job_id)
+        return "job,%s"%(job_id) if job_id else None
 
     _defaults = {
         "date": lambda *a: time.strftime("%Y-%m-%d"),
@@ -92,6 +93,8 @@ class WorkTime(Model):
         return res
 
     def create(self, vals, **kw):
+        if 'related_id' in vals and 'job' in vals['related_id']:
+            vals['job_id'] = int(vals['related_id'].split(',')[1])
         new_id = super().create(vals, **kw)
         self.function_store([new_id])
         if 'job_id' in vals:
