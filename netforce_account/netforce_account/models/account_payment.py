@@ -240,11 +240,12 @@ class Payment(Model):
                     amt=line.amount or 0
                     if tax:
                         for tax_comp in tax.components:
-                            rate=(tax_comp.rate or Decimal(0))/100
                             if tax_comp.type in ('vat'):
-                                vat += amt * rate
+                                vat += get_model("account.tax.rate").compute_tax(tax.id, amt, tax_type=obj.tax_type)
                             elif tax_comp.type in ('wht'):
-                                wht += amt * rate
+                                wht += get_model("account.tax.rate").compute_tax(tax.id, amt, tax_type=obj.tax_type, wht=True)
+                    if obj.tax_type=='tax_in':
+                        amt -= vat
                     subtotal += amt
                 elif line.type=="invoice":
                     inv = line.invoice_id

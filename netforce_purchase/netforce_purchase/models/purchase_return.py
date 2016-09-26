@@ -509,4 +509,5 @@ class PurchaseReturn(Model):
                 raise Exception("Can not delete purchase return in this status")
         super().delete(ids, **kw)
 
+
 PurchaseReturn.register()
