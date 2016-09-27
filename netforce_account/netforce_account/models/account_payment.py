@@ -1024,7 +1024,14 @@ class Payment(Model):
         amt = inv.amount_due
         if inv.type == "out" and pay_type == "out" or inv.type == "in" and pay_type == "in":
             amt = -amt
-        line["amount"] = amt
+        if data["type"] == "in":
+            rate_type = "sell"
+        elif data["type"] == "out":
+            rate_type = "buy"
+        if "currency_rate" in data and data["currency_rate"]:
+            line["amount"] = amt/data["currency_rate"]
+        else:
+            line["amount"] = get_model("currency").convert(amt, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type)
         data = self.update_amounts(context)
         return data
 
