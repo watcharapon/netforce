@@ -70,6 +70,7 @@ class InvoicePayment(Model):
                 "amount": obj.amount,
             })],
         }
+        vals["number"] = get_model("account.payment")._get_number(vals)
         pmt_id = get_model("account.payment").create(vals, context={"type": vals["type"]})
         get_model("account.payment").post([pmt_id])
         return {
