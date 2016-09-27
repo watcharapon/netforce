@@ -345,6 +345,7 @@ class Move(Model):
         print("StockMove.post",ids)
         accounts={}
         post_date=None
+        move=None
         pick_ids=[]
         n=0
         for move in self.browse(ids):
@@ -411,15 +412,16 @@ class Move(Model):
             "date": post_date,
             "lines": [("create",vals) for vals in lines],
         }
-        if move.related_id:
+        if move and move.related_id:
             vals['related_id']='%s,%s'%(move.related_id._model,move.related_id.id)
         pick_ids=list(set(pick_ids))
         if len(pick_ids)==1:
             vals["related_id"]="stock.picking,%s"%pick_ids[0]
         # sequence number should correspond date
-        context.update({
-            'date': move.date,
-        })
+        if move:
+            context.update({
+                'date': move.date,
+            })
         pprint(vals)
         print("creating draft cost journal entry (%d lines)..."%len(lines))
         move_id=get_model("account.move").create(vals,context=context)
