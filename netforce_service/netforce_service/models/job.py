@@ -98,7 +98,7 @@ class Job(Model):
         "labor_sell": fields.Decimal("Labor Selling", function="get_sell", function_multi=True),
         "part_sell": fields.Decimal("Parts Selling", function="get_sell", function_multi=True),
         "other_sell": fields.Decimal("Other Selling", function="get_sell", function_multi=True),
-        "total_sell": fields.Decimal("Total Cost", function="get_sell", function_multi=True, store=True),
+        "total_sell": fields.Decimal("Total Selling", function="get_sell", function_multi=True, store=True),
         "done_approved_by_id": fields.Many2One("base.user", "Approved By", readonly=True),
         "multi_visit_code_id": fields.Many2One("reason.code", "Multi Visit Reason Code", condition=[["type", "=", "service_multi_visit"]]),
         "late_response_code_id": fields.Many2One("reason.code", "Late Response Reason Code", condition=[["type", "=", "service_late_response"]]),
@@ -110,6 +110,7 @@ class Job(Model):
         "track_id": fields.Many2One("account.track.categ","Tracking Code"),
         "track_entries": fields.One2Many("account.track.entry",None,"Tracking Entries",function="get_track_entries",function_write="write_track_entries"),
         "track_balance": fields.Decimal("Tracking Balance",function="_get_related",function_context={"path":"track_id.balance"}),
+        "balance": fields.Decimal("Balance",function="get_total"),
         "agg_total_cost": fields.Decimal("Total Cost", agg_function=["sum", "total_cost"]),
         "agg_total_sell": fields.Decimal("Total Selling", agg_function=["sum", "total_sell"]),
     }
@@ -186,6 +187,7 @@ class Job(Model):
                 "amount_total": amt_total,
                 "amount_contract": amt_contract,
                 "amount_job": amt_job,
+                "balance": (amt_total or 0) - (obj.total_cost or 0),
             }
         return vals
 

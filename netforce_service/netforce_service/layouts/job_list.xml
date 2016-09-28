@@ -8,6 +8,7 @@
     <field name="priority"/>
     <field name="total_cost"/>
     <field name="amount_total"/>
+    <field name="balance"/>
     <field name="state"/>
     <field name="overdue" invisible="1"/>
 </list>
