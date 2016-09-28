@@ -53,8 +53,8 @@
                     <field name="promotion_amount"/>
                     <field name="tax_id" onchange="update_amounts"/>
                     <field name="amount"/>
-                    <field name="location_id"/>
-                    <field name="qty_stock"/>
+                    <field name="location_id" onchange="onchange_location"/>
+                    <field name="qty_stock" readonly="1"/>
                     <field name="ship_method_id"/>
                     <field name="qty_delivered"/>
                     <field name="est_cost_amount"/>
