@@ -1375,6 +1375,7 @@ class SaleOrder(Model):
                 "tax_type":obj.tax_type,
                 "bill_address_id":obj.bill_address_id.id,
                 "ship_address_id":obj.ship_address_id.id,
+                "orig_sale_id": obj.id,
                 "lines":[],
             }
             for line in obj.lines:
