@@ -56,8 +56,8 @@
         </tab>
         <tab string="Costing">
             <field name="track_id"/>
-            <field name="balance"/>
             <field name="track_balance"/>
+            <field name="total_cost"/>
             <field name="track_entries" nolabel="1">
                 <list>
                     <field name="date"/>
