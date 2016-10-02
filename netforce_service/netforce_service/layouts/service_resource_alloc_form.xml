@@ -1,7 +1,26 @@
 <form model="service.resource.alloc">
     <field name="resource_id"/>
     <field name="job_id"/>
-    <field name="time_start"/>
-    <field name="time_stop"/>
+    <field name="time_start" onchange="onchange_duration"/>
+    <field name="time_stop" onchange="onchange_duration"/>
+    <newline/>
+    <field name="contact_id"/>
+    <newline/>
+    <field name="duration"/>
+    <newline/>
+    <field name="progress"/>
+    <newline/>
     <field name="description"/>
+    <related>
+        <field name="depends">
+            <list>
+                <field name="prev_resource_alloc_id"/>
+                <field name="delay"/>
+            </list>
+            <form>
+                <field name="prev_resource_alloc_id"/>
+                <field name="delay"/>
+            </form>
+        </field>
+    </related>
 </form>

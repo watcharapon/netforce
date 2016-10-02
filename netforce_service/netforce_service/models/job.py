@@ -98,7 +98,7 @@ class Job(Model):
         "labor_sell": fields.Decimal("Labor Selling", function="get_sell", function_multi=True),
         "part_sell": fields.Decimal("Parts Selling", function="get_sell", function_multi=True),
         "other_sell": fields.Decimal("Other Selling", function="get_sell", function_multi=True),
-        "total_sell": fields.Decimal("Total Cost", function="get_sell", function_multi=True, store=True),
+        "total_sell": fields.Decimal("Total Selling", function="get_sell", function_multi=True, store=True),
         "done_approved_by_id": fields.Many2One("base.user", "Approved By", readonly=True),
         "multi_visit_code_id": fields.Many2One("reason.code", "Multi Visit Reason Code", condition=[["type", "=", "service_multi_visit"]]),
         "late_response_code_id": fields.Many2One("reason.code", "Late Response Reason Code", condition=[["type", "=", "service_late_response"]]),
@@ -149,7 +149,15 @@ class Job(Model):
     }
 
     def create(self, vals, **kw):
+        if 'project_id' not in vals.keys():
+            project_id=get_model("project").create({
+                'contact_id': vals['contact_id'],
+                'name': vals['number'],
+                'number': vals['number'],
+            })
+            vals['project_id']=project_id
         new_id = super().create(vals, **kw)
+        self.create_track([new_id])
         self.function_store([new_id])
         return new_id
 

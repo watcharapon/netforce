@@ -20,6 +20,7 @@
 
 from netforce.model import Model, fields, get_model
 import time
+from decimal import Decimal
 
 
 class ReconcileAdjust(Model):
@@ -40,14 +41,20 @@ class ReconcileAdjust(Model):
         if not line_id:
             return {}
         line_id = int(line_id)
+        settings = get_model('settings').browse(1)
         st_line_ids, acc_line_ids = get_model("account.statement.line").get_reconcile_lines([line_id])
         total_st = 0
         for st_line in get_model("account.statement.line").browse(st_line_ids):
             total_st += st_line.received - st_line.spent
         total_acc = 0
         for acc_line in get_model("account.move.line").browse(acc_line_ids):
-            total_acc += acc_line.debit - acc_line.credit
-        amt = total_st - total_acc
+            if settings.currency_id.id == acc_line.account_id.currency_id.id: # account currency is the same as default currency
+                total_acc += acc_line.debit - acc_line.credit
+            elif acc_line.debit: # account currency is different from default currency
+                total_acc += acc_line.amount_cur or 0.0
+            else: # account currency is different from default currency
+                total_acc -= acc_line.amount_cur or 0.0
+        amt = total_st - Decimal(total_acc)
         vals = {
             "line_id": line_id,
             "amount": amt,

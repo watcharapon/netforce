@@ -30,7 +30,7 @@ class JobTemplate(Model):
     _name_field = "name"
     _fields = {
         "name": fields.Char("Template Name", required=True, search=True),
-        "product_id": fields.Many2One("product", "Product", required=True),
+        "product_id": fields.Many2One("product", "Product", required=True, search=True),
         "description": fields.Text("Description"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "period_type": fields.Selection([["month", "Month"], ["counter", "Service Item Counter"]], "Period Type"),
@@ -74,6 +74,7 @@ class JobTemplate(Model):
                 "qty": line.qty,
                 "uom_id": line.uom_id.id,
                 "unit_price": line.unit_price,
+                "amount": line.amount,
             }
             if line.type == "labor" and contract and contract.incl_labor:
                 line_vals["payment_type"] = "contract"

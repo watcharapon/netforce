@@ -592,4 +592,44 @@ class PurchaseOrder(Model):
             },
         }
 
+    def copy_to_purchase_return(self,ids,context={}):
+        seq_id = get_model("sequence").find_sequence(type="purchase_return")
+        if not seq_id:
+            raise Exception("Missing Sequence purchase return")
+        for obj in self.browse(ids):
+            order_vals = {}
+            order_vals = {
+                "contact_id":obj.contact_id.id,
+                "date":obj.date,
+                "ref":obj.number,
+                "currency_id":obj.currency_id.id,
+                "tax_type":obj.tax_type,
+                "bill_address_id":obj.bill_address_id.id,
+                "ship_address_id":obj.ship_address_id.id,
+                "price_list_id": obj.price_list_id.id,
+                "lines":[],
+            }
+            for line in obj.lines:
+                line_vals = {
+                    "product_id":line.product_id.id,
+                    "description":line.description,
+                    "qty":line.qty,
+                    "uom_id":line.uom_id.id,
+                    "unit_price":line.unit_price,
+                    "tax_id":line.tax_id.id,
+                    "amount":line.amount,
+                    "location_id":line.location_id.id,
+                }
+                order_vals["lines"].append(("create", line_vals))
+            purchase_id = get_model("purchase.return").create(order_vals)
+            purchase = get_model("purchase.return").browse(purchase_id)
+        return {
+            "next": {
+                "name": "purchase_return",
+                "mode": "form",
+                "active_id": purchase_id,
+            },
+            "flash": "Purchase Return %s created from purchases order %s" % (purchase.number, obj.number),
+        }
+
 PurchaseOrder.register()

@@ -184,6 +184,7 @@ var Gantt=NFView.extend({
                 var subsubgroup_tasks={};
                 _.each(data,function(obj) {
                     var task_label=render_field_value(obj[this.label_field_name],this.label_field);
+                    if(task_label=="null") task_label="undefined";
                     var start_date=obj[this.start_field_name];
                     if (!start_date) throw "Missing start date for task "+obj.id;
                     var duration=obj[this.duration_field_name];
@@ -267,7 +268,7 @@ var Gantt=NFView.extend({
                     var task={
                         id: obj.id,
                         text: task_label,
-                        start_date: new Date(start_date),
+                        start_date: new Date(start_date.replace(/-/g, "/")), // for safari
                         duration: duration,
                         progress: progress,
                     };
@@ -399,7 +400,10 @@ var Gantt=NFView.extend({
         console.log("gantt.on_after_task_update",id,item);
         if (item.type==gantt.config.types.project) return;
         var vals={};
-        vals[this.label_field_name]=item.text;
+        var org_label_field=get_field_path(this.options.model,this.label_field_name);
+        if(org_label_field.type=="char"){
+            vals[this.label_field_name]=item.text;
+        }
         vals[this.start_field_name]=moment(item.start_date).format("YYYY-MM-DD");
         vals[this.duration_field_name]=item.duration;
         if (this.progress_field_name) {

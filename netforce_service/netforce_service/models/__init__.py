@@ -38,6 +38,7 @@ from . import time_sheet
 from . import service_resource
 from . import skill_level
 from . import service_resource_alloc
+from . import service_resource_alloc_depend
 from . import job_part_template
 from . import job_template_line
 from . import job_line

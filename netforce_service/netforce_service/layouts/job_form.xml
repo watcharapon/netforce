@@ -71,7 +71,7 @@
             </field>
         </tab>
         <tab string="Other">
-            <field name="location_id" span="2"/>
+            <field name="location_id"/>
             <separator/>
             <field name="description"/>
             <field name="complaints"/>
@@ -112,7 +112,7 @@
                 <field name="job_id" invisible="1"/>
             </form>
         </field>
-        <field name="tasks"/>
+        <field name="tasks" click_action="task"/>
         <field name="work_time">
             <list>
                 <field name="date"/>
@@ -124,6 +124,7 @@
                 <field name="cost_amount"/>
             </list>
         </field>
+        <field name="pickings"/>
         <field name="stock_moves"/>
         <field name="invoices"/>
         <field name="activities"/>

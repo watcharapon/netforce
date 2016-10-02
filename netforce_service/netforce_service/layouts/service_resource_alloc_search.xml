@@ -1,0 +1,5 @@
+<search model="service.resource.alloc">
+    <field name="job_id"/>
+    <field name="contact_id"/>
+    <field name="resource_id"/>
+</search>
