@@ -541,7 +541,7 @@ class SaleOrder(Model):
                 continue
             if line.qty <= 0:
                 continue
-            qty_remain = (line.qty_stock or line.qty) - line.qty_delivered
+            qty_remain = line.qty - line.qty_delivered
             if qty_remain <= 0:
                 continue
             line_vals = {
