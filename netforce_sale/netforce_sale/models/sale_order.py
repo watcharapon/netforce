@@ -149,7 +149,7 @@ class SaleOrder(Model):
         date = time.strftime("%Y-%m-%d")
         line_vals={
             "currency_id": settings.currency_id.id,
-            "rate": settings.currency_id.get_rate(date,"sell") or 1
+            "rate": settings.currency_id and settings.currency_id.get_rate(date,"sell") or 1
         }
         if context.get("is_create"):
             lines.append(('create',line_vals))
