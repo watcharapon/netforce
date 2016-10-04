@@ -89,12 +89,18 @@ class ReportProfitLoss(Model):
             compare_periods = 0
         if not compare_with:
             compare_periods = 0
+        track_name = ""
         track_id = params.get("track_id")
         if track_id:
             track_id = int(track_id)
+            track = get_model('account.track.categ').browse(track_id)
+            track_name = track.name
+        track2_name = ""
         track2_id = params.get("track2_id")
         if track2_id:
             track2_id = int(track2_id)
+            track2 = get_model('account.track.categ').browse(track2_id)
+            track2_name = track.name
         currency_id = params.get("currency_id")
         if currency_id:
             currency_id = int(currency_id)
@@ -353,6 +359,8 @@ class ReportProfitLoss(Model):
             "date_from_ytd": date_from_ytd,
             "track_id": track_id,
             "track2_id": track2_id,
+            "track_name": track_name,
+            "track2_name": track2_name,
             "col0": date_to,
             "lines": lines,
             "company_name": comp.name,
