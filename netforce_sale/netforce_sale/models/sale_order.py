@@ -698,7 +698,7 @@ class SaleOrder(Model):
             is_delivered = True
             for line in obj.lines:
                 prod = line.product_id
-                if prod.type not in ("stock", "consumable", "bundle"):
+                if prod.type not in ("stock", "consumable", "bundle", None):
                     continue
                 remain_qty = (line.qty_stock or line.qty) - line.qty_delivered
                 if remain_qty > 0:
