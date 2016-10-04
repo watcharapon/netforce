@@ -60,12 +60,18 @@ class ReportGLDetails(Model):
         contact_id = params.get("contact_id") or None
         if contact_id:
             contact_id = int(contact_id)
+        track_name = None
         track_id = params.get("track_id") or None
         if track_id:
             track_id = int(track_id)
+            track = get_model('account.track.categ').browse(track_id)
+            track_name = track.name
+        track2_name = None
         track2_id = params.get("track2_id") or None
         if track2_id:
             track2_id = int(track2_id)
+            track2 = get_model('account.track.categ').browse(track2_id)
+            track2_name = track2.name
         hide_zero = params.get("hide_zero")
         select_type = params.get("select_type")
         condition = [["type", "!=", "view"]]
@@ -100,6 +106,8 @@ class ReportGLDetails(Model):
             "date_from": date_from,
             "date_to": date_to,
             "accounts": [],
+            "track_name": track_name,
+            "track2_name": track2_name,
         }
 
         ctx = {

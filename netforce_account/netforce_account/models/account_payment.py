@@ -577,6 +577,7 @@ class Payment(Model):
                     "credit": amt < 0 and -amt or 0,
                     "track_id": line.track_id.id,
                     "track2_id": line.track2_id.id,
+                    "amount_cur": line.amount if line.account_id.currency_id.id != settings.currency_id.id else None,
                 }
                 if line.type=="prepay" or line.account_id.type not in ["cost_sales","expense","other_expense","revenue","other_income","view","other"]:
                     # For case 'Contact A loan from other Contacts and he/she wants to pay that amount by using direct payment'.
