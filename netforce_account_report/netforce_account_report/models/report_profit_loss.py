@@ -100,7 +100,7 @@ class ReportProfitLoss(Model):
         if track2_id:
             track2_id = int(track2_id)
             track2 = get_model('account.track.categ').browse(track2_id)
-            track2_name = track.name
+            track2_name = track2.name
         currency_id = params.get("currency_id")
         if currency_id:
             currency_id = int(currency_id)
