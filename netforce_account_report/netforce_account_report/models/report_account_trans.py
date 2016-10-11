@@ -95,17 +95,15 @@ class ReportAccountTrans(Model):
             contact_id = int(contact_id)
         description = params.get("description")
         track_id = params.get("track_id")
-        track_name = None
+        track = None
         if track_id:
             track_id = int(track_id)
             track = get_model('account.track.categ').browse(track_id)
-            track_name = track.name
         track2_id = params.get("track2_id")
-        track2_name = None
+        track2 = None
         if track2_id:
             track2_id = int(track2_id)
             track2 = get_model('account.track.categ').browse(track2_id)
-            track2_name = track2.name
         if params.get("cash_basis"):
             res = db.query(
                 "SELECT l1.id,m1.date,m1.number,m1.ref,l1.description,l2.debit*(l4.credit-l4.debit)/(l3.debit-l3.credit) as debit,l2.credit*(l4.credit-l4.debit)/(l3.debit-l3.credit) as credit FROM account_move m1,account_move_line l1,account_account a1,account_move_line l2,account_move_line l3,account_move_line l4 WHERE m1.state='posted' AND m1.date>=%s AND m1.date<=%s AND m1.id=l1.move_id AND m1.id=l2.move_id AND a1.id=l1.account_id AND a1.type='bank' AND l2.reconcile_id=l3.reconcile_id AND l3.id!=l2.id AND l4.move_id=l3.move_id AND l4.id!=l3.id AND l4.account_id=%s", date_from, date_to, account_id)
@@ -145,8 +143,10 @@ class ReportAccountTrans(Model):
             "company_name": comp.name,
             "date_from": date_from,
             "date_to": date_to,
-            "track_name": track_name,
-            "track2_name": track2_name,
+            "track_name": track.name if track else None,
+            "track_code": track.code if track else None,
+            "track2_name": track2.name if track2 else None,
+            "track2_code": track2.code if track2 else None,
             "objs": sorted(objs, key=lambda obj: (obj.get("move_date"),obj.get("move_number"))),
             "totals": {
                 "debit": total_debit,
