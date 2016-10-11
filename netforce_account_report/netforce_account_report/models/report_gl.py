@@ -59,12 +59,11 @@ class ReportGL(Model):
         if not date_to:
             date_to = (date.today() + relativedelta(day=31)).strftime("%Y-%m-%d")
         track_id = params.get("track_id") or None
-        track_name=None
+        track = None
         journal_id = params.get("journal_id") or None
         if track_id:
             track_id = int(track_id)
-            track=get_model('account.track.categ').browse(track_id)
-            track_name=track.name
+            track = get_model('account.track.categ').browse(track_id)
         select_type = params.get("select_type")
         condition = [["type", "!=", "view"]]
         if select_type == "range":
@@ -94,7 +93,8 @@ class ReportGL(Model):
                 condition.append(["id", "in", acc_ids])
         data = {
             "company_name": comp.name,
-            "track_name": track_name,
+            "track_name": track.name if track else None,
+            "track_code": track.code if track else None,
             "date_from": date_from,
             "date_to": date_to,
         }
