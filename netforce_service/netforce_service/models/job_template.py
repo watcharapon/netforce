@@ -105,6 +105,23 @@ class JobTemplate(Model):
         line["description"] = prod.description
         return data
 
+    def update_total(self, context={}):
+        data = context["data"]
+        data["amount_total"] = 0
+        data["amount_labor"] = 0
+        data["amount_part"] = 0
+        data["amount_other"] = 0
+        for line in data["lines"]:
+            line["amount"] = (line["unit_price"] or 0) * (line["qty"] or 0)
+            data["amount_total"] += line["amount"]
+            if line["type"] == "labor":
+                data["amount_labor"] += line["amount"]
+            if line["type"] == "part":
+                data["amount_part"] += line["amount"]
+            if line["type"] == "other":
+                data["amount_other"] += line["amount"]
+        return data
+
     def get_total(self, ids, context={}):
         vals = {}
         for obj in self.browse(ids):
