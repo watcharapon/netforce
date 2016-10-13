@@ -33,7 +33,7 @@ class JobTemplateLine(Model):
         "product_id": fields.Many2One("product", "Product"),
         "qty": fields.Decimal("Qty"),
         "uom_id": fields.Many2One("uom", "UoM"),
-        "unit_price": fields.Decimal("Sale Unit Price", function="get_amount", function_multi=True),
+        "unit_price": fields.Decimal("Sale Unit Price"),
         "amount": fields.Decimal("Sale Amount", function="get_amount", function_multi=True),
     }
     _order = "sequence,id"
@@ -41,10 +41,8 @@ class JobTemplateLine(Model):
     def get_amount(self, ids, context={}):
         vals = {}
         for obj in self.browse(ids):
-            prod = obj.product_id
             vals[obj.id] = {
-                "unit_price": prod.sale_price or 0,
-                "amount": (obj.qty or 0) * (prod.sale_price or 0),
+                "amount": (obj.qty or 0) * (obj.unit_price or 0),
             }
         return vals
 
