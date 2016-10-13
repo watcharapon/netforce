@@ -16,9 +16,9 @@
             <field name="type"/>
             <field name="product_id" onchange="onchange_product"/>
             <field name="description"/>
-            <field name="qty"/>
+            <field name="qty" onchange="update_total"/>
             <field name="uom_id"/>
-            <field name="unit_price"/>
+            <field name="unit_price" onchange="update_total"/>
             <field name="amount"/>
         </list>
     </field>
