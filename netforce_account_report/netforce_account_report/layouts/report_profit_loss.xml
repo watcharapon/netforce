@@ -10,5 +10,6 @@
         <field name="currency_id" span="2"/>
         <newline/>
         <field name="show_ytd" span="2"/>
+        <field name="convert_currency" span="2"/>
     </group>
 </form>
