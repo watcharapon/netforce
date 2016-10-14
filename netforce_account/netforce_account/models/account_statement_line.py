@@ -79,10 +79,8 @@ class StatementLine(Model):
         for acc_line in get_model("account.move.line").browse(acc_line_ids):
             if settings.currency_id.id == acc_line.account_id.currency_id.id: # account currency is the same as default currency
                 total_acc += acc_line.debit - acc_line.credit
-            elif acc_line.debit: # account currency is different from default currency
-                total_acc += acc_line.amount_cur or 0.0
             else: # account currency is different from default currency
-                total_acc -= acc_line.amount_cur or 0.0
+                total_acc += acc_line.amount_cur or 0.0
         if total_st - Decimal(total_acc) != 0:
             return {
                 "next": {
