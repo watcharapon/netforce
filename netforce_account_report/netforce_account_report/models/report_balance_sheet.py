@@ -37,7 +37,6 @@ def deduct_period(date, num, period):
         raise Exception("Invalid period")
     return d.strftime("%Y-%m-%d")
 
-
 class ReportBalanceSheet(Model):
     _name = "report.balance.sheet"
     _transient = True
@@ -47,6 +46,7 @@ class ReportBalanceSheet(Model):
         "compare_periods": fields.Selection([["1", "Previous 1 Period"], ["2", "Previous 2 Periods"], ["3", "Previous 3 Periods"], ["4", "Previous 4 Periods"], ["5", "Previous 5 Periods"], ["6", "Previous 6 Periods"], ["7", "Previous 7 Periods"], ["8", "Previous 8 Periods"], ["9", "Previous 9 Periods"], ["10", "Previous 10 Periods"], ["11", "Previous 11 Periods"]], "Compare Periods"),
         "track_id": fields.Many2One("account.track.categ", "Tracking"),
         "track2_id": fields.Many2One("account.track.categ", "Tracking"),
+	"convert_currency": fields.Boolean("Convert Currency"),
     }
 
     _defaults = {
@@ -78,6 +78,7 @@ class ReportBalanceSheet(Model):
         track2_id = params.get("track2_id")
         if track2_id:
             track2_id = int(track2_id)
+        convert_currency = params.get("convert_currency")
         bs_types = ["bank", "cash", "cheque", "receivable", "cur_asset", "noncur_asset",
                     "fixed_asset", "payable", "cust_deposit", "cur_liability", "noncur_liability", "equity"]
         ctx = {
@@ -85,14 +86,15 @@ class ReportBalanceSheet(Model):
             "track_id": track_id,
             "track2_id": track2_id,
             "active_test": False,
-            "currency_id": settings.currency_id.id,
         }
+        if convert_currency:
+            ctx["currency_id"]=settings.currency_id.id
         res = get_model("account.account").search_read(
-            ["type", "in", bs_types], ["code", "name", "balance_cur", "parent_id", "type"], order="code", context=ctx)
+            ["type", "in", bs_types], ["code", "name", "balance", "balance_cur", "parent_id", "type"], order="code", context=ctx)
         accounts = {}
         parent_ids = []
         for r in res:
-            r["balance"] = r["balance_cur"]
+            r["balance"] = r["balance_cur"] if convert_currency else r["balance"]
             accounts[r["id"]] = r
             if r["parent_id"]:
                 parent_ids.append(r["parent_id"][0])
@@ -103,9 +105,9 @@ class ReportBalanceSheet(Model):
                 "date_to": date_to_c,
             }
             ctx["date_to"] = date_to_c
-            res = get_model("account.account").search_read(["type", "in", bs_types], ["balance_cur"], context=ctx)
+            res = get_model("account.account").search_read(["type", "in", bs_types], ["balance", "balance_cur"], context=ctx)
             for r in res:
-                accounts[r["id"]]["balance%d" % i] = r["balance_cur"]
+                accounts[r["id"]]["balance%d" % i] = r["balance_cur"] if convert_currency else r["balance"]
         i = 0
         while parent_ids:
             i += 1
@@ -174,13 +176,13 @@ class ReportBalanceSheet(Model):
             group["children"] = _make_groups(root_accounts, types)
         net_profit = {
             "name": "Current Year Earnings",
-            "balance": -get_model("report.profit.loss").get_net_profit(date_to, track_id=track_id, track2_id=track2_id, context=context),
+            "balance": -get_model("report.profit.loss").get_net_profit(date_to, track_id=track_id, track2_id=track2_id, convert_currency=convert_currency, context=context),
         }
         for i in range(1, compare_periods + 1):
             date_to_c = compare[i]["date_to"]
             net_profit["balance%d" % i] = - \
                 get_model("report.profit.loss").get_net_profit(
-                    date_to_c, track_id=track_id, track2_id=track2_id, context=context)
+                    date_to_c, track_id=track_id, track2_id=track2_id, convert_currency=convert_currency, context=context)
         equity["children"].append(net_profit)
 
         def _set_totals(acc):
