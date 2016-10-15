@@ -30,7 +30,6 @@ var NFLayout=NFView.extend({
         var doc=$.parseXML(mainmenu_view.layout);
         this.data.mainmenu_items=[];
         $(doc).find("menu").children().each(function() {
-            log("X3",this);
             var $el=$(this);
             var tag=$el.prop("tagName");
             if (tag=="item") {
@@ -44,12 +43,8 @@ var NFLayout=NFView.extend({
                     color: $el.attr("color"),
                     disabled: $el.attr("disabled")
                 };
-
-                if(nf_hidden['main_menu']){
-                    if(!nf_hidden['main_menu'][item['string']]){
-                        that.data.mainmenu_items.push(item);
-                    }
-                }else{
+                var hide=is_hidden({type:"main_menu", name: item.string});
+                if(!hide){
                     that.data.mainmenu_items.push(item);
                 }
             }
@@ -58,6 +53,8 @@ var NFLayout=NFView.extend({
 
         var menu_view=get_xml_layout({name:this.options.view_xml});
         var doc=$.parseXML(menu_view.layout);
+        var cur_mainmenu=$(doc).find("menu").attr("string");
+
         this.data.menu_items=[];
         $(doc).find("menu").children().each(function() {
             var $el=$(this);
@@ -75,15 +72,16 @@ var NFLayout=NFView.extend({
                     icon: $el.attr("icon"),
                     submenu_items: []
                 };
-                function add_sub_item(item2){
-                    if(!_.isEmpty(nf_hidden) && nf_hidden['sub_menu']){
-                        if(!nf_hidden['sub_menu'][item2['string']]){
-                            item.submenu_items.push(item2);
-                        }
-                    }else{
+
+                function add_submenu(item2){
+                    var hide=is_hidden({type:"sub_menu", board_str: cur_mainmenu, name: item2.string});
+                    if(!hide){
                         item.submenu_items.push(item2);
                     }
+                    return hide;
                 }
+
+                var hide_item=false;
                 $el.children().each(function() {
                     var $el2=$(this);
                     var tag=$el2.prop("tagName");
@@ -99,30 +97,55 @@ var NFLayout=NFView.extend({
                             perm_check_admin: $el2.attr("perm_check_admin"),
                             pkg: $el2.attr("pkg")
                         };
-                        if (item2.action && !check_menu_permission(item2.action)) return;
-                        add_sub_item(item2);
+                        if (item2.action && !check_menu_permission(item2.action)) {
+                            hide_item=true;
+                            return;
+                        }
+                        hide_item=add_submenu(item2);
                     } else if (tag=="divider") {
                         var item2={
+                            hide: hide_item,
                             type: "divider"
                         };
-                        add_sub_item(item2);
+                        add_submenu(item2);
                     } else if (tag=="header") {
                         var item2={
                             type: "header",
                             string: $el2.attr("string")
                         };
-                        add_sub_item(item2);
+                        add_submenu(item2);
                     }
                 });
+
+                // clear divider if not use
+                var sub_items=[];
+                _.each(item.submenu_items, function(item){
+                    if(!item.hide){
+                        sub_items.push(item);
+                    }else if(!_.isEmpty(sub_items) && sub_items[sub_items.length-1].type!='divider'){
+                        sub_items.push(item);
+                    }
+                });
+
+                while(true){
+                    if(!_.isEmpty(sub_items) && sub_items[sub_items.length-1].type=='divider'){
+                        sub_items=sub_items.splice(0,sub_items.length-1);
+                    }else if(!_.isEmpty(sub_items) && sub_items[sub_items.length-1].type=='header'){
+                        sub_items=sub_items.splice(0,sub_items.length-1);
+                    }else{
+                        break;
+                    }
+                }
+
+                item.submenu_items=sub_items;
+
                 if (!item.action && !item.url && item.submenu_items.length==0) return;
 
-                if(nf_hidden['sub_menu']){
-                    if(!nf_hidden['sub_menu'][item['string']]){
-                        that.data.menu_items.push(item);
-                    }
-                }else{
+                var hide=is_hidden({type:"sub_menu", board_str: cur_mainmenu, name: item.string});
+                if(!hide){
                     that.data.menu_items.push(item);
                 }
+
             }
         });
         log("menu_items",this.data.menu_items);

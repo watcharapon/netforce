@@ -60,12 +60,10 @@ var Group=NFView.extend({
             var tag=$el.prop("tagName");
             if (tag=="field") {
                 var name=$el.attr("name");
-                if(!_.isEmpty(nf_hidden) && nf_hidden['field']){
-                    var hide_field=nf_hidden['field'][context.model.name];
-                    if(hide_field && hide_field[name]){
-                        return;
-                    }
-                }
+
+                var hide=is_hidden({type:tag, model:context.model.name, name: name});
+                if(hide) return;
+
                 var focus=$el.attr("focus");
                 if(focus && that.options.form_view){
                     that.options.form_view.focus_field=name;

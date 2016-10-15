@@ -98,6 +98,10 @@ var ListView=NFView.extend({
             var tag=$(this).prop("tagName");
             if (tag=="field") {
                 var name=$(this).attr("name");
+
+                var hide=is_hidden({type:tag, model:that.options.model, name: name});
+                if(hide) return;
+
                 var field=get_field(that.options.model,name);
                 field_names.push(name);
                 if (!$(this).attr("invisible")) {
@@ -289,10 +293,17 @@ var ListView=NFView.extend({
                 }
             }
         }
+        var that = this;
         this.$list.find("head").children().each(function() {
             var $el=$(this);
             var tag=$el.prop("tagName");
             if (tag=="button") {
+                var model = that.options.model;
+                var name = $el.attr("string");
+
+                var hide=is_hidden({type:'button', model:model, name: name});
+                if(hide) return;
+
                 var opts={
                     string: $el.attr("string"),
                     method: $el.attr("method"),

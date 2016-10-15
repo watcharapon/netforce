@@ -299,7 +299,7 @@ def make_ui_params_db():
 
         hidden = {}
         db = database.get_connection()
-        res = db.query("SELECT h.active, h.type, h.name, h.field_name, h.model_id, m.name as model  FROM hidden as h left join model as m on m.id=h.model_id")
+        res = db.query("SELECT h.active, h.type, h.name, h.field_name, h.model_id, h.parent_menu, m.name as model  FROM hidden as h left join model as m on m.id=h.model_id")
         for r in res:
             if not r.active:
                 continue
@@ -314,6 +314,8 @@ def make_ui_params_db():
                 if r.model not in hidden[r.type].keys():
                     hidden[r.type][r.model]={}
                 hidden[r.type][r.model][r.name]=True
+            elif r.type in ("sub_menu","dashboard"):
+                hidden.setdefault(r.type, {})[r.name] = r.parent_menu
             else:
                 hidden.setdefault(r.type, {})[r.name] = True
         data["hidden"] = hidden

@@ -56,12 +56,10 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                 tab_id: _.uniqueId("tab"),
                 tab_layout: $el
             }
-            if(!_.isEmpty(nf_hidden) && nf_hidden['tab']){
-                var hide_tab=nf_hidden['tab'][that.context.model.name];
-                if(hide_tab && hide_tab[tab['string']]){
-                    return;
-                }
-            }
+
+            var hide=is_hidden({type:"tab", model: that.context.model.name, name: tab.string});
+            if(hide) return;
+
             tabs.push(tab);
         });
         if(!tabs.length) return;
@@ -91,11 +89,16 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
         body.append(row);
         var col=0;
         var form_layout=this.options.form_layout||"horizontal";
+        var hide_some_field=false;
         $tab.children().each(function() {
             var $el=$(this);
             var tag=$el.prop("tagName");
             if (tag=="field") {
                 var name=$el.attr("name");
+
+                var hide=is_hidden({type:tag, model: that.context.model.name, name: name});
+                if(hide) return;
+
                 var focus=$el.attr("focus");
                 if(focus && that.options.form_view){
                     that.options.form_view.focus_field=name;
@@ -323,6 +326,11 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                 cell.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
             }
         });
+
+        if(hide_some_field){
+            // clear separator
+        }
+
         return body.html();
     },
 

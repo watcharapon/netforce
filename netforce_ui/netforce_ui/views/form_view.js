@@ -314,12 +314,10 @@ var FormView=NFView.extend({
             var tag=$el.prop("tagName");
             if (tag=="field") {
                 var name=$el.attr("name");
-                if(!_.isEmpty(nf_hidden) && nf_hidden['field']){
-                    var hide_field=nf_hidden['field'][that.options.model];
-                    if(hide_field && hide_field[name]){
-                        return;
-                    }
-                }
+
+                var hide=is_hidden({type:tag, model:that.options.model, name: name});
+                if(hide) return;
+
                 var focus=$el.attr("focus");
                 if(focus){that.focus_field=name;}
                 var field=that.model.get_field(name);
@@ -850,6 +848,7 @@ var FormView=NFView.extend({
         //log("render_form_related",this,context);
         var that=this;
         var model=this.model;
+
         if (!model.id) return "";
         var content=$("<div/>");
         this.$form.find("related").children().each(function() {
@@ -869,6 +868,10 @@ var FormView=NFView.extend({
                     nodelete : $el.attr("nodelete"),
                     context: context
                 };
+
+                var hide=is_hidden({type:tag, model:that.options.model, name:name});
+                if(hide) return;
+
                 var $list=$el.find("list");
                 if ($list.length>0) {
                     opts.list_layout=$list;

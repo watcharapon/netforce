@@ -1012,12 +1012,37 @@ function set_actions() {
 nf_templates=null;
 
 function set_hidden() {
-    if (ui_params) {
-        nf_hidden=_.clone(ui_params.hidden);
-    }
     if (ui_params_db) {
         _.extend(nf_hidden,ui_params_db.hidden)
     }
+}
+
+function is_hidden(params){
+    /*log("is_hidden.params ", params);*/
+    if(_.isEmpty(nf_hidden) || _.isEmpty(params)) return false;
+    if(!nf_hidden[params.type]) return false;
+     
+    if(params.type=='sub_menu' || params.type=='dashboard' && params.board_str){
+        var str=nf_hidden[params.type][params.name];
+        if(str!=params.board_str) return false
+    }else if(params.type=='main_menu'){
+        var hide_item=nf_hidden[params.type][params.name];
+        if(hide_item){
+            return true;
+        }else{
+            return false;
+        }
+   }else{
+        if(!params.model || !params.name) return false;
+        // field, item, button, tab, search_view, report_view, separator(todo)
+        var hide_item=nf_hidden[params.type][params.model];
+        if(hide_item && hide_item[params.name]){
+            return true;
+        }else{
+            return false;
+        }
+   }
+
 }
 
 function set_templates() {
