@@ -2218,7 +2218,11 @@ function is_hidden(params){
     if(!nf_hidden[params.type]) return false;
     if(params.type=='sub_menu' || params.type=='dashboard' && params.board_str){
         var str=nf_hidden[params.type][params.name];
-        if(str!=params.board_str) return false
+        if(str!=params.board_str){
+            return false;
+        }else{
+            return true;
+        }
     }else if(params.type=='main_menu'){
         var hide_item=nf_hidden[params.type][params.name];
         if(hide_item){
