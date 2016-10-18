@@ -25,6 +25,7 @@ class Model(Model):
     _name = "model"
     _string = "Model"
     _name_field = "string"
+    _export_field = "name"
     _key = ["name"]
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
