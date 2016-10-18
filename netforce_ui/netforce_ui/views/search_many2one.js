@@ -127,14 +127,17 @@ var SearchMany2One=NFView.extend({
                 }
             }
         });
+
         this.data.cols=cols;
+
         var opts={
             field_names: field_names,
             order: this.options.order,
             offset: this.options.offset,
-            limit: this.options.limit||100,
+            limit: this.options.limit||25, // XXX 25
             count: true
         }
+
         if (_.isString(condition)) {
             var ctx=clean_context(_.extend({},this.context,this.options));
             condition=eval_json(condition,ctx);
@@ -147,10 +150,12 @@ var SearchMany2One=NFView.extend({
             that.collection.condition=condition;
             that.collection.order=that.options.order;
             that.collection.search_condition=condition; // XXX: check this
+            that.collection.search_mode=true;
+
             // force show pagination
             that.collection.count=data[1];
             that.collection.offset=parseInt(that.options.offset);
-            that.collection.limit=that.options.limit||100;
+            that.collection.limit=opts.limit;
 
             that.collection.on("click",that.line_click,that);
             /*that.collection.on("reload",that.reload,that);*/

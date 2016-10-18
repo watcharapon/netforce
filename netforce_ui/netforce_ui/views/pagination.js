@@ -34,10 +34,30 @@ var Pagination=NFView.extend({
         var count=collection.count||collection.length;
         var offset=collection.offset||0;
         var limit=collection.limit||count;
+
+        // search_many2one should not use this
+        if(!collection.search_mode){
+            var h=window.location.hash.substr(1);
+            var action=qs_to_obj(h);
+            collection.unlimited=false;
+            if(action && action.limit){
+                if(action.limit < 0){
+                    collection.unlimited=true;
+                    limit=collection.length;
+                    collection.limit=limit;
+                }else{
+                    limit=parseInt(action.limit);
+                    collection.limit=limit;
+                }
+            }
+        }
+
         var cur_page=Math.floor(offset/limit)+1;
         var last_page=Math.floor((count-1)/limit)+1;
         log("pagination",collection.name,"count",count,"offset",offset,"limit",limit,"cur_page",cur_page,"last_page",last_page);
-        if (last_page==1) return this;
+
+        // hide pagination
+        if (last_page==1 && !collection.unlimited) return this;
         this.data.last_page=last_page;
         var pages=[];
         for (var p=1; p<=Math.min(100,last_page); p++) {
@@ -60,7 +80,10 @@ var Pagination=NFView.extend({
                 active: p==cur_page
             });
         }
-        this.data.items=items;
+        // hide page number
+        if(items.length>1){
+            this.data.items=items;
+        }
         if (cur_page>1) {
             this.data.page_prev={
                 offset: (cur_page-1-1)*limit
@@ -79,6 +102,13 @@ var Pagination=NFView.extend({
         }
         NFView.prototype.render.call(this);
         return this;
+    },
+
+    render_waiting: function() {
+        var img=$("<img/>").attr("src","/static/img/spinner.gif");
+        img.css("margin-left","10px");
+        img.addClass("page-spiner");
+        this.$el.find(".nf-items-per-page").append(img);
     },
 
     click_page: function(e) {
@@ -124,12 +154,24 @@ var Pagination=NFView.extend({
         var limit=parseInt($(e.target).val());
         log("limit",limit);
         var collection=this.context.collection;
-        collection.limit=limit;
+        // unlimited
+        if(limit<0){
+            collection.limit=collection.count;
+            collection.offset=null;
+        }else{
+            collection.limit=limit;
+        }
+
+        this.render_waiting();
         collection.get_data();
         if (this.options.navigate) {
             var h=window.location.hash.substr(1);
             var action=qs_to_obj(h);
-            action.limit=limit;
+
+            if(!collection.search_mode){
+                action.limit=limit;
+                if(limit < 0) delete action.offset;
+            }
             var h2=obj_to_qs(action);
             workspace.navigate(h2);
         }
