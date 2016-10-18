@@ -29,6 +29,9 @@ var FormView=NFView.extend({
 
     initialize: function(options) {
         //log("form_view.initialize",this);
+        //hidden remove separator
+        this.spt_list=[];
+        this.spt_rm=false;
         var that=this;
         NFView.prototype.initialize.call(this,options);
         if (this.options.form_layout) {
@@ -315,8 +318,17 @@ var FormView=NFView.extend({
             if (tag=="field") {
                 var name=$el.attr("name");
 
-                var hide=is_hidden({type:tag, model:that.options.model, name: name});
-                if(hide) return;
+                var hide_opts=is_hidden({type:tag, model:that.options.model, name: name});
+                if(hide_opts){
+                    var sp_rm=hide_opts.separator_remove;
+                    if(sp_rm=='before' && that.spt_list){
+                        var cid=that.spt_list.pop();
+                        body.find("#"+cid).last().remove();
+                    }else if(sp_rm=='after'){
+                        that.spt_rm=!that.spt_rm;
+                    }
+                    return;
+                }
 
                 var focus=$el.attr("focus");
                 if(focus){that.focus_field=name;}
@@ -465,6 +477,11 @@ var FormView=NFView.extend({
                 col+=span;
                 that.field_views[name]=view;
             } else if (tag=="separator") {
+                //hidden remove separator
+                if(that.spt_rm){
+                    that.spt_rm=!that.spt_rm;
+                    return;
+                }
                 var span=$el.attr("span")
                 if (span) cols=parseInt(span);
                 else span=12;
@@ -474,9 +491,15 @@ var FormView=NFView.extend({
                 var opts={
                     string: $el.attr("string")
                 };
+
+                var hide=is_hidden({type:"separator", model:that.options.model, name: opts.string});
+                if(hide) return;
+
                 var view=Separator.make_view(opts);
                 cell.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
                 col+=span;
+                //hidden
+                that.spt_list.push(view.cid);
             } else if (tag=="newline") {
                 col+=12;
             } else if (tag=="tabs") {

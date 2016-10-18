@@ -2233,11 +2233,12 @@ function is_hidden(params){
    }else{
         if(!params.model || !params.name) return false;
         // field, item, button, tab, search_view, report_view, separator(todo)
-        var hide_item=nf_hidden[params.type][params.model];
-        if(hide_item && hide_item[params.name]){
-            return true;
-        }else{
+        var res=nf_hidden[params.type][params.model];
+        if(_.isEmpty(res)){
             return false;
+        }else{
+            var options=res[params.name];
+            return options;
         }
    }
 
