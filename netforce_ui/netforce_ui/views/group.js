@@ -117,6 +117,7 @@ var Group=NFView.extend({
                     pkg: $el.attr("pkg"),
                     mode: $el.attr("mode"),
                     link: $el.attr("link"),
+                    nolink: $el.attr("nolink"), // many2one only
                     view: $el.attr("view"),
                     strong: $el.attr("strong"),
                     select_view_xml: $el.attr("select_view_xml"),
