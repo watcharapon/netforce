@@ -93,6 +93,7 @@ var FormListItem=NFView.extend({
                     condition: $el.attr("condition")||$el.attr("condition"), // XXX
                     perm: $el.attr("perm"),
                     link: $el.attr("link"),
+                    nolink: $el.attr("nolink"), // only for many2one
                     form_layout: form_layout,
                     context: context
                 };
