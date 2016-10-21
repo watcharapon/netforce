@@ -371,6 +371,7 @@ class SaleOrder(Model):
         price = None
         if pricelist_id:
             price = get_model("price.list").get_price(pricelist_id, prod.id, 1)
+            line['discount'] = get_model("price.list").get_discount(pricelist_id, prod.id, 1)
             price_list = get_model("price.list").browse(pricelist_id)
             price_currency_id = price_list.currency_id.id
         if price is None:
