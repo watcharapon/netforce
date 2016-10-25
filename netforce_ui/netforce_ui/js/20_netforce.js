@@ -604,6 +604,7 @@ function field_value(name,context,link,target,m2o_link,click_action,show_image,s
                 if (v[0]==val) {
                     val=v[1];
                     val=translate(val);
+                    if(val instanceof Handlebars.SafeString) val=val.toString();
                     break;
                 }
             }
@@ -1510,7 +1511,8 @@ window.NFModel=Backbone.Model.extend({
                 if (_.isArray(v)) v=v[0];
             } else if (f.type=="one2many") {
                 if (!v) continue;
-                if (_.isArray(v) && v.length < 1) continue;
+                /*if (_.isArray(v) && v.length < 1) continue;*/
+                if (!(v instanceof NFCollection)) continue;
                 v=v.get_vals();
             }
             vals[n]=v;

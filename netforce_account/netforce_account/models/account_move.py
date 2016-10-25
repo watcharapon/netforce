@@ -45,7 +45,7 @@ class Move(Model):
         "number": fields.Char("Number", search=True, required=True),
         "default_line_desc": fields.Boolean("Default narration to line description"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
-        "related_id": fields.Reference([["account.invoice", "Invoice"], ["account.payment", "Payment"], ["account.transfer", "Transfer"], ["hr.expense", "Expense Claim"], ["service.contract", "Service Contract"], ["pawn.loan", "Loan"], ["landed.cost","Landed Cost"], ["stock.picking","Stock Picking"], ['account.advance','Advance']], "Related To"),
+        "related_id": fields.Reference([["account.invoice", "Invoice"], ["account.payment", "Payment"], ["account.transfer", "Transfer"], ["hr.expense", "Expense Claim"], ["service.contract", "Service Contract"], ["pawn.loan", "Loan"], ["landed.cost","Landed Cost"], ["stock.picking","Stock Picking"], ['account.advance','Advance'], ['account.advance.clear','Advance Clear']], "Related To"),
         "company_id": fields.Many2One("company", "Company"),
         "track_entries": fields.One2Many("account.track.entry","move_id","Tracking Entries"),
         "difference" : fields.Float("Difference",function="get_difference",function_multi=True),
@@ -176,9 +176,9 @@ class Move(Model):
                 total_credit += line.credit
                 if line.tax_comp_id and not line.tax_date:
                     line.write({"tax_date": line.move_id.date})
-                if acc.currency_id.id != settings.currency_id.id and line.amount_cur is None:
+                if acc.currency_id.id != settings.currency_id.id and not line.amount_cur:
                     raise Exception("Missing currency amount for account %s" % line.account_id.name_get()[0][1])
-                if line.amount_cur is not None and acc.currency_id.id == settings.currency_id.id:
+                if line.amount_cur and acc.currency_id.id == settings.currency_id.id:
                     raise Exception("Currency amount for account %s should be empty" % line.account_id.name_get()[0][1])
             if abs(total_debit - total_credit) != 0:
                 print("NOT BALANCED total_debit=%s total_credit=%s" % (total_debit, total_credit))

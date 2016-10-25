@@ -186,8 +186,11 @@ class Move(Model):
 
     def delete(self, ids, **kw):
         prod_ids = []
+        job_ids = []
         for obj in self.browse(ids):
             prod_ids.append(obj.product_id.id)
+            if obj.related_id and obj.related_id._model == 'job':
+                job_ids.append(obj.related_id.id)
         move_ids=[]
         for obj in self.browse(ids):
             if obj.move_id:
@@ -201,6 +204,8 @@ class Move(Model):
         set_active_user(1)
         get_model("product").write(prod_ids, {"update_balance": True})
         set_active_user(user_id)
+        # update service order cost
+        get_model("job").function_store(job_ids)
 
     def view_stock_transaction(self, ids, context={}):
         obj = self.browse(ids[0])
@@ -340,6 +345,7 @@ class Move(Model):
         print("StockMove.post",ids)
         accounts={}
         post_date=None
+        move=None
         pick_ids=[]
         n=0
         for move in self.browse(ids):
@@ -406,15 +412,16 @@ class Move(Model):
             "date": post_date,
             "lines": [("create",vals) for vals in lines],
         }
-        if move.related_id:
+        if move and move.related_id:
             vals['related_id']='%s,%s'%(move.related_id._model,move.related_id.id)
         pick_ids=list(set(pick_ids))
         if len(pick_ids)==1:
             vals["related_id"]="stock.picking,%s"%pick_ids[0]
         # sequence number should correspond date
-        context.update({
-            'date': move.date,
-        })
+        if move:
+            context.update({
+                'date': move.date,
+            })
         pprint(vals)
         print("creating draft cost journal entry (%d lines)..."%len(lines))
         move_id=get_model("account.move").create(vals,context=context)

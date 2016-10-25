@@ -149,7 +149,7 @@ class SaleOrder(Model):
         date = time.strftime("%Y-%m-%d")
         line_vals={
             "currency_id": settings.currency_id.id,
-            "rate": settings.currency_id.get_rate(date,"sell") or 1
+            "rate": settings.currency_id and settings.currency_id.get_rate(date,"sell") or 1
         }
         if context.get("is_create"):
             lines.append(('create',line_vals))
@@ -367,10 +367,12 @@ class SaleOrder(Model):
         line["description"] = prod.description or "/"
         line["qty"] = 1
         line["uom_id"] = prod.sale_uom_id.id or prod.uom_id.id
+        line["qty_stock"] = 0
         pricelist_id = data["price_list_id"]
         price = None
         if pricelist_id:
             price = get_model("price.list").get_price(pricelist_id, prod.id, 1)
+            line['discount'] = get_model("price.list").get_discount(pricelist_id, prod.id, 1)
             price_list = get_model("price.list").browse(pricelist_id)
             price_currency_id = price_list.currency_id.id
         if price is None:
@@ -391,6 +393,10 @@ class SaleOrder(Model):
                 if loc.stock_qty:
                     line['location_id']=loc.location_id.id
                     break
+        if "location_id" in line and line["location_id"]:
+            qty_stock = get_model("stock.balance").search_browse([["product_id","=",prod_id],["location_id","=",line["location_id"]]])
+            if len(qty_stock) > 0:
+                line["qty_stock"] = qty_stock[0].qty_phys
         data = self.update_amounts(context)
         return data
 
@@ -418,6 +424,17 @@ class SaleOrder(Model):
             price_cur = get_model("currency").convert(price, price_currency_id, currency_id)
             line["unit_price"] = price_cur
         data = self.update_amounts(context)
+        return data
+
+    def onchange_location(self, context):
+        data = context["data"]
+        path = context["path"]
+        line = get_data_path(data, path, parent=True)
+        line["qty_stock"] = 0
+        if "product_id" in line and line["product_id"]:
+            qty_stock = get_model("stock.balance").search_browse([["product_id","=",line["product_id"]],["location_id","=",line["location_id"]]])
+            if len(qty_stock) > 0:
+                line["qty_stock"] = qty_stock[0].qty_phys
         return data
 
     def onchange_uom(self, context):
@@ -525,7 +542,7 @@ class SaleOrder(Model):
                 continue
             if line.qty <= 0:
                 continue
-            qty_remain = (line.qty_stock or line.qty) - line.qty_delivered
+            qty_remain = line.qty - line.qty_delivered
             if qty_remain <= 0:
                 continue
             line_vals = {
@@ -682,7 +699,7 @@ class SaleOrder(Model):
             is_delivered = True
             for line in obj.lines:
                 prod = line.product_id
-                if prod.type not in ("stock", "consumable", "bundle"):
+                if prod.type not in ("stock", "consumable", "bundle", None):
                     continue
                 remain_qty = (line.qty_stock or line.qty) - line.qty_delivered
                 if remain_qty > 0:
@@ -1031,7 +1048,48 @@ class SaleOrder(Model):
         tmpl = obj.job_template_id
         if not tmpl:
             raise Exception("Missing service order template in sales order")
-        job_id = tmpl.create_job(sale_id=obj.id)
+        #job_id = tmpl.create_job(sale_id=obj.id)
+        sale = get_model("sale.order").browse(obj.id)
+        contact_id = sale.contact_id.id
+        vals = {
+            "number": get_model("job")._get_number(),
+            "contact_id": contact_id,
+            "template_id": obj.job_template_id.id,
+            "service_type_id": obj.job_template_id.service_type_id.id,
+            "state": "planned",
+            "related_id": "sale.order,%s" % obj.id,
+            "lines": [],
+        }
+        template_products = []
+        for line in obj.job_template_id.lines:
+            line_vals = {
+                "sequence": line.sequence,
+                "type": line.type,
+                "product_id": line.product_id.id,
+                "description": line.description,
+                "qty": line.qty,
+                "uom_id": line.uom_id.id,
+                "unit_price": line.unit_price,
+                "amount": line.amount,
+                "payment_type": "job",
+            }
+            vals["lines"].append(("create", line_vals))
+            template_products.append((line.product_id.id,line.description))
+        for line in obj.lines:
+            if (line.product_id.id,line.description) not in template_products:
+                line_vals = {
+                    "sequence": line.sequence,
+                    "type": "parts" if line.product_id.type == "stockable" else "other",
+                    "product_id": line.product_id.id,
+                    "description": line.description,
+                    "qty": line.qty,
+                    "uom_id": line.uom_id.id,
+                    "unit_price": line.unit_price,
+                    "amount": line.amount,
+                    "payment_type": "job",
+                }
+                vals["lines"].append(("create", line_vals))
+        job_id = get_model("job").create(vals)
         job = get_model("job").browse(job_id)
         return {
             "flash": "Service order %s created from sales order %s" % (job.number, obj.number),
@@ -1318,6 +1376,7 @@ class SaleOrder(Model):
                 "tax_type":obj.tax_type,
                 "bill_address_id":obj.bill_address_id.id,
                 "ship_address_id":obj.ship_address_id.id,
+                "orig_sale_id": obj.id,
                 "lines":[],
             }
             for line in obj.lines:

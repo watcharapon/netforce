@@ -281,6 +281,9 @@ var SearchView=NFView.extend({
             } else if (f.type=="reference") {
                 that.model.set(n,v);
                 log(n,"<-",v);
+            } else if (f.type=="text") {
+                that.model.set(n,v);
+                log(n,"<-",v);
             }
         }
     },

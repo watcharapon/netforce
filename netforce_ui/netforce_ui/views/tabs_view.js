@@ -167,6 +167,7 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                     perm: $el.attr("perm"),
                     pkg: $el.attr("pkg"),
                     link: $el.attr("link"),
+                    nolink: $el.attr("nolink"), // many2one only
                     view: $el.attr("view"),
                     mode: $el.attr("mode"),
                     wysi: $el.attr("wysi"),
@@ -189,6 +190,7 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                                 var f2={
                                     name: $el2.attr("name"),
                                     condition: $el2.attr("condition"),
+                                    click_action: $el2.attr("click_action"),
                                     readonly: $el2.attr("readonly"),
                                     required: $el2.attr("required"),
                                     focus: $el2.attr("focus"),

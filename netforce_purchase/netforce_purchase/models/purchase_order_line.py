@@ -18,6 +18,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
+from decimal import Decimal
 from netforce.model import Model, fields, get_model
 
 
@@ -67,6 +68,9 @@ class PurchaseOrderLine(Model):
         vals = {}
         for line in self.browse(ids):
             amt = (line.qty * line.unit_price) - (line.discount_amount or 0)
+            if line.discount_percent:
+                disc = amt*Decimal(line.discount_percent)/100
+                amt -= disc
             order = line.order_id
             vals[line.id] = {
                 "amount": round(amt,2), #XXX

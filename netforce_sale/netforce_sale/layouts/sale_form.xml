@@ -3,7 +3,7 @@
         <field name="state"/>
         <button string="Print" icon="print" action="report_sale_form"/>
         <button string="Options" dropdown="1">
-            <item string="Copy To Sale Return" method="copy_to_sale_return" state="done"/>
+            <item string="Copy To Sale Return" method="copy_to_sale_return" states="done"/>
             <item string="Copy" method="copy"/>
             <item string="Copy To Customer Invoice" method="copy_to_invoice" states="confirmed"/>
             <item string="Copy To Goods Issue" method="copy_to_picking" states="confirmed"/>
@@ -53,8 +53,8 @@
                     <field name="promotion_amount"/>
                     <field name="tax_id" onchange="update_amounts"/>
                     <field name="amount"/>
-                    <field name="location_id"/>
-                    <field name="qty_stock"/>
+                    <field name="location_id" onchange="onchange_location"/>
+                    <field name="qty_stock" readonly="1"/>
                     <field name="ship_method_id"/>
                     <field name="qty_delivered"/>
                     <field name="est_cost_amount"/>
@@ -186,7 +186,7 @@
         </field>
         <field name="invoices" click_action="view_invoice"/>
         <field name="pickings"/>
-        <field name="purchase_lines"/>
+        <field name="purchase_lines" click_action="view_purchase"/>
         <field name="jobs"/>
         <field name="activities"/>
         <field name="emails" nodelete="1"/>

@@ -19,7 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
-
+from decimal import Decimal
 
 class StatementLine(Model):
     _name = "account.statement.line"
@@ -36,7 +36,8 @@ class StatementLine(Model):
         "bank_reconcile_id": fields.Many2One("account.bank.reconcile", "Bank Reconciliation"),
         "move_lines": fields.Many2Many("account.move.line", "Account Entries"),
         "account_id": fields.Many2One("account.account", "Account", function="_get_related", function_context={"path": "statement_id.account_id"}),
-        "account_balance": fields.Decimal("Accounting Balance", function="get_account_balance"),
+        "account_balance": fields.Decimal("Accounting Balance", function="get_account_balance", function_multi=True),
+        "account_balance_cur": fields.Decimal("Accounting Balance Currency", function="get_account_balance", function_multi=True),
     }
     _defaults = {
         "state": "not_reconciled",
@@ -69,14 +70,20 @@ class StatementLine(Model):
         return list(st_line_ids), list(acc_line_ids)
 
     def reconcile(self, ids, context={}):
+        settings = get_model('settings').browse(1)
         st_line_ids, acc_line_ids = self.get_reconcile_lines(ids)
         total_st = 0
         for st_line in get_model("account.statement.line").browse(st_line_ids):
             total_st += st_line.received - st_line.spent
         total_acc = 0
         for acc_line in get_model("account.move.line").browse(acc_line_ids):
-            total_acc += acc_line.debit - acc_line.credit
-        if total_st - total_acc != 0:
+            if settings.currency_id.id == acc_line.account_id.currency_id.id: # account currency is the same as default currency
+                total_acc += acc_line.debit - acc_line.credit
+            elif acc_line.debit: # account currency is different from default currency
+                total_acc += acc_line.amount_cur or 0.0
+            else: # account currency is different from default currency
+                total_acc -= acc_line.amount_cur or 0.0
+        if total_st - Decimal(total_acc) != 0:
             return {
                 "next": {
                     "name": "reconcile_adjust",
@@ -93,15 +100,21 @@ class StatementLine(Model):
 
     def get_account_balance(self, ids, context={}):
         vals = {}
+        settings = get_model('settings').browse(1)
         for obj in self.browse(ids):
             bal = 0
+            bal_cur = 0
             line_ids = set()
             for line in obj.move_lines:
                 if line.id in line_ids:
                     continue
                 bal += line.debit - line.credit
+                if settings.currency_id.id != line.account_id.currency_id.id and line.debit: # account currency is different from default currency
+                    bal_cur += line.amount_cur or 0.0
+                elif settings.currency_id.id != line.account_id.currency_id.id and line.credit: # account currency is different from default currency
+                    bal_cur -= line.amount_cur or 0.0
                 line_ids.add(line.id)
-            vals[obj.id] = bal
+            vals[obj.id] = { "account_balance": bal, "account_balance_cur": bal_cur }
         return vals
 
     def onchange_move_lines(self, context={}):

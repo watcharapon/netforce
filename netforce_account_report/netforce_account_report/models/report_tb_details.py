@@ -95,7 +95,15 @@ class ReportTBDetails(Model):
         if not date_to:
             date_to = date.today().strftime("%Y-%m-%d")
         track_id = params.get("track_id")
+        p_track = None
+        if track_id:
+            track = get_model('account.track.categ').browse(int(track_id))
+            p_track = track
         track2_id = params.get("track2_id")
+        p_track2 = None
+        if track2_id:
+            track2 = get_model('account.track.categ').browse(int(track2_id))
+            p_track2 = track2
         contact_id = params.get("contact_id")
         month_date_from = datetime.strptime(date_to, "%Y-%m-%d").strftime("%Y-%m-01")
         month_begin_date_to = (
@@ -214,6 +222,10 @@ class ReportTBDetails(Model):
             "date": date_to,
             "month_date_from": month_date_from,
             "month_begin_date_to": month_begin_date_to,
+            "track_name": p_track.name if p_track else None,
+            "track_code": p_track.code if p_track else None,
+            "track2_name": p_track2.name if p_track2 else None,
+            "track2_code": p_track2.code if p_track2 else None,
             "lines": lines,
             "totals": totals,
         }

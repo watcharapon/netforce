@@ -28,7 +28,7 @@ class Permission(Model):
     _export_field = "code"
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
-        "code": fields.Char("Code", required=True),
+        "code": fields.Char("Code", required=True, search=True),
         "comments": fields.One2Many("message", "related_id", "Comments"),
     }
     _order = "name"

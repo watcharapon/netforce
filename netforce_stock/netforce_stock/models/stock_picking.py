@@ -303,6 +303,7 @@ class Picking(Model):
                 "ref": obj.number,
                 "number": number,
                 "contact_id": obj.contact_id.id,
+                "related_id": "%s,%s"%(obj.related_id._model,obj.related_id.id),
                 "lines": [],
             }
             for line in obj.lines:
@@ -348,10 +349,23 @@ class Picking(Model):
                 "contact_id": obj.contact_id.id,
                 "currency_id": obj.currency_id.id,
                 "currency_rate": obj.currency_rate,
+                "related_id": "%s,%s"%(obj.related_id._model,obj.related_id.id),
                 "lines": [],
             }
             for line in obj.lines:
                 prod = line.product_id
+                # get account for purchase invoice
+                purch_acc_id=None
+                if prod:
+                    # 1. get from product
+                    purch_acc_id=prod.purchase_account_id and prod.purchase_account_id.id or None
+                    # 2. if not get from master / parent product
+                    if not purch_acc_id and prod.parent_id:
+                        purch_acc_id=prod.parent_id.purchase_account_id.id
+                    # 3. if not get from product category
+                    categ=prod.categ_id
+                    if categ and not purch_acc_id:
+                        purch_acc_id= categ.purchase_account_id and categ.purchase_account_id.id or None
                 line_vals = {
                     "product_id": line.product_id.id,
                     "description": prod.description or "/",
@@ -359,7 +373,7 @@ class Picking(Model):
                     "uom_id": line.uom_id.id,
                     "unit_price": line.cost_price_cur,
                     "tax_id": prod.purchase_tax_id.id,
-                    "account_id": prod.purchase_account_id.id,
+                    "account_id": purch_acc_id,
                     "amount": line.qty * line.cost_price_cur,
                 }
                 inv_vals["lines"].append(("create", line_vals))
@@ -541,6 +555,13 @@ class Picking(Model):
             date = vals["date"]
             move_ids = get_model("stock.move").search([["picking_id", "in", ids]])
             get_model("stock.move").write(move_ids, {"date": date})
+        #update service order cost
+        job_ids=[]
+        for obj in self.browse(ids):
+            if obj.related_id._model == 'job':
+                job_ids.append(obj.related_id.id)
+        if job_ids:
+            get_model('job').function_store(job_ids)
 
     def get_qty_total(self, ids, context={}):
         res = {}

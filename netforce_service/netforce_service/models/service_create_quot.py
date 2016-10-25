@@ -40,17 +40,21 @@ class CreateQuot(Model):
             "lines": [],
         }
         tmpl = obj.job_template_id
+        line_sequence = 1
         for line in tmpl.lines:
             prod = line.product_id
             line_vals = {
+                "sequence": line_sequence,
                 "product_id": prod.id,
                 "description": line.description,
                 "qty": line.qty,
                 "uom_id": line.uom_id.id,
                 "unit_price": line.unit_price,
                 "tax_id": prod.sale_tax_id.id if prod else None,
+                "amount": line.amount,
             }
             vals["lines"].append(("create", line_vals))
+            line_sequence += 1
         quot_id = get_model("sale.quot").create(vals)
         quot = get_model("sale.quot").browse(quot_id)
         return {

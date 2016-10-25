@@ -964,8 +964,7 @@ class Model(object):
                         if k not in vals:
                             continue
                         v = vals[k]
-                        if v is not None and v.isnumeric():
-                        #if v is not None:
+                        if v is not None:
                             r[n] = float(v)
                 elif isinstance(f, fields.Decimal):
                     for r in res:
@@ -973,8 +972,7 @@ class Model(object):
                         if k not in vals:
                             continue
                         v = vals[k]
-                        if v is not None and v.isnumeric():
-                        #if v is not None:
+                        if v is not None:
                             r[n] = Decimal(v)
                 elif isinstance(f, fields.Char):
                     pass
@@ -2144,7 +2142,7 @@ class Model(object):
                 mtime=obj.write_time
             else:
                 mtime=None
-            res.append((k,m_time))
+            res.append((k,mtime))
         return res
 
     def sync_export(self, ids, context={}):

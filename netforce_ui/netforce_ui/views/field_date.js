@@ -108,7 +108,13 @@ var FieldDate=NFView.extend({
         } else {
             model.set_not_required(name);
         }
-        if (this.options.invisible || attrs.invisible) {
+        var perms=get_field_permissions(model.name,name);
+
+        if (!perms.perm_write) {
+            this.data.readonly=true;
+        }
+
+        if (this.options.invisible || attrs.invisible || !perms.perm_read) {
             this.$el.hide();
         } else {
             this.$el.show();

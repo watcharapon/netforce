@@ -30,7 +30,7 @@ class JobTemplate(Model):
     _name_field = "name"
     _fields = {
         "name": fields.Char("Template Name", required=True, search=True),
-        "product_id": fields.Many2One("product", "Product", required=True),
+        "product_id": fields.Many2One("product", "Product", required=True, search=True),
         "description": fields.Text("Description"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "period_type": fields.Selection([["month", "Month"], ["counter", "Service Item Counter"]], "Period Type"),
@@ -76,6 +76,7 @@ class JobTemplate(Model):
                 "qty": line.qty,
                 "uom_id": line.uom_id.id,
                 "unit_price": line.unit_price,
+                "amount": line.amount,
             }
             if line.type == "labor" and contract and contract.incl_labor:
                 line_vals["payment_type"] = "contract"
@@ -104,6 +105,23 @@ class JobTemplate(Model):
         line["uom_id"] = prod.uom_id.id
         line["unit_price"] = prod.sale_price
         line["description"] = prod.description
+        return data
+
+    def update_total(self, context={}):
+        data = context["data"]
+        data["amount_total"] = 0
+        data["amount_labor"] = 0
+        data["amount_part"] = 0
+        data["amount_other"] = 0
+        for line in data["lines"]:
+            line["amount"] = (line["unit_price"] or 0) * (line["qty"] or 0)
+            data["amount_total"] += line["amount"]
+            if line["type"] == "labor":
+                data["amount_labor"] += line["amount"]
+            if line["type"] == "part":
+                data["amount_part"] += line["amount"]
+            if line["type"] == "other":
+                data["amount_other"] += line["amount"]
         return data
 
     def get_total(self, ids, context={}):
