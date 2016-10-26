@@ -104,7 +104,7 @@ var FieldMany2One=NFView.extend({
         }
         var perms=get_field_permissions(this.context.model.name,this.options.name);
         this.data.readonly=field.readonly||this.options.readonly||this.context.readonly||!perms.perm_write;
-        if (this.options.disable_edit_link && !this.data.readonly) {
+        if (this.options.nolink || this.options.disable_edit_link && !this.data.readonly) {
             this.data.link_url=null;
         }
         var attrs=this.eval_attrs();
@@ -364,7 +364,7 @@ var FieldMany2One=NFView.extend({
             });
             if (!cur_text) {
                 var mr=get_model(this.relation);
-                if (mr.string) {
+                if (mr.string && !this.options.nolink) {
                     if(items && items.length>1){
                         var new_item=translate('Search More...');
                         var item=$('<li data-value="_search"><a href="#" style="font-weight:bold">'+new_item+'</a></li>');

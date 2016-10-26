@@ -18,6 +18,8 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
+from operator import itemgetter
+
 from netforce.model import Model, fields, get_model
 from datetime import *
 from dateutil.relativedelta import *
@@ -163,6 +165,7 @@ class ReportGLDetails(Model):
                 debit_total += line.debit or Decimal("0")
                 credit_total += line.credit or Decimal("0")
                 acc_vals["lines"].append(line_vals)
+            acc_vals['lines'].sort(key = itemgetter("date","number"))
             acc_vals["debit_total"] = debit_total
             acc_vals["credit_total"] = credit_total
             if acc_vals["lines"]:

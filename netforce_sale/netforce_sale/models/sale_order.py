@@ -149,7 +149,7 @@ class SaleOrder(Model):
         date = time.strftime("%Y-%m-%d")
         line_vals={
             "currency_id": settings.currency_id.id,
-            "rate": settings.currency_id.get_rate(date,"sell") or 1
+            "rate": settings.currency_id and settings.currency_id.get_rate(date,"sell") or 1
         }
         if context.get("is_create"):
             lines.append(('create',line_vals))
@@ -372,6 +372,7 @@ class SaleOrder(Model):
         price = None
         if pricelist_id:
             price = get_model("price.list").get_price(pricelist_id, prod.id, 1)
+            line['discount'] = get_model("price.list").get_discount(pricelist_id, prod.id, 1)
             price_list = get_model("price.list").browse(pricelist_id)
             price_currency_id = price_list.currency_id.id
         if price is None:

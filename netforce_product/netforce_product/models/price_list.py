@@ -80,4 +80,10 @@ class PriceList(Model):
             return item.price
         return None
 
+    def get_discount(self, list_id, prod_id, qty, context={}):
+        print("get_discount", list_id, prod_id, qty)
+        for item in get_model("price.list.item").search_browse([["list_id", "=", list_id], ["product_id", "=", prod_id]]):
+            return item.discount_percent
+        return None
+
 PriceList.register()
