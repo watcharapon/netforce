@@ -313,7 +313,7 @@ def make_ui_params_db():
                         'separator_remove': r.separator_remove,
                     }
                     hidden[r.type][r.model][r.field_name]=hide_opts
-            elif r.type in ('tab', 'button','item','separator'):
+            elif r.type in ('tab', 'tab_action', 'button', 'item','separator'):
                 if r.model not in hidden[r.type].keys():
                     hidden[r.type][r.model]={}
                 hidden[r.type][r.model][r.name]=True
