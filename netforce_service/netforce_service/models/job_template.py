@@ -54,6 +54,8 @@ class JobTemplate(Model):
         if sale_id:
             sale = get_model("sale.order").browse(sale_id)
             contact_id = sale.contact_id.id
+        elif 'contact_id' in context:
+            contact_id = context['contact_id']
         vals = {
             "contact_id": contact_id,
             "project_id": contract.project_id.id if contract else None,

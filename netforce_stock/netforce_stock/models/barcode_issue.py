@@ -143,7 +143,7 @@ class BarcodeIssue(Model):
                 "location_to_id": obj.location_to_id.id,
                 "container_from_id": line.container_from_id.id,
                 "container_to_id": line.container_to_id.id,
-                "related_id": "%s,%s" % (line.related_id._model, line.related_id.id),
+                "related_id": "%s,%s" % (line.related_id._model, line.related_id.id) if line.related_id else None,
                 "notes": line.notes,
             }
             pick_vals["lines"].append(("create", line_vals))
