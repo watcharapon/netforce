@@ -47,6 +47,10 @@ var FieldSelection=NFView.extend({
         var value=model.get(name);
         this.data.value=value;
         var field=model.get_field(name);
+
+        var select_value=get_field_select({model: model.name, field: name});
+        if(select_value) this.selection=select_value;
+
         if (!this.selection) {
             this.selection=field.selection;
             if (this.options.selection) {

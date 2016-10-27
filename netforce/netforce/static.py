@@ -297,6 +297,7 @@ def make_ui_params_db():
             trans.setdefault(r.code, {})[r.original] = r.translation
         data["translations"] = trans
 
+        #///////////////////// HIDDEN //////////////////////////
         hidden = {}
         db = database.get_connection()
         res = db.query("SELECT h.active, h.type, h.name, h.field_name, h.model_id, h.parent_menu, h.separator_remove, m.name as model  FROM hidden as h left join model as m on m.id=h.model_id")
@@ -322,6 +323,18 @@ def make_ui_params_db():
             else:
                 hidden.setdefault(r.type, {})[r.name] = True
         data["hidden"] = hidden
+
+        #///////////////////// FIELD SELECT //////////////////////////
+        field_select = {}
+        db = database.get_connection()
+        res = db.query("SELECT fs.active, fs.name, fs.field_name, fs.select, fs.select_value, fs.model_id, m.name as model  FROM field_select as fs left join model as m on m.id=fs.model_id")
+        for r in res:
+            if not r.active:
+                continue
+            field_select.setdefault(r.model,{})
+            field_select[r.model].setdefault(r.field_name)
+            field_select[r.model][r.field_name]=r.select_value
+        data["field_select"] = field_select
 
         settings = get_model("settings").browse(1)
         data["date_format"] = settings.date_format or "YYYY-MM-DD"

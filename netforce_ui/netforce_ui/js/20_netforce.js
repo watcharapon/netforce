@@ -1047,6 +1047,7 @@ function load_ui_params_db(cb) {
             set_actions();
             set_templates();
             set_hidden();
+            set_field_select();
             nf_open_db();
             cb();
         },
@@ -2244,6 +2245,33 @@ function is_hidden(params){
         }
    }
 
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// OVERRIDE ///////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+field_select={};
+function set_field_select() {
+    if (ui_params_db) {
+        _.extend(field_select,ui_params_db.field_select)
+    }
+}
+
+function get_field_select(params){
+    if(_.isEmpty(field_select) || _.isEmpty(params)) return null;
+    if(!field_select[params.model]) return null;
+    var select=field_select[params.model][params.field];
+    if(!select) return null;
+    var value=[];
+    _.each(select.split(","), function(item){
+        var it=item.split("|");
+        var k=it[0];
+        var v=it[1];
+        value.push([k,v]);
+    })
+    return value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
