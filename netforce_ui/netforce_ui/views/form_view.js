@@ -152,7 +152,10 @@ var FormView=NFView.extend({
                 var $el=that.$form.find("head field");
                 if ($el.length>0) {
                     var name=$el.attr("name");
-                    that.data.head_title="<b>"+field_value(name,that.data.context)+"</b>";
+                    var hide_opts=is_hidden({type:"field", model:that.options.model, name: name});
+                    if(!hide_opts){
+                        that.data.head_title="<b>"+field_value(name,that.data.context)+"</b>";
+                    }
                 }
                 if (that.$form.attr("show_company")) {
                     that.data.show_company=true;
@@ -248,7 +251,10 @@ var FormView=NFView.extend({
                 var $el=that.$form.find("head field");
                 if ($el.length>0) {
                     var name=$el.attr("name");
-                    that.data.head_title="<b>"+field_value(name,that.data.context)+"</b>";
+                    var hide_opts=is_hidden({type:"field", model:that.options.model, name: name});
+                    if(!hide_opts){
+                        that.data.head_title="<b>"+field_value(name,that.data.context)+"</b>";
+                    }
                 }
                 var attrs=that.eval_attrs();
                 that.readonly=attrs.readonly;
