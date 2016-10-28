@@ -155,6 +155,7 @@ class Lead(Model):
         else:
             vals = {
                 "type": "person",
+                "code": obj.last_name,
                 "first_name": obj.first_name,
                 "last_name": obj.last_name,
                 "contact_id": comp_contact_id,
