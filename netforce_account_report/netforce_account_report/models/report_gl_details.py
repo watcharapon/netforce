@@ -141,7 +141,7 @@ class ReportGLDetails(Model):
                 cond.append(["track_id", "=", track_id])
             if track2_id:
                 cond.append(["track2_id", "=", track2_id])
-            lines = get_model("account.move.line").search_browse(cond, order="move_date")
+            lines = get_model("account.move.line").search_browse(cond, order="move_date, move_number")
             for line in lines:
                 if hide_zero and not line.debit and not line.credit:
                     continue
