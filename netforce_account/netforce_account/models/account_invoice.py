@@ -651,6 +651,7 @@ class Invoice(Model):
             else:
                 base_amt = amt
             data["amount_subtotal"] += Decimal(base_amt)
+        data['amount_tax'] = get_model("currency").round(data['currency_id'], data['amount_tax'])
         if tax_type == "tax_in":
             data["amount_rounding"] = sum(
                 l.get("amount") or 0 for l in data["lines"] if l) - (data["amount_subtotal"] + data["amount_tax"])
