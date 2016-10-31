@@ -46,6 +46,7 @@ class ReportTemplate(Model):
             ["tax_detail", "Tax Detail"],
             ["hr_expense", "HR Expense"],
             ["landed_cost","Landed Cost"],
+            ["borrow_form", "Borrow Request"],
 
             # XXX: Better add by config
             ["account_bill","Bill Issue"],

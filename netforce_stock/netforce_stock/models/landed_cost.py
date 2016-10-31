@@ -67,6 +67,18 @@ class LandedCost(Model):
         'company_id': lambda *a: get_active_company(),
     }
 
+    def delete(self, ids, **kw):
+        for obj in self.browse(ids):
+            if obj.move_id:
+                obj.move_id.to_draft()
+                obj.move_id.delete()
+            if obj.reverse_move_id:
+                obj.reverse_move_id.to_draft()
+                obj.reverse_move_id.delete()
+            obj.stock_moves.delete()
+        res = super().delete(ids, **kw)
+        return res
+
     def post(self, ids, context={}):
         settings=get_model("settings").browse(1)
         obj=self.browse(ids[0])
