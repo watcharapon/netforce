@@ -332,8 +332,9 @@ def make_ui_params_db():
             if not r.active:
                 continue
             field_select.setdefault(r.model,{})
-            field_select[r.model].setdefault(r.field_name)
-            field_select[r.model][r.field_name]=r.select_value
+            field_select[r.model].setdefault(r.field_name,"")
+            #field_select[r.model][r.field_name]=r.select_value
+            field_select[r.model][r.field_name]+=","+r.select_value
         data["field_select"] = field_select
 
         settings = get_model("settings").browse(1)

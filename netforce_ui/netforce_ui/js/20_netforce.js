@@ -2267,6 +2267,7 @@ function get_field_select(params){
     var value=[];
     _.each(select.split(","), function(item){
         var it=item.split("|");
+        if(it.length<2) return;
         var k=it[0];
         var v=it[1];
         value.push([k,v]);
