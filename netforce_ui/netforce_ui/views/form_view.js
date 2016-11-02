@@ -445,6 +445,9 @@ var FormView=NFView.extend({
                                 }
                             } else if (view_cls_name=="form_list_view") { // XXX
                                 var opts2={
+                                    noadd: $el.attr("noadd"),
+                                    noremove: $el.attr("noremove"),
+                                    readonly: $el.attr("readonly"),
                                     model: field.relation,
                                     list_layout: $list,
                                     context: params.context
