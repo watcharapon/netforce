@@ -1178,9 +1178,7 @@ class Model(object):
             if self._key:
                 cond = [(k, "=", vals_.get(k)) for k in self._key]
                 ids = self.search(cond)
-                if ids:
-                    ids = ids
-                else:
+                if not ids:
                     ids = None
                 #if len(ids) > 1:
                     #raise Exception("Duplicate keys: %s %s" % (self._name, cond))
