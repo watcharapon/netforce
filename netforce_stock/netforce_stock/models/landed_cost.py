@@ -29,6 +29,7 @@ class LandedCost(Model):
     _string = "Landed Costs"
     _audit_log = True
     _multi_company=True
+    _key = ["number"]
     _fields = {
         "number": fields.Char("Number",required=True,search=True),
         "date": fields.DateTime("Date",required=True,search=True),

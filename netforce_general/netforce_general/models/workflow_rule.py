@@ -24,6 +24,7 @@ from netforce.model import Model, fields, get_model
 class WorkflowRule(Model):
     _name = "workflow.rule"
     _string = "Workflow Rule"
+    _key = ["name"]
 
     _fields = {
         "name": fields.Char("Name"),

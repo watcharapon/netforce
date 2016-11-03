@@ -25,6 +25,7 @@ class Province(Model):
     _name = "province"
     _string = "Province"
     _export_field = "code"
+    _key = ["name"]
     _fields = {
         "country_id": fields.Many2One("country", "Country"),
         "name": fields.Char("Name", required=True, search=True, translate=True),

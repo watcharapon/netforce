@@ -24,6 +24,7 @@ from netforce.model import Model, fields, get_model
 class ServiceType(Model):
     _name = "service.type"
     _string = "Service Type"
+    _key = ["code"]
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "code": fields.Char("Code", search=True),

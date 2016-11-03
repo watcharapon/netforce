@@ -3,6 +3,7 @@ from netforce.model import Model,fields,get_model
 class PriceType(Model):
     _name="price.type"
     _string="Price Type"
+    _key = ["name"]
     _fields={
         "name": fields.Char("Name",required=True),
         "currency_id": fields.Many2One("currency","Currency",required=True),

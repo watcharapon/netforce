@@ -25,6 +25,7 @@ class Rule(Model):
     _name = "wkf.rule"
     _string = "Workflow Rule"
     _name_field = "description"
+    _key = ["trigger_event"]
     _fields = {
         "trigger_model_id": fields.Many2One("model", "Trigger Model", required=True, search=True),
         "trigger_event": fields.Char("Trigger Event", required=True, search=True),
