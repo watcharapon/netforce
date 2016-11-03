@@ -26,6 +26,7 @@ import time
 class ShipTerm(Model):
     _name = "ship.term"
     _string = "Shipping Terms"
+    _key = ["name"]
     _fields = {
         "name": fields.Char("Name", required=True),
         "description": fields.Text("Description"),

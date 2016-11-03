@@ -24,6 +24,7 @@ from netforce.model import Model, fields
 class ContactRelationType(Model):
     _name = "contact.relation.type"
     _string = "Relation Type"
+    _key = ["name"]
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "description": fields.Text("Description"),

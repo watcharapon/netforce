@@ -40,6 +40,7 @@ class Task(Model):
     _name = "task"
     _string = "Task"
     _name_field = "title"
+    _key = ["number"]
     _fields = {
         "number": fields.Char("Number",required=True,search=True),
         "sequence": fields.Integer("Sequence"),

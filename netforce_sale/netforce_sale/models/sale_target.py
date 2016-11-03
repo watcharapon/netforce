@@ -27,6 +27,7 @@ from netforce import database
 class SaleTarget(Model):
     _name = "sale.target"
     _string = "Sales Target"
+    _key = ["user_id"]
     _fields = {
         "user_id": fields.Many2One("base.user", "Salesman", search=True),
         "prod_categ_id": fields.Many2One("product.categ", "Product Category", search=True),

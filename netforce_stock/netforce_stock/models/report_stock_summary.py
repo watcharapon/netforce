@@ -182,6 +182,7 @@ class ReportStockSummary(Model):
             prods[prod.id]={
                 "name": prod.name,
                 "code": prod.code,
+                "brand": prod.brand_id.name if prod.brand_id else None,
                 "uom_id": prod.uom_id.id,
                 "uom_name": prod.uom_id.name,
             }
@@ -238,6 +239,7 @@ class ReportStockSummary(Model):
                 "prod_id": prod_id,
                 "prod_name": prod["name"],
                 "prod_code": prod["code"],
+                "prod_brand": prod["brand"],
                 "lot_id": lot_id if lot_id != -1 else None,
                 "lot_num": lot["number"] if lot else None,
                 "uom_name": prod["uom_name"],

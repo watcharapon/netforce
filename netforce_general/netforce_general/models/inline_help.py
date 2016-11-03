@@ -26,6 +26,7 @@ import time
 class InlineHelp(Model):
     _name = "inline.help"
     _string = "Help Item"
+    _key = ["action"]
     _fields = {
         "action": fields.Char("Action Name", required=True, search=True),
         "title": fields.Char("Help Title", required=True, search=True),

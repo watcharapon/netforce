@@ -34,6 +34,7 @@ class Job(Model):
     _name_field = "number"
     _audit_log = True
     _multi_company = True
+    _key = ["number"]
     _fields = {
         "project_id": fields.Many2One("project", "Project", search=True),
         "contact_id": fields.Many2One("contact", "Customer", required=True, search=True),

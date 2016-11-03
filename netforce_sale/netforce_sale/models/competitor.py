@@ -24,6 +24,7 @@ from netforce.model import Model, fields, get_model
 class Competitor(Model):
     _name = "competitor"
     _string = "Competitor"
+    _key = ["name"]
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "contact_id": fields.Many2One("contact", "Contact"),
