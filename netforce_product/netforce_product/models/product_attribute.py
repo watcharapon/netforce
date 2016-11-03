@@ -24,6 +24,7 @@ from netforce.model import Model, fields
 class Attribute(Model):
     _name = "product.attribute"
     _string = "Attribute"
+    _key = ["code"]
     _fields = {
         "name": fields.Char("Attribute Name", required=True, search=True),
         "code": fields.Char("Attribute Code", required=True, search=True),

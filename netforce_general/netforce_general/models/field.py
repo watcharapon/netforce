@@ -25,6 +25,7 @@ class Field(Model):
     _name = "field"
     _string = "Field"
     _name_field = "string"
+    _key = ["model_id","name"]
     _fields = {
         "model_id": fields.Many2One("model", "Model", required=True, on_delete="cascade", search=True),
         "name": fields.Char("Name", required=True, search=True),

@@ -30,6 +30,7 @@
         <tr>
             <th></th>
             <th></th>
+            <th></th>
             {{#if show_lot}}
                 <th></th>
             {{/if}}
@@ -59,6 +60,9 @@
             </th>
             <th>
                 Product Name
+            </th>
+            <th>
+                Product Brand
             </th>
             {{#if show_lot}}
                 <th>
@@ -133,6 +137,9 @@
                 <td>
                     {{prod_name}}
                 </td>
+                <td>
+                    {{prod_brand}}
+                </td>
                 {{#if ../show_lot}}
                     <td>
                         {{view "link" string=lot_num action="stock_lot" action_options="mode=form" active_id=lot_id context=context}}
@@ -204,6 +211,7 @@
     </tbody>
     <tfoot>
         <tr>
+            <td></td>
             <td></td>
             <td></td>
             {{#if show_lot}}

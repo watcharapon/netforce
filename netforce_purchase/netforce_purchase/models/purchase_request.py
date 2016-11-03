@@ -27,6 +27,7 @@ from netforce.utils import get_data_path
 class PurchaseRequest(Model):
     _name = "purchase.request"
     _string = "Purchase Request"
+    _key = ["number"]
     _fields = {
         "number": fields.Char("Number", required=True, search=True),
         "ref": fields.Char("Ref", search=True),

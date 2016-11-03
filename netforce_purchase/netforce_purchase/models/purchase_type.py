@@ -24,6 +24,7 @@ from netforce.model import Model, fields, get_model
 class PurchaseType(Model):
     _name = "purchase.type"
     _string = "Purchase Type"
+    _key = ["name"]
     _fields = {
         "name": fields.Char("Name", required=True),
         "parent_id": fields.Many2One("purchase.type", "Parent"),

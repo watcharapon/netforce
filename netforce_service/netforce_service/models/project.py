@@ -26,6 +26,7 @@ class Project(Model):
     _name = "project"
     _string = "Project"
     _audit_log = True
+    _key = ["number"]
     _fields = {
         "name": fields.Char("Project Name", required=True, search=True),
         "number": fields.Char("Project Number", search=True),

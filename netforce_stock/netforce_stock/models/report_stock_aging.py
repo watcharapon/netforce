@@ -163,6 +163,8 @@ class ReportStockAging(Model):
             cur_qty = get_balance_qty(prod_id, loc_id, cur_qtys)
             line = {
                 "product_id": prod.id,
+                "product_code": prod.code,
+                "product_brand": prod.brand_id.name if prod.brand_id else None,
                 "product_name": prod.name,
                 "location_id": loc.id,
                 "location_name": loc.name,

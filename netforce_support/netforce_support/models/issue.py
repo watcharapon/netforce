@@ -8,6 +8,7 @@ class Issue(Model):
     _name="issue"
     _string="Issue"
     _name_field="number"
+    _key = ["number"]
     _fields={
         "number": fields.Char("Number",required=True,search=True),
         "date_created": fields.DateTime("Date Created",required=True,search=True),
