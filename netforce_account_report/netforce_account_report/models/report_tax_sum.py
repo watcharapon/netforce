@@ -95,13 +95,23 @@ class ReportTaxSum(Model):
         }
         db = database.get_connection()
         if params.get("by_comp"):
-            res = db.query("SELECT c.id AS comp_id,c.name AS comp_name,c.rate AS comp_rate,r.name AS rate_name,SUM(l.credit-l.debit) AS tax_total,SUM(l.tax_base*sign(l.credit-l.debit)) AS base_total FROM account_move_line l,account_move m,account_tax_component c,account_tax_rate r WHERE m.id=l.move_id AND m.state='posted' AND m.date>=%s AND m.date<=%s AND c.id=l.tax_comp_id AND r.id=c.tax_rate_id AND m.company_id IN %s GROUP BY comp_id,comp_name,comp_rate,rate_name ORDER BY comp_name,rate_name",
+            res = db.query("SELECT c.id AS comp_id,c.name AS comp_name,c.rate AS comp_rate,r.name AS rate_name,SUM(l.credit-l.debit) AS tax_total,SUM(l.tax_base*sign(l.credit-l.debit)) AS base_total,c.type AS tax_comp_type, SUM(l.tax_base) AS base_total_exempt FROM account_move_line l,account_move m,account_tax_component c,account_tax_rate r WHERE m.id=l.move_id AND m.state='posted' AND m.date>=%s AND m.date<=%s AND c.id=l.tax_comp_id AND r.id=c.tax_rate_id AND m.company_id IN %s GROUP BY comp_id,comp_name,comp_rate,rate_name ORDER BY comp_name,rate_name",
                            date_from, date_to, tuple(company_ids))
-            data["comp_taxes"] = [dict(r) for r in res]
+            data["comp_taxes"] = []
+            ## get tax base only if type = vat_exempt
+            for r in res:
+                if r.tax_comp_type == "vat_exempt":
+                   r["base_total"] = r["base_total_exempt"]
+                data["comp_taxes"].append(dict(r))
         if params.get("by_rate"):
-            res = db.query("SELECT c.id AS comp_id,c.name AS comp_name,c.rate AS comp_rate,r.name AS rate_name,SUM(l.credit-l.debit) AS tax_total,SUM(l.tax_base*sign(l.credit-l.debit)) AS base_total FROM account_move_line l,account_move m,account_tax_component c,account_tax_rate r WHERE m.id=l.move_id AND m.state='posted' AND m.date>=%s AND m.date<=%s AND c.id=l.tax_comp_id AND r.id=c.tax_rate_id AND m.company_id IN %s GROUP BY comp_id,comp_name,comp_rate,rate_name ORDER BY rate_name,comp_name",
+            res = db.query("SELECT c.id AS comp_id,c.name AS comp_name,c.rate AS comp_rate,r.name AS rate_name,SUM(l.credit-l.debit) AS tax_total,SUM(l.tax_base*sign(l.credit-l.debit)) AS base_total,c.type AS tax_comp_type, SUM(l.tax_base) AS base_total_exempt FROM account_move_line l,account_move m,account_tax_component c,account_tax_rate r WHERE m.id=l.move_id AND m.state='posted' AND m.date>=%s AND m.date<=%s AND c.id=l.tax_comp_id AND r.id=c.tax_rate_id AND m.company_id IN %s GROUP BY comp_id,comp_name,comp_rate,rate_name ORDER BY rate_name,comp_name",
                            date_from, date_to, tuple(company_ids))
-            data["rate_taxes"] = [dict(r) for r in res]
+            data["rate_taxes"] = []
+            ## get tax base only if type = vat_exempt
+            for r in res:
+                if r.tax_comp_type == "vat_exempt":
+                   r["base_total"] = r["base_total_exempt"]
+                data["rate_taxes"].append(dict(r))
 
         items=data.get("rate_taxes") or []
         rate_taxes=self.group_items(items=items,group_field="comp_name",sum_field="base_total,tax_total", context={})
