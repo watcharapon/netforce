@@ -28,7 +28,7 @@ class Opportunity(Model):
     _name = "sale.opportunity"
     _string = "Opportunity"
     _audit_log = True
-    _key = ["name"]
+    _key = ["name","user_id"]
     _multi_company = True
     _fields = {
         "user_id": fields.Many2One("base.user", "Opportunity Owner", required=True),

@@ -26,6 +26,7 @@ class ProductCateg(Model):
     _name = "product.categ"
     _string = "Product Category"
     _export_field="code"
+    _key = ["code"]
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "code": fields.Char("Short Code", search=True),

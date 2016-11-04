@@ -24,6 +24,7 @@ from netforce.model import Model, fields, get_model
 class SaleChannel(Model):
     _name = "sale.channel"
     _string = "Sales Channel"
+    _key = ["code"]
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "code": fields.Char("Code", search=True),

@@ -24,6 +24,7 @@ from netforce.model import Model, fields, get_model
 class ProductLocation(Model):
     _name = "product.location"
     _string = "Product Location"
+    _key = ["product_id","sequence"]
     _fields = {
         "product_id": fields.Many2One("product","Product",required=True,on_delete="cascade"),
         "sequence": fields.Integer("Sequence",required=True),

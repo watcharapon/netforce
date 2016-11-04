@@ -26,6 +26,7 @@ import time
 class ShipRate(Model):
     _name = "ship.rate"
     _string = "Shipping Rate"
+    _key = ["method_id"]
     _fields = {
         "sequence": fields.Char("Sequence", required=True, search=True),
         "method_id": fields.Many2One("ship.method", "Shipping Method", required=True, on_delete="cascade", search=True),

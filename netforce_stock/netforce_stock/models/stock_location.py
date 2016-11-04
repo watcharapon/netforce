@@ -28,7 +28,7 @@ from netforce.access import get_active_company
 class Location(Model):
     _name = "stock.location"
     _name_field = "name"
-    #_key = ["code"]
+    _key = ["code"]
     _string = "Location"
     _multi_company = True
     _fields = {

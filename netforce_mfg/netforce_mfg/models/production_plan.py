@@ -28,6 +28,7 @@ class ProductionPlan(Model):
     _name = "production.plan"
     _string = "Production Plan"
     _name_field = "number"
+    _key = ["number"]
     _fields = {
         "number": fields.Char("Number", required=True, search=True),
         "product_id": fields.Many2One("product", "Product", required=True, search=True),

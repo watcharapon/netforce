@@ -28,6 +28,7 @@ class JobTemplate(Model):
     _name = "job.template"
     _string = "Service Order Template"
     _name_field = "name"
+    _key = ["name"]
     _fields = {
         "name": fields.Char("Template Name", required=True, search=True),
         "product_id": fields.Many2One("product", "Product", required=True, search=True),

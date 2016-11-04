@@ -28,6 +28,7 @@ class Contact(Model):
     _string = "Contact"
     _audit_log = True
     _export_field = "name"
+    _key = ["code"]
     _fields = {
         "user_id": fields.Many2One("base.user", "User"),
         "type": fields.Selection([["person", "Individual"], ["org", "Organization"]], "Contact Type", required=True, search=True),
