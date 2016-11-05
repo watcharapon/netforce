@@ -604,7 +604,7 @@ class SaleOrder(Model):
                     if contact.sale_journal_id.sequence_id:
                         inv_vals["sequence_id"] = contact.sale_journal_id.sequence_id.id
                 for line in obj.lines:
-                    if not line.unit_price:
+                    if line.unit_price is None:
                         continue
                     if line.ship_method_id.id!=ship_method_id:
                         continue
