@@ -1578,7 +1578,8 @@ class Model(object):
                         for rname in rnames:
                             rname = rname.strip()
                             res = mr.import_get(rname)
-                            rids.append(res)
+                            if res:
+                                rids.append(res)
                         v = [("set", rids)]
                 else:
                     if isinstance(f, (fields.One2Many,)):
