@@ -381,6 +381,7 @@ def init_db():
     db.execute("INSERT INTO base_user (id,login,password,name,profile_id,active) VALUES (1,'admin',%s,'Admin',1,true)",enc_pass)
     db.execute("INSERT INTO company (id,name) VALUES (1,'Test Company')")
 
+    db.execute("ALTER SEQUENCE settings_id_seq RESTART WITH 2")
     db.execute("ALTER SEQUENCE base_user_id_seq RESTART WITH 2")
     db.execute("ALTER SEQUENCE company_id_seq RESTART WITH 2")
     db.execute("ALTER SEQUENCE profile_id_seq RESTART WITH 2")
