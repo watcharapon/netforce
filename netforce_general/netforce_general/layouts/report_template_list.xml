@@ -1,4 +1,9 @@
 <list model="report.template">
+    <top replace="1">
+        <button string="New Report Template" perm_model="report.template,create" action="report_template" action_options='{"mode":"form"}' icon="plus-sign"/>
+        <button string="Fetch Default" action="fetch_report_template" icon="refresh"/>
+        <button string="Import" action="import_data" action_options='{"import_model":"report.template","next":"report_template"}' icon="download"/>
+    </top>
     <field name="name"/>
     <field name="type"/>
     <field name="format"/>
