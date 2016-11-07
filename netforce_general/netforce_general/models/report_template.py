@@ -66,9 +66,23 @@ class ReportTemplate(Model):
         "company_id": fields.Many2One("company", "Company"),
         "model_id": fields.Many2One("model", "Model"),
         "method": fields.Char("Method"),
+        "default": fields.Boolean("Default"),
     }
     _defaults = {
         "file_type": "odt",
+        'default': False,
     }
+
+    def default_template(self, type):
+        templates=self.search_browse([['type','=',type], ['default','=',True]])
+        if templates:
+            return templates[0]
+
+    def delete(self, ids, context={}):
+        ids2=[]
+        for obj in self.browse(ids):
+            if not obj.default:
+                ids2.append(obj.id)
+        super().delete(ids2)
 
 ReportTemplate.register()

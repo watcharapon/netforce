@@ -627,8 +627,9 @@ class EmailMessage(Model):
             msg.set_charset("utf-8")
             msg["From"] = obj.from_addr
             msg["To"] = obj.to_addrs
-            if obj.cc_addrs:
-                msg["CC"] = [a.strip() for a in obj.cc_addrs.split(",")]
+            msg["CC"] = obj.cc_addrs
+            #if obj.cc_addrs:
+                #msg["CC"] = [a.strip() for a in obj.cc_addrs.split(",")]
             msg["Subject"] = Header(obj.subject, "utf-8")
             msg.attach(MIMEText(obj.body, "html", "utf-8"))
             for attach in obj.attachments:
