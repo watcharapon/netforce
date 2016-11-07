@@ -200,6 +200,7 @@ var TabsView=NFView.extend({ // XXX: rename to tabs
                                     create: $el2.attr("create"),
                                     search_mode: $el2.attr("search_mode"),
                                     string: $el2.attr("string"),
+                                    selection: $el2.attr("selection"),
                                     scale: $el2.attr("scale"),
                                     attrs: $el2.attr("attrs")
                                 };

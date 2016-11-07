@@ -1,0 +1,32 @@
+<form model="import.data" title_field="title">
+    <head>
+        <field name="state"/>
+    </head>
+    <field name="file" onchange="onchange_file" nolabel="1"/>
+    <newline/>
+    <group span="6">
+        <separator string=""/>
+        <field name="col_lines" nolabel="1" noadd="1" noremove="1" count="0">
+            <list>
+                <field name="col"/>
+                <field name="field" selection="get_fields"/>
+            </list>
+        </field>
+    </group>
+    <group span="6">
+        <separator string=""/>
+        <field name="log_lines" nolabel="1" noadd="1" noremove="1" connt="0">
+            <list>
+                <field name="sequence"/>
+                <field name="description"/>
+            </list>
+        </field>
+    </group>
+    <field name="model" invisible="1"/>
+    <field name="next" invisible="1"/>
+    <field name="state" invisible="1"/>
+    <foot replace="1">
+        <button string="Verify" method="do_verify" states="to_verify" type="success"/>
+        <button string="Import" method="do_import" states="done" type="primary"/>
+    </foot>
+</form>

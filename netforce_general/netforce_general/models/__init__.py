@@ -90,3 +90,6 @@ from . import script
 from . import import_inline_help
 from . import reason_code
 from . import menu_access
+from . import import_data_col
+from . import import_data_log
+from . import import_field
