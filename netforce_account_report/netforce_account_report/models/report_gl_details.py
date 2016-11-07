@@ -159,7 +159,12 @@ class ReportGLDetails(Model):
                     "track2_code": line.track2_id.code,
                 }
                 if not line_vals['contact_name'] and line.move_id.related_id:
-                    contact=line.move_id.related_id.contact_id
+                    # FIXME USE TRY EXPRESSION TO CHECK if RELATED FIELD  EXISTED (TEMPORALY)
+                    try:
+                        contact=line.move_id.related_id.contact_id
+                    except Exception as e:
+                        print("ERROR ", e)
+                        continue
                     if contact:
                         line_vals['contact_name']=contact.name
                 debit_total += line.debit or Decimal("0")
