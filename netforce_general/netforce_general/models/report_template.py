@@ -47,6 +47,7 @@ class ReportTemplate(Model):
             ["hr_expense", "HR Expense"],
             ["landed_cost","Landed Cost"],
             ["borrow_form", "Borrow Request"],
+            ["claim_bill","Claim Bill"],
 
             # XXX: Better add by config
             ["account_bill","Bill Issue"],
