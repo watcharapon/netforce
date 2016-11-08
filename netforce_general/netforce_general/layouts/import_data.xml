@@ -1,21 +1,21 @@
 <form model="import.data" title_field="title">
-    <head>
-        <field name="state"/>
-    </head>
+    <!--<head>-->
+    <!--<field name="state"/>-->
+    <!--</head>-->
     <field name="file" onchange="onchange_file" nolabel="1"/>
     <newline/>
     <group span="6">
-        <separator string=""/>
-        <field name="col_lines" nolabel="1" noadd="1" noremove="1" count="0">
+        <separator string="Matching"/>
+        <field name="lines" nolabel="1" noadd="1" noremove="1" count="0">
             <list>
-                <field name="col"/>
-                <field name="field" selection="get_fields"/>
+                <field name="external"/>
+                <field name="field_id" onchange="onchange_line" condition='[["model","=",parent.model]]'/>
             </list>
         </field>
     </group>
     <group span="6">
-        <separator string=""/>
-        <field name="log_lines" nolabel="1" noadd="1" noremove="1" connt="0">
+        <separator string="Message"/>
+        <field name="log_lines" nolabel="1" noadd="1" noremove="1" count="0">
             <list>
                 <field name="sequence"/>
                 <field name="description"/>
@@ -26,7 +26,7 @@
     <field name="next" invisible="1"/>
     <field name="state" invisible="1"/>
     <foot replace="1">
-        <button string="Verify" method="do_verify" states="to_verify" type="success"/>
-        <button string="Import" method="do_import" states="done" type="primary"/>
+        <button string="Verify" method="do_verify" type="success"/>
+        <button string="Import" method="do_import" type="primary"/>
     </foot>
 </form>
