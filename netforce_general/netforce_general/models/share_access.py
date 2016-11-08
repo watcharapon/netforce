@@ -28,7 +28,6 @@ class ShareAccess(Model):
     _order = "model_id"
     _audit_log = True
     _name_field="model_id" #XXX
-    #_key = ["model_id","default_access","profiles"]
 
     _fields = {
         "model_id": fields.Many2One("model", "Model", required=True, search=True),
