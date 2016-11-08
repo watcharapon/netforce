@@ -81,15 +81,26 @@ class ReportTemplate(Model):
         'default': False,
     }
 
+    _order="name"
+
+    def write(self, ids, vals, **kw):
+        for obj in self.browse(ids):
+            if obj.default:
+                raise Exception("Can not edit default template!")
+        super().write(ids, vals, **kw)
+
     def default_template(self, type):
         templates=self.search_browse([['type','=',type], ['default','=',True]])
         if templates:
             return templates[0]
 
     def delete(self, ids, context={}):
-        ids2=[]
+        ids2=[] #ids for delete
+        fetch=context.get('fetch') or False
         for obj in self.browse(ids):
-            if not obj.default:
+            if not obj.default: #custom
+                ids2.append(obj.id)
+            elif fetch: # fetch
                 ids2.append(obj.id)
         super().delete(ids2)
 
@@ -97,6 +108,11 @@ class ReportTemplate(Model):
         """
             Copy from from MGT to local
         """
+        #clear all default
+        ids=self.search([['default','=',True]])
+        context['fetch']=True
+        self.delete(ids,context)
+
         url="http://mgt.netforce.com/get_report_template?%s"%(get_rand())
         res=requests.get(url)
         if res.status_code!=200:
