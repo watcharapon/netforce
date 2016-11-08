@@ -8,13 +8,14 @@
         <separator string="Matching"/>
         <field name="lines" nolabel="1" noadd="1" noremove="1" count="0">
             <list>
-                <field name="external"/>
+                <field name="external" readonly="1"/>
+                <field name="simple_value" readonly="1"/>
                 <field name="field_id" onchange="onchange_line" condition='[["model","=",parent.model]]'/>
             </list>
         </field>
     </group>
-    <group span="6">
-        <separator string="Message"/>
+    <group span="6" attrs='{"invisible": [["state","!=","error"]]}'>
+        <separator string="Error Message"/>
         <field name="log_lines" nolabel="1" noadd="1" noremove="1" count="0">
             <list>
                 <field name="sequence"/>

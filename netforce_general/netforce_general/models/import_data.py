@@ -59,7 +59,7 @@ class Import(Model):
         "file_import": fields.File("File to import"),
         'lines': fields.One2Many("import.data.line","import_id","Lines"),
         'log_lines': fields.One2Many("import.data.log","import_id","Log Lines"),
-        'state': fields.Selection([['to_verify','To Veriry'],['done','Done']], 'State'),
+        'state': fields.Selection([['to_verify','To Veriry'],['done','Done'],['error','Error']], 'State'),
     }
     
     def get_default_next(self, context={}):
@@ -119,6 +119,14 @@ class Import(Model):
             raise Exception("Please verify")
         dbname = get_active_db()
         data = open(os.path.join("static", "db", dbname, "files", obj.file_import), "rU", errors="replace").read()
+         
+        count=0
+        for line in obj.lines:
+            if not line.field_id:
+                count+=1
+        if count==len(obj.lines):
+            raise Exception("Please match field!")
+
         m = get_model(obj.model)
         m.import_data(data)
         if obj.next:
@@ -146,7 +154,6 @@ class Import(Model):
         rd = csv.reader(f)
         headers = next(rd)
         headers = [h.strip() for h in headers]
-        #rows = [r for r in rd]
         lines=[]
         for head in headers:
             vals={
@@ -155,6 +162,16 @@ class Import(Model):
             for field_id in get_model("import.field").search([['string','=',head], ['model','=', data['model']]]):
                 vals['field_id']=field_id
             lines.append(vals)
+
+        rows = [r for r in rd]
+        for index, line in enumerate(lines):
+            try:
+                row=rows[index]
+                r=row[index]
+                line.update({'simple_value': r})
+            except:
+                pass
+
         data['lines']=lines
         return data
 
@@ -199,14 +216,12 @@ class Import(Model):
                 st+=row[col]+","
             text+=st+"\r\n"
 
-        ########### TODO check it can import or not (msg_error) ###########
-
         context['verify']=True
         log=get_model(obj.model).import_data(text,context)
-        print("LOG ", log)
         #clear log
         obj.write({
-            'log_lines': ([('delete_all',)])
+            'log_lines': ([('delete_all',)]),
+            'state': 'verify',
         })
         if log:
             lines=[]
@@ -215,11 +230,11 @@ class Import(Model):
                     'sequence': l['no']+1, 
                     'description': l['description'], 
                 }))
-            obj.write({'log_lines': lines})
+            obj.write({'log_lines': lines, 'state': 'error'})
             return {
                 'flash': {
                         'type': 'error',
-                        'message': 'Can not import data. Please check file or matching columns',
+                        'message': 'Can not import data! Please check your file or try to match field again.',
                 }
             }
         else:
@@ -232,7 +247,7 @@ class Import(Model):
                 'state': 'done',
             })
             return {
-                'flash': 'verify successful!',
+                'flash': 'Verify successful!',
             }
         
 

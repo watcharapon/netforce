@@ -7,6 +7,7 @@ class ImportDataLine(Model):
         'import_id': fields.Many2One("import.data","Import", required=True, on_delete="cascade"),
         'external': fields.Char("External"),
         'field_id': fields.Many2One("import.field","Field"),
+        'simple_value': fields.Text("Simple Value"),
     }
 
 
