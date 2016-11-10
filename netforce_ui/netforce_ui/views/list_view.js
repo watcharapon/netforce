@@ -59,9 +59,11 @@ var ListView=NFView.extend({
             }
             this.data.tabs=[];
             var tab_no=0;
+            var hide_tabs=[];
             _.each(tabs,function(tab) {
                 var hide=is_hidden({type:"tab_action", model:that.options.model, name: tab[0]});
                 if(hide) return;
+                hide_tabs.push(tab);
                 that.data.tabs.push({
                     string: tab[0],
                     condition: tab[1],
@@ -72,6 +74,9 @@ var ListView=NFView.extend({
                 tab_no++;
             });
         }
+
+        this.options.tabs=hide_tabs; // for hidden
+
         this.modes=this.options.modes;
         if (!this.modes) this.modes="list,form";
         if (_.isString(this.modes)) {
