@@ -74,7 +74,7 @@ class Template(Model):
         attachments = []
         if data.get("attachments"):
             for attach in data["attachments"]:
-                attach_vals = data["attachments"]
+                attach_vals = attach
                 attachments.append(("create", attach_vals))
         elif obj.attachments:
             try:
