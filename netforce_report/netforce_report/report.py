@@ -1081,9 +1081,9 @@ def report_render_to_file(model, ids, method="get_report_data", template=None, t
         if out_format == "pdf":
             out_data = convert_to_pdf(out_data, "docx")
     elif template_format == "jrxml":  # XXX: deprecated
-        out_data = get_report(template, in_data, format=out_format)
+        out_data = get_report_jasper(template, in_data, format=out_format)
     elif template_format == "jrxml2":
-        out_data = get_report(template, in_data, format=out_format)
+        out_data = get_report_jasper(template, in_data, format=out_format)
     else:
         raise Exception("Invalid template format: %s" % template_format)
     fname = "%s.%s" % (template, out_format)

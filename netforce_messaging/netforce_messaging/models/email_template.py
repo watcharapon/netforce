@@ -72,7 +72,11 @@ class Template(Model):
             except:
                 raise Exception("Failed to render 'From Address' in template: %s" % obj.name)
         attachments = []
-        if obj.attachments:
+        if data.get("attachments"):
+            for attach in data["attachments"]:
+                attach_vals = data["attachments"]
+                attachments.append(("create", attach_vals))
+        elif obj.attachments:
             try:
                 files = render_template(obj.attachments, data)
                 for f in files.split("|"):
