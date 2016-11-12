@@ -216,6 +216,7 @@ class StockOrder(Model):
                 get_model("purchase.order").confirm([order_id])
             n+=1
         return {
+            "flash": "Create %s puchase order(s) successfully"%n,
             "num_orders": n,
         }
 
