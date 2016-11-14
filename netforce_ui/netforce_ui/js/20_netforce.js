@@ -58,6 +58,40 @@ function eval_condition(cond_str,ctx) { // XXX: remove later
     return eval_json(cond_str,ctx);
 }
 
+function rpc_execute_async(model,method,args,opts,cb) {
+    log("RPC",model,method,args,opts);
+    var params=[model,method];
+    params.push(args);
+    if (opts) {
+        params.push(opts);
+    }
+    $.ajax({
+        url: "/json_rpc",
+        async: false, // wait until finish
+        type: "POST",
+        data: JSON.stringify({
+            id: (new Date()).getTime(),
+            method: "execute",
+            params: params
+        }),
+        dataType: "json",
+        contentType: "application/json;charset=UTF-8",
+        success: function(data) {
+            if (data.error) {
+                log("RPC ERROR",model,method,data.error.message);
+            } else {
+                log("RPC OK",model,method,data.result);
+            }
+            if (cb) {
+                cb(data.error,data.result);
+            }
+        },
+        error: function() {
+            log("RPC ERROR",model,method);
+        }
+    });
+}
+
 function rpc_execute(model,method,args,opts,cb) {
     log("RPC",model,method,args,opts);
     var params=[model,method];
