@@ -37,6 +37,7 @@ class ReportTemplate(Model):
         "name": fields.Char("Template Name", required=True, search=True),
         "type": fields.Selection([
             ["cust_invoice", "Customer Invoice"],
+            ["cust_debit_note", "Customer Debit Note"],
             ["cust_credit_note", "Customer Credit Note"],
             ["supp_invoice", "Supplier Invoice"],
             ["payment", "Payment"],
