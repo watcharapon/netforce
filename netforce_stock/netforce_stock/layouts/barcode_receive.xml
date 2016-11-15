@@ -1,7 +1,7 @@
 <form model="barcode.receive" title="Barcode: Goods Receipt">
     <group form_layout="stacked">
         <field name="location_from_id" span="2" required="1"/>
-        <field name="journal_id" span="2"/>
+        <field name="journal_id" span="2" onchange="onchange_journal"/>
         <field name="related_id" span="2" onchange="onchange_related"/>
         <newline/>
         <field name="location_to_id" span="2" required="1"/>
