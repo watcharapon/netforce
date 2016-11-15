@@ -5,11 +5,10 @@
     <field name="file" onchange="onchange_file" nolabel="1"/>
     <newline/>
     <group span="6">
-        <separator string="Matching"/>
+        <separator string="Match field"/>
         <field name="lines" nolabel="1" noadd="1" noremove="1" count="0">
             <list>
-                <field name="external" readonly="1"/>
-                <field name="simple_value" readonly="1"/>
+                <field name="customer_field" readonly="1"/>
                 <field name="field_id" onchange="onchange_line" condition='[["model","=",parent.model]]'/>
             </list>
         </field>

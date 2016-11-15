@@ -157,7 +157,7 @@ class Import(Model):
         lines=[]
         for head in headers:
             vals={
-                'external': head,
+                'customer_field': head,
             }
             for field_id in get_model("import.field").search([['string','=',head], ['model','=', data['model']]]):
                 vals['field_id']=field_id
