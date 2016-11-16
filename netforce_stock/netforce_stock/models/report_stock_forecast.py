@@ -54,7 +54,7 @@ def get_total_qtys(prod_id, loc_id, date_from, date_to, states, categ_id):
         " t1.product_id,t1.lot_id,t1.location_from_id,t1.location_to_id,t1.uom_id,SUM(t1.qty) AS total_qty " \
         " FROM stock_move t1 " \
         " LEFT JOIN product t2 on t1.product_id=t2.id " \
-        " WHERE t1.state IN %s"
+        " WHERE t1.state IN %s AND t2.active=true"
     q_args = [tuple(states)]
     if date_from:
         q += " AND t1.date>=%s"
