@@ -49,9 +49,19 @@ class BarcodeReceive(Model):
         line["uom_id"] = prod.uom_id.id
         return data
 
+    def onchange_journal(self, context):
+        data = context["data"]
+        journal_id = data.get("journal_id")
+        if not journal_id:
+            return {}
+        journal = get_model("stock.journal").browse(journal_id)
+        data["location_to_id"] = journal.location_to_id.id if journal.location_to_id else None
+        data["location_from_id"] = journal.location_from_id.id if journal.location_from_id else None
+        return data
+
     def onchange_related(self, context={}):
         data = context["data"]
-        val = data["related_id"][0]
+        val = data["related_id"]
         relation, rel_id = val.split(",")
         rel_id = int(rel_id)
         if relation == "purchase.order":

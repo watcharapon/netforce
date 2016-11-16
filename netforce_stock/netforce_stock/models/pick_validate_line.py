@@ -20,7 +20,6 @@
 
 from netforce.model import Model, fields, get_model
 
-
 class PickValidateLine(Model):
     _name = "pick.validate.line"
     _transient = True

@@ -163,6 +163,8 @@ class Lead(Model):
                 "title": obj.title,
                 "phone": obj.phone,
                 "email": obj.email,
+                "description": obj.description,
+                "lead_source": obj.lead_source,
                 'addresses': addresses,
             }
             # TODO: copy address

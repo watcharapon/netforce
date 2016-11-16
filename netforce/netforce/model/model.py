@@ -1068,8 +1068,9 @@ class Model(object):
                     v = r[n]
                     if v:
                         r_model, r_id = v.split(",")
-                        r_id = int(r_id)
-                        refs.setdefault(r_model, []).append(r_id)
+                        if r_id and r_id != 'None':
+                            r_id = int(r_id)
+                            refs.setdefault(r_model, []).append(r_id)
                 names = {}
                 for r_model, r_ids in refs.items():
                     mr = get_model(r_model)
@@ -1082,11 +1083,12 @@ class Model(object):
                     v = r[n]
                     if v:
                         r_model, r_id = v.split(",")
-                        r_id = int(r_id)
-                        if (r_model, r_id) in names:
-                            r[n] = [v, names[(r_model, r_id)]]
-                        else:
-                            r[n] = None
+                        if r_id and r_id != 'None':
+                            r_id = int(r_id)
+                            if (r_model, r_id) in names:
+                                r[n] = [v, names[(r_model, r_id)]]
+                            else:
+                                r[n] = None
             elif isinstance(f, fields.Char) and f.password:
                 for r in res:
                     if r[n]:
