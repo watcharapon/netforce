@@ -27,6 +27,7 @@ class Borrow(Model):
     _name = "product.borrow"
     _string = "Borrow Request"
     _name_field = "number"
+    _key = ["number"]
     _fields = {
         "number": fields.Char("Number", required=True, search=True),
         "date": fields.Date("Date", required=True, search=True),
