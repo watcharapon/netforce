@@ -98,8 +98,11 @@ class ReportTemplate(Model):
     def delete(self, ids, context={}):
         ids2=[] #ids for delete
         fetch=context.get('fetch') or False
+        force=context.get('force') or False
         for obj in self.browse(ids):
-            if not obj.default: #custom
+            if force:
+                ids2.append(obj.id)
+            elif not obj.default: #custom
                 ids2.append(obj.id)
             elif fetch: # fetch
                 ids2.append(obj.id)
