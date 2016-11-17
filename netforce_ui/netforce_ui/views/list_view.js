@@ -366,12 +366,23 @@ var ListView=NFView.extend({
                 };
                 var view=Button.make_view(opts);
                 html.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
+
                 if(allow_import_export(that.context)){
                     var opts={
                         string: "Import",
                         action: "import_data",
                         action_options: "import_model="+that.options.model+"&next="+this.options.action_name,
                         icon: "download",
+                        context: that.data.context
+                    };
+                    var view=Button.make_view(opts);
+                    html.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
+
+                    var opts={
+                        string: "Match Field",
+                        action: "match_field",
+                        action_options: "import_model="+that.options.model+"&next="+this.options.action_name,
+                        icon: "ok-sign",
                         context: that.data.context
                     };
                     var view=Button.make_view(opts);
