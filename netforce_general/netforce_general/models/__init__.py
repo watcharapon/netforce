@@ -67,6 +67,7 @@ from . import inline_help
 from . import wkf_rule
 from . import create_db
 from . import copy_db
+from . import download_db
 from . import upgrade_db
 from . import delete_db
 from . import field_cache
