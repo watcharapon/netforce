@@ -170,6 +170,7 @@ var Group=NFView.extend({
                                     search_mode: $el2.attr("search_mode"),
                                     scale: $el2.attr("scale"),
                                     create: $el2.attr("create"),
+                                    selection: $el2.attr("selection"),
                                     attrs: $el2.attr("attrs")
                                 });
                             });

@@ -426,6 +426,7 @@ var FormView=NFView.extend({
                                         focus: $el2.attr("focus"),
                                         create: $el2.attr("create"),
                                         search_mode: $el2.attr("search_mode"),
+                                        selection: $el2.attr("selection"),
                                         scale: $el2.attr("scale"),
                                         string: $el2.attr("string"),
                                         attrs: $el2.attr("attrs")

@@ -1656,23 +1656,48 @@ class Model(object):
                     for vals2 in res:
                         vals[n].append(("create", vals2))
             return all_vals
-        line = 0
-        while line < len(rows):
-            while line < len(rows) and not _has_vals(line):
+        verify=context.get("verify")
+        print('VERIFY ', verify)
+        if verify:
+            line = 0
+            log=[]
+            while line < len(rows):
+                while line < len(rows) and not _has_vals(line):
+                    line += 1
+                if line == len(rows):
+                    break
+                line_start = line
                 line += 1
-            if line == len(rows):
-                break
-            line_start = line
-            line += 1
-            while line < len(rows) and not _has_vals(line):
+                while line < len(rows) and not _has_vals(line):
+                    line += 1
+                line_end = line
+                try:
+                    res = _read_objs(line_start=line_start, line_end=line_end)
+                    assert len(res) == 1
+                except Exception as e:
+                    log.append({
+                        'no': line_start,
+                        'description': str(e),
+                    })
+            return log
+        else:
+            line = 0
+            while line < len(rows):
+                while line < len(rows) and not _has_vals(line):
+                    line += 1
+                if line == len(rows):
+                    break
+                line_start = line
                 line += 1
-            line_end = line
-            try:
-                res = _read_objs(line_start=line_start, line_end=line_end)
-                assert len(res) == 1
-                self.merge(res[0])
-            except Exception as e:
-                raise Exception("Error row %d: %s" % (line_start + 2, e))
+                while line < len(rows) and not _has_vals(line):
+                    line += 1
+                line_end = line
+                try:
+                    res = _read_objs(line_start=line_start, line_end=line_end)
+                    assert len(res) == 1
+                    self.merge(res[0])
+                except Exception as e:
+                    raise Exception("Error row %d: %s" % (line_start + 2, e))
 
     def audit_log(self, operation, params, context={}):
         if not self._audit_log:
