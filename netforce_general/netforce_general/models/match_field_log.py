@@ -1,13 +1,13 @@
 from netforce.model import Model, fields
 
-class ImportDataLog(Model):
-    _name="import.data.log"
+class MatchFieldLog(Model):
+    _name="match.field.log"
     _fields={
-        'import_id': fields.Many2One("import.data","Import", required=True, on_delete="cascade"),
+        'match_id': fields.Many2One("match.field","Match", required=True, on_delete="cascade"),
         'sequence': fields.Integer("Line No."),
         'description': fields.Text("Description"),
     }
 
     _order="sequence"
 
-ImportDataLog.register()
+MatchFieldLog.register()
