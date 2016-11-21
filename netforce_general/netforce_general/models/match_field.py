@@ -79,6 +79,12 @@ class MatchField(Model):
         model = context["import_model"]
         m=get_model(model)
         #load for select
+        items=m._fields
+        extra_fields=[('id','Database ID')]
+        for fname, v in extra_fields:
+            res=get_model('import.field').search([['name','=',fname],['model','=',model]])
+            if not res:
+                get_model('import.field').create({'name': fname, 'string': v, 'model': model})
         for fname, v in m._fields.items():
             res=get_model('import.field').search([['name','=',fname],['model','=',model]])
             if not res:
