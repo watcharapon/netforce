@@ -356,6 +356,17 @@ Handlebars.registerHelper("view",function(name,options) { // XXX
     }
     opts.inner=options.fn;
     opts.inverse=options.inverse;
+
+    if(name=='widget'){
+        var h=window.location.hash.substr(1);
+        var action=qs_to_obj(h);
+        action=get_action(action.name);
+        var menu_view=get_xml_layout({name:action.menu});
+        var doc_view=$.parseXML(menu_view.layout);
+        var cur_mainmenu=$(doc_view).find("menu").attr("string");
+        var hide=is_hidden({type:"dashboard", board_str: cur_mainmenu, name: opts.title});
+        if(hide) return;
+     }
     var view=view_cls.make_view(opts);
     var tag=view.tagName;
     return new Handlebars.SafeString('<'+tag+' id="'+view.cid+'" class="view"></'+tag+'>');
