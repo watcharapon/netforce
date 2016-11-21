@@ -91,7 +91,7 @@ class ReportTemplate(Model):
         super().write(ids, vals, **kw)
 
     def default_template(self, type):
-        templates=self.search_browse([['type','=',type], ['default','=',True]])
+        templates=self.search_browse([['type','=',type], ['default','=',True],['format','=','jrxml2']])
         if templates:
             return templates[0]
 
