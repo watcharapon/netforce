@@ -48,7 +48,7 @@ var FieldSelection=NFView.extend({
         this.data.value=value;
         var field=model.get_field(name);
         var model_name=model.name;
-        if(model_name=="_search"){
+        if(model_name=="_search" || model_name=="_report"){
             var h=window.location.hash.substr(1);
             var action=qs_to_obj(h);
             action=get_action(action.name);
