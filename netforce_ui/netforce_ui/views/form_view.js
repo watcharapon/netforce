@@ -107,6 +107,7 @@ var FormView=NFView.extend({
         this.data.breads=breads;
         this.render_waiting();
         if (this.active_id) {
+            if(this.active_id==1 && model_name=='base.user' && this.context.user_id!=1) { this.$el.html("<h4>Permission Denied!</h4>"); return this };
             var ctx=clean_context(_.extend({},this.context,this.options));
             var opts={
                 field_names:field_names,

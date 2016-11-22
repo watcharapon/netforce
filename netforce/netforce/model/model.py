@@ -633,6 +633,10 @@ class Model(object):
                               limit=limit, offset=offset, count=count, context=context)
             return res
         cond = [condition]
+        #other user should not see admin
+        user_id=access.get_active_user()
+        if self._name=='base.user' and user_id != 1:
+            cond.append([['id','!=',1]])
         if "active" in self._fields and context.get("active_test") != False:
             if not self._check_condition_has_active(condition):
                 cond.append(["active", "=", True])
