@@ -1,11 +1,12 @@
 <form model="stock.picking" attrs='{"readonly":[["state","in",["done","voided"]]]}' show_company="1" show_save="1">
     <head>
         <field name="state"/>
-        <button string="Print" icon="print" dropdown="1">
-            <item string="PDF" action="report_pick_out_form" action_options="convert=pdf"/>
-            <item string="ODT" action="report_pick_out_form"/>
-            <item string="Select Template" action="print_select_template" action_options="report_action=report_pick_out_form&amp;template_type=goods_issue"/>
-        </button>
+        <button string="Print" icon="print" action="print_report_pick_out_from"/>
+            <!--<button string="Print" icon="print" dropdown="1">-->
+            <!--<item string="PDF" action="report_pick_out_form" action_options="convert=pdf"/>-->
+            <!--<item string="ODT" action="report_pick_out_form"/>-->
+            <!--<item string="Select Template" action="print_select_template" action_options="report_action=report_pick_out_form&amp;template_type=goods_issue"/>-->
+            <!--</button>-->
         <button string="Options" dropdown="1" align="right">
             <item string="Copy To Customer Invoice" method="copy_to_invoice"/>
             <item string="Copy" method="copy"/>

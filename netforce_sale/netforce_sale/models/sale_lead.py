@@ -137,6 +137,9 @@ class Lead(Model):
                     "website": obj.website,
                     "industry": obj.industry,
                     "employees": obj.employees,
+                    "email": obj.email,
+                    "description": obj.description,
+                    "lead_source": obj.lead_source,
                     "revenue": obj.revenue,
                     'addresses': addresses,
                 }
@@ -163,6 +166,8 @@ class Lead(Model):
                 "title": obj.title,
                 "phone": obj.phone,
                 "email": obj.email,
+                "description": obj.description,
+                "lead_source": obj.lead_source,
                 'addresses': addresses,
             }
             # TODO: copy address
