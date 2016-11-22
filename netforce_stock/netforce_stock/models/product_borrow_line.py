@@ -44,7 +44,7 @@ class BorrowLine(Model):
             for move in order.stock_moves:
                 if move.product_id.id != obj.product_id.id or move.state != "done":
                     continue
-                if move.picking_id.type == "out":
+                if move.picking_id.type == "out" and move.lot_id.id == obj.lot_id.id:
                     qty += move.qty  # XXX: uom
             vals[obj.id] = qty
         return vals
@@ -57,7 +57,7 @@ class BorrowLine(Model):
             for move in order.stock_moves:
                 if move.product_id.id != obj.product_id.id or move.state != "done":
                     continue
-                if move.picking_id.type == "in":
+                if move.picking_id.type == "in" and move.lot_id.id == obj.lot_id.id:
                     qty += move.qty  # XXX: uom
             vals[obj.id] = qty
         return vals

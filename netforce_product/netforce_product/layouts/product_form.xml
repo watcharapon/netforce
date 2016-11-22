@@ -27,9 +27,12 @@
             <field name="categ_id"/>
             <field name="groups"/>
             <newline/>
-            <field name="replacements"/>
+            <group span="1"/>
+            <group form_layout="stacked" span="10">
+                <field name="replacements" span="12"/>
+            </group>
             <separator string="Related Products"/>
-            <field name="related_products" nolabel="1"/>
+            <field name="related_products" nolabel="1" span="12"/>
         </tab>
         <tab string="Pricing">
             <separator string="Cost Price"/>

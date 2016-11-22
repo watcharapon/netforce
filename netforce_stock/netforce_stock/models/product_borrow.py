@@ -27,6 +27,7 @@ class Borrow(Model):
     _name = "product.borrow"
     _string = "Borrow Request"
     _name_field = "number"
+    _key = ["number"]
     _fields = {
         "number": fields.Char("Number", required=True, search=True),
         "date": fields.Date("Date", required=True, search=True),
@@ -71,8 +72,16 @@ class Borrow(Model):
         obj = self.browse(ids)[0]
         obj.write({"state": "done"})
 
+    def to_draft(self, ids, context={}):
+        obj = self.browse(ids)[0]
+        for move in obj.stock_moves:
+            move.picking_id.void()
+        obj.write({"state": "draft"})
+
     def void(self, ids, context={}):
         obj = self.browse(ids)[0]
+        for move in obj.stock_moves:
+            move.picking_id.void()
         obj.write({"state": "voided"})
 
     def delete(self, ids, **kw):

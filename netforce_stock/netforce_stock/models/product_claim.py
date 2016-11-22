@@ -26,6 +26,7 @@ class Claim(Model):
     _name = "product.claim"
     _string = "Claim Bill"
     _name_field = "number"
+    _key = ["number"]
     _fields = {
         "number": fields.Char("Number", required=True, search=True),
         "date_received": fields.Date("Received Date", required=True, search=True),
