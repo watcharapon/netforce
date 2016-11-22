@@ -137,6 +137,9 @@ class Lead(Model):
                     "website": obj.website,
                     "industry": obj.industry,
                     "employees": obj.employees,
+                    "email": obj.email,
+                    "description": obj.description,
+                    "lead_source": obj.lead_source,
                     "revenue": obj.revenue,
                     'addresses': addresses,
                 }
