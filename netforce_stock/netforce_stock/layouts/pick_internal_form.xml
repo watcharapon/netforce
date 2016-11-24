@@ -54,9 +54,10 @@
         </tab>
     </tabs>
     <field name="company_id" invisible="1"/>
-    <foot states="draft,pending">
+    <foot>
         <button string="Confirm" method="pending" states="draft" perm="approve_picking"/>
-        <button string="Validate" action="pick_validate" states="pending" perm="validate_picking"/>
+        <button string="Approve" method="approve" states="pending" perm="approve_picking"/>
+        <button string="Validate" action="pick_validate" states="approved" perm="validate_picking"/>
     </foot>
     <related>
         <field name="documents">
