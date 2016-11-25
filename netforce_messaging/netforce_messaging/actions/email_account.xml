@@ -3,5 +3,6 @@
     <field name="string">Email Accounts</field>
     <field name="view_cls">multi_view</field>
     <field name="model">email.account</field>
+    <field name="tabs">[["All",[]],["Archived",[["active","=",false]]]]</field>
     <field name="menu">msg_menu</field>
 </action>

@@ -18,7 +18,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from netforce.model import Model, fields
+from netforce.model import Model, fields, get_model
 from netforce.access import get_active_company
 
 
@@ -60,10 +60,19 @@ class Address(Model):
         "related_id": fields.Reference([], "Related To"),
         "address_text": fields.Text("Address Text", function="get_address_text"),
         "sequence": fields.Decimal("Sequence"),
+        "user_id": fields.Many2One("base.user", "User"),
     }
+
+    def get_country(self, context={}):
+        country_id=None
+        for country in get_model("country").search_browse([]):
+            country_id=country.id
+        return country_id
+
 
     _defaults={
         'company_id': lambda *a: get_active_company(),
+        'country_id': get_country,
     }
 
     def get_address_text(self, ids, context={}):

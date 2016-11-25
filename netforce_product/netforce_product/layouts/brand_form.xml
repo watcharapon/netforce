@@ -3,6 +3,7 @@
     <field name="code"/>
     <field name="description"/>
     <field name="image"/>
+    <field name="image2"/>
     <field name="parent_id"/>
     <field name="groups"/>
     <related>

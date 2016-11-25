@@ -25,6 +25,7 @@ from netforce import utils
 import os.path
 from PIL import Image, ImageChops
 from netforce import access
+from netforce.access import set_active_user, get_active_user
 from decimal import Decimal
 import time
 import math
@@ -172,6 +173,23 @@ class Product(Model):
         "stock_balances": fields.One2Many("stock.balance","product_id","Stock Balances"),
     }
 
+    def _get_code(self, context={}):
+        ids=get_model("sequence").search([['name','=','Product']])
+        if not ids:
+            return None
+        while 1:
+            seq_id=ids[0]
+            num = get_model("sequence").get_next_number(seq_id, context=context)
+            if not num:
+                return None
+            user_id = get_active_user()
+            set_active_user(1)
+            res = self.search([["code", "=", num]])
+            set_active_user(user_id)
+            if not res:
+                return num
+            get_model("sequence").increment_number(seq_id, context=context)
+
     _defaults = {
         "update_balance": True,
         "active": True,
@@ -179,7 +197,12 @@ class Product(Model):
         "can_purchase": False,
         "company_id": lambda *a: access.get_active_company(),
         "state": "draft",
+        "code": _get_code,
+        'type': 'stock',
+        'uom_id': 2,
     }
+
+    _order="code desc"
 
     def name_get(self, ids, context={}):
         vals = []
@@ -555,5 +578,6 @@ class Product(Model):
             if not obj.image:
                 continue
             utils.create_thumbnails(obj.image)
+
 
 Product.register()

@@ -60,6 +60,11 @@ class Account(Model):
         "security": fields.Selection([["starttls", "STARTTLS"], ["ssl", "SSL"]], "Security"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "mailboxes": fields.One2Many("email.mailbox", "account_id", "Mailboxes"),
+        'active': fields.Boolean("Active"),
+    }
+
+    _defaults={
+        'active': True,
     }
 
     def list_imap_mailboxes(self, ids, context={}):
