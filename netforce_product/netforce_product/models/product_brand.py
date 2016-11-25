@@ -24,6 +24,7 @@ from netforce.model import Model, fields
 class ProductBrand(Model):
     _name = "product.brand"
     _string = "Brand"
+    _key = ["code"]
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "description": fields.Text("Description", search=True),

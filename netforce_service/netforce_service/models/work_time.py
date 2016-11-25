@@ -27,10 +27,11 @@ import datetime
 class WorkTime(Model):
     _name = "work.time"
     _string = "Work Time"
+    _key = ["project_id","date"]
     _fields = {
         "resource_id": fields.Many2One("service.resource", "Resource", required=True, search=True, on_delete="cascade"),
         "resource_type": fields.Selection([["person","Person"],["machine","Machine"]],"Resource Type",function="_get_related",function_search="_search_related",function_context={"path":"resource_id.type"},search=True),
-        "project_id": fields.Many2One("project", "Project", search=True, required=True),
+        "project_id": fields.Many2One("project", "Project", search=True),
         "related_id": fields.Reference([["job","Service Order"],["sale.order","Sales Order"],["rental.order","Rental Order"]],"Related To",search=True),
         "job_id": fields.Many2One("job", "Service Order", search=True), # XXX: deprecated
         "service_item_id": fields.Many2One("service.item","Service Item"), # XXX: deprecated
@@ -69,13 +70,14 @@ class WorkTime(Model):
         return data.get('project_id')
 
     def get_default_related(self, context={}):
-        defaults=context.get('defaults', {})
-        data=context.get('data',{})
-        job_number=data.get("number")
+        defaults = context.get('defaults', {})
+        data = context.get('data',{})
+        job_number = data.get("number")
+        job_id = None
         if job_number:
             for job_id in get_model("job").search([['number','=', job_number]]):
                 data['job_id']=job_id
-        return "job,%s"%(job_id)
+        return "job,%s"%(job_id) if job_id else None
 
     _defaults = {
         "date": lambda *a: time.strftime("%Y-%m-%d"),
@@ -92,6 +94,8 @@ class WorkTime(Model):
         return res
 
     def create(self, vals, **kw):
+        if 'related_id' in vals and 'job' in vals['related_id']:
+            vals['job_id'] = int(vals['related_id'].split(',')[1])
         new_id = super().create(vals, **kw)
         self.function_store([new_id])
         if 'job_id' in vals:

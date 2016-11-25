@@ -27,7 +27,6 @@ from netforce.access import get_active_company, set_active_user, get_active_user
 from . import utils
 from decimal import *
 
-
 class SaleQuot(Model):
     _name = "sale.quot"
     _string = "Quotation"
@@ -471,6 +470,7 @@ class SaleQuot(Model):
             "job_template_id": obj.job_template_id.id,
             "est_costs": [],
             "currency_rates": [],
+            "related_id": "sale.quot,%s"%obj.id,
         }
         for line in obj.lines:
             if not line.qty:
@@ -651,29 +651,48 @@ class SaleQuot(Model):
                 del_ids.append(cost.id)
         get_model("quot.cost").delete(del_ids)
         #obj.write({"est_costs":[("delete_all",)]})
+        line_sequence = 1
+        settings = get_model("settings").browse(1)
         for line in obj.lines:
             prod=line.product_id
+            cur_line_sequence = line_sequence
+            landed_cost = prod.landed_cost
             if not prod:
                 continue
-            if not prod.purchase_price:
+            if not prod.purchase_price and prod.type != "service":
                 continue
-            if not line.sequence:
+            if not prod.cost_price and prod.type == "service":
                 continue
+            #if not line.sequence:
+                #continue
             if "bundle" == prod.type:
                 continue
+            # update line seqence
+            if not line.sequence:
+                line.write({"sequence": cur_line_sequence})
+                line_sequence += 1
+            else:
+                line_sequence = round(Decimal(line.sequence)) + Decimal(1)
+            # comput cost if product is service
+            if prod.type == "service":
+                if round(prod.cost_price,2) == round(line.unit_price,2):
+                    landed_cost = prod.cost_price
+                else:
+                    landed_cost = prod.cost_price * line.unit_price
             vals={
                 "quot_id": obj.id,
-                "sequence": line.sequence if not line.is_hidden else line.parent_sequence,
+                "sequence": (line.sequence if not line.is_hidden else line.parent_sequence) if line.sequence else cur_line_sequence,
                 "product_id": prod.id,
                 "description": prod.name,
                 "supplier_id": prod.suppliers[0].supplier_id.id if prod.suppliers else None,
                 "list_price": prod.purchase_price,
                 "purchase_price": prod.purchase_price,
-                "landed_cost": prod.landed_cost,
+                #"landed_cost": prod.cost_price if prod.type == "service" else prod.landed_cost,
+                "landed_cost": landed_cost,
                 "purchase_duty_percent": prod.purchase_duty_percent,
                 "purchase_ship_percent": prod.purchase_ship_percent,
                 "qty": line.qty,
-                "currency_id": prod.purchase_currency_id.id,
+                "currency_id": prod.purchase_currency_id.id or settings.currency_id.id,
             }
             get_model("quot.cost").create(vals)
 

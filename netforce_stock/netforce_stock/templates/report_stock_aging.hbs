@@ -20,11 +20,13 @@
 <table class="table table-bordered table-striped">
     <thead class="scroll-header">
         <tr>
-            <th colspan="3"></td>
+            <th colspan="5"></td>
             <th colspan="20" style="text-align:center">Aged Qty</th>
         </tr>
         <tr>
-            <th>Product</th>
+            <th>Product Code</th>
+            <th>Product Name</th>
+            <th>Brand</th>
             <th>Location</th>
             <th>Current Qty</th>
             {{#each periods}}
@@ -36,7 +38,13 @@
         {{#each lines context=context}}
             <tr>
                 <td>
+                    {{product_code}}
+                </td>
+                <td>
                     {{product_name}}
+                </td>
+                <td>
+                    {{product_brand}}
                 </td>
                 <td>
                     {{location_name}}

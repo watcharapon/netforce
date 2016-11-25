@@ -20,6 +20,7 @@
 
 from netforce.model import Model, fields, get_model
 from netforce.access import get_active_company, get_active_user
+from netforce.utils import get_data_path
 import time
 
 
@@ -27,6 +28,7 @@ class Borrow(Model):
     _name = "product.borrow"
     _string = "Borrow Request"
     _name_field = "number"
+    _key = ["number"]
     _fields = {
         "number": fields.Char("Number", required=True, search=True),
         "date": fields.Date("Date", required=True, search=True),
@@ -71,8 +73,16 @@ class Borrow(Model):
         obj = self.browse(ids)[0]
         obj.write({"state": "done"})
 
+    def to_draft(self, ids, context={}):
+        obj = self.browse(ids)[0]
+        for move in obj.stock_moves:
+            move.picking_id.void()
+        obj.write({"state": "draft"})
+
     def void(self, ids, context={}):
         obj = self.browse(ids)[0]
+        for move in obj.stock_moves:
+            move.picking_id.void()
         obj.write({"state": "voided"})
 
     def delete(self, ids, **kw):
@@ -113,11 +123,10 @@ class Borrow(Model):
 
     def onchange_product(self, context={}):
         data = context["data"]
-        lines = data["lines"]
-        for line in lines:
-            product_id = line.get("product_id")
-            if not product_id:
-                continue
+        path = context["path"]
+        line = get_data_path(data, path, parent=True)
+        product_id = line.get("product_id")
+        if product_id:
             product = get_model("product").browse(product_id)
             line["qty"] = 1
             line["uom_id"] = product.uom_id.id

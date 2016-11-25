@@ -18,9 +18,16 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from netforce.model import Model, fields
+import os
+import random
+import requests
 import uuid
 
+from netforce.model import Model, fields, get_model
+from netforce.database import get_connection, get_active_db
+
+def get_rand():
+    return int(random.random()*10000)
 
 class ReportTemplate(Model):
     _name = "report.template"
@@ -46,6 +53,8 @@ class ReportTemplate(Model):
             ["tax_detail", "Tax Detail"],
             ["hr_expense", "HR Expense"],
             ["landed_cost","Landed Cost"],
+            ["borrow_form", "Borrow Request"],
+            ["claim_bill","Claim Bill"],
 
             # XXX: Better add by config
             ["account_bill","Bill Issue"],
@@ -65,9 +74,90 @@ class ReportTemplate(Model):
         "company_id": fields.Many2One("company", "Company"),
         "model_id": fields.Many2One("model", "Model"),
         "method": fields.Char("Method"),
+        "default": fields.Boolean("Default"),
     }
     _defaults = {
         "file_type": "odt",
+        'default': False,
     }
+
+    _order="name"
+
+    def write(self, ids, vals, **kw):
+        for obj in self.browse(ids):
+            if obj.default:
+                raise Exception("Can not edit default template!")
+        super().write(ids, vals, **kw)
+
+    def default_template(self, type):
+        templates=self.search_browse([['type','=',type], ['default','=',True]])
+        if templates:
+            return templates[0]
+
+    def delete(self, ids, context={}):
+        ids2=[] #ids for delete
+        fetch=context.get('fetch') or False
+        for obj in self.browse(ids):
+            if not obj.default: #custom
+                ids2.append(obj.id)
+            elif fetch: # fetch
+                ids2.append(obj.id)
+        super().delete(ids2)
+
+    def get_default_template(self, context={}):
+        """
+            Copy from from MGT to local
+        """
+        #clear all default
+        ids=self.search([['default','=',True]])
+        context['fetch']=True
+        self.delete(ids,context)
+
+        url="http://mgt.netforce.com/get_report_template?%s"%(get_rand())
+        res=requests.get(url)
+        if res.status_code!=200:
+            raise Exception("Wrong url")
+        lines=eval(res.text)
+        dbname=get_active_db()
+        for line in lines:
+            try:
+                fname=line['file']
+                url="http://mgt.netforce.com/static/db/ctrl/files/%s?%s"%(fname,get_rand())
+                res2=requests.get(url)
+                if res2.status_code!=200:
+                    raise Exception("Wrong url")
+
+                path=os.path.join(os.getcwd(), "static", "db", dbname, "files")
+                if not os.path.exists(path):
+                    os.makedirs(path)
+                path=os.path.join(path,fname)
+
+                #data=str(res2.content,'utf-8')
+                data=res2.content
+                open(path,"wb").write(data)
+
+                vals={
+                    'name': line['name'],
+                    'file': fname,
+                    'type': line['type'],
+                    'default': True,
+                    'format': line['format'],
+                    'method': line['method'],
+                }
+                print('load: ', path, ' => OK')
+                res3=get_model("report.template").search([['name','=',vals['name']]])
+                if not res3:
+                    new_id=get_model("report.template").create(vals)
+                    print('new default report template ', vals['name'])
+            except Exception as e:
+                print("ERROR ", e, line['name'])
+
+        return {
+            'next': {
+                'name': 'report_template',
+            },
+            'flash': 'Update default template successful!',
+
+        }
 
 ReportTemplate.register()

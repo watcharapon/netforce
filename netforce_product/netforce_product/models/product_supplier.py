@@ -24,6 +24,7 @@ from netforce.model import Model, fields
 class ProductSupplier(Model):
     _name = "product.supplier"
     _string = "Product Supplier"
+    _key = ["product_id","sequence"]
     _fields = {
         "product_id": fields.Many2One("product", "Product", required=True, on_delete="cascade"),
         "sequence": fields.Integer("Sequence"),

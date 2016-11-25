@@ -40,6 +40,7 @@ class Task(Model):
     _name = "task"
     _string = "Task"
     _name_field = "title"
+    _key = ["number"]
     _fields = {
         "number": fields.Char("Number",required=True,search=True),
         "sequence": fields.Integer("Sequence"),
@@ -68,7 +69,7 @@ class Task(Model):
         "related_id": fields.Reference([["job","Job"]],"Related To"),
         "depends_json": fields.Text("Task Dependencies (String)",function="get_depends_json"),
     }
-    _order = "project_id.number,sequence,id,priority"
+    _order = "project_id.number,sequence,id"
 
     def _get_number(self, context={}):
         seq_id = get_model("sequence").find_sequence(type="task")

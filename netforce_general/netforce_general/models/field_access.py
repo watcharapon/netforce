@@ -25,6 +25,7 @@ from netforce import access
 class FieldAccess(Model):
     _name = "field.access"
     _string = "Field Access"
+    _key = ["profile_id","field_id"]
     _fields = {
         "profile_id": fields.Many2One("profile", "Profile", required=True, on_delete="cascade", search=True),
         "field_id": fields.Many2One("field", "Field", required=True, on_delete="cascade", search=True),

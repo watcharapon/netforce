@@ -240,11 +240,12 @@ class Payment(Model):
                     amt=line.amount or 0
                     if tax:
                         for tax_comp in tax.components:
-                            rate=(tax_comp.rate or Decimal(0))/100
                             if tax_comp.type in ('vat'):
-                                vat += amt * rate
+                                vat += get_model("account.tax.rate").compute_tax(tax.id, amt, tax_type=obj.tax_type)
                             elif tax_comp.type in ('wht'):
-                                wht += amt * rate
+                                wht += get_model("account.tax.rate").compute_tax(tax.id, amt, tax_type=obj.tax_type, wht=True)
+                    if obj.tax_type=='tax_in':
+                        amt -= vat
                     subtotal += amt
                 elif line.type=="invoice":
                     inv = line.invoice_id
@@ -576,6 +577,7 @@ class Payment(Model):
                     "credit": amt < 0 and -amt or 0,
                     "track_id": line.track_id.id,
                     "track2_id": line.track2_id.id,
+                    "amount_cur": line.amount if line.account_id.currency_id.id != settings.currency_id.id else None,
                 }
                 if line.type=="prepay" or line.account_id.type not in ["cost_sales","expense","other_expense","revenue","other_income","view","other"]:
                     # For case 'Contact A loan from other Contacts and he/she wants to pay that amount by using direct payment'.
@@ -1024,7 +1026,14 @@ class Payment(Model):
         amt = inv.amount_due
         if inv.type == "out" and pay_type == "out" or inv.type == "in" and pay_type == "in":
             amt = -amt
-        line["amount"] = amt
+        if data["type"] == "in":
+            rate_type = "sell"
+        elif data["type"] == "out":
+            rate_type = "buy"
+        if "currency_rate" in data and data["currency_rate"]:
+            line["amount"] = amt/data["currency_rate"]
+        else:
+            line["amount"] = get_model("currency").convert(amt, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type)
         data = self.update_amounts(context)
         return data
 

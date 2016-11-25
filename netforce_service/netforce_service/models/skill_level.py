@@ -24,6 +24,7 @@ from netforce.model import Model, fields, get_model
 class SkillLevel(Model):
     _name = "skill.level"
     _string = "Skill Level"
+    _key = ["name"]
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "level": fields.Integer("Level", required=True),

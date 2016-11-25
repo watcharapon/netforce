@@ -54,6 +54,7 @@ class SendWizard(Model):
         obj = self.browse(ids)[0]
         if not obj.email_template_id:
             raise Exception("Missing email template")
+        template = None
         if obj.custom_template_id:
             template = obj.custom_template_id.name
             template_format = obj.custom_template_id.format
@@ -67,8 +68,10 @@ class SendWizard(Model):
                 raise Exception("Invalid method %s of %s" % (obj.template_method, obj.print_model))
             template = f([obj.print_id], context=context)
             template_format = obj.template_format
-        report_fname = report_render_to_file(
-            model=obj.print_model, ids=[obj.print_id], template=template, template_format=template_format, out_format=obj.out_format)
+        report_fname = None
+        if template:
+            report_fname = report_render_to_file(
+                model=obj.print_model, ids=[obj.print_id], template=template, template_format=template_format, out_format=obj.out_format)
         if not obj.email_contact_field:
             raise Exception("Missing email contact field")
         contact = get_model(obj.print_model).browse(obj.print_id)[obj.email_contact_field]
@@ -81,9 +84,10 @@ class SendWizard(Model):
         settings = get_model("settings").browse(1)
         pobj = get_model(obj.print_model).browse(obj.print_id)
         attachments = []
-        attachments.append({
-            "file": report_fname,
-        })
+        if report_fname:
+            attachments.append({
+                "file": report_fname,
+            })
         data = {
             "user": user,
             "settings": settings,

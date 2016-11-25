@@ -17,6 +17,6 @@
     </field>
     <field name="confirm_orders"/>
     <foot replace="1">
-        <button string="Create Orders" method="create_orders" type="success" icon="arrow-right"/>
+        <button string="Create Orders" method="create_po" type="success" icon="arrow-right"/>
     </foot>
 </form>

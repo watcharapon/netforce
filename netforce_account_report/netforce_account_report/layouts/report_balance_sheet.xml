@@ -6,5 +6,6 @@
         <newline/>
         <field name="track_id" span="2"/>
         <field name="track2_id" span="2"/>
+	<field name="convert_currency"/>
     </group>
 </form>

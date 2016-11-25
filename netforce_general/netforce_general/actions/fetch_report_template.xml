@@ -1,0 +1,5 @@
+<action>
+    <field name="type">method</field>
+    <field name="model">report.template</field>
+    <field name="method">get_default_template</field>
+</action>

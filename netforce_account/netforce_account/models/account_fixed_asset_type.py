@@ -28,9 +28,9 @@ class FixedAssetType(Model):
         "name": fields.Char("Name", required=True, search=True),
         "dep_rate": fields.Decimal("Depreciation Rate (%)", search=True, required=True),
         "dep_method": fields.Selection([["line", "Straight Line"], ["decline", "Declining Balance"]], "Depreciation Method", search=True, required=True),
-        "fixed_asset_account_id": fields.Many2One("account.account", "Fixed Asset Account", required=True),
-        "accum_dep_account_id": fields.Many2One("account.account", "Accum. Depr. Account", required=True),
-        "dep_exp_account_id": fields.Many2One("account.account", "Depr. Exp. Account", required=True),
+        "fixed_asset_account_id": fields.Many2One("account.account", "Fixed Asset Account", required=True, multi_company=True),
+        "accum_dep_account_id": fields.Many2One("account.account", "Accum. Depr. Account", required=True, multi_company=True),
+        "dep_exp_account_id": fields.Many2One("account.account", "Depr. Exp. Account", required=True, multi_company=True),
         "description": fields.Text("Description"),
     }
 

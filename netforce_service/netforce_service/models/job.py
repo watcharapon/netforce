@@ -34,6 +34,7 @@ class Job(Model):
     _name_field = "number"
     _audit_log = True
     _multi_company = True
+    _key = ["number"]
     _fields = {
         "project_id": fields.Many2One("project", "Project", search=True),
         "contact_id": fields.Many2One("contact", "Customer", required=True, search=True),
@@ -98,7 +99,7 @@ class Job(Model):
         "labor_sell": fields.Decimal("Labor Selling", function="get_sell", function_multi=True),
         "part_sell": fields.Decimal("Parts Selling", function="get_sell", function_multi=True),
         "other_sell": fields.Decimal("Other Selling", function="get_sell", function_multi=True),
-        "total_sell": fields.Decimal("Total Cost", function="get_sell", function_multi=True, store=True),
+        "total_sell": fields.Decimal("Total Selling", function="get_sell", function_multi=True, store=True),
         "done_approved_by_id": fields.Many2One("base.user", "Approved By", readonly=True),
         "multi_visit_code_id": fields.Many2One("reason.code", "Multi Visit Reason Code", condition=[["type", "=", "service_multi_visit"]]),
         "late_response_code_id": fields.Many2One("reason.code", "Late Response Reason Code", condition=[["type", "=", "service_late_response"]]),

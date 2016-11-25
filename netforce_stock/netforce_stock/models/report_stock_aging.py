@@ -52,7 +52,7 @@ def get_total_qtys(prod_id, loc_id, date_from, date_to, categ_id):
         " t1.product_id,t1.location_from_id,t1.location_to_id,t1.uom_id,SUM(t1.qty) AS total_qty " \
         " FROM stock_move t1 " \
         " LEFT JOIN product t2 on t1.product_id=t2.id " \
-        " WHERE t1.state='done'"
+        " WHERE t1.state='done' AND t2.active=true"
     q_args = []
     if date_from:
         q += " AND t1.date>=%s"
@@ -163,6 +163,8 @@ class ReportStockAging(Model):
             cur_qty = get_balance_qty(prod_id, loc_id, cur_qtys)
             line = {
                 "product_id": prod.id,
+                "product_code": prod.code,
+                "product_brand": prod.brand_id.name if prod.brand_id else None,
                 "product_name": prod.name,
                 "location_id": loc.id,
                 "location_name": loc.name,

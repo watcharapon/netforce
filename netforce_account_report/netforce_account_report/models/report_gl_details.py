@@ -18,6 +18,8 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
+from operator import itemgetter
+
 from netforce.model import Model, fields, get_model
 from datetime import *
 from dateutil.relativedelta import *
@@ -61,11 +63,15 @@ class ReportGLDetails(Model):
         if contact_id:
             contact_id = int(contact_id)
         track_id = params.get("track_id") or None
+        track = None
         if track_id:
             track_id = int(track_id)
+            track = get_model('account.track.categ').browse(track_id)
         track2_id = params.get("track2_id") or None
+        track2 = None
         if track2_id:
             track2_id = int(track2_id)
+            track2 = get_model('account.track.categ').browse(track2_id)
         hide_zero = params.get("hide_zero")
         select_type = params.get("select_type")
         condition = [["type", "!=", "view"]]
@@ -100,6 +106,10 @@ class ReportGLDetails(Model):
             "date_from": date_from,
             "date_to": date_to,
             "accounts": [],
+            "track_name": track.name if track else None,
+            "track_code": track.code if track else None,
+            "track2_name": track2.name if track2 else None,
+            "track2_code": track2.code if track2 else None,
         }
 
         ctx = {
@@ -131,7 +141,7 @@ class ReportGLDetails(Model):
                 cond.append(["track_id", "=", track_id])
             if track2_id:
                 cond.append(["track2_id", "=", track2_id])
-            lines = get_model("account.move.line").search_browse(cond, order="move_date")
+            lines = get_model("account.move.line").search_browse(cond, order="move_date, move_number")
             for line in lines:
                 if hide_zero and not line.debit and not line.credit:
                     continue
@@ -149,12 +159,18 @@ class ReportGLDetails(Model):
                     "track2_code": line.track2_id.code,
                 }
                 if not line_vals['contact_name'] and line.move_id.related_id:
-                    contact=line.move_id.related_id.contact_id
+                    # FIXME USE TRY EXPRESSION TO CHECK if RELATED FIELD  EXISTED (TEMPORALY)
+                    try:
+                        contact=line.move_id.related_id.contact_id
+                    except Exception as e:
+                        print("ERROR ", e)
+                        continue
                     if contact:
                         line_vals['contact_name']=contact.name
                 debit_total += line.debit or Decimal("0")
                 credit_total += line.credit or Decimal("0")
                 acc_vals["lines"].append(line_vals)
+            acc_vals['lines'].sort(key = itemgetter("date","number"))
             acc_vals["debit_total"] = debit_total
             acc_vals["credit_total"] = credit_total
             if acc_vals["lines"]:

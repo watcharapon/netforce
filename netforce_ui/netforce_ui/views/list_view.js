@@ -164,6 +164,13 @@ var ListView=NFView.extend({
         } else {
             this.data.show_list=false;
         }
+
+        var h=window.location.hash.substr(1);
+        var action=qs_to_obj(h);
+        if(action && action.limit){
+            this.options.limit=action.limit;
+        }
+
         var opts={
             field_names: field_names,
             order: this.options.order,
@@ -171,6 +178,11 @@ var ListView=NFView.extend({
             limit: this.options.limit||100,
             count: true
         }
+        // unlimited -1
+        if(opts.limit<0){
+            delete opts.limit;
+        }
+
         if (that.options.show_full) {
             this.data.header_scroll=true;
         }

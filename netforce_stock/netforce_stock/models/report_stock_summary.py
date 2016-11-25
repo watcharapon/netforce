@@ -27,7 +27,7 @@ import time
 
 
 def get_totals(date_from, date_to, product_id=None, lot_id=None, location_id=None, container_id=None, prod_categ_id=None, prod_code=None, prod_company_ids=None):
-    q = "SELECT m.product_id,m.lot_id,m.location_from_id,m.container_from_id,m.location_to_id,m.container_to_id,m.uom_id,p.uom_id AS product_uom_id,SUM(m.qty) AS total_qty,SUM(m.cost_amount) AS total_amt,SUM(m.qty2) AS total_qty2 FROM stock_move m LEFT JOIN product p ON m.product_id=p.id WHERE m.state='done' AND p.type='stock'"
+    q = "SELECT m.product_id,m.lot_id,m.location_from_id,m.container_from_id,m.location_to_id,m.container_to_id,m.uom_id,p.uom_id AS product_uom_id,SUM(m.qty) AS total_qty,SUM(m.cost_amount) AS total_amt,SUM(m.qty2) AS total_qty2 FROM stock_move m LEFT JOIN product p ON m.product_id=p.id WHERE m.state='done' AND p.type='stock' AND p.active=true"
     q_args = []
     if date_from:
         q += " AND m.date>=%s"
@@ -182,6 +182,7 @@ class ReportStockSummary(Model):
             prods[prod.id]={
                 "name": prod.name,
                 "code": prod.code,
+                "brand": prod.brand_id.name if prod.brand_id else None,
                 "uom_id": prod.uom_id.id,
                 "uom_name": prod.uom_id.name,
             }
@@ -238,6 +239,7 @@ class ReportStockSummary(Model):
                 "prod_id": prod_id,
                 "prod_name": prod["name"],
                 "prod_code": prod["code"],
+                "prod_brand": prod["brand"],
                 "lot_id": lot_id if lot_id != -1 else None,
                 "lot_num": lot["number"] if lot else None,
                 "uom_name": prod["uom_name"],

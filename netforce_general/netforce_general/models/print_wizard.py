@@ -31,7 +31,8 @@ class PrintWizard(Model):
         "template": fields.Char("Template"),
         "template_method": fields.Char("Template Method"),
         "template_format": fields.Char("Template Format"),
-        "out_format": fields.Selection([["pdf", "PDF"], ["odt", "ODT"], ["docx", "DOCX"], ["xlsx", "XLSX"]], "Output Format", required=True),
+        #"out_format": fields.Selection([["pdf", "PDF"], ["odt", "ODT"], ["docx", "DOCX"], ["xlsx", "XLSX"]], "Output Format", required=True),
+        "out_format": fields.Selection([["pdf", "PDF"], ["odt", "ODT"]], "Output Format", required=True),
         "custom_template_type": fields.Char("Custom Template Type"),
         "custom_template_id": fields.Many2One("report.template", "Custom Template"),
         "multi_page": fields.Boolean("Multi-page"),
@@ -62,9 +63,13 @@ class PrintWizard(Model):
 
     def print(self, ids, context={}):
         obj = self.browse(ids)[0]
+        default_template=get_model("report.template").default_template(obj.custom_template_type)
         if obj.custom_template_id:
             tmpl_fmt = obj.custom_template_id.format
             method = obj.custom_template_id.method
+        elif default_template:
+            tmpl_fmt = default_template.format
+            method = default_template.method
         else:
             tmpl_fmt = obj.template_format
             method = None
@@ -93,6 +98,8 @@ class PrintWizard(Model):
             action["multi_page"] = 1
         if obj.custom_template_id:
             action["template"] = obj.custom_template_id.name
+        elif default_template:
+            action["template"] = default_template.name
         elif obj.template:
             action["template"] = obj.template
         elif obj.template_method:

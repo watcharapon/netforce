@@ -37,6 +37,7 @@ class StockConsign(Model):
     _string = "Consignment Stock"
     _name_field = "location_id"
     _multi_company = True
+    _key = ["location_id","contact_id"]
     _fields = {
         "location_id": fields.Many2One("stock.location","Stock Location",required=True,search=True),
         "contact_id": fields.Many2One("contact","Contact",required=True,search=True),

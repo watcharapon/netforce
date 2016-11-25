@@ -24,8 +24,8 @@
                 <newline/>
                 <field name="account_id" span="2" condition='[["company_id","=",company_id],["or",["type","in",["bank","cash","cheque"]],["enable_payment","=",true]]]'/>
                 <field name="currency_id" span="2" onchange="update_invoice_line"/>
-                <field name="tax_type" span="2" attrs='{"invisible":[["pay_type","in",["invoice","overpay"]]]}'/>
-                <field name="tax_no" span="2" attrs='{"invisible":[["pay_type","!=","direct"]]}'/>
+                <field name="tax_type" onchange="update_amounts" span="2" attrs='{"invisible":[["pay_type","in",["invoice","overpay"]]]}'/>
+                <field name="tax_no" span="2" attrs='{"invisible":[["pay_type","in",["invoice","overpay","claim","adjust"]]]}'/>
                 <newline/>
                 <field name="memo" span="4"/>
                 <field name="related_id" span="2"/>

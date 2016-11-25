@@ -3,5 +3,9 @@
     <field name="string">Report Templates</field>
     <field name="view">multi_view</field>
     <field name="model">report.template</field>
+    <field name="tabs">[
+        ["All",[]],
+        ["Default",[["default","=",true]]],
+        ["Custom",[["default","=",false]]]]</field>
     <field name="menu">gen_menu</field>
 </action>

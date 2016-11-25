@@ -651,6 +651,7 @@ class Invoice(Model):
             else:
                 base_amt = amt
             data["amount_subtotal"] += Decimal(base_amt)
+        data['amount_tax'] = get_model("currency").round(data['currency_id'], data['amount_tax'])
         if tax_type == "tax_in":
             data["amount_rounding"] = sum(
                 l.get("amount") or 0 for l in data["lines"] if l) - (data["amount_subtotal"] + data["amount_tax"])
@@ -718,8 +719,10 @@ class Invoice(Model):
         elif type == "in":
             if prod.purchase_price:
                 line["unit_price"] = prod.purchase_price
-            if prod.purchase_account_id is not None:
+            if prod.purchase_account_id:
                 line["account_id"] = prod.purchase_account_id.id
+            elif prod.categ_id and prod.categ_id.purchase_account_id:
+                line["account_id"] = prod.categ_id.purchase_account_id.id
             if contact.tax_payable_id:
                 line["tax_id"] = contact.tax_payable_id.id
             elif prod.purchase_tax_id:

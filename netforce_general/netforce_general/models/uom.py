@@ -66,6 +66,8 @@ class Uom(Model):
         dbname = database.get_active_db()
         if (dbname, uom_id) in _cache:
             return _cache[(dbname, uom_id)]
+        if not uom_id:
+            return 1
         obj = self.browse(uom_id)
         _cache[(dbname, uom_id)] = obj.ratio
         return obj.ratio
@@ -73,6 +75,6 @@ class Uom(Model):
     def convert(self, qty, uom_from_id, uom_to_id, context={}):
         from_ratio = self.get_ratio(uom_from_id)
         to_ratio = self.get_ratio(uom_to_id)
-        return qty * ((from_ratio or 1) / (to_ratio or 1))  # XXX Multiply or Divided first???
+        return (qty or 1)* ((from_ratio or 1) / (to_ratio or 1))  # XXX Multiply or Divided first???
 
 Uom.register()

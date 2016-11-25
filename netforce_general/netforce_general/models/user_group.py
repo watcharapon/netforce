@@ -24,6 +24,7 @@ from netforce.model import Model, fields
 class Group(Model):
     _name = "user.group"
     _string = "Group"
+    _key = ["name"]
     _fields = {
         "name": fields.Char("Group Name", required=True, search=True),
         "users": fields.Many2Many("base.user", "Users"),

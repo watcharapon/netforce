@@ -44,7 +44,8 @@
             <option value="100"{{#ifeq context.collection.limit 100}} selected="selected"{{/ifeq}}>100</option>
             <option value="200"{{#ifeq context.collection.limit 200}} selected="selected"{{/ifeq}}>200</option>
             <option value="1000"{{#ifeq context.collection.limit 1000}} selected="selected"{{/ifeq}}>1000</option>
+            <option value="-1"{{#if context.collection.unlimited}} selected="selected"{{/if}}>Unlimited</option>
         </select>
-        <span style="color:#999">{{t "items per page"}}</span>
+        <span class="nf-items-per-page" style="color:#999">{{t "items per page"}}</span>
     </div>
 {{/ifneq}}

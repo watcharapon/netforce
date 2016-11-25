@@ -25,6 +25,7 @@ from datetime import *
 class Resource(Model):
     _name = "service.resource"
     _string = "Resource"
+    _key = ["name"]
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "employee_id": fields.Many2One("hr.employee", "Employee", search=True),

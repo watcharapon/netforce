@@ -50,6 +50,7 @@ class ReportProfitLoss(Model):
         "track2_id": fields.Many2One("account.track.categ", "Tracking-2"),
         "currency_id": fields.Many2One("currency", "Currency"),
         "show_ytd": fields.Boolean("Show YTD"),
+        "convert_currency": fields.Boolean("Convert Currency"),
     }
 
     def default_get(self, field_names=None, context={}, **kw):
@@ -58,6 +59,7 @@ class ReportProfitLoss(Model):
         date_to = defaults.get("date_to")
         track_id = defaults.get("track_id")
         track2_id = defaults.get("track2_id")
+        convert_currency = defaults.get("convert_currency")
         if not date_from and not date_to:
             date_from = date.today().strftime("%Y-%m-01")
             date_to = (date.today() + relativedelta(day=31)).strftime("%Y-%m-%d")
@@ -69,6 +71,7 @@ class ReportProfitLoss(Model):
             "track_id": track_id,
             "track2_id": track2_id,
             "show_ytd": True,
+            "convert_currency": convert_currency,
         }
 
     def get_report_data(self, ids, context={}):
@@ -90,17 +93,22 @@ class ReportProfitLoss(Model):
         if not compare_with:
             compare_periods = 0
         track_id = params.get("track_id")
+        track = None
         if track_id:
             track_id = int(track_id)
+            track = get_model('account.track.categ').browse(track_id)
         track2_id = params.get("track2_id")
+        track2 = None
         if track2_id:
             track2_id = int(track2_id)
+            track2 = get_model('account.track.categ').browse(track2_id)
         currency_id = params.get("currency_id")
         if currency_id:
             currency_id = int(currency_id)
         else:
             currency_id = settings.currency_id.id
         show_ytd = params.get("show_ytd")
+        convert_currency = params.get("convert_currency")
 
         pl_types = ["revenue", "cost_sales", "other_income", "expense", "other_expense"]
         ctx = {
@@ -220,20 +228,21 @@ class ReportProfitLoss(Model):
         for group in [income, cost_sales, other_income, expenses]:
             types = group["types"]
             group["children"] = _make_groups(root_accounts, types)
-        unreal_gain = {
-            "code": "",
-            "name": "Unrealized Currency Gain/Loss",
-            "balance": -get_model("report.currency").get_fx_exposure(date_from, date_to, track_id=track_id, track2_id=track2_id, context=context),
-        }
-        for i in range(1, compare_periods + 1):
-            date_from_c = compare[i]["date_from"]
-            date_to_c = compare[i]["date_to"]
-            unreal_gain["balance%d" % i] = -get_model("report.currency").get_fx_exposure(
+        if convert_currency:
+            unreal_gain = {
+                "code": "",
+                "name": "Unrealized Currency Gain/Loss",
+                "balance": -get_model("report.currency").get_fx_exposure(date_from, date_to, track_id=track_id, track2_id=track2_id, context=context),
+            }
+            for i in range(1, compare_periods + 1):
+                date_from_c = compare[i]["date_from"]
+                date_to_c = compare[i]["date_to"]
+                unreal_gain["balance%d" % i] = -get_model("report.currency").get_fx_exposure(
                 date_from_c, date_to_c, track_id=track_id, track2_id=track2_id, context=context)
-        if show_ytd:
-            unreal_gain["balance_ytd"] = -get_model("report.currency").get_fx_exposure(
+            if show_ytd:
+                unreal_gain["balance_ytd"] = -get_model("report.currency").get_fx_exposure(
                 date_from_ytd, date_to, track_id=track_id, track2_id=track2_id, context=context)
-        other_income["children"].append(unreal_gain)
+            other_income["children"].append(unreal_gain)
 
         def _set_totals(acc):
             children = acc.get("children")
@@ -352,7 +361,11 @@ class ReportProfitLoss(Model):
             "date_to": date_to,
             "date_from_ytd": date_from_ytd,
             "track_id": track_id,
+            "track_name": track.name if track else None,
+            "track_code": track.code if track else None,
             "track2_id": track2_id,
+            "track2_name": track2.name if track2 else None,
+            "track2_code": track2.code if track2 else None,
             "col0": date_to,
             "lines": lines,
             "company_name": comp.name,
@@ -365,7 +378,7 @@ class ReportProfitLoss(Model):
 
         return data
 
-    def get_net_profit(self, date_to, track_id=None, track2_id=None, context={}):
+    def get_net_profit(self, date_to, track_id=None, track2_id=None, convert_currency=False, context={}):
         ctx = {
             "defaults": {
                 "date_from": get_model("settings").get_fiscal_year_start(date_to),
@@ -373,6 +386,7 @@ class ReportProfitLoss(Model):
                 "track_id": track_id,
                 "track2_id": track2_id,
                 "company_name": context.get("company_name", ''),
+                "convert_currency": convert_currency,
             }
         }
         data = self.get_report_data(None, ctx)
