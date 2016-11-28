@@ -75,6 +75,6 @@ class Uom(Model):
     def convert(self, qty, uom_from_id, uom_to_id, context={}):
         from_ratio = self.get_ratio(uom_from_id)
         to_ratio = self.get_ratio(uom_to_id)
-        return (qty or 1)* ((from_ratio or 1) / (to_ratio or 1))  # XXX Multiply or Divided first???
+        return (qty or 0)* ((from_ratio or 1) / (to_ratio or 1))  # XXX Multiply or Divided first???
 
 Uom.register()
