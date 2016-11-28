@@ -7,7 +7,7 @@
     <field name="custom_template_type" invisible="1"/>
     <field name="multi_page" invisible="1"/>
     <field name="out_format"/>
-    <field name="custom_template_id" condition='[["default","=",false],["type","=",custom_template_type]]'/>
+    <field name="custom_template_id" condition='[["or",["default","=",null],["default","=",false]],["type","=",custom_template_type]]'/>
     <foot>
         <button string="Print" method="print" type="primary" icon="print"/>
     </foot>
