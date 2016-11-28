@@ -117,6 +117,8 @@ class ReportTemplate(Model):
         context['fetch']=True
         self.delete(ids,context)
 
+        custom_ids=self.search([['default','=',False]])
+
         url="http://mgt.netforce.com/get_report_template?%s"%(get_rand())
         res=requests.get(url)
         if res.status_code!=200:
@@ -148,10 +150,12 @@ class ReportTemplate(Model):
                     'format': line['format'],
                     'method': line['method'],
                 }
-                print('load: ', path, ' => OK')
                 res3=get_model("report.template").search([['name','=',vals['name']]])
                 if not res3:
-                    new_id=get_model("report.template").create(vals)
+                    get_model("report.template").create(vals) #new
+                    vals['default']=False #custom
+                    if not custom_ids:
+                        get_model("report.template").create(vals) #new
                     print('new default report template ', vals['name'])
             except Exception as e:
                 print("ERROR ", e, line['name'])

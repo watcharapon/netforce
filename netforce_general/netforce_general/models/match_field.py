@@ -223,6 +223,59 @@ class MatchField(Model):
             text+=st+"\r\n"
 
         context['verify']=True
+
+        #----------- Check value existing in key -----------#
+        f = StringIO(text)
+        rd = csv.reader(f)
+        headers = next(rd)
+        headers = [h.strip() for h in headers]
+        rows = [r for r in rd]
+        key_model = get_model(obj.model)._key
+        index = []
+        strings = dict([(f.string, n) for n, f in get_model(obj.model)._fields.items()])
+        for k in key_model:
+            for i,h in enumerate(headers):
+                n = strings.get(h.replace("&#47;", "/").strip())
+                if n == k:
+                    index.append(i)
+        log = []
+        if index:
+            k_ext = []
+            for ind in index:
+                for i,row in enumerate(rows):
+                    if not row[ind]:
+                        log.append({
+                            'no' : i+1,
+                            'description' : 'Key [%s] empty'%headers[ind],
+                        })
+                    elif not k_ext:
+                        k_ext.append(row[ind])
+                        continue
+                    elif k_ext:
+                        if row[ind] in k_ext:
+                            log.append({
+                                'no' : i+1,
+                                'description' : 'Key existing'
+                            })
+                        else:
+                            k_ext.append(row[ind])
+        if log:
+            lines=[]
+            obj.write({'log_lines': ([('delete_all',)])})
+            for l in log:
+                lines.append(('create',{
+                    'sequence': l['no']+1,
+                    'description': l['description'],
+                }))
+            obj.write({'log_lines': lines, 'state': 'error'})
+            return {
+                'flash': {
+                        'type': 'error',
+                        'message': 'Can not import data! Please check your file or try to match field again.',
+                }
+            }
+        #---------------------------------------------------#
+
         log=get_model(obj.model).import_data(text,context)
         #clear log
         obj.write({
