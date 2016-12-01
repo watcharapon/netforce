@@ -2,6 +2,6 @@
     <field name="name"/>
     <field name="contact_id"/>
     <field name="start_date"/>
-    <field name="product_id"/>
+    <!--<field name="product_id"/>-->
     <field name="state"/>
 </list>
