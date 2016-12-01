@@ -9,7 +9,7 @@
         <button string="Options" dropdown="1" align="right">
             <item string="Copy To Goods Receipt" method="copy_to_pick_in" states="approved"/>
             <item string="Copy To Goods Issue" method="copy_to_picking" states="approved"/>
-            <item string="To Draft" method="to_draft" states="done"/>
+            <item string="To Draft" method="to_draft" states="approved,done,voided"/>
             <item string="Void" method="void" confirm="Are you sure you want to void this claim?" states="done"/>
         </button>
     </head>
