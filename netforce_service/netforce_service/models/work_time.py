@@ -27,7 +27,7 @@ import datetime
 class WorkTime(Model):
     _name = "work.time"
     _string = "Work Time"
-    _key = ["project_id","date"]
+    _key = ["project_id","resource_id","date"]
     _fields = {
         "resource_id": fields.Many2One("service.resource", "Resource", required=True, search=True, on_delete="cascade"),
         "resource_type": fields.Selection([["person","Person"],["machine","Machine"]],"Resource Type",function="_get_related",function_search="_search_related",function_context={"path":"resource_id.type"},search=True),
