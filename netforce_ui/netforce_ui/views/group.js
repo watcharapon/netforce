@@ -127,6 +127,7 @@ var Group=NFView.extend({
                     placeholder: $el.attr("placeholder"),
                     method: $el.attr("method"),
                     show_buttons: $el.attr("show_buttons"),
+                    show_image: $el.attr("show_image"),
                     auto_save: $el.attr("auto_save"),
                     email: $el.attr("email"),
                     help: $el.attr("help"),
@@ -154,6 +155,7 @@ var Group=NFView.extend({
                                     search_mode: $el2.attr("search_mode"),
                                     scale: $el2.attr("scale"),
                                     create: $el2.attr("create"),
+                                    show_image: $el2.attr("show_image"),
                                     attrs: $el2.attr("attrs")
                                 });
                             });
