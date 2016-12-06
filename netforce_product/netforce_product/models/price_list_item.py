@@ -38,4 +38,8 @@ class PriceListItem(Model):
         "discount_text": fields.Char("Discount Text"),
     }
 
+    _sql_constraints = [
+        ("key_uniq", "unique (list_id,product_id,price)", "The price list, product and type must be unique!")
+    ]
+
 PriceListItem.register()
