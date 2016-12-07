@@ -31,7 +31,7 @@ class PricelistAdd(Model):
     }
 
     def _get_pricelist(self, context={}):
-        refer_id=context.get("ref_id")
+        refer_id=context.get("refer_id")
         if refer_id:
             return refer_id
         pricelist_ids=get_model("price.list").search([])
