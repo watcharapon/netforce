@@ -149,7 +149,8 @@ class Product(Model):
         "purchase_lead_time": fields.Integer("Purchasing Lead Time (Days)"),
         "purchase_min_qty": fields.Decimal("Purchase Minimum Qty"),
         "purchase_qty_multiple": fields.Decimal("Purchase Qty Multiple"),
-        "mfg_lead_time": fields.Integer("Manufacturing Lead Time (Days)"),
+        #"mfg_lead_time": fields.Integer("Manufacturing Lead Time (Days)"),
+        "mfg_lead_time": fields.Decimal("Manufacturing Lead Time (Days)", scale=3),
         "mfg_min_qty": fields.Decimal("Manufacturing Minimum Qty"),
         "mfg_qty_multiple": fields.Decimal("Manufacturing Qty Multiple"),
         #"purchase_price_uom_id": fields.Many2One("uom", "Purchase Price UoM"), # not needed?
