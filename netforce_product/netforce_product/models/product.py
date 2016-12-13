@@ -332,7 +332,7 @@ class Product(Model):
             landed_cost_conv = None
         gross_profit = data.get("gross_profit")
         if landed_cost_conv and gross_profit and gross_profit != 100:
-            auto_list_price = landed_cost_conv / (1 - gross_profit / 100)
+            auto_list_price = landed_cost_conv / Decimal(1 - gross_profit / 100)
         else:
             auto_list_price = None
         sale_price = data.get("sale_price")
