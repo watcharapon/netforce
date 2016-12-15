@@ -839,7 +839,7 @@ class SaleOrder(Model):
                 "contact_id": supplier_id.id,
                 "ref": obj.number,
                 "lines": [],
-                "payment_terms": supplier_id.payment_terms,
+                "payment_terms": obj.payment_terms or supplier_id.payment_terms,
             }
             for prod_id, qty, uom_id, location_id in lines:
                 prod = get_model("product").browse(prod_id)
