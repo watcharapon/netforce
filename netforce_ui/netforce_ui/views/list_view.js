@@ -242,11 +242,6 @@ var ListView=NFView.extend({
         //log("list_view.render_list_head",this,context);
         var that=this;
         var html=$("<div/>");
-        if ((this.options.show_full || this.options.show_search) && !this.$list.attr("no_search")) { // XXX
-            if (_.isEmpty(this.options.search_condition)) {
-                html.append('<button type="button" class="btn btn-sm btn-default pull-right search-btn" style="white-space:nowrap;"><i class="icon-search"></i> '+ translate("Search")+"</button>");
-            }
-        }
         if (this.options.show_full||this.options.show_default_buttons) { // XXX
             if (!this.$list.find("head").attr("replace")) {
                 if (check_model_permission(this.options.model,"delete")) {
@@ -326,6 +321,12 @@ var ListView=NFView.extend({
                 html.append("<div id=\""+view.cid+"\" class=\"view\"></div>");
             }
         });
+
+        if ((this.options.show_full || this.options.show_search) && !this.$list.attr("no_search")) { // XXX
+            if (_.isEmpty(this.options.search_condition)) {
+                html.append('<button type="button" class="btn btn-sm btn-default search-btn" style="white-space:nowrap;"><i class="icon-search"></i> '+ translate("Search")+"</button>");
+            }
+        }
         return html.html();
     },
 
