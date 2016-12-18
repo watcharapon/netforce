@@ -36,9 +36,9 @@ class ProductImage(Model):
         "rotate_footage": fields.Char("Define Column", function="_get_related", function_context={"path": "product_id.rotate_footage"}),
         "rotate_frame": fields.Char("Define Amount of image", function="_get_related", function_context={"path": "product_id.rotate_frame"}),
         "rotate_speed": fields.Char("Define Rotating Speed", function="_get_related", function_context={"path": "product_id.rotate_speed"}),
-        "rotate_height": fields.Char("Image Height", function="cal_dimension", function_multi=True),
-        "rotate_width": fields.Char("Image Width", function="cal_dimension", function_multi=True),
-        "master_image": fields.Char("Master image", function="cal_dimension", function_multi=True),
+        #"rotate_height": fields.Char("Image Height", function="cal_dimension", function_multi=True),
+        #"rotate_width": fields.Char("Image Width", function="cal_dimension", function_multi=True),
+        #"master_image": fields.Char("Master image", function="cal_dimension", function_multi=True),
     }
 
     def cal_dimension(self, ids, context={}):
@@ -47,8 +47,8 @@ class ProductImage(Model):
         for obj in self.browse(ids):
             master_img = obj.product_id.image
             master_path = os.path.join("static/db/", dbname, "files", master_img)
-            frame = int(obj.get("rotate_frame"))
-            column = int(obj.get("rotate_footage"))
+            frame = int(obj.get("rotate_frame") or '0')
+            column = int(obj.get("rotate_footage") or '0')
             row = 1
             if frame and column:
                 row = frame / column
