@@ -101,6 +101,7 @@ var Group=NFView.extend({
                     name: name,
                     readonly: readonly,
                     required: $el.attr("required"),
+                    wysi: $el.attr("wysi"),
                     nolabel: $el.attr("nolabel"),
                     invisible: $el.attr("invisible"),
                     onchange: $el.attr("onchange"),
