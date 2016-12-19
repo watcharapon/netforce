@@ -67,6 +67,7 @@ class Picking(Model):
         "product_id2": fields.Many2One("product","Product",store=False,function_search="search_product2",search=True), #XXX ICC
         "sequence": fields.Decimal("Sequence",function="_get_related",function_context={"path":"ship_address_id.sequence"}),
         "delivery_slot_id": fields.Many2One("delivery.slot","Delivery Slot"),
+        "note": fields.Text("Note"),
     }
     _order = "date desc,number desc"
 
