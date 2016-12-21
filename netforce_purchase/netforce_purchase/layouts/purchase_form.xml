@@ -30,8 +30,8 @@
                 <field name="customer_id" span="2"/>
                 <field name="is_paid" span="1"/>
                 <newline/>
-                <field name="bill_address_id" span="2" condition='[["settings_id","=",1],["company_id","=",company_id]]'/>
-                <field name="ship_address_id" span="2" condition='[["settings_id","=",1],["company_id","=",company_id]]'/>
+                <field name="bill_address_id" span="2" condition='[["settings_id","=",1],["company_id","=",company_id],["type","=","billing"]]'/>
+                <field name="ship_address_id" span="2" condition='[["settings_id","=",1],["company_id","=",company_id],["type","=","shipping"]]'/>
             </group>
             <field name="lines" nolabel="1">
                 <list onchange="update_amounts">
