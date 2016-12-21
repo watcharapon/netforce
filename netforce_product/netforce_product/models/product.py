@@ -252,6 +252,9 @@ class Product(Model):
             "stock_out_account_id": obj.stock_out_account_id.id,
             "bin_location": obj.bin_location,
             "sale_company_id": obj.sale_company_id.id,
+            "cogs_account_id": obj.cogs_account_id.id,
+            "stock_account_id": obj.stock_account_id.id,
+            "purchase_return_account_id": obj.purchase_return_account_id.id,
             "attributes": [],
         }
         vals["attributes"] = [("delete_all",)]
