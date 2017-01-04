@@ -15,7 +15,7 @@
     <tabs>
         <tab string="General">
             <group form_layout="stacked">
-                <field name="contact_id" span="2" attrs='{"required":[["pay_type","in",["invoice","prepay","overpay"]]]}' onchange="onchange_contact"/>
+                <field name="contact_id" span="2" attrs='{"required":[["pay_type","in",["invoice","prepay","overpay","deposit"]]]}' onchange="onchange_contact"/>
                 <field name="type" span="2" onchange="onchange_type"/>
                 <field name="pay_type" span="2" onchange="onchange_pay_type"/>
                 <field name="date" span="2" onchange="onchange_date"/>
@@ -102,6 +102,43 @@
                     <field name="amount_subtotal"/>
                     <field name="amount_tax"/>
                     <field name="amount_total"/>
+                </group>
+            </group>
+            <group attrs='{"invisible":[["pay_type","!=","deposit"]]}'>
+                <field name="deposit_lines" nolabel="1">
+                    <list>
+                        <field name="description" onfocus="get_line_desc"/>
+                        <field name="qty" onchange="update_amounts"/>
+                        <field name="unit_price" onchange="update_amounts"/>
+                        <field name="account_id" onchange="onchange_account"/>
+                        <field name="tax_id" onchange="update_amounts"/>
+                        <field name="track_id"/>
+                        <field name="track2_id"/>
+                        <field name="amount"/>
+                    </list>
+                </field>
+                <group offset="8" span="4" columns="1">
+                    <field name="amount_subtotal"/>
+                    <field name="amount_tax"/>
+                    <field name="amount_total"/>
+                    <field name="amount_deposit_remain"/>
+                    <field name="deposit_alloc">
+                    <fields>
+                        <field name="invoice_id"/>
+                        <field name="amount"/>
+                    </fields>
+                    <template>
+                        {{#each context.data}}
+                            <div class="form-group nf-field">
+                                <label class="control-label col-md-4">Less deposit to invoice <a href="#name=view_invoice&amp;active_id={{invoice_id.0.}}">{{invoice_id.1.}}</a></label>
+                                <div class="col-md-8" style="text-align:right">
+                                    {{currency amount}}
+                                    <a href="#" class="call-method" data-method="delete_alloc" data-context='{"alloc_id":{{id}} }' data-confirm="Are you sure you want to delete this deposit allocation?"><i class="icon-remove"></i></a>
+                                </div>
+                            </div>
+                        {{/each}}
+                    </template>
+                </field>
                 </group>
             </group>
             <group attrs='{"invisible":[["pay_type","!=","overpay"]]}'>

@@ -9,6 +9,7 @@
             <item string="Void" method="void" confirm="Are you sure you want to void this invoice?" states="draft,waiting_payment"/>
             <item string="To Draft" method="to_draft" states="waiting_payment"/>
             <divider/>
+            <item string="Allocate Deposit" action="deposit_invoice" states="draft"/>
             <item string="View Journal Entry" method="view_journal_entry" states="waiting_payment,paid"/>
         </button>
     </head>
@@ -27,6 +28,8 @@
                 <field name="related_id" span="2"/>
                 <newline/>
                 <field name="memo" span="4"/>
+                <newline/>
+                <field name="deposit_account_id" span="2"/>
             </group>
             <field name="lines" count="10" nolabel="1">
                 <list onchange="update_amounts">
