@@ -500,17 +500,19 @@ class Invoice(Model):
                 "contact_id": contact.id,
             }
             if depo_amt:
+                on_credit = False
                 if not obj.deposit_account_id:
                     raise Exception("Missing deposit account")
                 if line_vals["debit"]:
                     line_vals["debit"] -= depo_amt
                 if line_vals["credit"]:
                     line_vals["credit"] -= depo_amt
+                    on_credit = True
                 deposit_line_vals = {
                     "description": "Deposit",
                     "account_id": obj.deposit_account_id.id,
-                    "debit": depo_amt > 0 and depo_amt or 0,
-                    "credit": depo_amt < 0 and -depo_amt or 0,
+                    "debit": depo_amt if not on_credit else 0,
+                    "credit": depo_amt if on_credit else 0,
                     "due_date": obj.due_date,
                     "contact_id": contact.id,
                 }
@@ -632,7 +634,7 @@ class Invoice(Model):
                     vals["amount_total"] -= depo_amt
                 else:
                     vals["amount_tax"] -= depo_tax
-                    vals["amount_total"] -= depo_tax + depo_amt
+                    vals["amount_total"] -= depo_tax + Decimal(depo_amt)
                 vals["amount_due"] = vals["amount_total"] - paid - cred_amt
                 vals["amount_paid"] = paid + cred_amt  # TODO: check this doesn't break anything...
             elif inv.inv_type in ("credit", "prepay", "overpay"):
@@ -719,14 +721,18 @@ class Invoice(Model):
             depo_tax = 0
             for alloc in data['credit_notes']:
                 cred_amt += alloc['amount']
-            for alloc in data['deposit_notes']:
-                depo_amt += alloc['amount'] or 0.0
-                depo = get_model('account.payment').browse(alloc['deposit_id'])
-                depo_tax += round(depo.amount_tax*depo_amt/depo.amount_total,2)
-            #data["amount_tax"] -= depo_tax
+            if 'deposit_notes' in data:
+                for alloc in data['deposit_notes']:
+                    depo_amt += alloc['amount'] or 0.0
+                    depo = get_model('account.payment').browse(alloc['deposit_id'])
+                    depo_tax += round(depo.amount_tax*depo_amt/depo.amount_total,2)
+            if "taxes" in data and data["taxes"]:
+                data["amount_total"] -= depo_amt
+            else:
+                data["amount_tax"] -= depo_tax
+                data["amount_total"] -= depo_tax + depo_amt
             data["amount_due"] = data["amount_total"] - paid - cred_amt - depo_amt
             data["amount_paid"] = paid + cred_amt
-            #data["amount_total"] -= depo_tax
         elif data['inv_type'] in ("credit", "prepay", "overpay"):
             cred_amt = 0
             for alloc in data['credit_alloc']:

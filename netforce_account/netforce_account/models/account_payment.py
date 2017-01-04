@@ -323,7 +323,7 @@ class Payment(Model):
             if line.type == "deposit": # calculate remaining deposit
                 deposit_amt = 0
                 for alloc in obj.deposit_alloc:
-                    deposit_amt += alloc.amount or 0
+                    deposit_amt += alloc.total_amount or 0
                 vals["amount_deposit_remain"] = vals["amount_total"] - deposit_amt
             res[obj.id] = vals
         return res

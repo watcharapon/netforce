@@ -28,7 +28,7 @@ class DepositWizard(Model):
         "type": fields.Char("Type"),
         "lines": fields.One2Many("account.deposit.wizard.line", "wiz_id", "Lines"),
         "amount_due": fields.Decimal("Amount Due on Invoice", readonly=True),
-        "amount_alloc": fields.Decimal("Total Amount to Credit", readonly=True),
+        "amount_alloc": fields.Decimal("Total Amount to Deposit", readonly=True),
         "amount_remain": fields.Decimal("Remaining Due", readonly=True),
     }
 
