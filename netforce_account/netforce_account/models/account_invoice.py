@@ -499,6 +499,8 @@ class Invoice(Model):
                 "due_date": obj.due_date,
                 "contact_id": contact.id,
             }
+            # check this
+            deposit_line_vals = None
             if depo_amt:
                 on_credit = False
                 if not obj.deposit_account_id:
@@ -522,7 +524,8 @@ class Invoice(Model):
                     raise Exception("Invalid account currency for this invoice: %s" % acc.code)
                 line_vals["amount_cur"] = obj.amount_total * sign
             move_vals["lines"] = [("create", line_vals)]
-            move_vals["lines"] += [("create", deposit_line_vals)]
+            if deposit_line_vals:
+                move_vals["lines"] += [("create", deposit_line_vals)]
             move_vals["lines"] += [("create", vals) for vals in group_lines]
             t03 = time.time()
             dt02 = (t03 - t02) * 1000
