@@ -187,6 +187,15 @@ class CreditAlloc(Model):
                     "tax_no": inv.tax_no,
                 }
                 lines.append(line_vals)
+            # update rounding, check this
+            # idea is update credit(from ratio allocated amount) to be the same as debit
+            total_credit = 0
+            total_debit = 0
+            for line in lines:
+                total_credit += round(line["credit"],2)
+                total_debit += round(line["debit"],2)
+            lines[-1]["credit"] += (total_debit - total_credit)
+
             move_vals["lines"] = [("create", vals) for vals in lines]
             move_id = get_model("account.move").create(move_vals)
             get_model("account.move").post([move_id])
