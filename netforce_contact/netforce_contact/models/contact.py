@@ -164,7 +164,7 @@ class Contact(Model):
                 vals["type"] = "person"
         if vals.get("type") == "person":
             if vals.get("first_name"):
-                vals["name"] = vals["first_name"] + " " + vals["last_name"]
+                vals["name"] = (vals["first_name"] or "") + " " + (vals["last_name"] or "")
             else:
                 vals["name"] = vals["last_name"]
         #self.check_duplicate_code(vals.get('code')) # use _key
