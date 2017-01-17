@@ -83,7 +83,7 @@ class PrintWizard(Model):
             action_type = "report_jasper"
         elif tmpl_fmt == "docx":
             action_type = "report_doc"
-        elif tmpl_fmt = "xlsx":
+        elif tmpl_fmt == "xlsx":
             action_type = "report_xls"
         else:
             raise Exception("Invalid template format: %s" % tmpl_fmt)
