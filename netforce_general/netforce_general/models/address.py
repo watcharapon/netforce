@@ -72,7 +72,7 @@ class Address(Model):
 
     _defaults={
         'company_id': lambda *a: get_active_company(),
-        'country_id': get_country,
+        #'country_id': get_country,
     }
 
     def get_address_text(self, ids, context={}):
