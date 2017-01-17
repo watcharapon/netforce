@@ -31,7 +31,7 @@ class PricelistAdd(Model):
     }
 
     def _get_pricelist(self, context={}):
-        refer_id=context.get("ref_id")
+        refer_id=context.get("refer_id")
         if refer_id:
             return refer_id
         pricelist_ids=get_model("price.list").search([])
@@ -46,7 +46,7 @@ class PricelistAdd(Model):
         obj = self.browse(ids)[0]
         pricelist = obj.pricelist_id
         categ_ids = [c.id for c in obj.product_categs]
-        for prod in get_model("product").search_browse([["categs.id", "in", categ_ids]]):
+        for prod in get_model("product").search_browse([["categ_id.id", "in", categ_ids]]):
             factor = pricelist.factor or 1.0
             if pricelist.base_price == "product":
                 base_price = prod.sale_price or 0

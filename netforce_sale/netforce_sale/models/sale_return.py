@@ -481,7 +481,7 @@ class SaleReturn(Model):
                     inv_vals["lines"].append(("create", line_vals))
                 if not inv_vals["lines"]:
                     continue
-                inv_id = get_model("account.invoice").create(inv_vals, {"type": "out", "inv_type": "invoice"})
+                inv_id = get_model("account.invoice").create(inv_vals, {"type": "out", "inv_type": "credit"})
                 inv_ids.append(inv_id)
             if not inv_ids:
                 raise Exception("Nothing to invoice")

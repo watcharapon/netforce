@@ -26,11 +26,11 @@ class Journal(Model):
     _string = "Journal"
     _key = ["code"]
     _fields = {
-        "name": fields.Char("Name", required=True, search=True, multi_company=True),
+        "name": fields.Char("Name", required=True, search=True),
         "sequence_id": fields.Many2One("sequence", "Sequence", multi_company=True),
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "active": fields.Boolean("Active"),
-        "code": fields.Char("Code", search=True, multi_company=True),
+        "code": fields.Char("Code", search=True),
     }
     _defaults = {
         "active": True,
