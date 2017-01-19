@@ -44,7 +44,6 @@ class Invoice(Model):
         "contact_id": fields.Many2One("contact", "Contact", required=True, search=True),
         "contact_credit": fields.Decimal("Outstanding Credit", function="get_contact_credit"),
         "account_id": fields.Many2One("account.account", "Account"),
-        "deposit_account_id": fields.Many2One("account.account", "Deposit Account"),
         "date": fields.Date("Date", required=True, search=True),
         "due_date": fields.Date("Due Date", search=True),
         "currency_id": fields.Many2One("currency", "Currency", required=True, search=True),
@@ -501,18 +500,22 @@ class Invoice(Model):
             }
             # check this
             deposit_line_vals = None
+            deposit_account = None
             if depo_amt:
+                # check deposit side
                 on_credit = False
-                if not obj.deposit_account_id:
-                    raise Exception("Missing deposit account")
                 if line_vals["debit"]:
                     line_vals["debit"] -= depo_amt
                 if line_vals["credit"]:
                     line_vals["credit"] -= depo_amt
                     on_credit = True
+                # get deposit_account
+                for depo_note in obj.deposit_notes:
+                    for depo_note_line in depo_note.deposit_id.lines:
+                        deposit_account = depo_note_line.account_id
                 deposit_line_vals = {
                     "description": "Deposit",
-                    "account_id": obj.deposit_account_id.id,
+                    "account_id": deposit_account.id,
                     "debit": depo_amt if not on_credit else 0,
                     "credit": depo_amt if on_credit else 0,
                     "due_date": obj.due_date,

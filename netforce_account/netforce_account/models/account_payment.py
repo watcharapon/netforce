@@ -430,6 +430,28 @@ class Payment(Model):
                     subtotal += amt
                 vat += line_vat
                 wht += line_wht
+        elif pay_type == "deposit":
+            for line in data["deposit_lines"]:
+                if not line:
+                    continue
+                if line.get("unit_price") is not None:
+                    amt = line.get("qty", 0) * line.get("unit_price", 0)
+                    line["amount"] = amt
+                else:
+                    amt = line.get("amount", 0)
+                tax_id = line.get("tax_id")
+                if tax_id:
+                    line_vat = get_model("account.tax.rate").compute_tax(tax_id, amt, tax_type=tax_type)
+                    line_wht = get_model("account.tax.rate").compute_tax(tax_id, amt, tax_type=tax_type, wht=True)
+                else:
+                    line_vat = 0
+                    line_wht = 0
+                if tax_type == "tax_in":
+                    subtotal += amt - line_vat
+                else:
+                    subtotal += amt
+                vat += line_vat
+                wht += line_wht
         vat = get_model("currency").round(currency_id, vat)
         wht = get_model("currency").round(currency_id, wht)
         data["amount_subtotal"] = subtotal
@@ -437,6 +459,7 @@ class Payment(Model):
         data["amount_total"] = subtotal + vat
         data["amount_wht"] = wht
         data["amount_payment"] = data["amount_total"] - wht
+        data["amount_deposit_remain"] = data["amount_subtotal"]
         return data
 
     def post_check_overpay(self, ids, context={}):

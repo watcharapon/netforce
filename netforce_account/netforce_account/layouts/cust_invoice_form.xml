@@ -32,7 +32,6 @@
                 <newline/>
                 <field name="memo" span="4"/>
                 <newline/>
-                <field name="deposit_account_id" span="2"/>
             </group>
             <field name="lines" count="10" nolabel="1">
                 <list onchange="update_amounts">
