@@ -521,6 +521,11 @@ class Invoice(Model):
                     "due_date": obj.due_date,
                     "contact_id": contact.id,
                 }
+                # deduct from base amt
+                for line in group_lines:
+                    if "tax_base" in line and line["tax_base"]:
+                        line["tax_base"] -= depo_amt
+                        break
             acc = get_model("account.account").browse(account_id)
             if acc.currency_id.id != settings.currency_id.id:
                 if acc.currency_id.id != obj.currency_id.id:
