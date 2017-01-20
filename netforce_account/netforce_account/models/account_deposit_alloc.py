@@ -40,9 +40,9 @@ class DepositAlloc(Model):
         new_id = super().create(vals, **kw)
         inv_id = vals["invoice_id"]
         deposit_id = vals["deposit_id"]
+        self.function_store([new_id])
         get_model("account.invoice").function_store([inv_id])
         get_model("account.payment").function_store([deposit_id])
-        self.function_store([new_id])
         self.post([new_id])
         return new_id
 
