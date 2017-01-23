@@ -80,6 +80,8 @@ class Campaign(Model):
             if limit is None or l < limit:
                 limit = l
         sent_emails = set()
+
+        # already sent email
         for email in obj.emails:
             if not email.name_id:
                 continue
@@ -90,19 +92,29 @@ class Campaign(Model):
             if not res:
                 continue
             target = get_model("mkt.target").browse(target_id)
-            # skip unverify email
-            if target.email.email_status!="verified":
-                continue
+
             sent_emails.add(target.email)
         count = 0
         for tl in obj.target_lists:
             for target in tl.targets:
+                # check from sent email
                 if target.email in sent_emails:
                     continue
+
+                # skip unverify email
+                if target.email.email_status!="verified":
+                    continue
+
+                #skip email rejected
+                reject = get_model("email.reject").search([["email", "=", target.email]])
+                if reject:
+                    continue
+
                 if obj.min_target_life and target.target_life < obj.min_target_life:
                     continue
                 if limit is not None and count >= limit:
                     break
+
                 settings = get_model("settings").browse(1)
                 data = {
                     "settings": settings,
