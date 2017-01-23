@@ -534,7 +534,11 @@ class Invoice(Model):
                 if acc.currency_id.id != obj.currency_id.id:
                     raise Exception("Invalid account currency for this invoice: %s" % acc.code)
                 line_vals["amount_cur"] = obj.amount_total * sign
-            move_vals["lines"] = [("create", line_vals)]
+            # do not create account move line with 0 amount
+            if line_vals["credit"] != 0 or line_vals["debit"] != 0:
+                move_vals["lines"] = [("create", line_vals)]
+            else:
+                move_vals["lines"] = [] # set to empty list to be supported by += operation
             if deposit_line_vals:
                 move_vals["lines"] += [("create", deposit_line_vals)]
             move_vals["lines"] += [("create", vals) for vals in group_lines]
