@@ -1,15 +1,15 @@
 # Copyright (c) 2012-2015 Netforce Co. Ltd.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -21,7 +21,6 @@
 from netforce.model import Model, fields, get_model
 from netforce.template import render_template
 import time
-from pprint import pprint
 
 class Template(Model):
     _name = "email.template"
@@ -104,7 +103,6 @@ class Template(Model):
         }
         if mailbox_id:
             vals["mailbox_id"] = mailbox_id
-        pprint(vals)
         email_id = get_model("email.message").create(vals)
         return email_id
 
