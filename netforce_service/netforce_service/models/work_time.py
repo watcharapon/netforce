@@ -95,7 +95,13 @@ class WorkTime(Model):
 
     def create(self, vals, **kw):
         if 'related_id' in vals and 'job' in vals['related_id']:
-            vals['job_id'] = int(vals['related_id'].split(',')[1])
+            job_id = int(vals['related_id'].split(',')[1])
+            vals['job_id'] = job_id
+            #auto assign project
+            if not 'project_id' in vals and job_id:
+                for job in get_model("job").search_read([['id','=', job_id]],['project_id']):
+                    if job['project_id']:
+                        vals['project_id']=job['project_id'][0]
         new_id = super().create(vals, **kw)
         self.function_store([new_id])
         if 'job_id' in vals:
@@ -103,12 +109,17 @@ class WorkTime(Model):
         return new_id
 
     def write(self, ids, vals, **kw):
-        super().write(ids, vals, **kw)
-        self.function_store(ids)
+        #auto assign project
         job_ids=[]
         for obj in self.browse(ids):
-            if obj.job_id:
-                job_ids.append(obj.job_id.id)
+            if not obj.project_id:
+                if obj.job_id and obj.job_id.project_id:
+                    vals['project_id']=obj.job_id.project_id.id
+                    job_ids.append(obj.job_id.id)
+                elif obj.related_id and obj.related_id._model=='job':
+                    vals['project_id']=obj.related_id.project_id.id
+        super().write(ids, vals, **kw)
+        self.function_store(ids)
         if job_ids:
             get_model('job').function_store(job_ids)
 

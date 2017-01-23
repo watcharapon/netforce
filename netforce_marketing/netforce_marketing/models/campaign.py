@@ -1,15 +1,15 @@
 # Copyright (c) 2012-2015 Netforce Co. Ltd.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -20,7 +20,7 @@
 
 from netforce.model import Model, fields, get_model
 from netforce.database import get_connection
-from datetime import *
+from datetime import datetime,timedelta
 import time
 
 
@@ -90,6 +90,9 @@ class Campaign(Model):
             if not res:
                 continue
             target = get_model("mkt.target").browse(target_id)
+            # skip unverify email
+            if target.email.email_status!="verified":
+                continue
             sent_emails.add(target.email)
         count = 0
         for tl in obj.target_lists:
@@ -159,7 +162,7 @@ class Campaign(Model):
             obj_id = int(r.related_id.split(",")[1])
             v = vals[obj_id]
             v["num_create_hour"] = r.count
-        res = db.query("SELECT related_id,COUNT(*) FROM email_message WHERE related_id IN %s AND state='sent' GROUP BY related_id",
+        res = db.query("SELECT related_id,COUNT(*) FROM email_message WHERE related_id IN %s AND state in ('sent','delivered') GROUP BY related_id",
                        tuple(["mkt.campaign,%d" % x for x in ids]))
         for r in res:
             obj_id = int(r.related_id.split(",")[1])

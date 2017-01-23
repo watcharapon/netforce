@@ -1,6 +1,7 @@
 <form model="mkt.target.list">
     <head>
         <button string="Options" dropdown="1">
+            <item string="Remove rejected emails" method="remove_rejected_emails"/>
             <item string="Remove duplicate emails" method="remove_duplicate_emails"/>
             <item string="Verify emails" method="verify_emails"/>
         </button>

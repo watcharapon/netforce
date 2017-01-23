@@ -1,15 +1,15 @@
 # Copyright (c) 2012-2015 Netforce Co. Ltd.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -32,7 +32,7 @@ class SaleQuot(Model):
     _string = "Quotation"
     _audit_log = True
     _name_field = "number"
-    _key = ["number"]
+    _key = ["number","company_id"]
     _multi_company = True
     _fields = {
         "number": fields.Char("Number", required=True, search=True),
@@ -141,6 +141,8 @@ class SaleQuot(Model):
     def create(self, vals, **kw):
         id = super().create(vals, **kw)
         self.function_store([id])
+        if 'lines' in vals.keys():
+            self.create_est_costs([id])
         return id
 
     def write(self, ids, vals, **kw):
@@ -151,6 +153,8 @@ class SaleQuot(Model):
         super().write(ids, vals, **kw)
         if opport_ids:
             get_model("sale.opportunity").function_store(opport_ids)
+        if 'lines' in vals.keys():
+            self.create_est_costs(ids)
         self.function_store(ids)
 
     def function_store(self, ids, field_names=None, context={}):
@@ -495,21 +499,6 @@ class SaleQuot(Model):
                         line_vals['location_id']=loc.location_id.id
                         break
             sale_vals["lines"].append(("create",line_vals))
-        for cost in obj.est_costs:
-            cost_vals={
-                "sequence": cost.sequence,
-                "product_id": cost.product_id.id,
-                "description": cost.description,
-                "supplier_id": cost.supplier_id.id,
-                "list_price": cost.list_price,
-                "purchase_price": cost.purchase_price,
-                "purchase_duty_percent": cost.purchase_duty_percent,
-                "purchase_ship_percent": cost.purchase_ship_percent,
-                "landed_cost": cost.landed_cost,
-                "qty": cost.qty,
-                "currency_id": cost.currency_id.id,
-            }
-            sale_vals["est_costs"].append(("create",cost_vals))
         for r in obj.currency_rates:
             rate_vals={
                 "currency_id": r.currency_id.id,
@@ -663,8 +652,6 @@ class SaleQuot(Model):
                 continue
             if not prod.cost_price and prod.type == "service":
                 continue
-            #if not line.sequence:
-                #continue
             if "bundle" == prod.type:
                 continue
             # update line seqence
@@ -673,12 +660,14 @@ class SaleQuot(Model):
                 line_sequence += 1
             else:
                 line_sequence = round(Decimal(line.sequence)) + Decimal(1)
-            # comput cost if product is service
+            # compute cost if product is service
             if prod.type == "service":
-                if round(prod.cost_price,2) == round(line.unit_price,2):
-                    landed_cost = prod.cost_price
-                else:
-                    landed_cost = prod.cost_price * line.unit_price
+                if prod.uom_id.type=='time': #day
+                    landed_cost = prod.cost_price or 0
+                elif prod.uom_id.type=='unit': #job
+                    landed_cost = (prod.sale_price or 0) * (prod.cost_price or 0) #percentage
+            elif prod.type == "stock" and prod.supply_method == 'production':
+                    landed_cost = prod.cost_price or 0
             vals={
                 "quot_id": obj.id,
                 "sequence": (line.sequence if not line.is_hidden else line.parent_sequence) if line.sequence else cur_line_sequence,

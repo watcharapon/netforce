@@ -13,5 +13,6 @@
         <field name="track_id" span="2"/>
         <field name="track2_id" span="2"/>
         <field name="hide_zero" span="2"/>
+        <field name="show_amount_cur" span="2"/>
     </group>
 </form>

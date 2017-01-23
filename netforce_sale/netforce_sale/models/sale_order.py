@@ -190,6 +190,8 @@ class SaleOrder(Model):
         quot_id = vals.get("quot_id")
         if quot_id:
             get_model("sale.quot").function_store([quot_id])
+        if 'lines' in vals.keys():
+            self.create_est_costs([id])
         return id
 
     def write(self, ids, vals, **kw):
@@ -199,6 +201,9 @@ class SaleOrder(Model):
                 quot_ids.append(obj.quot_id.id)
         super(SaleOrder, self).write(ids, vals, **kw)
         self.function_store(ids)
+        if 'lines' in vals.keys():
+            self.create_est_costs(ids)
+
         quot_id = vals.get("quot_id")
         if quot_id:
             quot_ids.append(quot_id)
@@ -830,10 +835,12 @@ class SaleOrder(Model):
             raise Exception("No purchase orders to create")
         po_ids = []
         for supplier_id, lines in suppliers.items():
+            supplier = get_model("contact").browse(supplier_id)
             purch_vals = {
                 "contact_id": supplier_id,
                 "ref": obj.number,
                 "lines": [],
+                "payment_terms": obj.payment_terms or supplier.payment_terms,
             }
             for prod_id, qty, uom_id, location_id in lines:
                 prod = get_model("product").browse(prod_id)
@@ -1283,14 +1290,35 @@ class SaleOrder(Model):
     def create_est_costs(self,ids,context={}):
         obj=self.browse(ids[0])
         obj.write({"est_costs":[("delete_all",)]})
+        line_sequence = 1
         for line in obj.lines:
+            cur_line_sequence = line_sequence
             prod=line.product_id
             if not prod:
                 continue
-            if not line.sequence:
+            if not prod.purchase_price and prod.type != "service":
+                continue
+            if not prod.cost_price and prod.type == "service":
                 continue
             if "bundle" == prod.type:
                 continue
+
+            # update line seqence
+            if not line.sequence:
+                line.write({"sequence": cur_line_sequence})
+                line_sequence += 1
+            else:
+                line_sequence = round(Decimal(line.sequence)) + Decimal(1)
+
+            landed_cost = prod.landed_cost
+            # compute cost if product is service
+            if prod.type == "service":
+                if prod.uom_id.type=='time': #day
+                    landed_cost = prod.cost_price or 0
+                elif prod.uom_id.type=='unit': #job
+                    landed_cost = (prod.sale_price or 0) * (prod.cost_price or 0)
+            elif prod.type == "stock" and prod.supply_method == 'production':
+                    landed_cost = prod.cost_price or 0
             vals={
                 "sale_id": obj.id,
                 "sequence": line.sequence,
@@ -1299,7 +1327,7 @@ class SaleOrder(Model):
                 "supplier_id": prod.suppliers[0].supplier_id.id if prod.suppliers else None,
                 "list_price": prod.purchase_price,
                 "purchase_price": prod.purchase_price,
-                "landed_cost": prod.landed_cost,
+                "landed_cost": landed_cost,
                 "purchase_duty_percent": prod.purchase_duty_percent,
                 "purchase_ship_percent": prod.purchase_ship_percent,
                 "qty": line.qty,
@@ -1307,6 +1335,8 @@ class SaleOrder(Model):
                 "currency_rate": prod.purchase_currency_rate,
             }
             get_model("sale.cost").create(vals)
+            if not obj.track_id:
+                obj.create_track()
 
     def copy_cost_to_purchase(self, ids, context={}):
         obj = self.browse(ids)[0]
