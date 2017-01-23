@@ -353,11 +353,12 @@ class Invoice(Model):
             depo_tax = 0
             for alloc in obj.deposit_notes:
                 depo_amt += alloc.total_amount or 0.0
-                depo_tax += round(alloc.deposit_id.amount_tax*depo_amt/alloc.deposit_id.amount_total,2)
+                #depo_tax += round(alloc.deposit_id.amount_tax*depo_amt/alloc.deposit_id.amount_total,2)
+                depo_tax += (alloc.total_amount - alloc.amount)
             depo_amt -= depo_tax
 
             obj.check_related()
-            if obj.amount_total == 0:
+            if obj.amount_total == 0 and not depo_amt: # check deposit in case total amount is zero (cannot approve)
                 raise Exception("Invoice total is zero")
             if obj.amount_total < 0:
                 raise Exception("Invoice total is negative")
