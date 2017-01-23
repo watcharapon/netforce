@@ -87,7 +87,7 @@ class Mailbox(Model):
             raise Exception("Missing email account")
         if acc.type != "mailgun":
             raise Exception("Invalid email account type")
-        url = "https://api.mailgun.net/v2/%s/events" % acc.user
+        url = "https://api.mailgun.net/v3/%s/events" % acc.user
         res = get_model("email.event").search([], order="date desc", limit=1)
         if res:
             last_event = get_model("email.event").browse(res[0])
@@ -107,7 +107,7 @@ class Mailbox(Model):
             data["begin"] = d0
             print("requesting events from mailgun...")
             print("data", data)
-            r = requests.get(url, auth=("api", acc.password), params=data, timeout=10)
+            r = requests.get(url, auth=("api", acc.password), params=data, timeout=30)
             # print("RES",r.text)
             res = json.loads(r.text)
             new_last_date = None
@@ -292,7 +292,7 @@ class Mailbox(Model):
             res = serv.select('"%s"' % obj.account_mailbox)
             if res[0] != "OK":
                 raise Exception("Account mailbox '%s' not found on server" % obj.account_mailbox)
-            res = serv.search(None, '(SINCE "01-Oct-2014")')
+            res = serv.search(None, '(SINCE "01-nov-2016")')
             msg_ids = [int(x) for x in res[1][0].decode().split()]
             if not msg_ids:
                 continue
@@ -303,10 +303,8 @@ class Mailbox(Model):
                 msg_id = l.partition(" ")[0]
                 if l.find("Seen") != -1:
                     open_msg_ids.append(str(msg_id))
-            print("open_msg_ids", open_msg_ids)
             email_ids = get_model("email.message").search([["mailbox_id", "=", obj.id], [
                 "or", ["opened", "=", None], ["opened", "=", False]], ["mailbox_message_uid", "in", open_msg_ids]])
-            print("email_ids", email_ids)
             get_model("email.message").write(email_ids, {"opened": True})
 
 Mailbox.register()

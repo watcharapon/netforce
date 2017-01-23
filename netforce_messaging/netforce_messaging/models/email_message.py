@@ -433,12 +433,17 @@ class EmailMessage(Model):
             if not os.path.exists(fdir):
                 os.makedirs(fdir)
             path = os.path.join(fdir, fname2)
-            open(path, "wb").write(data)
-            vals = {
-                "email_id": email_id,
-                "file": fname2,
-            }
-            get_model("email.attach").create(vals)
+
+            #when attachment error
+            try:
+                open(path, "wb").write(data)
+                vals = {
+                    "email_id": email_id,
+                    "file": fname2,
+                }
+                get_model("email.attach").create(vals)
+            except:
+                pass
         for fname, data in content_ids.values():
             dbname = get_active_db()
             fdir = os.path.join("static", "db", dbname, "files")
