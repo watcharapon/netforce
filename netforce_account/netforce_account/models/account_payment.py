@@ -185,6 +185,8 @@ class Payment(Model):
         invoice_ids = []
         expense_ids = []
         for obj in self.browse(ids):
+            if obj.deposit_alloc:
+                raise Exception("There is still allocated invoice for deposit %s"%obj.number)
             obj.write({"state": "draft"})
             obj.delete_credit_invoices()
             if obj.move_id:
