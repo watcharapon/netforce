@@ -371,7 +371,7 @@ class Invoice(Model):
             depo_amt -= depo_tax
 
             obj.check_related()
-            if obj.amount_total == 0 and not depo_amt: # check deposit in case total amount is zero (cannot approve)
+            if obj.amount_total == 0:
                 raise Exception("Invoice total is zero")
             if obj.amount_total < 0:
                 raise Exception("Invoice total is negative")
@@ -685,13 +685,18 @@ class Invoice(Model):
                 for alloc in inv.deposit_notes:
                     depo_amt += alloc.amount or 0.0
                     depo_tax += round(alloc.deposit_id.amount_tax*alloc.total_amount/alloc.deposit_id.amount_total,2)
-                if inv.taxes:
-                    vals["amount_total"] -= depo_amt
-                else:
-                    vals["amount_tax"] -= depo_tax
-                    vals["amount_total"] -= depo_tax + Decimal(depo_amt)
+                #if inv.taxes:
+                    #vals["amount_total"] -= depo_amt
+                #else:
+                    #vals["amount_tax"] -= depo_tax
+                    #vals["amount_total"] -= depo_tax + Decimal(depo_amt)
                 vals["amount_due"] = vals["amount_total"] - paid - cred_amt
                 vals["amount_paid"] = paid + cred_amt  # TODO: check this doesn't break anything...
+                if inv.taxes:
+                    vals["amount_due"] -= depo_amt
+                else:
+                    vals["amount_tax"] -= depo_tax
+                    vals["amount_due"] -= depo_tax + Decimal(depo_amt)
             elif inv.inv_type in ("credit", "prepay", "overpay"):
                 cred_amt = 0
                 for alloc in inv.credit_alloc:
