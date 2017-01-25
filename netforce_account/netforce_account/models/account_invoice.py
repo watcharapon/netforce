@@ -65,6 +65,8 @@ class Invoice(Model):
         "amount_deposit_cur": fields.Decimal("Deposit Amount", function="get_amount", function_multi=True, store=True),
         "amount_credit_remain_cur": fields.Decimal("Remaining Credit", function="get_amount", function_multi=True, store=True),
         "amount_rounding": fields.Decimal("Rounding", function="get_amount", function_multi=True, store=True),
+        "amount_deposit_alloc": fields.Decimal("Total Amount to Deposit", readonly=True), # deposit
+        "amount_deposit_remain": fields.Decimal("Remaining Due", readonly=True), # deposit
         "qty_total": fields.Decimal("Total Quantity", function="get_qty_total"),
         "attachment": fields.File("Attachment"),
         "payments": fields.One2Many("account.payment.line", "invoice_id", "Payments", condition=[["payment_id.state", "=", "posted"]]),
@@ -149,6 +151,8 @@ class Invoice(Model):
         "number": _get_number,
         "date": lambda *a: time.strftime("%Y-%m-%d"),
         "company_id": lambda *a: get_active_company(),
+        "amount_deposit_alloc": 0,
+        "amount_deposit_remain": 0,
     }
     _constraints = ["check_fields"]
 
@@ -651,6 +655,10 @@ class Invoice(Model):
         for obj in self.browse(ids):
             for line in obj.deposit_lines:
                 line.delete()
+        obj.write({
+            "amount_deposit_alloc": 0,
+            "amount_deposit_remain": 0,
+        })
         return { "flash": "Clear deposit" }
 
     def allocate_deposit(self, ids, context={}):
@@ -1345,6 +1353,15 @@ class Invoice(Model):
         deposit = get_model("account.payment").browse(line["deposit_id"])
         line["date"] = deposit.date
         line["amount_deposit_remain"] = deposit.amount_deposit_remain
+        return data
+
+    def update_deposit_amounts(self, context={}):
+        data = context["data"]
+        amt = 0
+        for line in data["deposit_lines"]:
+            amt += line.get("amount", 0)
+        data["amount_deposit_alloc"] = amt
+        data["amount_deposit_remain"] = data["amount_due"] - amt
         return data
 
 Invoice.register()
