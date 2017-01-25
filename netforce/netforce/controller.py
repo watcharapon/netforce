@@ -51,7 +51,9 @@ class Controller(tornado.web.RequestHandler):
         print(">>> [%s] %s %s %d" %
               (time.strftime("%Y-%m-%d %H:%M:%S"), self.request.method, self.request.uri, os.getpid()))
         dbname = None
-        if config.get("database"):
+        if self.get_cookie("dbname"):
+            dbname = self.get_cookie("dbname")
+        elif config.get("database"):
             dbname = config.get("database")
         elif config.get("database_from_domain"):
             request = self.request

@@ -1716,6 +1716,7 @@ window.NFModel=Backbone.Model.extend({
         if (!this.id) {
             var data=this.toJSON();
             var empty=true;
+            log("yes5 ", data);
             for (var k in data) {
                 var v=data[k];
                 if (v!==null && v!==undefined) {
@@ -1723,7 +1724,7 @@ window.NFModel=Backbone.Model.extend({
                     break;
                 }
             }
-            if (empty) return true; // FIXME: doesn't work (ex if empty form)
+            /*if (empty) return true; // FIXME: doesn't work (ex if empty form)*/
         }
         var errors={};
         var ok=true;

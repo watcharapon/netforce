@@ -154,10 +154,11 @@ class Connection():
             if res != psycopg2.extensions.TRANSACTION_STATUS_IDLE:
                 raise Exception("Failed to start transaction (%d)" % res)
         except Exception as e:
-            print_color("WARNING: failed to start database transaction, closing connection (db=%s, pid=%s)" %
-                        (self._dbname, os.getpid()), "red")
-            self.close()
-            raise e
+            pass
+            #print_color("WARNING: failed to start database transaction, closing connection (db=%s, pid=%s)" %
+                        #(self._dbname, os.getpid()), "red")
+            #self.close()
+            #raise e
 
     def execute(self, query, *args):
         # print("execute",query)
