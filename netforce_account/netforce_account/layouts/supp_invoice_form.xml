@@ -129,6 +129,16 @@
             </field>
             <button string="Calculate Taxes" method="calc_taxes" icon="pencil"/>
         </tab>
+        <tab string="Deposit">
+            <field name="Deposit lines" nolabel="1">
+                <list>
+                    <field name="deposit_id" action="view_invoice"/>
+                    <field name="date"/>
+                    <field name="amount_deposit_remain"/>
+                    <field name="amount" onchange="update_amounts"/>
+                </list>
+            </field>
+        </tab>
         <tab string="Other Info">
             <field name="sequence_id" condition='[["type","=","supp_invoice"]]' onchange="onchange_sequence"/>
             <newline/>

@@ -24,8 +24,9 @@ class DepositWizardLine(Model):
     _name = "account.deposit.wizard.line"
     _transient = True
     _fields = {
-        "wiz_id": fields.Many2One("account.deposit.wizard", "Wizard", required=True, on_delete="cascade"),
-        "deposit_id": fields.Many2One("account.payment", "Deposit", required=True, readonly=True, on_delete="cascade"),
+        "wiz_id": fields.Many2One("account.deposit.wizard", "Wizard", on_delete="cascade"),
+        "invoice_id": fields.Many2One("account.invoice", "Invoice", on_delete="cascade"),
+        "deposit_id": fields.Many2One("account.payment", "Deposit", required=True, on_delete="cascade"),
         "date": fields.Date("Date", readonly=True),
         "amount_deposit_remain": fields.Decimal("Outstanding Deposit", readonly=True),
         "amount": fields.Decimal("Amount"),

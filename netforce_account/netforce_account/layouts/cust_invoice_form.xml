@@ -138,6 +138,18 @@
             </field>
             <button string="Calculate Taxes" method="calc_taxes" icon="pencil"/>
         </tab>
+        <tab string="Deposit">
+            <field name="deposit_lines" nolabel="1">
+                <list>
+                    <field name="deposit_id" action="view_invoice" onchange="onchange_deposit" condition='[["type", "=", "in"], ["pay_type", "=", "deposit"], ["amount_deposit_remain",">",0], ["contact_id","=",parent.contact_id]]'/>
+                    <field name="date"/>
+                    <field name="amount_deposit_remain"/>
+                    <field name="amount" onchange="update_amounts"/>
+                </list>
+            </field>
+            <button string="Allocate" method="allocate_deposit" span="2"/>
+            <button string="Clear" method="clear_deposit" span="2"/>
+        </tab>
         <tab string="Other Info">
             <field name="journal_id" onchange="onchange_journal"/>
             <newline/>

@@ -50,6 +50,7 @@ class Invoice(Model):
         "tax_type": fields.Selection([["tax_ex", "Tax Exclusive"], ["tax_in", "Tax Inclusive"], ["no_tax", "No Tax"]], "Tax Type", required=True),
         "state": fields.Selection([("draft", "Draft"), ("waiting_approval", "Waiting Approval"), ("waiting_payment", "Waiting Payment"), ("paid", "Paid"), ("voided", "Voided")], "Status", function="get_state", store=True, function_order=20, search=True),
         "lines": fields.One2Many("account.invoice.line", "invoice_id", "Lines"),
+        "deposit_lines": fields.One2Many("account.deposit.wizard.line", "invoice_id", "Lines"),
         "amount_subtotal": fields.Decimal("Subtotal", function="get_amount", function_multi=True, store=True),
         "amount_tax": fields.Decimal("Tax Amount", function="get_amount", function_multi=True, store=True),
         "amount_total": fields.Decimal("Total", function="get_amount", function_multi=True, store=True),
@@ -195,6 +196,17 @@ class Invoice(Model):
         return vals
 
     def create(self, vals, context={}):
+        # create default deposit
+        if "contact_id" in vals:
+            payment_type = "in" if vals["type"] == "out" else "out"
+            vals["deposit_lines"] = []
+            for deposit in get_model("account.payment").search_browse([["type", "=", payment_type], ["pay_type", "=", "deposit"], ["contact_id", "=", vals["contact_id"]], ["state", "=", "posted"], ["currency_id", "=", vals["currency_id"]], ["amount_deposit_remain",">",0]]):
+                vals["deposit_lines"].append(["create", {
+                    "deposit_id": deposit.id,
+                    "date": deposit.date,
+                    "amount_deposit_remain": deposit.amount_deposit_remain,
+                }])
+        # standard code
         id = super(Invoice, self).create(vals, context=context)
         self.function_store([id])
         return id
@@ -634,6 +646,33 @@ class Invoice(Model):
             obj.move_id.delete()
         obj.taxes.delete()
         obj.write({"state": "draft"})
+
+    def clear_deposit(self, ids, context={}):
+        for obj in self.browse(ids):
+            for line in obj.deposit_lines:
+                line.delete()
+        return { "flash": "Clear deposit" }
+
+    def allocate_deposit(self, ids, context={}):
+        obj = self.browse(ids)[0]
+        assert obj.inv_type == "invoice"
+        for line in obj.deposit_lines:
+            if not line.amount:
+                continue
+            vals = {
+                "invoice_id": obj.id,
+                "deposit_id": line.deposit_id.id,
+                "total_amount": line.amount,
+            }
+            get_model("account.deposit.alloc").create(vals)
+        self.clear_deposit(ids)
+        return {
+            "next": {
+                "name": "view_invoice",
+                "active_id": obj.id,
+            },
+            "flash": "Invoice updated.",
+        }
 
     def get_amount(self, ids, context={}):
         t0 = time.time()
@@ -1297,6 +1336,15 @@ class Invoice(Model):
         seq_id = data["sequence_id"]
         num = self._get_number(context={"type": data["type"], "inv_type": data["inv_type"], "date": data["date"], "sequence_id": seq_id})
         data["number"] = num
+        return data
+
+    def onchange_deposit(self, context={}):
+        data = context["data"]
+        path = context["path"]
+        line = get_data_path(data, path, parent=True)
+        deposit = get_model("account.payment").browse(line["deposit_id"])
+        line["date"] = deposit.date
+        line["amount_deposit_remain"] = deposit.amount_deposit_remain
         return data
 
 Invoice.register()
