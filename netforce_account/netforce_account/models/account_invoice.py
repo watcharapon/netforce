@@ -552,7 +552,7 @@ class Invoice(Model):
                         deposit_account = depo_note_line.account_id
                 for (track_id, track2_id) in depo_track:
                     deposit_line = {
-                        "description": "Deposit",
+                        "description": "Reverse Deposit",
                         "account_id": deposit_account.id,
                         "debit": depo_amt if not on_credit else 0,
                         "credit": depo_amt if on_credit else 0,
@@ -663,6 +663,8 @@ class Invoice(Model):
 
     def allocate_deposit(self, ids, context={}):
         obj = self.browse(ids)[0]
+        if obj.amount_deposit_remain < 0:
+            raise Exception("Cannot allocate more than invoice amount")
         assert obj.inv_type == "invoice"
         for line in obj.deposit_lines:
             if not line.amount:
