@@ -98,7 +98,7 @@
             </field>
         </tab>
         <tab string="Manufacturing">
-            <field name="mfg_lead_time"/>
+            <field name="mfg_lead_time" scale="3"/>
             <newline/>
             <field name="mfg_min_qty"/>
             <field name="mfg_qty_multiple"/>

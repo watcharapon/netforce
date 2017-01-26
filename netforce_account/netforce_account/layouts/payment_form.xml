@@ -20,6 +20,7 @@
                 <field name="pay_type" span="2" onchange="onchange_pay_type"/>
                 <field name="date" span="2" onchange="onchange_date"/>
                 <field name="number" span="2"/>
+                <field name="ref" span="2"/>
                 <field name="employee_id" span="2" attrs='{"invisible":[["pay_type","!=","claim"]]}' onchange="onchange_employee"/>
                 <newline/>
                 <field name="account_id" span="2" condition='[["company_id","=",company_id],["or",["type","in",["bank","cash","cheque"]],["enable_payment","=",true]]]'/>

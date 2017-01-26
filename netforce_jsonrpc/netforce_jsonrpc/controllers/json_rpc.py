@@ -1,15 +1,15 @@
 # Copyright (c) 2012-2015 Netforce Co. Ltd.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -30,6 +30,7 @@ from netforce.locale import translate
 from netforce.utils import timeout, json_dumps
 from netforce.log import rpc_log
 import traceback
+from netforce.locale import set_active_locale
 
 
 class JsonRpc(Controller):
@@ -55,6 +56,12 @@ class JsonRpc(Controller):
                     opts = params[3] or {}
                 else:
                     opts = {}
+                if len(params) >= 5:
+                    cookies = params[4] or {}
+                else:
+                    cookies = {}
+                if "locale" in cookies:
+                    set_active_locale(cookies["locale"])
                 user_id = access.get_active_user()
                 rpc_log.info("EXECUTE db=%s model=%s method=%s user=%s" %
                              (database.get_active_db(), model, method, user_id))
@@ -188,5 +195,11 @@ class JsonRpc(Controller):
             from pprint import pprint
             pprint(resp)
             traceback.print_exc()
+
+    def options(self):
+        self.add_header("Access-Control-Allow-Origin","*")
+        self.add_header("Access-Control-Allow-Headers","Content-Type, X-Database, X-Schema")
+        self.add_header("Access-Control-Allow-Methods","POST, GET, OPTIONS")
+
 
 JsonRpc.register()

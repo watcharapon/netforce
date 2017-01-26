@@ -44,6 +44,11 @@
             <th style="text-align:right">
                 Balance
             </th>
+            {{#if show_amount_cur}}
+                <th style="text-align:right">
+                    Currency Amount
+                </th>
+            {{/if}}
         </tr>
     </thead>
     <tbody>
@@ -59,6 +64,9 @@
                 <td style="text-align:right;font-weight:bold">
                     {{currency bg_bal paren=1}}
                 </td>
+                {{#if ../show_amount_cur}}
+                    <th></th>
+                {{/if}}
             </tr>
             {{#each lines context=context}}
                 <tr>
@@ -92,6 +100,11 @@
                     <td style="text-align:right">
                         {{currency balance paren=1}}
                     </td>
+                    {{#if ../../show_amount_cur}}
+                        <td style="text-align:right">
+                            {{currency amount_cur zero=""}}
+                        </td>
+                    {{/if}}
                 </tr>
             {{/each}}
             <tr>
@@ -102,6 +115,9 @@
                 <td style="text-align:right;font-weight:bold">
                     {{currency credit_total zero=""}}
                 </td>
+                {{#if ../show_amount_cur}}
+                    <th></th>
+                {{/if}}
                 <td></td>
             </tr>
         {{/each}}

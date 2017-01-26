@@ -1243,7 +1243,12 @@ function exec_action_ready(action) {
             workspace.navigate(m[1]); // XXX
             window.top.location.reload();
         } else {
-            window.top.location=url;
+            var target=action_opts.target;
+            if(target){
+                window.open(url,target);
+            }else{
+                window.top.location=url;
+            }
         }
         return;
     } else if (action_opts.type=="email") {

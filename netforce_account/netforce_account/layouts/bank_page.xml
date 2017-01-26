@@ -17,6 +17,7 @@
     <group form_layout="stacked">
         <field name="balance_statement" span="2" strong="1"/>
         <field name="balance" span="2" strong="1"/>
+        <field name="balance_cur" span="2" strong="1"/>
     </group>
     <related tabs="1">
         <action name="bank_reconcile2" options='{"account_id":id}' string="Reconcile"/>

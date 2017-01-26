@@ -32,6 +32,7 @@
                 <field name="container_id" span="2" onchange="onchange_container"/>
                 <field name="ref" span="2"/>
                 <field name="related_id" span="2"/>
+                <field name="note" span="2"/>
             </group>
             <field name="lines" nolabel="1">
                 <list>
