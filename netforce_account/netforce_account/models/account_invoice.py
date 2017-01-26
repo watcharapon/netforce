@@ -364,10 +364,15 @@ class Invoice(Model):
     def post(self, ids, context={}):
         t0 = time.time()
         settings = get_model("settings").browse(1)
+        if not settings.currency_gain_id:
+            raise Exception("Missing currency gain account")
+        if not settings.currency_loss_id:
+            raise Exception("Missing currency loss account")
         for obj in self.browse(ids):
             # calcualte deposit amt
             depo_amt = 0
             depo_tax = 0
+            depo_base = 0 # use to calculate currency gain/loss
             depo_track = {}
             for alloc in obj.deposit_notes:
                 # convert to default currency
@@ -381,10 +386,10 @@ class Invoice(Model):
                     else:
                         depo_track[(line.track_id.id, line.track2_id.id)] = get_model("currency").convert(line.amount, alloc.deposit_id.currency_id.id, settings.currency_id.id, rate=alloc.deposit_id.currency_rate)
 
-                depo_amt += amt or 0.0
-                #depo_tax += round(alloc.deposit_id.amount_tax*depo_amt/alloc.deposit_id.amount_total,2)
+                depo_amt += amt
                 depo_tax += tax
-            depo_amt -= depo_tax
+                depo_base += alloc.total_amount + (alloc.total_amount - alloc.amount)
+            depo_amt -= depo_tax # exclude tax
 
             obj.check_related()
             if obj.amount_total == 0:
@@ -529,31 +534,64 @@ class Invoice(Model):
                 "contact_id": contact.id,
             }
             # Improve this logic
-            deposit_line_vals = None
-            deposit_account = None
+            depo_line_vals = None
+            depo_account = None
+            depo_net_cur = 0
             if depo_amt:
+                # check gain / loss after deposit
+                # deposit all amount
+                if obj.amount_due == 0:
+                    if line_vals["credit"]:
+                        line_vals["account_id"] = settings.currency_gain_id.id
+                    else:
+                        line_vals["account_id"] = settings.currency_loss_id.id
+                else: # deposit partial amount
+                    inv_depo_amt = get_model("currency").convert(depo_base, alloc.deposit_id.currency_id.id, settings.currency_id.id, rate=obj.currency_rate)
+                    depo_net_cur = inv_depo_amt - depo_amt
+                    if obj.type == "out": # AR
+                        # if inv currency rate > deposit currency rate, (-) goes to account currency loss
+                        # elif inv currency rate < deposit currency rate, (+) goes to account currency gain
+                        depo_net_line_vals = {
+                            "description": "Difference between Invoice Currency Rate and Deposit Currency Rate",
+                            "account_id": settings.currency_loss_id.id if depo_net_cur < 0 else settings.currency_gain_id.id,
+                            "credit": depo_net_cur > 0 and depo_net_cur or 0,
+                            "debit": depo_net_cur < 0 and -depo_net_cur or 0,
+                            "contact_id": contact.id,
+                        }
+                    else:
+                        # if inv currency rate > deposit currency rate, (-) goes to account currency gain
+                        # elif inv currency rate < deposit currency rate, (+) goes to account currency loss
+                        depo_net_line_vals = {
+                            "description": "Difference between Invoice Currency Rate and Deposit Currency Rate",
+                            "account_id": settings.currency_loss_id.id if depo_net_cur > 0 else settings.currency_gain_id.id,
+                            "credit": depo_net_cur < 0 and -depo_net_cur or 0,
+                            "debit": depo_net_cur > 0 and depo_net_cur or 0,
+                            "contact_id": contact.id,
+                        }
+                    group_lines.insert(0,depo_net_line_vals)
+
                 # check deposit side
                 on_credit = False
-                deposit_line_vals = []
+                depo_line_vals = []
                 if line_vals["debit"]:
-                    line_vals["debit"] -= depo_amt
+                    line_vals["debit"] -= depo_amt - depo_net_cur
                     if line_vals["debit"] < 0: # switch side if debit is negative
                         line_vals["credit"] = abs(line_vals["debit"])
                         line_vals["debit"] = 0
                 else:
                     on_credit = True
-                    line_vals["credit"] -= depo_amt
+                    line_vals["credit"] -= depo_amt - depo_net_cur
                     if line_vals["credit"] < 0:
                         line_vals["debit"] = abs(line_vals["credit"])
                         line_vals["credit"] = 0
                 # get deposit_account
                 for depo_note in obj.deposit_notes:
                     for depo_note_line in depo_note.deposit_id.lines:
-                        deposit_account = depo_note_line.account_id
+                        depo_account = depo_note_line.account_id
                 for (track_id, track2_id) in depo_track:
-                    deposit_line = {
+                    depo_line = {
                         "description": "Reverse Deposit",
-                        "account_id": deposit_account.id,
+                        "account_id": depo_account.id,
                         "debit": depo_amt if not on_credit else 0,
                         "credit": depo_amt if on_credit else 0,
                         "due_date": obj.due_date,
@@ -561,24 +599,17 @@ class Invoice(Model):
                         "track2_id": (track_id, track2_id)[1],
                         "contact_id": contact.id,
                     }
-                    deposit_line_vals.append(deposit_line)
+                    depo_line_vals.append(depo_line)
                 # deduct from base amt
-                for line in group_lines:
-                    if "tax_base" in line and line["tax_base"]:
-                        base_amt = line["tax_base"] - depo_amt
-                        if base_amt > 0: # avoid case deposit full amount
-                            line["tax_base"] = base_amt
-                        break
-            # check gain / loss after deposit
-            if obj.amount_total == 0:
-                if line_vals["credit"]:
-                    if not settings.currency_gain_id:
-                        raise Exception("Missing currency gain account")
-                    line_vals["account_id"] = settings.currency_gain_id.id
+                if line_vals["account_id"] in [settings.currency_gain_id.id, settings.currency_loss_id.id]:
+                    pass
                 else:
-                    if not settings.currency_loss_id:
-                        raise Exception("Missing currency loss account")
-                    line_vals["account_id"] = settings.currency_loss_id.id
+                    for line in group_lines:
+                        if "tax_base" in line and line["tax_base"]:
+                            base_amt = line["tax_base"] - depo_amt
+                            if base_amt > 0: # avoid case deposit full amount
+                                line["tax_base"] = base_amt
+                            break
 
             acc = get_model("account.account").browse(account_id)
             if acc.currency_id.id != settings.currency_id.id:
@@ -590,9 +621,12 @@ class Invoice(Model):
                 move_vals["lines"] = [("create", line_vals)]
             else:
                 move_vals["lines"] = [] # set to empty list to be supported by += operation
-            if deposit_line_vals:
-                move_vals["lines"] += [("create", vals) for vals in deposit_line_vals]
+            if depo_line_vals:
+                move_vals["lines"] += [("create", vals) for vals in depo_line_vals]
             move_vals["lines"] += [("create", vals) for vals in group_lines]
+
+            for line in move_vals["lines"]:
+                print(line)
             t03 = time.time()
             dt02 = (t03 - t02) * 1000
             print("post dt02", dt02)
@@ -675,7 +709,6 @@ class Invoice(Model):
                 "total_amount": line.amount,
             }
             get_model("account.deposit.alloc").create(vals)
-        self.clear_deposit(ids)
         return {
             "next": {
                 "name": "view_invoice",
@@ -1361,9 +1394,9 @@ class Invoice(Model):
         data = context["data"]
         amt = 0
         for line in data["deposit_lines"]:
-            amt += line.get("amount", 0)
+            amt += line["amount"] or 0
         data["amount_deposit_alloc"] = amt
-        data["amount_deposit_remain"] = data["amount_due"] - amt
+        data["amount_deposit_remain"] = data["amount_total"] - amt
         return data
 
 Invoice.register()

@@ -9,7 +9,6 @@
             <item string="Void" method="void" confirm="Are you sure you want to void this invoice?" states="draft,waiting_payment"/>
             <item string="To Draft" method="to_draft" states="waiting_payment"/>
             <divider/>
-            <item string="Allocate Deposit" action="deposit_invoice" states="draft"/>
             <item string="View Journal Entry" method="view_journal_entry" states="waiting_payment,paid"/>
         </button>
     </head>
@@ -129,7 +128,7 @@
             </field>
             <button string="Calculate Taxes" method="calc_taxes" icon="pencil"/>
         </tab>
-        <tab string="Deposit">
+        <tab string="Allocate Deposit">
             <field name="Deposit lines" nolabel="1">
                 <list>
                     <field name="deposit_id" action="view_invoice" onchange="onchange_deposit" condition='[["type", "=", "out"], ["pay_type", "=", "deposit"], ["amount_deposit_remain",">",0], ["contact_id","=",parent.contact_id]]'/>
@@ -143,8 +142,8 @@
                 <field name="amount_deposit_alloc"/>
                 <field name="amount_deposit_remain"/>
             </group>
-            <button string="Allocate" method="allocate_deposit" span="2"/>
-            <button string="Clear" method="clear_deposit" span="2"/>
+            <button string="Allocate" method="allocate_deposit" span="2" states="draft"/>
+            <button string="Clear" method="clear_deposit" span="2" states="draft"/>
         </tab>
         <tab string="Other Info">
             <field name="sequence_id" condition='[["type","=","supp_invoice"]]' onchange="onchange_sequence"/>
