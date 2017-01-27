@@ -5,8 +5,8 @@
         <field name="compare_with" span="2"/>
         <field name="compare_periods" span="2"/>
         <newline/>
-        <field name="track_id" span="2"/>
-        <field name="track2_id" span="2"/>
+        <field name="track_id" condition="[['type', '=', '1']]" span="2"/>
+        <field name="track2_id" condition="[['type', '=', '2']]" span="2"/>
         <field name="currency_id" span="2"/>
         <newline/>
         <field name="show_ytd" span="2"/>
