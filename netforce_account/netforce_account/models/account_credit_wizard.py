@@ -19,7 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
-
+import time
 
 class CreditWizard(Model):
     _name = "account.credit.wizard"
@@ -27,6 +27,7 @@ class CreditWizard(Model):
     _fields = {
         "invoice_id": fields.Many2One("account.invoice", "Invoice", required=True, on_delete="cascade"),
         "type": fields.Char("Type"),
+        "date": fields.Date("Date Allocate"),
         "lines": fields.One2Many("account.credit.wizard.line", "wiz_id", "Lines"),
         "amount_due": fields.Decimal("Amount Due on Invoice", readonly=True),
         "amount_alloc": fields.Decimal("Total Amount to Credit", readonly=True),
@@ -50,6 +51,7 @@ class CreditWizard(Model):
             "invoice_id": [inv.id, inv.name_get()[0][1]],
             "lines": lines,
             "type": inv.type,
+            "date": time.strftime("%Y-%m-%d"),
             "amount_due": inv.amount_due,
             "amount_alloc": 0,
             "amount_remain": inv.amount_due,
@@ -66,6 +68,7 @@ class CreditWizard(Model):
                 "invoice_id": obj.invoice_id.id,
                 "credit_id": line.credit_id.id,
                 "amount": line.amount,
+                "date": obj.date,
             }
             get_model("account.credit.alloc").create(vals)
         return {
