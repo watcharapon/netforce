@@ -386,10 +386,12 @@ class Invoice(Model):
 
                 # group deposit amt by tracking code if there are more than one tracking code
                 for line in alloc.deposit_id.lines:
+                    amt_ratio = alloc.amount * (line.amount/alloc.deposit_id.amount_subtotal) # ratio according to different tracking
+                    amt_cur = get_model("currency").convert(amt_ratio, alloc.deposit_id.currency_id.id, settings.currency_id.id, rate=alloc.deposit_id.currency_rate)
                     if (line.track_id.id, line.track2_id.id) in depo_track:
-                        depo_track[(line.track_id.id, line.track2_id.id)] += get_model("currency").convert(line.amount, alloc.deposit_id.currency_id.id, settings.currency_id.id, rate=alloc.deposit_id.currency_rate)
+                        depo_track[(line.track_id.id, line.track2_id.id)] += amt_cur
                     else:
-                        depo_track[(line.track_id.id, line.track2_id.id)] = get_model("currency").convert(line.amount, alloc.deposit_id.currency_id.id, settings.currency_id.id, rate=alloc.deposit_id.currency_rate)
+                        depo_track[(line.track_id.id, line.track2_id.id)] = amt_cur
 
                 depo_amt += amt
                 depo_tax += tax
@@ -551,7 +553,7 @@ class Invoice(Model):
                     else:
                         line_vals["account_id"] = settings.currency_loss_id.id
                 else: # deposit partial inv amount
-                    if alloc.deposit_id.currency_id.id != settings.currency_id.id:
+                    if alloc.deposit_id.currency_id.id != settings.currency_id.id or (alloc.deposit_id.currency_id.id == settings.currency_id.id and obj.currency_rate != alloc.deposit_id.currency_rate):
                         inv_depo_amt = get_model("currency").convert(depo_base, alloc.deposit_id.currency_id.id, settings.currency_id.id, rate=obj.currency_rate)
                         depo_net_cur = inv_depo_amt - depo_amt
                         if obj.type == "out": # AR
@@ -598,8 +600,8 @@ class Invoice(Model):
                     depo_line = {
                         "description": "Reverse Deposit",
                         "account_id": depo_account.id,
-                        "debit": depo_amt if not on_credit else 0,
-                        "credit": depo_amt if on_credit else 0,
+                        "debit": depo_track[(track_id, track2_id)] if not on_credit else 0,
+                        "credit": depo_track[(track_id, track2_id)] if on_credit else 0,
                         "due_date": obj.due_date,
                         "track_id": (track_id, track2_id)[0],
                         "track2_id": (track_id, track2_id)[1],
