@@ -282,7 +282,7 @@ class Invoice(Model):
             raise Exception("Invalid state")
         depo_amt = 0
         for depo in obj.deposit_notes:
-            depo_amt += depo.amount
+            depo_amt += depo.total_amount
         if obj.amount_deposit_alloc and depo_amt != obj.amount_deposit_alloc:
             raise Exception("Allocated deposit is not equal to deposit amoount in tab 'Allocate Deposit'")
         obj.post()
@@ -702,11 +702,16 @@ class Invoice(Model):
 
     def allocate_deposit(self, ids, context={}):
         obj = self.browse(ids)[0]
+        allocated_objs = []
         if obj.amount_deposit_remain < 0:
             raise Exception("Cannot allocate more than invoice amount")
         assert obj.inv_type == "invoice"
+        for line in obj.deposit_notes:
+            allocated_objs.append((line.deposit_id.id, line.invoice_id.id))
         for line in obj.deposit_lines:
             if not line.amount:
+                continue
+            if (line.deposit_id.id, obj.id) in allocated_objs: # do not allocate to the same deposit
                 continue
             vals = {
                 "invoice_id": obj.id,
