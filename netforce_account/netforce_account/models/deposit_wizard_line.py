@@ -32,4 +32,10 @@ class DepositWizardLine(Model):
         "amount": fields.Decimal("Amount"),
     }
 
+    def delete(self, ids, **kw):
+        for obj in self.browse(ids):
+            for alloc in get_model("account.deposit.alloc").search_browse([["invoice_id","=",obj.invoice_id.id],["deposit_id","=",obj.deposit_id.id], ["total_amount","=",obj.amount]]):
+                alloc.delete()
+        super().delete(ids, **kw)
+
 DepositWizardLine.register()

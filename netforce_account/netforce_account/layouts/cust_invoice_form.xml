@@ -142,7 +142,7 @@
         <tab string="Allocate Deposit">
             <field name="deposit_lines" nolabel="1">
                 <list>
-                    <field name="deposit_id" action="view_invoice" onchange="onchange_deposit" condition='[["type", "=", "in"], ["pay_type", "=", "deposit"], ["amount_deposit_remain",">",0], ["contact_id","=",parent.contact_id]]'/>
+                    <field name="deposit_id" action="view_invoice" onchange="onchange_deposit" condition='[["type", "=", "in"], ["pay_type", "=", "deposit"], ["amount_deposit_remain",">",0], ["contact_id","=",parent.contact_id], ["id","not in",parent.deposit_lines.nf_pluck("deposit_id")]]'/>
                     <field name="date"/>
                     <field name="amount_deposit_remain"/>
                     <field name="amount" onchange="update_deposit_amounts"/>

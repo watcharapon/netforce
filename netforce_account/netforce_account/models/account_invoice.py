@@ -707,12 +707,12 @@ class Invoice(Model):
             raise Exception("Cannot allocate more than invoice amount")
         assert obj.inv_type == "invoice"
         for line in obj.deposit_notes:
-            allocated_objs.append((line.deposit_id.id, line.invoice_id.id))
+            line.delete()
         for line in obj.deposit_lines:
             if not line.amount:
                 continue
-            if (line.deposit_id.id, obj.id) in allocated_objs: # do not allocate to the same deposit
-                continue
+            if line.amount > line.amount_deposit_remain:
+                raise Exception("Cannot allocate more than remaining amount %s"%line.deposit_id.number)
             vals = {
                 "invoice_id": obj.id,
                 "deposit_id": line.deposit_id.id,
