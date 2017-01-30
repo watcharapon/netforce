@@ -1420,6 +1420,7 @@ class Invoice(Model):
         deposit = get_model("account.payment").browse(line["deposit_id"])
         line["date"] = deposit.date
         line["amount_deposit_remain"] = deposit.amount_deposit_remain
+        line["amount"] = deposit.amount_deposit_remain
         return data
 
     def update_deposit_amounts(self, context={}):
