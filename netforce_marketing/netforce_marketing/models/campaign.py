@@ -1,15 +1,15 @@
 # Copyright (c) 2012-2015 Netforce Co. Ltd.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -20,7 +20,7 @@
 
 from netforce.model import Model, fields, get_model
 from netforce.database import get_connection
-from datetime import *
+from datetime import datetime,timedelta
 import time
 
 
@@ -80,6 +80,8 @@ class Campaign(Model):
             if limit is None or l < limit:
                 limit = l
         sent_emails = set()
+
+        # already sent email
         for email in obj.emails:
             if not email.name_id:
                 continue
@@ -90,16 +92,29 @@ class Campaign(Model):
             if not res:
                 continue
             target = get_model("mkt.target").browse(target_id)
+
             sent_emails.add(target.email)
         count = 0
         for tl in obj.target_lists:
             for target in tl.targets:
+                # check from sent email
                 if target.email in sent_emails:
                     continue
+
+                # skip unverify email
+                if target.email.email_status!="verified":
+                    continue
+
+                #skip email rejected
+                reject = get_model("email.reject").search([["email", "=", target.email]])
+                if reject:
+                    continue
+
                 if obj.min_target_life and target.target_life < obj.min_target_life:
                     continue
                 if limit is not None and count >= limit:
                     break
+
                 settings = get_model("settings").browse(1)
                 data = {
                     "settings": settings,
@@ -159,7 +174,7 @@ class Campaign(Model):
             obj_id = int(r.related_id.split(",")[1])
             v = vals[obj_id]
             v["num_create_hour"] = r.count
-        res = db.query("SELECT related_id,COUNT(*) FROM email_message WHERE related_id IN %s AND state='sent' GROUP BY related_id",
+        res = db.query("SELECT related_id,COUNT(*) FROM email_message WHERE related_id IN %s AND state in ('sent','delivered') GROUP BY related_id",
                        tuple(["mkt.campaign,%d" % x for x in ids]))
         for r in res:
             obj_id = int(r.related_id.split(",")[1])
