@@ -117,7 +117,7 @@ class CreditAlloc(Model):
                     raise Exception("Purchases journal not found")
             move_vals = {
                 "journal_id": journal_id,
-                "date": inv.date,
+                "date": obj.date,
                 "narration": desc,
             }
             lines = []
