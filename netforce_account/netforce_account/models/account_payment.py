@@ -55,6 +55,7 @@ class Payment(Model):
         "amount_wht": fields.Decimal("Withholding Tax", function="get_amount", function_multi=True, store=True),
         "amount_payment": fields.Decimal("Net Amount", function="get_amount", function_multi=True, store=True),
         "amount_deposit_remain": fields.Decimal("Remaining Deposit", function="get_amount", function_multi=True, store=True),
+        "amount_deposit_remain_cur": fields.Decimal("Remaining Deposit Currency", function="get_amount", function_multi=True, store=True),
         "move_id": fields.Many2One("account.move", "Journal Entry"),
         "currency_rate": fields.Decimal("Currency Rate", scale=6),
         "state": fields.Selection([["draft", "Draft"], ["posted", "Posted"], ["voided", "Voided"]], "State", required=True),
@@ -327,6 +328,7 @@ class Payment(Model):
                 for alloc in obj.deposit_alloc:
                     deposit_amt += alloc.total_amount or 0
                 vals["amount_deposit_remain"] = vals["amount_total"] - deposit_amt
+                vals["amount_deposit_remain_cur"] = get_model("currency").convert(vals["amount_deposit_remain"], obj.currency_id.id, settings.currency_id.id, round=True, rate=obj.currency_rate)
             res[obj.id] = vals
         return res
 
