@@ -129,7 +129,7 @@
             <button string="Calculate Taxes" method="calc_taxes" icon="pencil"/>
         </tab>
         <tab string="Allocate Deposit">
-            <field name="Deposit lines" nolabel="1">
+            <field name="deposit_lines" nolabel="1">
                 <list>
                     <field name="deposit_id" action="view_invoice" onchange="onchange_deposit" condition='[["type", "=", "out"], ["pay_type", "=", "deposit"], ["amount_deposit_remain",">",0], ["contact_id","=",parent.contact_id]]'/>
                     <field name="date"/>

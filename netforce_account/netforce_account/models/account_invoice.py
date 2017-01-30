@@ -283,7 +283,7 @@ class Invoice(Model):
         depo_amt = 0
         for depo in obj.deposit_notes:
             depo_amt += depo.amount
-        if depo_amt != obj.amount_deposit_alloc:
+        if obj.amount_deposit_alloc and depo_amt != obj.amount_deposit_alloc:
             raise Exception("Allocated deposit is not equal to deposit amoount in tab 'Allocate Deposit'")
         obj.post()
         if obj.inv_type == "invoice":
