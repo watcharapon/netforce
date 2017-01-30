@@ -27,6 +27,8 @@
                 <field name="related_id" span="2"/>
                 <newline/>
                 <field name="memo" span="4"/>
+                <field name="contact_credit" span="4"/>
+                <field name="contact_deposit" span="4"/>
                 <newline/>
             </group>
             <field name="lines" count="10" nolabel="1">
@@ -129,7 +131,7 @@
             <button string="Calculate Taxes" method="calc_taxes" icon="pencil"/>
         </tab>
         <tab string="Allocate Deposit">
-            <field name="Deposit lines" nolabel="1">
+            <field name="deposit_lines" nolabel="1">
                 <list>
                     <field name="deposit_id" action="view_invoice" onchange="onchange_deposit" condition='[["type", "=", "out"], ["pay_type", "=", "deposit"], ["amount_deposit_remain",">",0], ["contact_id","=",parent.contact_id]]'/>
                     <field name="date"/>
@@ -167,6 +169,13 @@
                 <div style="background-color:#eee;font-size:12px;margin-bottom:10px;padding:5px 10px">
                     {{context.data.contact_id.1.}} has {{currency context.data.contact_credit}} {{context.data.currency_id.1.}} in outstanding credit.
                     <a href="#name=credit_invoice&amp;invoice_id={{context.data.id}}">Credit this invoice</a>
+                </div>
+            {{/if}}
+        </template>
+        <template>
+            {{#if context.data.contact_deposit}}
+                <div style="background-color:#eee;font-size:12px;margin-bottom:10px;padding:5px 10px">
+                    {{context.data.contact_id.1.}} has {{currency context.data.contact_deposit}} {{context.data.currency_id.1.}} in outstanding deposit.
                 </div>
             {{/if}}
         </template>

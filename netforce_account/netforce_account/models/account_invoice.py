@@ -27,7 +27,6 @@ from netforce import database
 from netforce.access import get_active_company, set_active_user, set_active_company
 from netforce.utils import get_file_path
 
-
 class Invoice(Model):
     _name = "account.invoice"
     _string = "Invoice"
@@ -43,6 +42,7 @@ class Invoice(Model):
         "memo": fields.Char("Memo", size=1024, search=True),
         "contact_id": fields.Many2One("contact", "Contact", required=True, search=True),
         "contact_credit": fields.Decimal("Outstanding Credit", function="get_contact_credit"),
+        "contact_deposit": fields.Decimal("Outstanding Deposit", function="get_contact_deposit"),
         "account_id": fields.Many2One("account.account", "Account"),
         "date": fields.Date("Date", required=True, search=True),
         "due_date": fields.Date("Due Date", search=True),
@@ -1032,6 +1032,19 @@ class Invoice(Model):
                 amt = contact.receivable_credit
             elif obj.type == "in":
                 amt = contact.payable_credit
+        vals[obj.id] = amt
+        return vals
+
+    def get_contact_deposit(self, ids, context={}):
+        obj = self.browse(ids[0])
+        amt=0
+        vals = {}
+        if obj.contact_id:
+            contact = get_model("contact").browse(obj.contact_id.id, context={"currency_id": obj.currency_id.id})
+            if obj.type == "out":
+                amt = contact.receivable_deposit
+            elif obj.type == "in":
+                amt = contact.payable_deposit
         vals[obj.id] = amt
         return vals
 
