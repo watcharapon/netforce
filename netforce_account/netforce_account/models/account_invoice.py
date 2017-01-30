@@ -65,8 +65,8 @@ class Invoice(Model):
         "amount_deposit_cur": fields.Decimal("Deposit Amount", function="get_amount", function_multi=True, store=True),
         "amount_credit_remain_cur": fields.Decimal("Remaining Credit", function="get_amount", function_multi=True, store=True),
         "amount_rounding": fields.Decimal("Rounding", function="get_amount", function_multi=True, store=True),
-        "amount_deposit_alloc": fields.Decimal("Total Amount to Deposit", readonly=True), # deposit
-        "amount_deposit_remain": fields.Decimal("Remaining Due", readonly=True), # deposit
+        "amount_deposit_alloc": fields.Decimal("Total Amount to Deposit", function="get_amount", function_multi=True, store=True, readonly=True), # deposit
+        "amount_deposit_remain": fields.Decimal("Remaining Due", function="get_amount", function_multi=True, store=True, readonly=True), # deposit
         "qty_total": fields.Decimal("Total Quantity", function="get_qty_total"),
         "attachment": fields.File("Attachment"),
         "payments": fields.One2Many("account.payment.line", "invoice_id", "Payments", condition=[["payment_id.state", "=", "posted"]]),
@@ -544,36 +544,37 @@ class Invoice(Model):
             depo_net_cur = 0
             if depo_amt:
                 # check gain / loss after deposit
-                # deposit all amount
+                # deposit all inv amount
                 if obj.amount_due == 0:
                     if line_vals["credit"]:
                         line_vals["account_id"] = settings.currency_gain_id.id
                     else:
                         line_vals["account_id"] = settings.currency_loss_id.id
-                else: # deposit partial amount
-                    inv_depo_amt = get_model("currency").convert(depo_base, alloc.deposit_id.currency_id.id, settings.currency_id.id, rate=obj.currency_rate)
-                    depo_net_cur = inv_depo_amt - depo_amt
-                    if obj.type == "out": # AR
-                        # if inv currency rate > deposit currency rate, (-) goes to account currency loss
-                        # elif inv currency rate < deposit currency rate, (+) goes to account currency gain
-                        depo_net_line_vals = {
-                            "description": "Difference between Invoice Currency Rate and Deposit Currency Rate",
-                            "account_id": settings.currency_loss_id.id if depo_net_cur < 0 else settings.currency_gain_id.id,
-                            "credit": depo_net_cur > 0 and depo_net_cur or 0,
-                            "debit": depo_net_cur < 0 and -depo_net_cur or 0,
-                            "contact_id": contact.id,
-                        }
-                    else:
-                        # if inv currency rate > deposit currency rate, (-) goes to account currency gain
-                        # elif inv currency rate < deposit currency rate, (+) goes to account currency loss
-                        depo_net_line_vals = {
-                            "description": "Difference between Invoice Currency Rate and Deposit Currency Rate",
-                            "account_id": settings.currency_loss_id.id if depo_net_cur > 0 else settings.currency_gain_id.id,
-                            "credit": depo_net_cur < 0 and -depo_net_cur or 0,
-                            "debit": depo_net_cur > 0 and depo_net_cur or 0,
-                            "contact_id": contact.id,
-                        }
-                    group_lines.insert(0,depo_net_line_vals)
+                else: # deposit partial inv amount
+                    if alloc.deposit_id.currency_id.id != settings.currency_id.id:
+                        inv_depo_amt = get_model("currency").convert(depo_base, alloc.deposit_id.currency_id.id, settings.currency_id.id, rate=obj.currency_rate)
+                        depo_net_cur = inv_depo_amt - depo_amt
+                        if obj.type == "out": # AR
+                            # if inv currency rate > deposit currency rate, (-) goes to account currency loss
+                            # elif inv currency rate < deposit currency rate, (+) goes to account currency gain
+                            depo_net_line_vals = {
+                                "description": "Difference between Invoice Currency Rate and Deposit Currency Rate",
+                                "account_id": settings.currency_loss_id.id if depo_net_cur < 0 else settings.currency_gain_id.id,
+                                "credit": depo_net_cur > 0 and depo_net_cur or 0,
+                                "debit": depo_net_cur < 0 and -depo_net_cur or 0,
+                                "contact_id": contact.id,
+                            }
+                        else:
+                            # if inv currency rate > deposit currency rate, (-) goes to account currency gain
+                            # elif inv currency rate < deposit currency rate, (+) goes to account currency loss
+                            depo_net_line_vals = {
+                                "description": "Difference between Invoice Currency Rate and Deposit Currency Rate",
+                                "account_id": settings.currency_loss_id.id if depo_net_cur > 0 else settings.currency_gain_id.id,
+                                "credit": depo_net_cur < 0 and -depo_net_cur or 0,
+                                "debit": depo_net_cur > 0 and depo_net_cur or 0,
+                                "contact_id": contact.id,
+                            }
+                        group_lines.insert(0,depo_net_line_vals)
 
                 # check deposit side
                 on_credit = False
@@ -706,9 +707,9 @@ class Invoice(Model):
         if obj.amount_deposit_remain < 0:
             raise Exception("Cannot allocate more than invoice amount")
         assert obj.inv_type == "invoice"
-        for line in obj.deposit_notes:
+        for line in obj.deposit_notes: # clear allocated deposit
             line.delete()
-        for line in obj.deposit_lines:
+        for line in obj.deposit_lines: # allocate deposit
             if not line.amount:
                 continue
             if line.amount > line.amount_deposit_remain:
@@ -800,6 +801,12 @@ class Invoice(Model):
                         cred_amt -= pmt.amount  # XXX: check this
                 vals["amount_credit_remain"] = vals["amount_total"] - cred_amt
                 vals["amount_due"] = -vals["amount_credit_remain"]
+            amt = 0
+            for line in inv.deposit_lines:
+                amt += line.amount or 0
+            vals["amount_deposit_alloc"] = amt
+            vals["amount_deposit_remain"] = vals["amount_total"] - amt
+            
             vals["amount_due_cur"] = get_model("currency").convert(
                 vals["amount_due"], inv.currency_id.id, settings.currency_id.id, round=True, rate=inv.currency_rate)
             vals["amount_paid_cur"] = get_model("currency").convert(
