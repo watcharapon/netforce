@@ -277,7 +277,15 @@ class SaleOrder(Model):
         obj = self.browse(ids)[0]
         if obj.state != "draft":
             raise Exception("Invalid state")
+        if not obj.due_date:
+            raise Exception("Missing Due Date!")
         for line in obj.lines:
+            #shipping method in lines is deprecated, so we should have only 1 shipping method per SO
+            #if not it will split invoice & picking
+            if obj.ship_method_id and line.ship_method_id.id!=obj.ship_method_id.id:
+                line.write({
+                    'ship_method_id': obj.ship_method_id.id,
+                })
             prod = line.product_id
             if prod and prod.type in ("stock", "consumable", "bundle") and not line.location_id:
                 raise Exception("Missing location for product %s" % prod.code)
@@ -829,17 +837,18 @@ class SaleOrder(Model):
                 continue
             if not prod.suppliers:
                 raise Exception("Missing supplier for product '%s'" % prod.name)
-            supplier_id = prod.suppliers[0].supplier_id
+            supplier_id = prod.suppliers[0].supplier_id.id
             suppliers.setdefault(supplier_id, []).append((prod.id, line.qty, line.uom_id.id, line.location_id.id))
         if not suppliers:
             raise Exception("No purchase orders to create")
         po_ids = []
         for supplier_id, lines in suppliers.items():
+            supplier = get_model("contact").browse(supplier_id)
             purch_vals = {
-                "contact_id": supplier_id.id,
+                "contact_id": supplier_id,
                 "ref": obj.number,
                 "lines": [],
-                "payment_terms": obj.payment_terms or supplier_id.payment_terms,
+                "payment_terms": obj.payment_terms or supplier.payment_terms,
             }
             for prod_id, qty, uom_id, location_id in lines:
                 prod = get_model("product").browse(prod_id)

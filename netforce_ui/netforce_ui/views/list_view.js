@@ -166,7 +166,7 @@ var ListView=NFView.extend({
             var tab=tabs[tab_no];
             var tab_condition=tab[1];
             if (_.isObject(tab_condition)) {
-                condition=condition.concat(tab_condition);
+                condition=condition.concat([tab_condition]);
             }
         }
         if (!_.isString(tab_condition)) {
@@ -196,6 +196,7 @@ var ListView=NFView.extend({
         if (that.options.show_full) {
             this.data.header_scroll=true;
         }
+        log("yes2 ", tab_condition, condition);
         if (!_.isString(tab_condition)) {
             this.render_waiting();
             rpc_execute(model_name,"search_read",[condition],opts,function(err,data) {

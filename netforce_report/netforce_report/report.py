@@ -95,7 +95,7 @@ def _get_report_path(name, params={}):
         res = get_model("report.template").search([["name", "=", name]])
         if not res:
             raise Exception("Report template not found: %s" % name)
-        tmpl_id = res[0]
+        tmpl_id = res[-1]
         tmpl = get_model("report.template").browse(tmpl_id)
         in_path = utils.get_file_path(tmpl.file)
         data = open(in_path, "rb").read()
