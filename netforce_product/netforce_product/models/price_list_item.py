@@ -24,7 +24,7 @@ from netforce.model import Model, fields
 class PriceListItem(Model):
     _name = "price.list.item"
     _string = "Price List Item"
-    _key = ["list_id","product_id"]
+    _key = ["list_id","product_id","price"]
     _fields = {
         "list_id": fields.Many2One("price.list", "Price List", required=True, on_delete="cascade", search=True),
         "type": fields.Selection([["sale", "Sales"], ["purchase", "Purchasing"]], "Type", function="_get_related", function_context={"path": "list_id.type"}, search=True),
@@ -37,5 +37,9 @@ class PriceListItem(Model):
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "discount_text": fields.Char("Discount Text"),
     }
+
+    _sql_constraints = [
+        ("key_uniq", "unique (list_id,product_id,price)", "The price list, product and type must be unique!")
+    ]
 
 PriceListItem.register()

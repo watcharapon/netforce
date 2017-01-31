@@ -41,6 +41,7 @@ class ReportGLDetails(Model):
         "track_id": fields.Many2One("account.track.categ", "Tracking"),
         "track2_id": fields.Many2One("account.track.categ", "Tracking-2"),
         "hide_zero": fields.Boolean("Hide zero lines"),
+        "show_amount_cur": fields.Boolean("Show Currency Amount"),
     }
 
     _defaults = {
@@ -110,6 +111,7 @@ class ReportGLDetails(Model):
             "track_code": track.code if track else None,
             "track2_name": track2.name if track2 else None,
             "track2_code": track2.code if track2 else None,
+            "show_amount_cur": params.get("show_amount_cur"),
         }
 
         ctx = {
@@ -153,6 +155,7 @@ class ReportGLDetails(Model):
                     "description": line.description,
                     "debit": line.debit,
                     "credit": line.credit,
+                    "amount_cur": line.amount_cur,
                     "balance": bg_bal,
                     "contact_name": line.contact_id.name,
                     "track_code": line.track_id.code,
