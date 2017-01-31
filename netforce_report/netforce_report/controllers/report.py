@@ -219,7 +219,7 @@ class Report(Controller):
                 self.write(out)
             elif type == "report_xls":
                 model = action_vals["model"]
-                method = action_vals["method"]
+                method = action_vals.get("method", "get_report_data")
                 m = get_model(model)
                 f = getattr(m, method, None)
                 ctx2 = ctx.copy()  # XXX
