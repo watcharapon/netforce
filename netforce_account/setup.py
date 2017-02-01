@@ -25,4 +25,6 @@ setup(
     name="netforce_account",
     version="3.1.0",
     description="Accounting module",
+    packages=['netforce_account'],
+    include_package_data=True
 )

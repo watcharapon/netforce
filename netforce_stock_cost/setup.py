@@ -25,4 +25,6 @@ setup(
     name="netforce_stock_cost",
     version="3.1.0",
     description="Costing module",
+    packages=['netforce_stock_cost'],
+    include_package_data=True
 )

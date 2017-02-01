@@ -25,4 +25,6 @@ setup(
     name="netforce_portal",
     version="3.1.0",
     description="Custome portal",
+    packages=['netforce_portal'],
+    include_package_data=True
 )

@@ -25,4 +25,6 @@ setup(
     name="netforce_purchase",
     version="3.1.0",
     description="Purchasing module",
+    packages=['netforce_purchase'],
+    include_package_data=True
 )
