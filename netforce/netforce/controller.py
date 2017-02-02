@@ -32,6 +32,7 @@ import json
 from netforce.model import get_model
 from . import access
 import os
+import subprocess
 from netforce import utils
 from netforce import template
 
@@ -53,6 +54,15 @@ class Controller(tornado.web.RequestHandler):
         dbname = None
         if self.get_cookie("dbname"):
             dbname = self.get_cookie("dbname")
+
+            #// recheck it dbname exist in posgres
+            try:
+                res=subprocess.Popen(["psql", "-ls"], stdout=subprocess.PIPE).communicate()[0]
+                if dbname not in str(res) and config.get("database"):
+                    dbname = config.get("database")
+            except:
+                pass
+
         elif config.get("database"):
             dbname = config.get("database")
         elif config.get("database_from_domain"):

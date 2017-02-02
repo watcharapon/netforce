@@ -27,7 +27,7 @@ import sys
 import time
 import random
 from netforce.locale import translate
-from netforce.utils import timeout, json_dumps
+from netforce.utils import timeout, json_dumps, print_color
 from netforce.log import rpc_log
 import traceback
 
@@ -47,6 +47,11 @@ class JsonRpc(Controller):
             params = req["params"]
             if method == "execute":
                 model = params[0]
+
+                if model in ('login','sign.up','forgot.passwd'):
+                    database.set_active_db("nfcash")
+                    print_color("NFCASH.RESET DBNAME",'red')
+
                 method = params[1]
                 if method.startswith("_"):
                     raise Exception("Invalid method")

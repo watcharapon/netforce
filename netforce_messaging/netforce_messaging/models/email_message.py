@@ -528,7 +528,7 @@ class EmailMessage(Model):
             if account.get("security") == "starttls":
                 server.starttls()
             if account.get("user"):
-                server.login(account.get("user"), emai_account.get("password"))
+                server.login(account.get("user"), account.get("password"))
             msg = MIMEMultipart()
             msg.set_charset("utf-8")
             msg["From"] = obj.from_addr
@@ -567,7 +567,8 @@ class EmailMessage(Model):
 
             if account.get("type") != "mailgun":
                 raise Exception("Invalid email account type")
-            url = "https://api.mailgun.net/v2/%s/messages" % account.get("user")
+            url = "https://api.mailgun.net/v3/%s/messages" % account.get("user")
+            print('url ', url)
             to_addrs = []
             for a in obj.to_addrs.split(","):
                 a = a.strip()

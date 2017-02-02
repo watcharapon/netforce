@@ -883,6 +883,17 @@ function set_cookie(name,value,days) {
     document.cookie = cookie;
 }
 
+function clear_cookies() {
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        var ind=c.indexOf("=");
+        var name=c.substring(0,ind);
+        set_cookie(name,"",-1);
+    }
+}
+
 function get_cookies() {
     var data={};
     var ca = document.cookie.split(';');
@@ -1716,7 +1727,6 @@ window.NFModel=Backbone.Model.extend({
         if (!this.id) {
             var data=this.toJSON();
             var empty=true;
-            log("yes5 ", data);
             for (var k in data) {
                 var v=data[k];
                 if (v!==null && v!==undefined) {
@@ -1724,7 +1734,7 @@ window.NFModel=Backbone.Model.extend({
                     break;
                 }
             }
-            /*if (empty) return true; // FIXME: doesn't work (ex if empty form)*/
+            if (empty) return true; // FIXME: doesn't work (ex if empty form)
         }
         var errors={};
         var ok=true;
@@ -1744,6 +1754,7 @@ window.NFModel=Backbone.Model.extend({
                     ok=false;
                 }
             }
+
             if (f.type=="one2many") {
                 if (v instanceof NFCollection) {
                     if (!v.check_required()) ok=false;
