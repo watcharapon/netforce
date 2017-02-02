@@ -25,4 +25,6 @@ setup(
     name="netforce_mfg",
     version="3.1.0",
     description="Manufacturing module",
+    packages=['netforce_mfg'],
+    include_package_data=True
 )
