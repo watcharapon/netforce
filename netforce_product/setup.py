@@ -25,4 +25,6 @@ setup(
     name="netforce_product",
     version="3.1.0",
     description="Product module",
+    packages=['netforce_product'],
+    include_package_data=True
 )
