@@ -32,7 +32,6 @@ def list_parent(obj, lst):
     return lst
 
 def get_categs(condition):
-    print("get_categs")
     res=get_model("product").read_group(["categ_id"],condition=condition)
     categ_nums={}
     for r in res:
@@ -68,7 +67,6 @@ def get_categs(condition):
     return top_categs
 
 def get_brands(condition):
-    print("get_brands")
     res=get_model("product").read_group(["brand_id"],condition=condition)
     brand_nums={}
     for r in res:
@@ -113,7 +111,6 @@ def get_price_range(products, checked):
             data = (str(price_range[i]), str(price_range[i + 1] - 1))
         except IndexError:
             data = (str(price_range[i]), str(price_max))
-        print(checked, list(data), checked == list(data))
         price_range[i] = {"value": "%s-%s" % data, "text": "%s - %s" % data, "checked": "checked" if checked == list(data) else ""}
         i = i + 1
     return price_range
@@ -152,6 +149,7 @@ class Products(BaseController):
     def get(self):
         db = get_connection()
         try:
+            description =""
             ctx = self.context
             categ_id=self.get_argument("categ_id",None)
             if categ_id:
@@ -181,10 +179,13 @@ class Products(BaseController):
             price=self.get_argument("price",None)
             sort_by=self.get_argument("sort_by",None)
             cond = [["parent_id","=",None],["is_published","=",True]]
+            cond_price = [["parent_id","=",None],["is_published","=",True]]
             cond_filter_categ = cond[:]
             cond_filter_brand = cond[:]
             if categ_id:
                 cond.append(["categ_id","child_of",categ_id])
+                cond_price.append(["categ_id","child_of",categ_id])
+                cond_price.append(["categ_id","child_of",categ_id])
                 ctx["list_parent_categ"] = list_parent(get_model("product.categ").browse(categ_id), lst=[]) # XXX
                 cond_filter_brand.append(["categ_id","child_of",categ_id])
                 categ = get_model("product.categ").browse(categ_id)
@@ -192,15 +193,29 @@ class Products(BaseController):
                     "name": categ.name, "image": categ.image if categ.sub_categories else None,
                     "last_level_categs": get_last_level(categ),
                 }
+
+                if categ.description:
+                    description = categ.description
+                else:
+                    desc = categ
+                    while desc.parent_id:
+                        desc = desc.parent_id
+                        if desc.description:
+                            description = desc.description
+                            break;
+                if description:
+                    ctx["title_description"] = description
                 while categ.parent_id:
                     categ = categ.parent_id
                 cond_filter_categ.append(["categ_id","child_of",categ.id])
                 ctx["categ"] = categ_ctx
             if brand_id:
                 cond.append(["brand_id","child_of",brand_id])
+                cond_price.append(["brand_id","child_of",brand_id])
                 cond_filter_categ.append(["brand_id","child_of",brand_id])
             if supp_id:
                 cond.append(["company_id","child_of",supp_id])
+                cond_price.append(["company_id","child_of",supp_id])
                 cond_filter_categ.append(["company_id","child_of",supp_id])
                 cond_filter_brand.append(["company_id","child_of",supp_id])
             prices = ["0", "0"]
@@ -221,25 +236,30 @@ class Products(BaseController):
                 "pricelist_id": website.sale_channel_id.pricelist_id.id if website.sale_channel_id else None,
                 "product_filter": cond,
             }
+
             user_id=self.get_cookie("user_id",None)
             if user_id:
                 user_id=int(user_id)
                 user=get_model("base.user").browse(user_id)
                 contact = user.contact_id
-                if contact.sale_price_list_id.id:
-                    browse_ctx["pricelist_id"] =contact.sale_price_list_id.id 
-                
+                #pricelist_ids=[website.sale_channel_id.pricelist_id.id]
+                pricelist_ids=[]
+                if contact.groups:
+                    for group in contact.groups:
+                        if group.sale_price_list_id:
+                            pricelist_ids.append(group.sale_price_list_id.id)
+                browse_ctx["pricelist_ids"]=pricelist_ids
             products = get_model("product").search_browse(condition=cond,order=sort_by,context=browse_ctx)
 
             cond_filter_supp = cond[:]
             if supp_id: cond_filter_supp.remove(["company_id","child_of", supp_id])
-
+            print("condition",cond_price)
             ctx["products"] = products
             ctx["categs"] = get_categs(cond_filter_categ)
             ctx["brands"] = get_brands(cond_filter_brand)
             ctx["suppliers"] = get_supps(get_model("product").search_browse(condition=cond_filter_supp, order=sort_by, context=browse_ctx))
             ctx["events"] = get_events()
-            ctx["pricerange"] = get_price_range(get_model("product").search_browse([],context=browse_ctx), prices)
+            ctx["pricerange"] = get_price_range(get_model("product").search_browse(cond_price,context=browse_ctx), prices)
             ctx["filter_product_groups"]=get_model("product.group").search_browse([["code","=","recommended"]],context=browse_ctx)[0]
             data={
                 "categ_id": categ_id,
