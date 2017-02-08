@@ -160,6 +160,7 @@ class ReportGLDetails(Model):
                     "contact_name": line.contact_id.name,
                     "track_code": line.track_id.code,
                     "track2_code": line.track2_id.code,
+                    "tax_no": line.tax_no,
                 }
                 if not line_vals['contact_name'] and line.move_id.related_id:
                     # FIXME USE TRY EXPRESSION TO CHECK if RELATED FIELD  EXISTED (TEMPORALY)
