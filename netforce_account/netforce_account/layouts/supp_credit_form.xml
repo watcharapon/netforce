@@ -98,7 +98,7 @@
         <button string="Save" split="1" method="_save" size="large" type="primary">
             <item string="Save &amp; submit for approval" method="submit_for_approval"/>
         </button>
-        <button string="Approve" method="approve" size="large" type="success"/>
+        <button string="Approve" perm="supp_credit_approve" method="approve" size="large" type="success"/>
     </foot>
     <related>
         <action name="invoice_refund" states="waiting_payment"/>
