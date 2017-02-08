@@ -79,7 +79,7 @@ class Invoice(Model):
         "documents": fields.One2Many("document", "related_id", "Documents"),
         "fixed_assets": fields.One2Many("account.fixed.asset", "invoice_id", "Fixed Assets"),
         "tax_no": fields.Char("Tax No."),
-        "tax_branch_no": fields.Char("Tax Branch No."),
+        "tax_branch_no": fields.Char("Tax Branch No."), #deprecated
         "pay_method_id": fields.Many2One("payment.method", "Payment Method"),
         "journal_id": fields.Many2One("account.journal", "Journal"),
         "sequence_id": fields.Many2One("sequence", "Sequence"),
