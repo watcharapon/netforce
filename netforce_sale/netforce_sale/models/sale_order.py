@@ -1273,7 +1273,8 @@ class SaleOrder(Model):
         obj.write({"track_id":sale_track_id})
         for line in obj.lines:
             if not line.sequence:
-                raise Exception("Missing sequence in sales order line")
+                continue
+                #raise Exception("Missing sequence in sales order line")
             code="%s / %s"%(obj.number,line.sequence)
             res=get_model("account.track.categ").search([["code","=",code]])
             if res:
