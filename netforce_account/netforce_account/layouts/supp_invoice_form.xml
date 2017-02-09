@@ -9,7 +9,7 @@
             <item string="Void" method="void" confirm="Are you sure you want to void this invoice?" states="draft,waiting_payment"/>
             <item string="To Draft" method="to_draft" states="waiting_payment"/>
             <divider/>
-            <item string="View Journal Entry" method="view_journal_entry" states="waiting_payment,paid"/>
+            <item string="View Journal Entry" method="view_journal_entry" states="waiting_payment,paid,voided"/>
         </button>
     </head>
     <tabs>
