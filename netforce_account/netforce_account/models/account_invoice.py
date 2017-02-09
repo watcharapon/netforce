@@ -78,7 +78,7 @@ class Invoice(Model):
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "documents": fields.One2Many("document", "related_id", "Documents"),
         "fixed_assets": fields.One2Many("account.fixed.asset", "invoice_id", "Fixed Assets"),
-        "tax_no": fields.Char("Tax No."),
+        "tax_no": fields.Char("Tax No.", search=True),
         "tax_branch_no": fields.Char("Tax Branch No."), #deprecated
         "pay_method_id": fields.Many2One("payment.method", "Payment Method"),
         "journal_id": fields.Many2One("account.journal", "Journal"),
@@ -322,13 +322,14 @@ class Invoice(Model):
                 "tax_comp_id": comp_id,
                 "base_amount": get_model("currency").round(obj.currency_id.id,tax_vals["base_amt"]),
                 "tax_amount": get_model("currency").round(obj.currency_id.id,tax_vals["tax_amt"]),
+                'tax_date': obj.date,
             }
             if comp.type in ("vat", "vat_exempt"):
                 if obj.type == "out":
                     if obj.tax_no:
                         tax_no = obj.tax_no
                     else:
-                        tax_no = self.gen_tax_no(exclude=tax_nos, context={"date": obj.date})
+                        tax_no = self.gen_tax_no(exclude=tax_nos, context={"date": obj.date, "type": obj.type,"inv_type": obj.inv_type})
                         tax_nos.append(tax_no)
                         obj.write({"tax_no": tax_no})
                     vals["tax_no"] = tax_no
@@ -441,6 +442,7 @@ class Invoice(Model):
                     "contact_id": contact.id,
                     "invoice_id": obj.id,
                     "tax_no": tax.tax_no,
+                    'tax_date': tax.tax_date,
                 }
                 lines.append(line_vals)
             t02 = time.time()
@@ -529,7 +531,12 @@ class Invoice(Model):
             raise Exception("Can't void invoice because there are linked credit notes")
         if obj.move_id:
             obj.move_id.void()
-            obj.move_id.delete()
+            #obj.move_id.delete()
+        for tax in obj.taxes:
+            tax.write({
+                'base_amount': 0,
+                'tax_amount': 0,
+            })
         obj.write({"state": "voided"})
 
     def to_draft(self, ids, context={}):
@@ -565,8 +572,9 @@ class Invoice(Model):
             subtotal=get_model("currency").round(inv.currency_id.id,subtotal)
             tax=get_model("currency").round(inv.currency_id.id,tax)
             vals["amount_subtotal"] = subtotal
-            if inv.taxes:
+            if inv.taxes and inv.state!='voided':
                 tax=sum(t.tax_amount for t in inv.taxes)
+            print("zzzz ", tax)
             vals["amount_tax"] = tax
             if inv.tax_type == "tax_in":
                 vals["amount_rounding"] = sum(l.amount for l in inv.lines) - (subtotal + tax)
@@ -974,8 +982,15 @@ class Invoice(Model):
         }
 
     def gen_tax_no(self, exclude=None, context={}):
-        company_id = get_active_company()  # XXX: improve this?
-        seq_id = get_model("sequence").find_sequence(type="tax_no")
+        type=context.get("type")
+        inv_type=context.get("inv_type")
+        seq_type="tax_no"
+        if inv_type=='debit':
+            seq_type='debit_tax_no'
+        elif inv_type=='credit':
+            seq_type='credit_tax_no'
+        company_id = get_active_company()
+        seq_id = get_model("sequence").find_sequence(type=seq_type)
         if not seq_id:
             return None
         while 1:
