@@ -164,9 +164,9 @@ class Invoice(Model):
     def check_fields(self, ids, context={}):
         for obj in self.browse(ids):
             if obj.state in ("waiting_approval", "waiting_payment"):
-                if obj.inv_type == "invoice":
-                    if not obj.due_date:
-                        raise Exception("Missing due date")
+                #if obj.inv_type == "invoice":
+                if not obj.due_date:
+                    raise Exception("Missing due date")
                 # if not obj.lines: # XXX: in myob, lines can be empty...
                 #    raise Exception("Lines are empty")
 
@@ -574,7 +574,6 @@ class Invoice(Model):
             vals["amount_subtotal"] = subtotal
             if inv.taxes and inv.state!='voided':
                 tax=sum(t.tax_amount for t in inv.taxes)
-            print("zzzz ", tax)
             vals["amount_tax"] = tax
             if inv.tax_type == "tax_in":
                 vals["amount_rounding"] = sum(l.amount for l in inv.lines) - (subtotal + tax)
@@ -895,7 +894,6 @@ class Invoice(Model):
             "currency_rate": obj.currency_rate,
             "tax_type": obj.tax_type,
             "memo": obj.memo,
-            "tax_no": obj.tax_no,
             "pay_method_id": obj.pay_method_id.id,
             "original_invoice_id": obj.id,
             "lines": [],
@@ -939,7 +937,6 @@ class Invoice(Model):
             "currency_rate": obj.currency_rate,
             "tax_type": obj.tax_type,
             "memo": obj.memo,
-            "tax_no": obj.tax_no,
             "pay_method_id": obj.pay_method_id.id,
             "original_invoice_id": obj.id,
             "lines": [],
