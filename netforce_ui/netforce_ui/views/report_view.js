@@ -632,12 +632,8 @@ var ReportView=NFView.extend({
 
     eval_condition: function(condition) {
         var cond = this.options.condition;
-        if (!cond) return [];
-        if (!condition) {
-            var condition = [];
-        }
+        if (!cond) return condition;
         var expr=JSON.parse(cond);
-        var cond=[];
         for (var attr in expr) {
             var conds=expr[attr];
             condition.push(conds);
