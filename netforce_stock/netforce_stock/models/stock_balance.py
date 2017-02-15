@@ -79,6 +79,13 @@ class StockBalance(Model):
             res = db.query("SELECT id,uom_id FROM product WHERE id IN %s", tuple(prod_ids))
             for r in res:
                 prod_uoms[r.id] = r.uom_id
+
+            all_min_qtys = {}
+            res = db.query(
+                "SELECT location_id,product_id,min_qty,uom_id FROM stock_orderpoint")
+            for r in res:
+                all_min_qtys[(r.location_id, r.product_id)] = (r.min_qty, r.uom_id)
+
             min_qtys = {}
             res = db.query(
                 "SELECT location_id,product_id,min_qty,uom_id FROM stock_orderpoint WHERE product_id IN %s", tuple(prod_ids))
@@ -176,14 +183,29 @@ class StockBalance(Model):
                         parent_vals["last_change"] = bal_vals["last_change"]
                     parent_vals["qty2"] += bal_vals["qty2"]
                     child_id = parent_id
+
+            loc_total_virt_qtys={}
             total_virt_qtys={}
             for (loc_id, cont_id, prod_id, lot_id), bal_vals in bals.items():
+                loc_total_virt_qtys.setdefault((loc_id,prod_id),0)
+                loc_total_virt_qtys[(loc_id,prod_id)]+=bal_vals["qty_virt"]
+
                 total_virt_qtys.setdefault(prod_id,0)
                 total_virt_qtys[prod_id]+=bal_vals["qty_virt"]
+
             below_prods=set()
-            for prod_id,qty_virt in total_virt_qtys.items():
-                if qty_virt<0: # XXX: take into account min stock rules
-                    below_prods.add(prod_id)
+
+            if all_min_qtys:
+                for loc_prod,qty_virt in loc_total_virt_qtys.items():
+                    min_qty, uom_id = all_min_qtys.get(loc_prod, (0,0))
+                    loc_id, prod_id=loc_prod
+                    if qty_virt < min_qty:
+                        below_prods.add(prod_id)
+            else:
+                for prod_id,qty_virt in total_virt_qtys.items():
+                    if qty_virt<0: # XXX: take into account min stock rules
+                        below_prods.add(prod_id)
+
             for (loc_id, cont_id, prod_id, lot_id), bal_vals in bals.items():
                 bal_vals["below_min"]=prod_id in below_prods
             for (loc_id, cont_id, prod_id, lot_id), bal_vals in bals.items():

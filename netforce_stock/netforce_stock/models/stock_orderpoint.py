@@ -27,7 +27,7 @@ class OrderPoint(Model):
     _name = "stock.orderpoint"
     _string = "Minimum Stock Rule"
     _fields = {
-        "location_id": fields.Many2One("stock.location", "Warehouse", search=True),
+        "location_id": fields.Many2One("stock.location", "Warehouse", required=True, search=True),
         "product_id": fields.Many2One("product", "Product", required=True, search=True),
         "min_qty": fields.Decimal("Min Qty", required=True),
         "max_qty": fields.Decimal("Max Qty", required=True),
