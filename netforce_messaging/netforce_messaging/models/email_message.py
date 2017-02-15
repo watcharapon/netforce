@@ -67,7 +67,7 @@ class EmailMessage(Model):
         "content_type": fields.Selection([["plain", "Plain Text"], ["html", "HTML"]], "Content Type"),
         "body": fields.Text("Body", search=True),
         "state": fields.Selection([["draft", "Draft"], ["to_send", "To Send"], ["sent", "Sent"], ["delivered", "Delivered"], ["bounced", "Bounced"], ["rejected", "Rejected"], ["received", "Received"], ["error", "Error"]], "Status", required=True, search=True),
-        "message_id": fields.Char("Message ID", size=256),
+        "message_id": fields.Char("Message ID", size=256,search=True), # need this index
         "mailbox_message_uid": fields.Char("Mailbox Message UID"),
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "name_id": fields.Reference([["contact", "Contact"], ["sale.lead", "Sales Lead"], ["mkt.target", "Marketing Target"]], "Contact Person", search=True),
@@ -709,6 +709,7 @@ class EmailMessage(Model):
             if not acc:
                 continue
             if acc.type == "imap":
+                continue #<<<
                 mailbox.fetch_emails_imap()
                 mailbox.get_flags_imap()
             elif acc.type == "pop":

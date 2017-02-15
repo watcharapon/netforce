@@ -87,88 +87,103 @@ class Mailbox(Model):
             raise Exception("Missing email account")
         if acc.type != "mailgun":
             raise Exception("Invalid email account type")
-        url = "https://api.mailgun.net/v3/%s/events" % acc.user
         res = get_model("email.event").search([], order="date desc", limit=1)
         if res:
             last_event = get_model("email.event").browse(res[0])
             last_date = last_event.date
         else:
             last_event = None
-            last_date = "2000-01-01 00:00:00"
+            last_date = "2017-01-01 00:00:00"
+
+
+        url = "https://api.mailgun.net/v3/%s/events" % acc.user
+
+        d0 = datetime.strptime(last_date, "%Y-%m-%d %H:%M:%S")
+        d0 = d0.timetuple()
+        d0 = time.mktime(d0)
+        d0 = formatdate(d0)
+
+        data = {
+            "ascending": "yes",
+            "limit": 300,
+            "begin":d0,
+        }
+
+        events=[]
+
+        print("requesting events from mailgun...")
+        print("data", data)
         while True:
-            data = {
-                "ascending": "yes",
-                "limit": 100,
-            }
-            d0 = datetime.strptime(last_date, "%Y-%m-%d %H:%M:%S")
-            d0 = d0.timetuple()
-            d0 = time.mktime(d0)
-            d0 = formatdate(d0)
-            data["begin"] = d0
-            print("requesting events from mailgun...")
-            print("data", data)
+
             r = requests.get(url, auth=("api", acc.password), params=data, timeout=30)
-            # print("RES",r.text)
             res = json.loads(r.text)
-            new_last_date = None
-            ev_items = res["items"]
-            for ev in ev_items:
-                d = datetime.fromtimestamp(ev["timestamp"])
-                ev_date = d.strftime("%Y-%m-%d %H:%M:%S")
-                if not new_last_date or ev_date > new_last_date:
-                    new_last_date = ev_date
-                msg = ev.get("message")
-                if not msg:
-                    continue
-                msg_id = msg["headers"]["message-id"]
-                msg_id = "<" + msg_id + ">"
-                res = get_model("email.message").search([["mailbox_id", "=", obj.id], ["message_id", "=", msg_id]])
-                if not res:
-                    print("WARNING: Email not found: %s" % msg_id)
-                    continue
-                email_id = res[0]
-                email = get_model("email.message").browse(email_id)
-                vals = {
-                    "email_id": email_id,
-                    "date": ev_date,
-                    "ip_addr": ev.get("ip"),
-                    "url": ev.get("url"),
-                }
-                if last_event and vals["date"] <= last_event.date and vals["email_id"] == last_event.email_id.id:  # XXX
-                    print("Event already imported: %s" % last_event.id)
-                    continue
-                geo = ev.get("geolocation")
-                if geo:
-                    vals["location"] = "%(city)s/%(region)s/%(country)s" % geo
-                client = ev.get("client-info")
-                if client:
-                    vals["user_agent"] = client["user-agent"]
-                vals["type"] = ev["event"]
-                delivery = ev.get("delivery-status")
-                if delivery:
-                    vals["details"] = delivery.get("message") or delivery.get("description")
-                get_model("email.event").create(vals)
-                if vals["type"] == "opened":
-                    email.write({"opened": True})
-                elif vals["type"] == "clicked":
-                    email.write({"clicked": True})
-                elif vals["type"] == "delivered":
-                    email.write({"state": "delivered"})
-                elif vals["type"] == "failed":
-                    email.write({"state": "bounced"})
-                    get_model("email.reject").add_to_black_list(ev["recipient"], reason="bounced")
-                elif vals["type"] == "rejected":
-                    email.write({"state": "rejected"})
-                    get_model("email.reject").add_to_black_list(ev["recipient"], reason="rejected")
-                elif vals["type"] == "unsubscribed":
-                    email.write({"state": "rejected"})
-                    get_model("email.reject").add_to_black_list(ev["recipient"], reason="unsubscribed")
-                elif vals["type"] == "complained":
-                    email.write({"state": "rejected"})
-                    get_model("email.reject").add_to_black_list(ev["recipient"], reason="complained")
-            if len(ev_items) < 100:
+            lines = res["items"]
+
+            url = res["paging"]["next"]
+            if not lines:
                 break
-            last_date = new_last_date
+            print("event couting...", len(events))
+            events+=lines
+
+        print("processing email data")
+        for ev in events:
+            ct0 = time.time()
+
+            d = datetime.fromtimestamp(ev["timestamp"])
+            ev_date = d.strftime("%Y-%m-%d %H:%M:%S") # better use convert function
+            msg = ev.get("message")
+            if not msg:
+                continue
+
+            msg_id = msg["headers"]["message-id"]
+            msg_id = "<" + msg_id + ">"
+            res = get_model("email.message").search([["mailbox_id", "=", obj.id], ["message_id", "=", msg_id]])
+            if not res:
+                print("WARNING: Email not found: %s" % msg_id)
+                continue
+            email_id = res[0]
+            email = get_model("email.message").browse(email_id)
+            vals = {
+                "email_id": email_id,
+                "date": ev_date,
+                "ip_addr": ev.get("ip"),
+                "url": ev.get("url"),
+            }
+            if last_event and vals["date"] <= last_event.date and vals["email_id"] == last_event.email_id.id:  # XXX
+                print("Event already imported: %s" % last_event.id)
+                continue
+            geo = ev.get("geolocation")
+            if geo:
+                vals["location"] = "%(city)s/%(region)s/%(country)s" % geo
+            client = ev.get("client-info")
+            if client:
+                vals["user_agent"] = client["user-agent"]
+            vals["type"] = ev["event"]
+            delivery = ev.get("delivery-status")
+            if delivery:
+                vals["details"] = delivery.get("message") or delivery.get("description")
+            get_model("email.event").create(vals)
+            if vals["type"] == "opened":
+                email.write({"opened": True})
+            elif vals["type"] == "clicked":
+                email.write({"clicked": True})
+            elif vals["type"] == "delivered":
+                email.write({"state": "delivered"})
+            elif vals["type"] == "failed":
+                email.write({"state": "bounced"})
+                get_model("email.reject").add_to_black_list(ev["recipient"], reason="bounced")
+            elif vals["type"] == "rejected":
+                email.write({"state": "rejected"})
+                get_model("email.reject").add_to_black_list(ev["recipient"], reason="rejected")
+            elif vals["type"] == "unsubscribed":
+                email.write({"state": "rejected"})
+                get_model("email.reject").add_to_black_list(ev["recipient"], reason="unsubscribed")
+            elif vals["type"] == "complained":
+                email.write({"state": "rejected"})
+                get_model("email.reject").add_to_black_list(ev["recipient"], reason="complained")
+
+            ct1 = time.time()
+            print("Mailgun Event imported elapsed", ct1-ct0)
 
     def fetch_all_emails(self, context={}):
         ids = self.search([["account_id.type", "in", ["pop", "imap"]]])

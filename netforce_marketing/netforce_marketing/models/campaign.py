@@ -102,7 +102,7 @@ class Campaign(Model):
                     continue
 
                 # skip unverify email
-                if target.email.email_status!="verified":
+                if target.email_status!="verified":
                     continue
 
                 #skip email rejected
@@ -114,11 +114,11 @@ class Campaign(Model):
                     continue
                 if limit is not None and count >= limit:
                     break
-
                 settings = get_model("settings").browse(1)
                 data = {
                     "settings": settings,
                     "obj": target,
+                    "cached_id" : obj.id,
                 }
                 obj.email_tmpl_id.create_email(
                     data, name_id="mkt.target,%d" % target.id, related_id="mkt.campaign,%d" % obj.id, mailbox_id=obj.mailbox_id.id)
