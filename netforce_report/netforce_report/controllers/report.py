@@ -229,7 +229,6 @@ class Report(Controller):
                 #if not tmpl_name and action_vals.get("template_method"):
                     #f = getattr(m, action_vals["template_method"])
                     #tmpl_name = f(context=action_vals)
-
                 model = action_vals["model"]
                 method = action_vals.get("method", "get_report_data")
                 convert = action_vals.get("convert")

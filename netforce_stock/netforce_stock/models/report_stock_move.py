@@ -106,7 +106,7 @@ class ReportStockMove(Model):
             lines.append(line)
         title = ""
         if pick_type == "in":
-            title = "Goods Receive Report"
+            title = "Goods Receipt Report"
         elif pick_type == "out":
             title = "Goods Issue Report"
         elif pick_type == "internal":

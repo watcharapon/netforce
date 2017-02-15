@@ -8,7 +8,7 @@
             <item string="To Draft" method="to_draft" states="waiting_payment"/>
             <item string="Allocate Credit" action="credit_alloc" action_options='{"credit_id":id}' states="waiting_payment"/>
             <divider/>
-            <item string="View Journal Entry" method="view_journal_entry" states="waiting_payment,paid"/>
+            <item string="View Journal Entry" method="view_journal_entry" states="waiting_payment,paid,voided"/>
         </button>
     </head>
     <tabs>
@@ -79,6 +79,18 @@
                 </field>
                 <field name="amount_credit_remain" states="waiting_payment,paid"/>
             </group>
+        </tab>
+        <tab string="Taxes">
+            <field name="taxes">
+                <list>
+                    <field name="tax_comp_id"/>
+                    <field name="base_amount"/>
+                    <field name="tax_amount"/>
+                    <field name="tax_no"/>
+                    <field name="tax_date"/>
+                </list>
+            </field>
+            <button string="Calculate Taxes" method="calc_taxes" icon="pencil"/>
         </tab>
         <tab string="Other Info">
             <field name="journal_id" onchange="onchange_journal"/>
