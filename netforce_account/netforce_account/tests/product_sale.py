@@ -62,6 +62,7 @@ class Test(TestCase):
         self.assertEqual(pmt.state,"posted")
         self.assertEqual(inv.state,"paid")
         move=pmt.move_id
+
         self.assertEqual(move.lines[0].account_id.name,"Saving Account -Kbank")
         self.assertEqual(move.lines[0].debit,1070)
         self.assertEqual(move.lines[1].account_id.name,"Account receivables - Trade")
