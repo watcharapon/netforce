@@ -25,4 +25,6 @@ setup(
     name="netforce_jsonrpc",
     version="3.1.0",
     description="JSON-RPC module",
+    packages=['netforce_jsonrpc'],
+    include_package_data=True
 )

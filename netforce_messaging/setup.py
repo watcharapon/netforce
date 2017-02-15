@@ -25,4 +25,6 @@ setup(
     name="netforce_messaging",
     version="3.1.0",
     description="Netforce messaging module",
+    packages=['netforce_messaging'],
+    include_package_data=True
 )

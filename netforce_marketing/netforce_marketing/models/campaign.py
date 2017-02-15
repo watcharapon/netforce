@@ -114,6 +114,7 @@ class Campaign(Model):
                     continue
                 if limit is not None and count >= limit:
                     break
+
                 settings = get_model("settings").browse(1)
                 data = {
                     "settings": settings,

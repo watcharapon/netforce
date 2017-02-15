@@ -1,4 +1,6 @@
 from netforce.model import Model,fields,get_model
+from netforce import database
+from netforce import utils
 
 class EcomInterface(Model):
     _name="ecom2.interface"
@@ -42,8 +44,13 @@ class EcomInterface(Model):
             raise Exception("Invalid login")
         user=get_model("base.user").browse(user_id)
         contact=user.contact_id
+        dbname=database.get_active_db()
         return {
             "user_id": user_id,
+            "name":user.name,
+            "profile":user.profile_id.name if user.profile_id else "",
+            "token": utils.new_token(dbname,user_id),
+
         }
 
 EcomInterface.register()

@@ -277,7 +277,15 @@ class SaleOrder(Model):
         obj = self.browse(ids)[0]
         if obj.state != "draft":
             raise Exception("Invalid state")
+        if not obj.due_date:
+            raise Exception("Missing Due Date!")
         for line in obj.lines:
+            #shipping method in lines is deprecated, so we should have only 1 shipping method per SO
+            #if not it will split invoice & picking
+            if obj.ship_method_id and line.ship_method_id.id!=obj.ship_method_id.id:
+                line.write({
+                    'ship_method_id': obj.ship_method_id.id,
+                })
             prod = line.product_id
             if prod and prod.type in ("stock", "consumable", "bundle") and not line.location_id:
                 raise Exception("Missing location for product %s" % prod.code)
@@ -1265,7 +1273,8 @@ class SaleOrder(Model):
         obj.write({"track_id":sale_track_id})
         for line in obj.lines:
             if not line.sequence:
-                raise Exception("Missing sequence in sales order line")
+                continue
+                #raise Exception("Missing sequence in sales order line")
             code="%s / %s"%(obj.number,line.sequence)
             res=get_model("account.track.categ").search([["code","=",code]])
             if res:

@@ -218,17 +218,37 @@ class Report(Controller):
                 self.set_header("Content-Type", "application/pdf")
                 self.write(out)
             elif type == "report_xls":
+                #model = action_vals["model"]
+                #method = action_vals["method"]
+                #m = get_model(model)
+                #f = getattr(m, method, None)
+                #ctx2 = ctx.copy()  # XXX
+                #ctx2.update(action_vals)
+                #data = f(context=ctx2)
+                #tmpl_name = action_vals.get("template")
+                #if not tmpl_name and action_vals.get("template_method"):
+                    #f = getattr(m, action_vals["template_method"])
+                    #tmpl_name = f(context=action_vals)
                 model = action_vals["model"]
-                method = action_vals["method"]
+                method = action_vals.get("method", "get_report_data")
+                convert = action_vals.get("convert")
+                refer_id = action_vals.get("refer_id")
                 m = get_model(model)
                 f = getattr(m, method, None)
-                ctx2 = ctx.copy()  # XXX
-                ctx2.update(action_vals)
-                data = f(context=ctx2)
+                if "ids" in action_vals:
+                    ids = json.loads(action_vals["ids"])
+                elif "refer_id" in action_vals:
+                    ids = [int(action_vals["refer_id"])]
+                else:
+                    raise Exception("Missing report ids")
+                print("ids", ids)
+                ctx = action_vals.copy()
+                data = f(ids, context=ctx)
                 tmpl_name = action_vals.get("template")
                 if not tmpl_name and action_vals.get("template_method"):
                     f = getattr(m, action_vals["template_method"])
-                    tmpl_name = f(context=action_vals)
+                    tmpl_name = f(ids, context=action_vals)
+
                 out = report_render_xls(tmpl_name, data)
                 db = get_connection()
                 if db:

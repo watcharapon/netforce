@@ -5,4 +5,6 @@ setup(
     name="netforce_xmlrpc",
     version="3.1.0",
     description="Netforce XML-RPC module",
+    packages=['netforce_xmlrpc'],
+    include_package_data=True
 )
