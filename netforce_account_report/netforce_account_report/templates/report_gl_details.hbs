@@ -24,6 +24,9 @@
                 Number
             </th>
             <th>
+                Tax No.
+            </th>
+            <th>
                 Description
             </th>
             <th>
@@ -80,6 +83,9 @@
                         {{/view}}
                     </td>
                     <td>
+                        {{tax_no}}
+                    </td>
+                    <td>
                         {{description}}
                     </td>
                     <td>
@@ -108,7 +114,7 @@
                 </tr>
             {{/each}}
             <tr>
-                <td colspan="8"></td>
+                <td colspan="9"></td>
                 <td style="text-align:right;font-weight:bold">
                     {{currency debit_total zero=""}}
                 </td>
