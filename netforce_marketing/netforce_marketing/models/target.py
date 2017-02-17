@@ -58,7 +58,7 @@ class Target(Model):
         vals = []
         for obj in self.browse(ids):
             if obj.first_name:
-                name = obj.first_name + " " + obj.last_name
+                name = obj.first_name + " " + (obj.last_name or '')
             else:
                 name = obj.last_name
             vals.append((obj.id, name))

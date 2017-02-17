@@ -34,4 +34,6 @@ setup(name="netforce",
         "pillow>=2.3.0",
         "XLSXWriter>=0.7.8"
     ],
+    packages=['netforce'],
+    include_package_data=True
 )

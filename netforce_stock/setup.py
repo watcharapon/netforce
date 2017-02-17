@@ -25,4 +25,6 @@ setup(
     name="netforce_stock",
     version="3.1.0",
     description="Warehouse module",
+    packages=['netforce_stock'],
+    include_package_data=True
 )

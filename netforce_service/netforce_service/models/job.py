@@ -115,13 +115,13 @@ class Job(Model):
         "agg_total_sell": fields.Decimal("Total Selling", agg_function=["sum", "total_sell"]),
     }
     _order = "number"
-    _sql_constraints = [
-        ("number_uniq", "unique (number)", "The job number must be unique!"),
-    ]
 
     def _get_number(self, context={}):
+        seq_id = get_model("sequence").find_sequence(type="job",context=context)
+        if not seq_id:
+            return None
         while 1:
-            num = get_model("sequence").get_number(type="job")
+            num = get_model("sequence").get_next_number(seq_id, context=context)
             if not num:
                 return None
             user_id = get_active_user()
@@ -130,7 +130,7 @@ class Job(Model):
             set_active_user(user_id)
             if not res:
                 return num
-            get_model("sequence").increment(type="job")
+            get_model("sequence").increment_number(seq_id, context=context)
 
     def name_get(self, ids, context={}):
         vals = []

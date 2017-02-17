@@ -25,4 +25,6 @@ setup(
     name="netforce_support",
     version="3.1.0",
     description="Customer support module",
+    packages=['netforce_support'],
+    include_package_data=True
 )
