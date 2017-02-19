@@ -2138,8 +2138,9 @@ class Model(object):
                 mtime=obj.write_time
             else:
                 mtime=None
-            res.append((k,mtime))
-        return res
+            yield(k,mtime) ### also   ### this is way too faster than append.http://nvie.com/posts/iterators-vs-generators/
+            #res.append((k,mtime))
+        #yield res
 
     def sync_export(self, ids, context={}):
         # print("Model.sync_export",self._name,ids)
