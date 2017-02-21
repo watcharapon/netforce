@@ -25,4 +25,6 @@ setup(
     name="netforce_hr",
     version="3.1.0",
     description="HR module",
+    packages=['netforce_hr'],
+    include_package_data=True
 )

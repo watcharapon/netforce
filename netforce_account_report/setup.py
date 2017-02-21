@@ -25,4 +25,6 @@ setup(
     name="netforce_account_report",
     version="3.1.0",
     description="Accounting report module",
+    packages=['netforce_account_report'],
+    include_package_data=True
 )

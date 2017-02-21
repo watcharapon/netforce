@@ -113,7 +113,7 @@ class ReportTemplate(Model):
         context['fetch']=True
         self.delete(ids,context)
 
-        url="http://mgt.netforce.com/get_report_template?%s"%(get_rand())
+        url="http://mgt.netforce.co.th/get_report_template?%s"%(get_rand())
         res=requests.get(url)
         if res.status_code!=200:
             raise Exception("Wrong url")
@@ -122,7 +122,7 @@ class ReportTemplate(Model):
         for line in lines:
             try:
                 fname=line['file']
-                url="http://mgt.netforce.com/static/db/ctrl/files/%s?%s"%(fname,get_rand())
+                url="http://mgt.netforce.co.th/static/db/ctrl/files/%s?%s"%(fname,get_rand())
                 res2=requests.get(url)
                 if res2.status_code!=200:
                     raise Exception("Wrong url")
