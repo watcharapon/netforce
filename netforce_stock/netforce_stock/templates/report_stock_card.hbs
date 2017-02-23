@@ -77,7 +77,7 @@
             {{#each lines context=context}}
                 <tr>
                     <td>
-                        {{date}}
+                        {{fmt_datetime date}}
                     </td>
                     <td>
                         {{view "link" string=ref action="view_stock_transaction" active_id=id context=context}}
