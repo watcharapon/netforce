@@ -25,4 +25,6 @@ setup(
     name="netforce_sale",
     version="3.1.0",
     description="Sales module",
+    packages=['netforce_sale'],
+    include_package_data=True
 )

@@ -28,4 +28,6 @@ setup(
     install_requires=[
         "html2text>=2016.5.29"
     ],
+    packages=['netforce_general'],
+    include_package_data=True
 )

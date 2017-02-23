@@ -61,8 +61,24 @@ class Template(Model):
             subject = render_template(obj.subject, data)
         except:
             raise Exception("Failed to render 'Subject' in template: %s" % obj.name)
+
+
         try:
+            '''
+            body=False
+
+            # XXX Temporary : search in cache
+            cached_id = data.get("cached_id",False)
+            if cached_id:
+                body = get_model("field.cache").get_value("email.template","body",[cached_id]).get(cached_id,{})
+
+            if not body and use_cache:
+                body = render_template(obj.body.replace("&quot;",'"'), data)
+                if cached_id:
+                    get_model("field.cache").set_value("email.template", "body", cached_id, body)
+            '''
             body = render_template(obj.body.replace("&quot;",'"'), data)
+
         except:
             raise Exception("Failed to render 'Body' in template: %s" % obj.body)
         if obj.related_id and not related_id:

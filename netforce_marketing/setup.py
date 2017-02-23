@@ -25,4 +25,6 @@ setup(
     name="netforce_marketing",
     version="3.1.0",
     description="Marketing module",
+    packages=['netforce_marketing'],
+    include_package_data=True
 )

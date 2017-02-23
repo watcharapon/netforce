@@ -83,7 +83,7 @@ class WorkTime(Model):
         "date": lambda *a: time.strftime("%Y-%m-%d"),
         "resource_id": get_resource,
         "project_id": get_default_project,
-        "related_id": get_default_related,
+        #"related_id": get_default_related,
         "state": "waiting_approval",
     }
 

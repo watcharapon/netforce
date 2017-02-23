@@ -32,7 +32,7 @@ class ReportProduct(Model):
     def products_per_categ(self, context={}):
         db = get_connection()
         res = db.query(
-            "SELECT c.name,COUNT(*) FROM m2m_product_product_categ mc JOIN product_categ c ON mc.product_categ_id = c.id GROUP BY c.name")
+            "SELECT c.name,COUNT(*) FROM product mc JOIN product_categ c ON mc.categ_id = c.id GROUP BY c.name")
         data = []
         for r in res:
             data.append((r.name, r.count))

@@ -25,4 +25,6 @@ setup(
     name="netforce_ecom",
     version="3.1.0",
     description="Ecommerce module",
+    packages=['netforce_ecom'],
+    include_package_data=True
 )
