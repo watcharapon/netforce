@@ -289,6 +289,10 @@ Handlebars.registerHelper("fmt_date",function(v,options) {
     return format_date(v,options);
 });
 
+Handlebars.registerHelper("fmt_datetime",function(v,options) {
+    return format_datetime(v,options);
+});
+
 Handlebars.registerHelper("time_ago",function(v) {
     var d=new Date(v);
     var m=moment(d);
@@ -463,6 +467,26 @@ function format_date(val,options) {
         }
     }
     var val2=moment(val,"YYYY-MM-DD").format(fmt);
+    return val2;
+}
+
+function format_datetime(val,options) {
+    if (!val) return null;
+    if (ui_params_db && ui_params_db.use_buddhist_date) {
+        var year=parseInt(val.substr(0,4));
+        var year2=year+543;
+        val=""+year2+val.substr(4);
+    }
+    if (options && options.hash && options.hash.fmt) {
+        var fmt=options.hash.fmt;
+    } else {
+        if (ui_params_db && ui_params_db.date_format) {
+            var fmt=ui_params_db.date_format;
+        } else {
+            var fmt="YYYY-MM-DD HH:mm:ss";
+        }
+    }
+    var val2=moment(val,"YYYY-MM-DD HH:mm:ss").format(fmt);
     return val2;
 }
 
