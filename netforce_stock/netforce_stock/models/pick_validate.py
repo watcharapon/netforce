@@ -86,6 +86,7 @@ class PickValidate(Model):
                     'cost_price_cur': move.cost_price_cur,
                     "cost_amount": move.cost_price*remain_qty,
                     "state": move.state,
+                    "related_id": "%s,%s"%(move.related_id._model,move.related_id.id),
                 })
             if line.qty:
                 move.write({"qty": line.qty, "uom_id": line.uom_id.id, "cost_amount":line.qty*move.cost_price})
