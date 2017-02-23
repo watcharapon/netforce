@@ -275,10 +275,13 @@ class ReportProfitLoss(Model):
                 else:
                     children.append(c)
             group["children"] = children
-        _remove_dup_parents(income)
-        _remove_dup_parents(cost_sales)
-        _remove_dup_parents(other_income)
-        _remove_dup_parents(expenses)
+        #FIXME https://dev.netforce.co.th/online/helpdesk-support/issues/514
+        #////////////////////////////
+        #_remove_dup_parents(income)
+        #_remove_dup_parents(cost_sales)
+        #_remove_dup_parents(other_income)
+        #_remove_dup_parents(expenses)
+        #////////////////////////////
 
         def _join_groups(group):
             if not group.get("children"):
