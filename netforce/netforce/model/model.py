@@ -312,6 +312,8 @@ class Model(object):
                         pass
                     elif isinstance(f, fields.Date):
                         pass
+                    elif isinstance(f, fields.Selection):
+                        pass
                     else:
                         raise Exception("Multicompany field not yet implemented: %s" % n)
                 db.execute("INSERT INTO field_value (company_id,model,field,record_id,value) VALUES (%s,%s,%s,%s,%s)",
@@ -761,6 +763,8 @@ class Model(object):
                         pass
                     elif isinstance(f, fields.Date):
                         pass
+                    elif isinstance(f, fields.Selection):
+                        pass
                     else:
                         raise Exception("Multicompany field not yet implemented: %s" % n)
                 ids2 = val_ids.get(n)
@@ -975,6 +979,8 @@ class Model(object):
                 elif isinstance(f, fields.Boolean):
                     pass
                 elif isinstance(f, fields.Date):
+                    pass
+                elif isinstance(f, fields.Selection):
                     pass
                 else:  # TODO: add more field types...
                     raise Exception("Multicompany field not yet implemented: %s" % n)
