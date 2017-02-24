@@ -172,6 +172,7 @@ var ReportView=NFView.extend({
             agg_fields.push(agg_field2);
         }
         var condition=this.get_condition();
+        condition=this.eval_condition(condition);
         log("group_fields",group_fields);
         log("agg_fields",agg_fields);
         log("condition",condition);
@@ -637,6 +638,17 @@ var ReportView=NFView.extend({
         this.model.set("_group_field1",subgroup_field);
         this.model.set("_group_field2",null);
         this.render();
+    },
+
+    eval_condition: function(condition) {
+        var cond = this.options.condition;
+        if (!cond) return condition;
+        var expr=JSON.parse(cond);
+        for (var attr in expr) {
+            var conds=expr[attr];
+            condition.push(conds);
+        }
+        return condition;
     },
 
     export_xls: function(e) {

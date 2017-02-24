@@ -34,8 +34,8 @@ class ReportGLDetails(Model):
         "date_from": fields.Date("From"),
         "date_to": fields.Date("To"),
         "select_type": fields.Selection([["all", "All"], ["range", "Account Range"], ["list", "Account List"]], "Select Accounts"),
-        "account_from_id": fields.Many2One("account.account", "From Account"),
-        "account_to_id": fields.Many2One("account.account", "To Account"),
+        "account_from_id": fields.Many2One("account.account", "From Account", condition=[['type','!=','view']]),
+        "account_to_id": fields.Many2One("account.account", "To Account", condition=[['type','!=','view']]),
         "accounts": fields.Text("Account List"),
         "contact_id": fields.Many2One("contact", "Contact"),
         "track_id": fields.Many2One("account.track.categ", "Tracking"),
@@ -160,6 +160,7 @@ class ReportGLDetails(Model):
                     "contact_name": line.contact_id.name,
                     "track_code": line.track_id.code,
                     "track2_code": line.track2_id.code,
+                    "tax_no": line.tax_no,
                 }
                 if not line_vals['contact_name'] and line.move_id.related_id:
                     # FIXME USE TRY EXPRESSION TO CHECK if RELATED FIELD  EXISTED (TEMPORALY)

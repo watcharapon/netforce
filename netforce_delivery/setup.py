@@ -26,3 +26,5 @@ setup(
     version="3.1.0",
     description="Delivery module",
 )
+packages=['netforce_delivery']
+include_package_data=True

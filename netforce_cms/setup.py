@@ -25,4 +25,6 @@ setup(
     name="netforce_cms",
     version="3.1.0",
     description="CMS module",
+    packages=['netforce_cms'],
+    include_package_data=True
 )

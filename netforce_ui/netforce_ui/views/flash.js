@@ -61,4 +61,5 @@ clear_flash=function() {
 
 render_flash=function() {
     flash_view.render();
+    $('html, body').animate({scrollTop : 0},300);
 }

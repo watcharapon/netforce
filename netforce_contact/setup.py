@@ -25,4 +25,6 @@ setup(
     name="netforce_contact",
     version="3.1.0",
     description="Contact module",
+    packages=['netforce_contact'],
+    include_package_data=True
 )

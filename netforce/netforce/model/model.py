@@ -320,6 +320,8 @@ class Model(object):
                         pass
                     elif isinstance(f, fields.Date):
                         pass
+                    elif isinstance(f, fields.Selection):
+                        pass
                     else:
                         raise Exception("Multicompany field not yet implemented: %s" % n)
                 db.execute("INSERT INTO field_value (company_id,model,field,record_id,value) VALUES (%s,%s,%s,%s,%s)",
@@ -773,6 +775,8 @@ class Model(object):
                         pass
                     elif isinstance(f, fields.Date):
                         pass
+                    elif isinstance(f, fields.Selection):
+                        pass
                     else:
                         raise Exception("Multicompany field not yet implemented: %s" % n)
                 ids2 = val_ids.get(n)
@@ -987,6 +991,8 @@ class Model(object):
                 elif isinstance(f, fields.Boolean):
                     pass
                 elif isinstance(f, fields.Date):
+                    pass
+                elif isinstance(f, fields.Selection):
                     pass
                 else:  # TODO: add more field types...
                     raise Exception("Multicompany field not yet implemented: %s" % n)
@@ -2176,8 +2182,9 @@ class Model(object):
                 mtime=obj.write_time
             else:
                 mtime=None
-            res.append((k,mtime))
-        return res
+            yield(k,mtime) ### also   ### this is way too faster than append.http://nvie.com/posts/iterators-vs-generators/
+            #res.append((k,mtime))
+        #yield res
 
     def sync_export(self, ids, context={}):
         # print("Model.sync_export",self._name,ids)

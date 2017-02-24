@@ -27,4 +27,5 @@ setup(
     description="Netforce web UI module",
     packages=["netforce_ui"],
     package_data={"netforce_ui": ["static/img/*"]},
+    include_package_data=True
 )

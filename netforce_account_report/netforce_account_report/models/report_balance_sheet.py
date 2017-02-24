@@ -214,9 +214,12 @@ class ReportBalanceSheet(Model):
                 else:
                     children.append(c)
             group["children"] = children
-        _remove_dup_parents(assets)
-        _remove_dup_parents(liabilities)
-        _remove_dup_parents(equity)
+        #FIXME https://dev.netforce.co.th/online/helpdesk-support/issues/514
+        #////////////////////////////
+        #_remove_dup_parents(assets)
+        #_remove_dup_parents(liabilities)
+        #_remove_dup_parents(equity)
+        #////////////////////////////
 
         def _join_groups(group):
             if not group.get("children"):

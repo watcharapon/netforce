@@ -25,4 +25,6 @@ setup(
     name="netforce_terminal",
     version="3.1.0",
     description="Netforce terminal interface",
+    packages=['netforce_terminal'],
+    include_package_data=True
 )
