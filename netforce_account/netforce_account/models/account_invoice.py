@@ -165,6 +165,8 @@ class Invoice(Model):
         for obj in self.browse(ids):
             if obj.state in ("waiting_approval", "waiting_payment"):
                 #if obj.inv_type == "invoice":
+                if obj.inv_type in ["prepay", "overpay"]:
+                    continue
                 if not obj.due_date:
                     raise Exception("Missing due date")
                 # if not obj.lines: # XXX: in myob, lines can be empty...
@@ -1031,6 +1033,8 @@ class Invoice(Model):
                     "accum_dep_account_id": ass_type.accum_dep_account_id.id,
                     "dep_exp_account_id": ass_type.dep_exp_account_id.id,
                     "invoice_id": obj.id,
+                    "track_id": line.track_id.id,
+                    "track2_id": line.track2_id.id,
                 }
                 context['date']=obj.date
                 get_model("account.fixed.asset").create(vals,context)
