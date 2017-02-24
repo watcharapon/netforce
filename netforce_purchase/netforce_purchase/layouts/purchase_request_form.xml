@@ -12,7 +12,7 @@
         </button>
     </head>
     <group form_layout="stacked" columns="6">
-        <field name="employee_id"/>
+        <field name="employee_id" required="1"/>
         <field name="request_by_id"/>
         <field name="approve_by_id" readonly="1"/>
         <field name="date"/>
