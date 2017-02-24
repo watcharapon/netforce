@@ -91,6 +91,7 @@ class ReportDepSchedule(Model):
         for group in groups:
             group['lines'] = sorted(group['lines'],key=lambda l: l['purchase_date'])
             group.update({
+                "total_purchase_price": sum([l["purchase_price"] for l in group["lines"]]),
                 "total_book_val_from": sum([l["book_val_from"] for l in group["lines"]]),
                 "total_accum_dep": sum([l["accum_dep"] for l in group["lines"]]),
                 "total_book_val_to": sum([l["book_val_to"] for l in group["lines"]]),
