@@ -165,6 +165,8 @@ class Invoice(Model):
         for obj in self.browse(ids):
             if obj.state in ("waiting_approval", "waiting_payment"):
                 #if obj.inv_type == "invoice":
+                if obj.inv_type in ["prepay", "overpay"]:
+                    continue
                 if not obj.due_date:
                     raise Exception("Missing due date")
                 # if not obj.lines: # XXX: in myob, lines can be empty...
