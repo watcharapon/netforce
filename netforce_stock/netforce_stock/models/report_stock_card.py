@@ -91,10 +91,27 @@ class ReportStockCard(Model):
         "show_qty2": fields.Boolean("Show Secondary Qty"),
         "hide_zero": fields.Boolean("Hide Zero Lines"),
     }
-    _defaults = {
-        "date_from": lambda *a: date.today().strftime("%Y-%m-01"),
-        "date_to": lambda *a: (date.today() + relativedelta(day=31)).strftime("%Y-%m-%d"),
-    }
+
+    def default_get(self,field_names=None,context={},**kw):
+        db=get_connection()
+        res=db.query("select template_id from report_stock_card order by id desc")
+        template_id=None
+        if res:
+            template_id=res[-1]['template_id']
+        defaults_vals={
+            "date_from":  date.today().strftime("%Y-%m-01"),
+            "date_to":  (date.today() + relativedelta(day=31)).strftime("%Y-%m-%d"),
+            "template_id": template_id,
+        }
+        defaults=context.get('defaults')
+        if defaults:
+            for k,v in defaults.items():
+                if '_id' in k and v:
+                    defaults_vals[k]=int(v)
+                else:
+                    defaults_vals[k]=v
+        print("defaults ", defaults_vals)
+        return defaults_vals
 
     # TODO: add uom_id support again
     def get_report_data(self, ids, context={}):
