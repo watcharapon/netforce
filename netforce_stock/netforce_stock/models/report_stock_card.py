@@ -94,14 +94,9 @@ class ReportStockCard(Model):
 
     def default_get(self,field_names=None,context={},**kw):
         db=get_connection()
-        res=db.query("select template_id from report_stock_card order by id desc")
-        template_id=None
-        if res:
-            template_id=res[-1]['template_id']
         defaults_vals={
             "date_from":  date.today().strftime("%Y-%m-01"),
             "date_to":  (date.today() + relativedelta(day=31)).strftime("%Y-%m-%d"),
-            "template_id": template_id,
         }
         defaults=context.get('defaults')
         if defaults:
