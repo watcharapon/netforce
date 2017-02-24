@@ -2,6 +2,7 @@
     <top replace="1">
     </top>
     <head replace="1">
+        <button string="New Purchase Request" perm_model="purchase.request,create" method="make_pr" icon="plus-sign"/>
         <button string="New Purchase Order" perm_model="purchase.order,create" method="make_po" icon="plus-sign"/>
         <button string="New Goods Transfer" perm_model="stock.picking,create" method="make_transfer" icon="plus-sign"/>
         <button string="New Goods Issue" perm_model="stock.picking,create" method="make_issue" icon="plus-sign"/>
