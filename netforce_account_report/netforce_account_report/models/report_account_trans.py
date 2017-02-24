@@ -133,8 +133,9 @@ class ReportAccountTrans(Model):
             if description:
                 condition.append(["description", "ilike", description])
             ids = get_model("account.move.line").search(condition, order="move_date")
+            print('ids ', ids)
             objs = get_model("account.move.line").read(
-                ids, ["move_date", "move_number", "description", "contact_id", "move_ref", "debit", "credit", "amount_cur"])
+                ids, ["move_date", "move_number", "description", "contact_id", "move_ref", "debit", "credit", "amount_cur","track_id","track2_id"])
         total_debit = sum([o["debit"] for o in objs])
         total_credit = sum([o["credit"] for o in objs])
         total_amount_cur = sum([o["amount_cur"] or 0 for o in objs])
