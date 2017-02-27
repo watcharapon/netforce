@@ -26,6 +26,7 @@ class CreditWizard(Model):
     _transient = True
     _fields = {
         "invoice_id": fields.Many2One("account.invoice", "Invoice", required=True, on_delete="cascade"),
+        "date": fields.Date("Date Allocate"),
         "type": fields.Char("Type"),
         "lines": fields.One2Many("account.credit.wizard.line", "wiz_id", "Lines"),
         "amount_due": fields.Decimal("Amount Due on Invoice", readonly=True),
@@ -53,6 +54,7 @@ class CreditWizard(Model):
             "amount_due": inv.amount_due,
             "amount_alloc": 0,
             "amount_remain": inv.amount_due,
+            "date": time.strftime("%Y-%m-%d"),
         }
         return vals
 
@@ -66,6 +68,7 @@ class CreditWizard(Model):
                 "invoice_id": obj.invoice_id.id,
                 "credit_id": line.credit_id.id,
                 "amount": line.amount,
+                'date': obj.date,
             }
             get_model("account.credit.alloc").create(vals)
         return {
