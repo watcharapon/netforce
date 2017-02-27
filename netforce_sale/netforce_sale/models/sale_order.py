@@ -257,6 +257,8 @@ class SaleOrder(Model):
                     subtotal -= line.amount - line_tax
                 else:
                     subtotal -= line.amount
+
+            tax=get_model("currency").round(obj.currency_id.id,tax)
             vals["amount_subtotal"] = subtotal
             vals["amount_tax"] = tax
             vals["amount_total"] = (subtotal + tax)
@@ -360,6 +362,7 @@ class SaleOrder(Model):
             tax_id = line.get("tax_id")
             if tax_id:
                 tax = get_model("account.tax.rate").compute_tax(tax_id, amt, tax_type=tax_type)
+                tax=get_model("currency").round(data['currency_id'],tax)
                 data["amount_tax"] += tax
             else:
                 tax = 0
