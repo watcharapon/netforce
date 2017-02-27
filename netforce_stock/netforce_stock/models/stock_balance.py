@@ -270,17 +270,18 @@ class StockBalance(Model):
             diff_qty = max_qty - obj.qty_virt
             if prod.purchase_uom_id:
                 purch_uom=prod.purchase_uom_id
-                if not prod.purchase_to_stock_uom_factor:
-                    raise Exception("Missing purchase order -> stock uom factor for product %s"%prod.code)
-                purch_qty=diff_qty/prod.purchase_to_stock_uom_factor
+                #if not prod.purchase_to_stock_uom_factor:
+                    #raise Exception("Missing purchase order -> stock uom factor for product %s"%prod.code)
+                #purch_qty=diff_qty/prod.purchase_to_stock_uom_factor
             else:
                 purch_uom=prod.uom_id
-                purch_qty=diff_qty
+                #purch_qty=diff_qty
+            purch_qty=diff_qty
             if prod.purchase_qty_multiple:
                 n=math.ceil(purch_qty/prod.purchase_qty_multiple)
                 purch_qty=n*prod.purchase_qty_multiple
             if prod.purchase_uom_id:
-                qty_stock=purch_qty*prod.purchase_to_stock_uom_factor
+                qty_stock=purch_qty*(prod.purchase_to_stock_uom_factor or 1)
             else:
                 qty_stock=None
             line_vals = {
@@ -291,8 +292,10 @@ class StockBalance(Model):
                 "location_id": obj.location_id.id,
             }
             if not prod.suppliers:
-                raise Exception("Missing default supplier for product %s" % prod.name)
-            contact_id = prod.suppliers[0].supplier_id.id
+                #raise Exception("Missing default supplier for product %s" % prod.name)
+                contact_id = None
+            else:
+                contact_id = prod.suppliers[0].supplier_id.id
             suppliers.setdefault(contact_id, []).append(line_vals)
         if not suppliers:
             raise Exception("Nothing to order")
