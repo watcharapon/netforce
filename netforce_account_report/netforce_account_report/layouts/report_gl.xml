@@ -10,6 +10,7 @@
         <field name="accounts" attrs='{"invisible":[["select_type","!=","list"]]}'/>
         <newline/>
         <field name="track_id" span="2"/>
+        <field name="track2_id" span="2"/>
         <field name="journal_id" span="2"/>
     </group>
 </form>
