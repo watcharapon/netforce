@@ -1,5 +1,5 @@
 <action>
-    <field name="string">Goods Recevie Report</field>
+    <field name="string">Goods Receipt Report</field>
     <field name="view_cls">report</field>
     <field name="model">report.stock.move</field>
     <field name="report_template">report_stock_move</field>

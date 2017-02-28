@@ -41,6 +41,8 @@ class Sequence(Model):
             ["pay_out", "Outgoing Payment"],
             ["transfer", "Transfer"],
             ["tax_no", "Tax No"],
+            ["debit_tax_no", "Tax No - Debit Note"],
+            ["credit_tax_no", "Tax No - Credit Note"],
             ["wht_no", "WHT No"],
             ["account_move", "Journal Entry"],
             ["pick_in", "Goods Receipt"],

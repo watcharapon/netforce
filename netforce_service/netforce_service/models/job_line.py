@@ -27,7 +27,7 @@ class JobLine(Model):
     _name = "job.line"
     _fields = {
         "job_id": fields.Many2One("job", "Job", required=True, on_delete="cascade"),
-        "sequence": fields.Integer("Sequence"),
+        "sequence": fields.Char("Sequence"),
         "type": fields.Selection([["labor", "Labor"], ["part", "Parts"], ["other", "Other"]], "Type"),
         "description": fields.Text("Description"),
         "product_id": fields.Many2One("product", "Product"),

@@ -37,6 +37,7 @@ var FieldJson=NFView.extend({
         var model=this.context.model;
         var value=model.get(name);
         this.data.value=value;
+        this.data.options.invisible=this.options.invisible;
         this.data.context.value=value;
         NFView.prototype.render.call(this);
     }

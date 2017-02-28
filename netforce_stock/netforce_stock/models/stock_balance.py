@@ -79,6 +79,13 @@ class StockBalance(Model):
             res = db.query("SELECT id,uom_id FROM product WHERE id IN %s", tuple(prod_ids))
             for r in res:
                 prod_uoms[r.id] = r.uom_id
+
+            all_min_qtys = {}
+            res = db.query(
+                "SELECT location_id,product_id,min_qty,uom_id FROM stock_orderpoint")
+            for r in res:
+                all_min_qtys[(r.location_id, r.product_id)] = (r.min_qty, r.uom_id)
+
             min_qtys = {}
             res = db.query(
                 "SELECT location_id,product_id,min_qty,uom_id FROM stock_orderpoint WHERE product_id IN %s", tuple(prod_ids))
@@ -176,14 +183,29 @@ class StockBalance(Model):
                         parent_vals["last_change"] = bal_vals["last_change"]
                     parent_vals["qty2"] += bal_vals["qty2"]
                     child_id = parent_id
+
+            loc_total_virt_qtys={}
             total_virt_qtys={}
             for (loc_id, cont_id, prod_id, lot_id), bal_vals in bals.items():
+                loc_total_virt_qtys.setdefault((loc_id,prod_id),0)
+                loc_total_virt_qtys[(loc_id,prod_id)]+=bal_vals["qty_virt"]
+
                 total_virt_qtys.setdefault(prod_id,0)
                 total_virt_qtys[prod_id]+=bal_vals["qty_virt"]
+
             below_prods=set()
-            for prod_id,qty_virt in total_virt_qtys.items():
-                if qty_virt<0: # XXX: take into account min stock rules
-                    below_prods.add(prod_id)
+
+            if all_min_qtys:
+                for loc_prod,qty_virt in loc_total_virt_qtys.items():
+                    min_qty, uom_id = all_min_qtys.get(loc_prod, (0,0))
+                    loc_id, prod_id=loc_prod
+                    if qty_virt < min_qty:
+                        below_prods.add(prod_id)
+            else:
+                for prod_id,qty_virt in total_virt_qtys.items():
+                    if qty_virt<0: # XXX: take into account min stock rules
+                        below_prods.add(prod_id)
+
             for (loc_id, cont_id, prod_id, lot_id), bal_vals in bals.items():
                 bal_vals["below_min"]=prod_id in below_prods
             for (loc_id, cont_id, prod_id, lot_id), bal_vals in bals.items():
@@ -230,6 +252,67 @@ class StockBalance(Model):
         for obj in self.browse(ids):
             qty += obj.qty_phys
         return qty
+
+    def make_pr(self, ids, context={}):
+        suppliers = {}
+        for obj in self.browse(ids):
+            if obj.qty_virt >= obj.min_qty:
+                continue
+            prod = obj.product_id
+            if prod.supply_method!="purchase":
+                raise Exception("Supply method for product %s is not set to 'Purchase'"%prod.code)
+            res = get_model("stock.orderpoint").search([["product_id", "=", prod.id]])
+            if res:
+                op = get_model("stock.orderpoint").browse(res)[0]
+                max_qty = op.max_qty
+            else:
+                max_qty = 0
+            diff_qty = max_qty - obj.qty_virt
+            if prod.purchase_uom_id:
+                purch_uom=prod.purchase_uom_id
+                #if not prod.purchase_to_stock_uom_factor:
+                    #raise Exception("Missing purchase order -> stock uom factor for product %s"%prod.code)
+                #purch_qty=diff_qty/prod.purchase_to_stock_uom_factor
+            else:
+                purch_uom=prod.uom_id
+                #purch_qty=diff_qty
+            purch_qty=diff_qty
+            if prod.purchase_qty_multiple:
+                n=math.ceil(purch_qty/prod.purchase_qty_multiple)
+                purch_qty=n*prod.purchase_qty_multiple
+            if prod.purchase_uom_id:
+                qty_stock=purch_qty*(prod.purchase_to_stock_uom_factor or 1)
+            else:
+                qty_stock=None
+            line_vals = {
+                "product_id": prod.id,
+                "description": prod.name_get()[0][1],
+                "qty": purch_qty,
+                "uom_id": purch_uom.id,
+                "location_id": obj.location_id.id,
+            }
+            if not prod.suppliers:
+                #raise Exception("Missing default supplier for product %s" % prod.name)
+                contact_id = None
+            else:
+                contact_id = prod.suppliers[0].supplier_id.id
+            suppliers.setdefault(contact_id, []).append(line_vals)
+        if not suppliers:
+            raise Exception("Nothing to order")
+        count = 0
+        for contact_id, lines in suppliers.items():
+            vals = {
+                "lines": [("create", x) for x in lines],
+            }
+            purch_id = get_model("purchase.request").create(vals)
+            count += 1
+        return {
+            "next": {
+                "name": "purchase_request",
+                "tab": "Draft",
+            },
+            "flash": "%d purchase requests created" % count,
+        }
 
     def make_po(self, ids, context={}):
         suppliers = {}

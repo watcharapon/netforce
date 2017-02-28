@@ -29,7 +29,7 @@
         <item string="Stock Planning / Ordering" action="report_stock_plan"/>
         <item string="Shipping Cost" action="report_ship_cost"/>
         <divider/>
-        <item string="Goods Receive Report" action="report_goods_receive"/>
+        <item string="Goods Receipt Report" action="report_goods_receive"/>
         <item string="Goods Transfer Report" action="report_goods_transfer"/>
         <item string="Goods Issue Report" action="report_goods_issue"/>
     </item>
