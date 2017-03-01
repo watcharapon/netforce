@@ -88,7 +88,7 @@ class Settings(Model):
         "tax_payable_id": fields.Many2One("account.tax.rate", "Account Payable Tax"),
         "year_end_day": fields.Selection(_days, "Financial Year End (Day)", multi_company=True),
         "year_end_month": fields.Selection(_months, "Financial Year End (Month)", multi_company=True),
-        "lock_date": fields.Date("Lock Date"),
+        "lock_date": fields.Date("Lock Date", multi_company=True),
         "nf_email": fields.Char("Email to Netforce"),  # XXX: deprecated
         "share_settings": fields.One2Many("share.access", "settings_id", "Sharing Settings"),
         "currency_gain_id": fields.Many2One("account.account", "Currency Gain Account", multi_company=True),
