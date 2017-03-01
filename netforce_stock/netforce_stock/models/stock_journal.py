@@ -19,12 +19,14 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields, get_model
+from netforce.access import get_active_company
 
 
 class StockJournal(Model):
     _name = "stock.journal"
     _string = "Stock Journal"
     _key = ["name"]
+    _multi_company = True
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "code": fields.Char("Code", search=True),
@@ -32,7 +34,12 @@ class StockJournal(Model):
         "location_from_id": fields.Many2One("stock.location", "Location From", search=True, multi_company=True),
         "location_to_id": fields.Many2One("stock.location", "Location To", search=True, multi_company=True),
         "comments": fields.One2Many("message", "related_id", "Comments"),
+        "company_id": fields.Many2One("company","Company",required=True),
     }
     _order = "name"
+
+    _defaults = {
+        "company_id": lambda *a: get_active_company(),
+    }
 
 StockJournal.register()
