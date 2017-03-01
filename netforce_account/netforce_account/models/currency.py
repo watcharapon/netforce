@@ -145,8 +145,8 @@ class Currency(Model):
         x,y = divmod(amt,1)
         #XXX: temporary fix by SPP
         #if computed is exactly this number
-        if y==Decimal('0.225'):
-            amt -= Decimal('0.005')
+        #if y==Decimal('0.225'):
+            #amt -= Decimal('0.005')
         decimal.getcontext().rounding=ROUND_HALF_UP
         return Decimal(amt).quantize(Decimal("0.01"))
 

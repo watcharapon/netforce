@@ -253,6 +253,67 @@ class StockBalance(Model):
             qty += obj.qty_phys
         return qty
 
+    def make_pr(self, ids, context={}):
+        suppliers = {}
+        for obj in self.browse(ids):
+            if obj.qty_virt >= obj.min_qty:
+                continue
+            prod = obj.product_id
+            if prod.supply_method!="purchase":
+                raise Exception("Supply method for product %s is not set to 'Purchase'"%prod.code)
+            res = get_model("stock.orderpoint").search([["product_id", "=", prod.id]])
+            if res:
+                op = get_model("stock.orderpoint").browse(res)[0]
+                max_qty = op.max_qty
+            else:
+                max_qty = 0
+            diff_qty = max_qty - obj.qty_virt
+            if prod.purchase_uom_id:
+                purch_uom=prod.purchase_uom_id
+                #if not prod.purchase_to_stock_uom_factor:
+                    #raise Exception("Missing purchase order -> stock uom factor for product %s"%prod.code)
+                #purch_qty=diff_qty/prod.purchase_to_stock_uom_factor
+            else:
+                purch_uom=prod.uom_id
+                #purch_qty=diff_qty
+            purch_qty=diff_qty
+            if prod.purchase_qty_multiple:
+                n=math.ceil(purch_qty/prod.purchase_qty_multiple)
+                purch_qty=n*prod.purchase_qty_multiple
+            if prod.purchase_uom_id:
+                qty_stock=purch_qty*(prod.purchase_to_stock_uom_factor or 1)
+            else:
+                qty_stock=None
+            line_vals = {
+                "product_id": prod.id,
+                "description": prod.name_get()[0][1],
+                "qty": purch_qty,
+                "uom_id": purch_uom.id,
+                "location_id": obj.location_id.id,
+            }
+            if not prod.suppliers:
+                #raise Exception("Missing default supplier for product %s" % prod.name)
+                contact_id = None
+            else:
+                contact_id = prod.suppliers[0].supplier_id.id
+            suppliers.setdefault(contact_id, []).append(line_vals)
+        if not suppliers:
+            raise Exception("Nothing to order")
+        count = 0
+        for contact_id, lines in suppliers.items():
+            vals = {
+                "lines": [("create", x) for x in lines],
+            }
+            purch_id = get_model("purchase.request").create(vals)
+            count += 1
+        return {
+            "next": {
+                "name": "purchase_request",
+                "tab": "Draft",
+            },
+            "flash": "%d purchase requests created" % count,
+        }
+
     def make_po(self, ids, context={}):
         suppliers = {}
         for obj in self.browse(ids):

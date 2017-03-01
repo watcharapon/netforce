@@ -36,7 +36,7 @@ class PurchaseRequest(Model):
         "company_id": fields.Many2One("company", "Company"),
         "documents": fields.One2Many("document", "related_id", "Documents"),
         "other_info": fields.Text("Other Info"),
-        "employee_id": fields.Many2One("hr.employee", "Employee", required=True, search=True),
+        "employee_id": fields.Many2One("hr.employee", "Employee", search=True),
         "state": fields.Selection([("draft", "Draft"), ("waiting_approval", "Waiting Approval"), ("waiting_po", "Waiting PO"), ("done", "Completed"), ("voided", "Voided")], "Status", required=True),
         "lines": fields.One2Many("purchase.request.line", "request_id", "Lines"),
         "comments": fields.One2Many("message", "related_id", "Comments"),

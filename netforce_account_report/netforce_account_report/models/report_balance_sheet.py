@@ -44,8 +44,8 @@ class ReportBalanceSheet(Model):
         "date": fields.Date("Balance Date"),
         "compare_with": fields.Selection([["month", "Previous Month"], ["year", "Previous Year"]], "Compare With"),
         "compare_periods": fields.Selection([["1", "Previous 1 Period"], ["2", "Previous 2 Periods"], ["3", "Previous 3 Periods"], ["4", "Previous 4 Periods"], ["5", "Previous 5 Periods"], ["6", "Previous 6 Periods"], ["7", "Previous 7 Periods"], ["8", "Previous 8 Periods"], ["9", "Previous 9 Periods"], ["10", "Previous 10 Periods"], ["11", "Previous 11 Periods"]], "Compare Periods"),
-        "track_id": fields.Many2One("account.track.categ", "Tracking"),
-        "track2_id": fields.Many2One("account.track.categ", "Tracking"),
+        "track_id": fields.Many2One("account.track.categ", "Tracking-1", condition=[["type", "=", "1"]]),
+        "track2_id": fields.Many2One("account.track.categ", "Tracking-2", condition=[["type", "=", "2"]]),
 	"convert_currency": fields.Boolean("Convert Currency"),
     }
 

@@ -31,8 +31,8 @@ class ReportDepSchedule(Model):
     _fields = {
         "date_from": fields.Date("From", required=True),
         "date_to": fields.Date("To", required=True),
-        "track_id": fields.Many2One("account.track.categ", "Tracking-1"),
-        "track2_id": fields.Many2One("account.track.categ", "Tracking-2"),
+        "track_id": fields.Many2One("account.track.categ", "Tracking-1", condition=[["type", "=", "1"]]),
+        "track2_id": fields.Many2One("account.track.categ", "Tracking-2", condition=[["type", "=", "2"]]),
     }
 
     _defaults = {
@@ -91,6 +91,7 @@ class ReportDepSchedule(Model):
         for group in groups:
             group['lines'] = sorted(group['lines'],key=lambda l: l['purchase_date'])
             group.update({
+                "total_purchase_price": sum([l["purchase_price"] for l in group["lines"]]),
                 "total_book_val_from": sum([l["book_val_from"] for l in group["lines"]]),
                 "total_accum_dep": sum([l["accum_dep"] for l in group["lines"]]),
                 "total_book_val_to": sum([l["book_val_to"] for l in group["lines"]]),

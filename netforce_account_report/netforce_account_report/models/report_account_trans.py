@@ -33,8 +33,8 @@ class ReportAccountTrans(Model):
         "date_from": fields.Date("From"),
         "date_to": fields.Date("To"),
         "contact_id": fields.Many2One("contact", "Contact"),
-        "track_id": fields.Many2One("account.track.categ", "Tracking"),
-        "track2_id": fields.Many2One("account.track.categ", "Tracking-2"),
+        "track_id": fields.Many2One("account.track.categ", "Tracking-1", condition=[["type", "=", "1"]]),
+        "track2_id": fields.Many2One("account.track.categ", "Tracking-2", condition=[["type", "=", "2"]]),
         "description": fields.Char("Description"),
         "cash_basis": fields.Boolean("Cash Basis"),
     }
@@ -133,8 +133,9 @@ class ReportAccountTrans(Model):
             if description:
                 condition.append(["description", "ilike", description])
             ids = get_model("account.move.line").search(condition, order="move_date")
+            print('ids ', ids)
             objs = get_model("account.move.line").read(
-                ids, ["move_date", "move_number", "description", "contact_id", "move_ref", "debit", "credit", "amount_cur"])
+                ids, ["move_date", "move_number", "description", "contact_id", "move_ref", "debit", "credit", "amount_cur","track_id","track2_id"])
         total_debit = sum([o["debit"] for o in objs])
         total_credit = sum([o["credit"] for o in objs])
         total_amount_cur = sum([o["amount_cur"] or 0 for o in objs])
