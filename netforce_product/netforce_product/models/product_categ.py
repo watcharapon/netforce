@@ -45,6 +45,7 @@ class ProductCateg(Model):
         "cost_method": fields.Selection([["standard", "Standard Cost"], ["average", "Weighted Average"], ["fifo", "FIFO"], ["lifo", "LIFO"]], "Costing Method"),
         "cogs_account_id": fields.Many2One("account.account", "Cost Of Goods Sold Account", multi_company=True),
         "stock_account_id": fields.Many2One("account.account", "Inventory Account", multi_company=True),
+        "companies": fields.Many2Many("company", "Companies"),
     }
     _order = "name"
     _constraints = ["_check_cycle"]
