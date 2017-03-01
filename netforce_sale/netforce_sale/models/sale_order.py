@@ -847,6 +847,7 @@ class SaleOrder(Model):
         if not suppliers:
             raise Exception("No purchase orders to create")
         po_ids = []
+        currency_id = None
         for supplier_id, lines in suppliers.items():
             supplier = get_model("contact").browse(supplier_id)
             purch_vals = {
@@ -855,17 +856,30 @@ class SaleOrder(Model):
                 "lines": [],
                 "payment_terms": obj.payment_terms or supplier.payment_terms,
             }
+            if supplier.purchase_price_list_id:
+                purch_vals["price_list_id"] = supplier.purchase_price_list_id.id
+                currency_id = supplier.purchase_price_list_id.currency_id.id
+            if supplier.currency_id:
+                purch_vals["currency_id"] = supplier.currency_id.id
             for prod_id, qty, uom_id, location_id in lines:
                 prod = get_model("product").browse(prod_id)
+                price = prod.purchase_price
+                discount = 0
+                if supplier.purchase_price_list_id:
+                    price = get_model("price.list").get_price(supplier.purchase_price_list_id.id, prod.id, 1)
+                    discount = get_model("price.list").get_discount(supplier.purchase_price_list_id.id, prod.id, 1)
+                if supplier.currency_id and currency_id and supplier.currency_id.id != currency_id:
+                    price = get_model("currency").convert(price, supplier.currency_id.id, currency_id)
                 line_vals = {
                     "product_id": prod_id,
                     "description": prod.description or "/",
                     "qty": qty,
                     "uom_id": uom_id,
-                    "unit_price": prod.purchase_price or 0,
+                    "unit_price": price or 0,
+                    "discount_percent": discount or 0,
                     "tax_id": prod.purchase_tax_id.id,
                     "sale_id": obj.id,
-                    'location_id': location_id,
+                    "location_id": location_id,
                 }
                 purch_vals["lines"].append(("create", line_vals))
             po_id = get_model("purchase.order").create(purch_vals)
