@@ -864,10 +864,8 @@ class SaleOrder(Model):
             for prod_id, qty, uom_id, location_id in lines:
                 prod = get_model("product").browse(prod_id)
                 price = prod.purchase_price
-                discount = 0
                 if supplier.purchase_price_list_id:
                     price = get_model("price.list").get_price(supplier.purchase_price_list_id.id, prod.id, 1)
-                    discount = get_model("price.list").get_discount(supplier.purchase_price_list_id.id, prod.id, 1)
                 if supplier.currency_id and currency_id and supplier.currency_id.id != currency_id:
                     price = get_model("currency").convert(price, supplier.currency_id.id, currency_id)
                 line_vals = {
@@ -876,7 +874,6 @@ class SaleOrder(Model):
                     "qty": qty,
                     "uom_id": uom_id,
                     "unit_price": price or 0,
-                    "discount_percent": discount or 0,
                     "tax_id": prod.purchase_tax_id.id,
                     "sale_id": obj.id,
                     "location_id": location_id,
