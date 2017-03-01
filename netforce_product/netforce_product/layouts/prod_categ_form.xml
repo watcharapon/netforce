@@ -22,6 +22,9 @@
             <field name="cogs_account_id" condition='[["type","!=","view"]]'/>
             <field name="stock_account_id" condition='[["type","!=","view"]]'/>
         </tab>
+        <tab string="Other">
+            <field name="companies"/>
+        </tab>
     </tabs>
     <related>
         <field name="sub_categories"/>

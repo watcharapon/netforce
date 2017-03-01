@@ -38,8 +38,8 @@ class ReportGLDetails(Model):
         "account_to_id": fields.Many2One("account.account", "To Account", condition=[['type','!=','view']]),
         "accounts": fields.Text("Account List"),
         "contact_id": fields.Many2One("contact", "Contact"),
-        "track_id": fields.Many2One("account.track.categ", "Tracking"),
-        "track2_id": fields.Many2One("account.track.categ", "Tracking-2"),
+        "track_id": fields.Many2One("account.track.categ", "Tracking-1", condition=[["type", "=", "1"]]),
+        "track2_id": fields.Many2One("account.track.categ", "Tracking-2", condition=[["type", "=", "2"]]),
         "hide_zero": fields.Boolean("Hide zero lines"),
         "show_amount_cur": fields.Boolean("Show Currency Amount"),
     }

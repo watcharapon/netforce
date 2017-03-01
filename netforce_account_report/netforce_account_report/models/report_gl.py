@@ -34,8 +34,8 @@ class ReportGL(Model):
         "account_from_id": fields.Many2One("account.account", "From Account",condition=[['type','!=','view']]),
         "account_to_id": fields.Many2One("account.account", "To Account",condition=[['type','!=','view']]),
         "accounts": fields.Text("Account List"),
-        "track_id": fields.Many2One("account.track.categ", "Tracking-1"),
-        "track2_id": fields.Many2One("account.track.categ", "Tracking-2"),
+        "track_id": fields.Many2One("account.track.categ", "Tracking-1", condition=[["type", "=", "1"]]),
+        "track2_id": fields.Many2One("account.track.categ", "Tracking-2", condition=[["type", "=", "2"]]),
         "journal_id": fields.Many2One("account.journal", "Journal"),
     }
 

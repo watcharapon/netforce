@@ -36,7 +36,7 @@ class Invoice(Model):
     _name_field = "number"
     _multi_company = True
     _fields = {
-        "type": fields.Selection([["out", "Receivable"], ["in", "Payable"]], "Type", required=True),
+        "type": fields.Selection([["out", "Receivable"], ["in", "Payable"]], "Type", required=True,search=True),
         "inv_type": fields.Selection([["invoice", "Invoice"], ["credit", "Credit Note"], ["debit", "Debit Note"], ["prepay", "Prepayment"], ["overpay", "Overpayment"]], "Subtype", required=True, search=True),
         "number": fields.Char("Number", search=True),
         "ref": fields.Char("Ref", size=256, search=True),

@@ -19,7 +19,6 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 import time
-
 from netforce.model import Model, fields, get_model
 
 
