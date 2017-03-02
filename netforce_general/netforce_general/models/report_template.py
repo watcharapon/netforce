@@ -37,6 +37,7 @@ class ReportTemplate(Model):
         "name": fields.Char("Template Name", required=True, search=True),
         "type": fields.Selection([
             ["cust_invoice", "Customer Invoice"],
+            ["cust_debit_note", "Customer Debit Note"],
             ["cust_credit_note", "Customer Credit Note"],
             ["supp_invoice", "Supplier Invoice"],
             ["payment", "Payment"],
@@ -90,15 +91,18 @@ class ReportTemplate(Model):
         super().write(ids, vals, **kw)
 
     def default_template(self, type):
-        templates=self.search_browse([['type','=',type], ['default','=',True]])
+        templates=self.search_browse([['type','=',type], ['default','=',True],['format','=','jrxml2']])
         if templates:
             return templates[0]
 
     def delete(self, ids, context={}):
         ids2=[] #ids for delete
         fetch=context.get('fetch') or False
+        force=context.get('force') or False
         for obj in self.browse(ids):
-            if not obj.default: #custom
+            if force:
+                ids2.append(obj.id)
+            elif not obj.default: #custom
                 ids2.append(obj.id)
             elif fetch: # fetch
                 ids2.append(obj.id)
@@ -112,6 +116,8 @@ class ReportTemplate(Model):
         ids=self.search([['default','=',True]])
         context['fetch']=True
         self.delete(ids,context)
+
+        custom_ids=self.search([['default','=',False]])
 
         url="http://mgt.netforce.co.th/get_report_template?%s"%(get_rand())
         res=requests.get(url)
@@ -144,10 +150,12 @@ class ReportTemplate(Model):
                     'format': line['format'],
                     'method': line['method'],
                 }
-                print('load: ', path, ' => OK')
                 res3=get_model("report.template").search([['name','=',vals['name']]])
                 if not res3:
-                    new_id=get_model("report.template").create(vals)
+                    get_model("report.template").create(vals) #new
+                    vals['default']=False #custom
+                    if not custom_ids:
+                        get_model("report.template").create(vals) #new
                     print('new default report template ', vals['name'])
             except Exception as e:
                 print("ERROR ", e, line['name'])
