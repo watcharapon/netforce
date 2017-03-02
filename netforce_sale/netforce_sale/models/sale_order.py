@@ -350,27 +350,26 @@ class SaleOrder(Model):
             if not line:
                 continue
             amt = (line.get("qty") or 0) * (line.get("unit_price") or 0)
-            amt = roundup(amt)
             if line.get("discount"):
                 disc = amt * line["discount"] / Decimal(100)
                 amt -= disc
             if line.get("discount_amount"):
                 amt -= line["discount_amount"]
+            amt=roundup(amt)
             line["amount"] = amt
             new_cur=get_model("currency").convert(amt, int(data.get("currency_id")), settings.currency_id.id)
             line['amount_cur']=new_cur and new_cur or None
             tax_id = line.get("tax_id")
             if tax_id:
                 tax = get_model("account.tax.rate").compute_tax(tax_id, amt, tax_type=tax_type)
-                tax=get_model("currency").round(data['currency_id'],tax)
                 data["amount_tax"] += tax
             else:
                 tax = 0
-            amt=Decimal(round(float(amt),2)) # # convert to float because Decimal gives wrong rounding
             if tax_type == "tax_in":
                 data["amount_subtotal"] += amt - tax
             else:
                 data["amount_subtotal"] += amt
+        data['amount_tax']=get_model("currency").round(data['currency_id'],data['amount_tax'])
         data["amount_total"] = data["amount_subtotal"] + data["amount_tax"]
         return data
 
