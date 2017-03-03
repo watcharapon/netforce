@@ -171,7 +171,7 @@ class Payment(Model):
             obj.delete_credit_invoices()
             if obj.move_id:
                 obj.move_id.void()
-                obj.move_id.delete()
+                #obj.move_id.delete()
             for line in obj.lines:
                 if line.invoice_id:
                     invoice_ids.append(line.invoice_id.id)

@@ -9,7 +9,7 @@
             <item string="Void" method="void" states="posted" confirm="Are you sure you want to void this payment?"/>
             <item string="To Draft" method="to_draft" states="posted"/>
             <divider/>
-            <item string="View Journal Entry" method="view_journal_entry" states="posted"/>
+            <item string="View Journal Entry" method="view_journal_entry" states="voided,posted"/>
         </button>
     </head>
     <tabs>
@@ -46,7 +46,7 @@
                     <tab string="Adjustments">
                         <field name="adjust_lines" nolabel="1" count="5">
                             <list>
-                                <field name="account_id" condition='[["type","!=","view"],["company_id","=",parent.company_id]]'/>
+                                <field name="account_id" required="1" condition='[["type","!=","view"],["company_id","=",parent.company_id]]'/>
                                 <field name="tax_comp_id" onchange="update_adjust"/>
                                 <field name="tax_base" onchange="update_adjust"/>
                                 <field name="track_id"/>
@@ -70,7 +70,7 @@
                         <field name="description" onfocus="get_line_desc"/>
                         <field name="qty" onchange="update_amounts"/>
                         <field name="unit_price" onchange="update_amounts"/>
-                        <field name="account_id" onchange="onchange_account" condition='[["type","!=","view"],["company_id","=",parent.company_id]]'/>
+                        <field name="account_id" required="1" onchange="onchange_account" condition='[["type","!=","view"],["company_id","=",parent.company_id]]'/>
                         <field name="tax_id" onchange="update_amounts"/>
                         <field name="track_id"/>
                         <field name="track2_id"/>
@@ -91,7 +91,7 @@
                         <field name="description" onfocus="get_line_desc"/>
                         <field name="qty" onchange="update_amounts"/>
                         <field name="unit_price" onchange="update_amounts"/>
-                        <field name="account_id" onchange="onchange_account"/>
+                        <field name="account_id" required="1" onchange="onchange_account"/>
                         <field name="tax_id" onchange="update_amounts"/>
                         <field name="track_id"/>
                         <field name="track2_id"/>

@@ -18,6 +18,7 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
+import time
 from netforce.model import Model, fields, get_model
 import time
 
@@ -26,8 +27,8 @@ class CreditWizard(Model):
     _transient = True
     _fields = {
         "invoice_id": fields.Many2One("account.invoice", "Invoice", required=True, on_delete="cascade"),
-        "type": fields.Char("Type"),
         "date": fields.Date("Date Allocate"),
+        "type": fields.Char("Type"),
         "lines": fields.One2Many("account.credit.wizard.line", "wiz_id", "Lines"),
         "amount_due": fields.Decimal("Amount Due on Invoice", readonly=True),
         "amount_alloc": fields.Decimal("Total Amount to Credit", readonly=True),
@@ -55,6 +56,7 @@ class CreditWizard(Model):
             "amount_due": inv.amount_due,
             "amount_alloc": 0,
             "amount_remain": inv.amount_due,
+            "date": time.strftime("%Y-%m-%d"),
         }
         return vals
 

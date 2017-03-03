@@ -1,8 +1,9 @@
-<form model="stock.journal">
+<form model="stock.journal" show_company="1">
     <field name="name"/>
     <field name="code"/>
     <field name="sequence_id"/>
     <newline/>
     <field name="location_from_id"/>
     <field name="location_to_id"/>
+    <field name="company_id"/>
 </form>

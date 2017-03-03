@@ -5,4 +5,6 @@ from . import enc_password
 from . import default_model_perms
 from . import active_profile
 from . import multi_company_address
+from . import multi_fiscal_year
+from . import multi_lock_date
 from . import default_report_template

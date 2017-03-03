@@ -25,4 +25,6 @@ setup(
     name="netforce_report",
     version="3.1.0",
     description="Netforce reporting",
+    packages=['netforce_report'],
+    include_package_data=True
 )

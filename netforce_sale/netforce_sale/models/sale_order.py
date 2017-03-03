@@ -257,6 +257,8 @@ class SaleOrder(Model):
                     subtotal -= line.amount - line_tax
                 else:
                     subtotal -= line.amount
+
+            tax=get_model("currency").round(obj.currency_id.id,tax)
             vals["amount_subtotal"] = subtotal
             vals["amount_tax"] = tax
             vals["amount_total"] = (subtotal + tax)
@@ -275,9 +277,19 @@ class SaleOrder(Model):
 
     def confirm(self, ids, context={}):
         obj = self.browse(ids)[0]
+        if not obj.due_date:
+            raise Exception("Missing Due Date!")
         if obj.state != "draft":
             raise Exception("Invalid state")
+        if not obj.due_date:
+            raise Exception("Missing Due Date!")
         for line in obj.lines:
+            #shipping method in lines is deprecated, so we should have only 1 shipping method per SO
+            #if not it will split invoice & picking
+            if obj.ship_method_id and line.ship_method_id.id!=obj.ship_method_id.id:
+                line.write({
+                    'ship_method_id': obj.ship_method_id.id,
+                })
             prod = line.product_id
             if prod and prod.type in ("stock", "consumable", "bundle") and not line.location_id:
                 raise Exception("Missing location for product %s" % prod.code)
@@ -338,12 +350,12 @@ class SaleOrder(Model):
             if not line:
                 continue
             amt = (line.get("qty") or 0) * (line.get("unit_price") or 0)
-            amt = roundup(amt)
             if line.get("discount"):
                 disc = amt * line["discount"] / Decimal(100)
                 amt -= disc
             if line.get("discount_amount"):
                 amt -= line["discount_amount"]
+            amt=roundup(amt)
             line["amount"] = amt
             new_cur=get_model("currency").convert(amt, int(data.get("currency_id")), settings.currency_id.id)
             line['amount_cur']=new_cur and new_cur or None
@@ -353,11 +365,11 @@ class SaleOrder(Model):
                 data["amount_tax"] += tax
             else:
                 tax = 0
-            amt=Decimal(round(float(amt),2)) # # convert to float because Decimal gives wrong rounding
             if tax_type == "tax_in":
                 data["amount_subtotal"] += amt - tax
             else:
                 data["amount_subtotal"] += amt
+        data['amount_tax']=get_model("currency").round(data['currency_id'],data['amount_tax'])
         data["amount_total"] = data["amount_subtotal"] + data["amount_tax"]
         return data
 
@@ -706,7 +718,7 @@ class SaleOrder(Model):
                 prod = line.product_id
                 if prod.type not in ("stock", "consumable", "bundle", None):
                     continue
-                remain_qty = (line.qty or line.qty_stock) - line.qty_delivered
+                remain_qty = (line.qty or (line.qty_stock or 0)) - line.qty_delivered
                 if remain_qty > 0:
                     is_delivered = False
                     break
@@ -834,6 +846,7 @@ class SaleOrder(Model):
         if not suppliers:
             raise Exception("No purchase orders to create")
         po_ids = []
+        currency_id = None
         for supplier_id, lines in suppliers.items():
             supplier = get_model("contact").browse(supplier_id)
             purch_vals = {
@@ -842,17 +855,27 @@ class SaleOrder(Model):
                 "lines": [],
                 "payment_terms": obj.payment_terms or supplier.payment_terms,
             }
+            if supplier.purchase_price_list_id:
+                purch_vals["price_list_id"] = supplier.purchase_price_list_id.id
+                currency_id = supplier.purchase_price_list_id.currency_id.id
+            if supplier.currency_id:
+                purch_vals["currency_id"] = supplier.currency_id.id
             for prod_id, qty, uom_id, location_id in lines:
                 prod = get_model("product").browse(prod_id)
+                price = prod.purchase_price
+                if supplier.purchase_price_list_id:
+                    price = get_model("price.list").get_price(supplier.purchase_price_list_id.id, prod.id, 1)
+                if supplier.currency_id and currency_id and supplier.currency_id.id != currency_id:
+                    price = get_model("currency").convert(price, supplier.currency_id.id, currency_id)
                 line_vals = {
                     "product_id": prod_id,
                     "description": prod.description or "/",
                     "qty": qty,
                     "uom_id": uom_id,
-                    "unit_price": prod.purchase_price or 0,
+                    "unit_price": price or 0,
                     "tax_id": prod.purchase_tax_id.id,
                     "sale_id": obj.id,
-                    'location_id': location_id,
+                    "location_id": location_id,
                 }
                 purch_vals["lines"].append(("create", line_vals))
             po_id = get_model("purchase.order").create(purch_vals)
@@ -1265,7 +1288,8 @@ class SaleOrder(Model):
         obj.write({"track_id":sale_track_id})
         for line in obj.lines:
             if not line.sequence:
-                raise Exception("Missing sequence in sales order line")
+                continue
+                #raise Exception("Missing sequence in sales order line")
             code="%s / %s"%(obj.number,line.sequence)
             res=get_model("account.track.categ").search([["code","=",code]])
             if res:

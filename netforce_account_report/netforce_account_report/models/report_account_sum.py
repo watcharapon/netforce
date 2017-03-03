@@ -33,8 +33,8 @@ class ReportAccountSum(Model):
         "date_from": fields.Date("From"),
         "date_to": fields.Date("To"),
         "contact_id": fields.Many2One("contact", "Contact"),
-        "track_id": fields.Many2One("account.track.categ", "Tracking"),
-        "track2_id": fields.Many2One("account.track.categ", "Tracking-2"),
+        "track_id": fields.Many2One("account.track.categ", "Tracking-1", condition=[["type", "=", "1"]]),
+        "track2_id": fields.Many2One("account.track.categ", "Tracking-2", condition=[["type", "=", "2"]]),
     }
 
     def default_get(self, field_names=None, context={}, **kw):

@@ -25,4 +25,6 @@ setup(
     name="netforce_service",
     version="3.1.0",
     description="Service module",
+    packages=['netforce_service'],
+    include_package_data=True
 )

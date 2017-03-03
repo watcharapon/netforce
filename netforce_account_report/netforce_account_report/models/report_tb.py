@@ -29,8 +29,8 @@ class ReportTB(Model):
     _transient = True
     _fields = {
         "date": fields.Date("Date", required=True),
-        "track_id": fields.Many2One("account.track.categ", "Tracking"),
-        "track2_id": fields.Many2One("account.track.categ", "Tracking-2"),
+        "track_id": fields.Many2One("account.track.categ", "Tracking-1", condition=[["type", "=", "1"]]),
+        "track2_id": fields.Many2One("account.track.categ", "Tracking-2", condition=[["type", "=", "2"]]),
         "contact_id": fields.Many2One("contact", "Contact"),
         "show_period_totals": fields.Boolean("Show Period Totals"),
     }

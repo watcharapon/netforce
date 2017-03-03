@@ -31,10 +31,11 @@ class ReportGL(Model):
         "date_from": fields.Date("From"),
         "date_to": fields.Date("To"),
         "select_type": fields.Selection([["all", "All"], ["range", "Account Range"], ["list", "Account List"]], "Select Accounts"),
-        "account_from_id": fields.Many2One("account.account", "From Account"),
-        "account_to_id": fields.Many2One("account.account", "To Account"),
+        "account_from_id": fields.Many2One("account.account", "From Account",condition=[['type','!=','view']]),
+        "account_to_id": fields.Many2One("account.account", "To Account",condition=[['type','!=','view']]),
         "accounts": fields.Text("Account List"),
-        "track_id": fields.Many2One("account.track.categ", "Tracking"),
+        "track_id": fields.Many2One("account.track.categ", "Tracking-1", condition=[["type", "=", "1"]]),
+        "track2_id": fields.Many2One("account.track.categ", "Tracking-2", condition=[["type", "=", "2"]]),
         "journal_id": fields.Many2One("account.journal", "Journal"),
     }
 
@@ -59,11 +60,16 @@ class ReportGL(Model):
         if not date_to:
             date_to = (date.today() + relativedelta(day=31)).strftime("%Y-%m-%d")
         track_id = params.get("track_id") or None
+        track2_id = params.get("track2_id") or None
         track = None
+        track2 = None
         journal_id = params.get("journal_id") or None
         if track_id:
             track_id = int(track_id)
             track = get_model('account.track.categ').browse(track_id)
+        if track2_id:
+            track2_id = int(track2_id)
+            track2 = get_model('account.track.categ').browse(track2_id)
         select_type = params.get("select_type")
         condition = [["type", "!=", "view"]]
         if select_type == "range":
@@ -95,6 +101,8 @@ class ReportGL(Model):
             "company_name": comp.name,
             "track_name": track.name if track else None,
             "track_code": track.code if track else None,
+            "track2_name": track2.name if track2 else None,
+            "track2_code": track2.code if track2 else None,
             "date_from": date_from,
             "date_to": date_to,
         }
@@ -103,6 +111,7 @@ class ReportGL(Model):
             "date_to": date_to,
             "active_test": False,
             "track_id": track_id,
+            "track2_id": track2_id,
             "journal_id": journal_id,
         }
         accounts = get_model("account.account").search_read(

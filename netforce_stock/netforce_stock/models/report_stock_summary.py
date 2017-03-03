@@ -206,6 +206,12 @@ class ReportStockSummary(Model):
         t2 = time.time()
         print("get prod/loc/lot/cont info in %.3f s" % (t2-t1))
 
+        start_date=params.get('date_from')
+        db=get_connection()
+        sres=db.query("select date from stock_move order by id limit 1") #first date of transaction
+        for s in sres:
+            start_date=s.date[0:10]
+
         lines = []
         print("num prod_locs", len(prod_locs))
         for prod_id, lot_id, loc_id, cont_id in prod_locs:
@@ -259,6 +265,7 @@ class ReportStockSummary(Model):
                 "close_qty": tot_close_in[0] - tot_close_out[0],
                 "close_amt": tot_close_in[1] - tot_close_out[1],
                 "close_qty2": tot_close_in[2] - tot_close_out[2],
+                "date_from": start_date,
             }
             if params.get("only_closing") and line_vals["close_qty"] == 0:
                 continue

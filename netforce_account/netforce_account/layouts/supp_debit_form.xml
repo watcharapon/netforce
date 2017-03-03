@@ -10,6 +10,8 @@
             <item string="View Journal Entry" method="view_journal_entry" states="waiting_payment,paid"/>
         </button>
     </head>
+    <tabs>
+    <tab string="General">
     <group form_layout="stacked">
         <field name="contact_id" span="2" create="1" onchange="onchange_contact" condition='[["supplier", "=", "True"]]'/>
         <field name="date" span="2" onchange="onchange_date"/>
@@ -88,6 +90,27 @@
         </field>
         <field name="amount_due" states="waiting_payment,paid"/>
     </group>
+    </tab>
+    <tab string="Taxes">
+        <field name="taxes">
+            <list>
+                <field name="tax_comp_id"/>
+                <field name="base_amount"/>
+                <field name="tax_amount"/>
+                <field name="tax_no"/>
+                <field name="tax_date"/>
+            </list>
+        </field>
+        <button string="Calculate Taxes" method="calc_taxes" icon="pencil"/>
+    </tab>
+    <tab string="Other Info">
+        <field name="journal_id" onchange="onchange_journal"/>
+        <newline/>
+        <field name="sequence_id" condition='[["type","=","cust_credit"]]' onchange="onchange_sequence"/>
+        <newline/>
+        <field name="currency_rate"/>
+    </tab>
+    </tabs>
     <field name="type" invisible="1"/>
     <field name="inv_type" invisible="1"/>
     <field name="contact_credit" invisible="1"/>

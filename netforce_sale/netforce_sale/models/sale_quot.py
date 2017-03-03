@@ -185,6 +185,7 @@ class SaleQuot(Model):
                     subtotal += (line.amount or 0) - line_tax
                 else:
                     subtotal += line.amount or 0
+            tax=get_model("currency").round(obj.currency_id.id,tax)
             vals["amount_subtotal"] = subtotal
             vals["amount_tax"] = tax
             vals["amount_total"] = subtotal + tax
@@ -252,12 +253,12 @@ class SaleQuot(Model):
             if not line:
                 continue
             amt = (line.get("qty") or 0) * (line.get("unit_price") or 0)
-            amt = Decimal(roundup(amt))
             if line.get("discount"):
                 disc = Decimal(amt) * Decimal(line["discount"]) / Decimal(100)
                 amt -= disc
             if line.get("discount_amount"):
                 amt -= line["discount_amount"]
+            amt = Decimal(roundup(amt))
             line["amount"] = amt
             #===============>>>
             k=None
@@ -314,6 +315,7 @@ class SaleQuot(Model):
                 data["amount_subtotal"] += Decimal(line["amount"] - tax)
             else:
                 data["amount_subtotal"] += Decimal(line["amount"])
+        data['amount_tax']=get_model("currency").round(data['currency_id'],data['amount_tax'])
         data["amount_total"] = data["amount_subtotal"] + data["amount_tax"]
         return data
 

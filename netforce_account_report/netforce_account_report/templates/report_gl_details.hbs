@@ -24,13 +24,16 @@
                 Number
             </th>
             <th>
+                Tax No.
+            </th>
+            <th>
                 Description
             </th>
             <th>
                 Contact
             </th>
             <th>
-                Track
+                Track-1
             </th>
             <th>
                 Track-2
@@ -60,7 +63,7 @@
                 <td style="font-weight:bold">
                     {{name}}
                 </td>
-                <td colspan="8"></td>
+                <td colspan="9"></td>
                 <td style="text-align:right;font-weight:bold">
                     {{currency bg_bal paren=1}}
                 </td>
@@ -78,6 +81,9 @@
                         {{#view "link" action="view_transaction" active_id=id context=context}}
                             {{../number}}
                         {{/view}}
+                    </td>
+                    <td>
+                        {{tax_no}}
                     </td>
                     <td>
                         {{description}}
@@ -108,7 +114,7 @@
                 </tr>
             {{/each}}
             <tr>
-                <td colspan="8"></td>
+                <td colspan="9"></td>
                 <td style="text-align:right;font-weight:bold">
                     {{currency debit_total zero=""}}
                 </td>

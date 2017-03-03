@@ -46,8 +46,8 @@ class ReportProfitLoss(Model):
         "date_to": fields.Date("To"),
         "compare_with": fields.Selection([["month", "Previous Month"], ["year", "Previous Year"]], "Compare With"),
         "compare_periods": fields.Selection([["1", "Previous 1 Period"], ["2", "Previous 2 Periods"], ["3", "Previous 3 Periods"], ["4", "Previous 4 Periods"], ["5", "Previous 5 Periods"], ["6", "Previous 6 Periods"], ["7", "Previous 7 Periods"], ["8", "Previous 8 Periods"], ["9", "Previous 9 Periods"], ["10", "Previous 10 Periods"], ["11", "Previous 11 Periods"]], "Compare Periods"),
-        "track_id": fields.Many2One("account.track.categ", "Tracking"),
-        "track2_id": fields.Many2One("account.track.categ", "Tracking-2"),
+        "track_id": fields.Many2One("account.track.categ", "Tracking-1", condition=[["type", "=", "1"]]),
+        "track2_id": fields.Many2One("account.track.categ", "Tracking-2", condition=[["type", "=", "2"]]),
         "currency_id": fields.Many2One("currency", "Currency"),
         "show_ytd": fields.Boolean("Show YTD"),
         "convert_currency": fields.Boolean("Convert Currency"),
@@ -157,7 +157,7 @@ class ReportProfitLoss(Model):
             if i > 100:
                 raise Exception("Cycle detected!")
             parent_ids = list(set(parent_ids))
-            res = get_model("account.account").read(parent_ids, ["name", "parent_id", "type"])
+            res = get_model("account.account").read(parent_ids, ["name", "parent_id", "type", "code"])
             parent_ids = []
             for r in res:
                 accounts[r["id"]] = r
@@ -275,10 +275,13 @@ class ReportProfitLoss(Model):
                 else:
                     children.append(c)
             group["children"] = children
-        _remove_dup_parents(income)
-        _remove_dup_parents(cost_sales)
-        _remove_dup_parents(other_income)
-        _remove_dup_parents(expenses)
+        #FIXME https://dev.netforce.co.th/online/helpdesk-support/issues/514
+        #////////////////////////////
+        #_remove_dup_parents(income)
+        #_remove_dup_parents(cost_sales)
+        #_remove_dup_parents(other_income)
+        #_remove_dup_parents(expenses)
+        #////////////////////////////
 
         def _join_groups(group):
             if not group.get("children"):

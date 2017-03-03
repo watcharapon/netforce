@@ -792,9 +792,25 @@ var FormView=NFView.extend({
                     perm_model: $el.attr("perm_model"),
                     context: context
                 };
+
+                var view_opts="";
+                if (opts.action_options){
+                    if (opts.action_options[0]=="{") {
+                        view_opts=eval_json(opts.action_options,{});
+                        view_opts=obj_to_qs(view_opts);
+                    }else{
+                        view_opts=opts.action_options;
+                    }
+                }
+
                 if (that.active_id) {
                     opts.action_options="refer_model="+that.options.model+"&refer_id="+that.active_id; // XXX: orig_id
                 }
+
+                if(view_opts){
+                    opts.action_options+="&"+view_opts;
+                }
+
                 if (opts.dropdown) { // XXX
                     var inner="";
                     $el.children().each(function() {

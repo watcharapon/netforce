@@ -25,4 +25,6 @@ setup(
     name="netforce_document",
     version="3.1.0",
     description="Document management module",
+    packages=['netforce_document'],
+    include_package_data=True
 )
