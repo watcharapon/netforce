@@ -135,7 +135,12 @@ class Move(Model):
             return None
         while 1:
             num = get_model("sequence").get_next_number(seq_id,context=context)
+            if not num:
+                return None
+            user_id = get_active_user()
+            set_active_user(1)
             res = self.search([["number", "=", num]])
+            set_active_user(user_id)
             if not res:
                 return num
             get_model("sequence").increment_number(seq_id,context=context)
