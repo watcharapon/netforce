@@ -30,7 +30,7 @@ class StockJournal(Model):
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "code": fields.Char("Code", search=True),
-        "sequence_id": fields.Many2One("sequence", "Sequence", multi_company=True),
+        "sequence_id": fields.Many2One("sequence", "Sequence", multi_company=True, condition=[["type","in",["pick_in","pick_out","pick_internal","stock_count","stock_move"]]]),
         "location_from_id": fields.Many2One("stock.location", "Location From", search=True, multi_company=True),
         "location_to_id": fields.Many2One("stock.location", "Location To", search=True, multi_company=True),
         "comments": fields.One2Many("message", "related_id", "Comments"),

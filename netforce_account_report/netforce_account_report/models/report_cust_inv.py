@@ -75,6 +75,9 @@ class ReportCustInv(Model):
         if state:
             cond.append([["state", "=", state]])
         for inv in get_model("account.invoice").search_browse(cond, order="date"):
+            amount_total = inv.amount_total or 0
+            if inv.inv_type in ["credit"]:
+                amount_total *= (-1)
             line_vals = {
                 "id": inv.id,
                 "number": inv.number,
@@ -82,7 +85,7 @@ class ReportCustInv(Model):
                 "contact_name": inv.contact_id.name,
                 "date": inv.date,
                 "due_date": inv.due_date,
-                "amount_total": inv.amount_total,
+                "amount_total": amount_total,
                 "amount_paid": inv.amount_paid,
                 "amount_due": inv.amount_due,
                 "state": inv.state,  # XXX
