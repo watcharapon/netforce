@@ -33,7 +33,7 @@ class Payment(Model):
     _key = ["company_id", "number"]
     _fields = {
         "type": fields.Selection([["out", "Paid"], ["in", "Received"]], "Payment Type", required=True, search=True),
-        "pay_type": fields.Selection([["direct", "Direct Payment"], ["invoice", "Invoice Payment"], ["prepay", "Prepayment"], ["overpay", "Overpayment"], ["claim", "Expense Claim Payment"], ["adjust", "Adjustment"]], "Payment Subtype", required=True, search=True),
+        "pay_type": fields.Selection([["direct", "Direct Payment"], ["invoice", "Invoice Payment"], ["prepay", "Prepayment"], ["overpay", "Overpayment"], ["claim", "Expense Claim Payment"], ["adjust", "Adjustment"], ["deposit", "Deposit"]], "Payment Subtype", required=True, search=True),
         "contact_id": fields.Many2One("contact", "Contact", search=True),
         "date": fields.Date("Date", required=True, search=True),
         "ref": fields.Char("Ref", search=True, size=256),  # not used any more
@@ -48,11 +48,14 @@ class Payment(Model):
         "overpay_lines": fields.One2Many("account.payment.line", "payment_id", "Overpayments", condition=[["type", "=", "overpay"]]),
         "claim_lines": fields.One2Many("account.payment.line", "payment_id", "Claim Payments", condition=[["type", "=", "claim"]]),
         "adjust_lines": fields.One2Many("account.payment.line", "payment_id", "Adjustments", condition=[["type", "=", "adjust"]]),
+        "deposit_lines": fields.One2Many("account.payment.line", "payment_id", "Adjustments", condition=[["type", "=", "deposit"]]),
         "amount_subtotal": fields.Decimal("Subtotal", function="get_amount", function_multi=True, store=True),
         "amount_tax": fields.Decimal("Tax Amount", function="get_amount", function_multi=True, store=True),
         "amount_total": fields.Decimal("Total", function="get_amount", function_multi=True, store=True),
         "amount_wht": fields.Decimal("Withholding Tax", function="get_amount", function_multi=True, store=True),
         "amount_payment": fields.Decimal("Net Amount", function="get_amount", function_multi=True, store=True),
+        "amount_deposit_remain": fields.Decimal("Remaining Deposit", function="get_amount", function_multi=True, store=True),
+        "amount_deposit_remain_cur": fields.Decimal("Remaining Deposit Currency", function="get_amount", function_multi=True, store=True),
         "move_id": fields.Many2One("account.move", "Journal Entry"),
         "currency_rate": fields.Decimal("Currency Rate", scale=6),
         "state": fields.Selection([["draft", "Draft"], ["posted", "Posted"], ["voided", "Voided"]], "State", required=True),
@@ -68,6 +71,7 @@ class Payment(Model):
         "credit_invoices": fields.One2Many("account.invoice", "payment_id", "Credit Invoices"),
         "journal_id": fields.Many2One("account.journal", "Journal"),
         "sequence_id": fields.Many2One("sequence", "Number Sequence"),
+        "deposit_alloc": fields.One2Many("account.deposit.alloc", "deposit_id", "Deposit Allocation"),
     }
     _order = "date desc,id desc"
 
@@ -115,7 +119,7 @@ class Payment(Model):
     def create(self, vals, **kw):
         # reset lines
         pay_type=vals.get('pay_type')
-        for line_type in ["direct","invoice","refund","prepay","overpay","claim"]:
+        for line_type in ["direct","invoice","refund","prepay","overpay","claim","deposit"]:
             line_key='%s_lines'%line_type
             if line_type!=pay_type and vals.get(line_key):
                 vals[line_key]=[]
@@ -129,7 +133,7 @@ class Payment(Model):
         for obj in self.browse(ids):
             # reset lines
             pay_type=vals.get('pay_type') or obj.pay_type
-            for line_type in ["direct","invoice","refund","prepay","overpay","claim"]:
+            for line_type in ["direct","invoice","refund","prepay","overpay","claim","deposit"]:
                 line_key='%s_lines'%line_type
                 if line_type!=pay_type and vals.get(line_key):
                     vals[line_key]=[]
@@ -182,6 +186,8 @@ class Payment(Model):
         invoice_ids = []
         expense_ids = []
         for obj in self.browse(ids):
+            if obj.deposit_alloc:
+                raise Exception("There is still allocated invoice for deposit %s"%obj.number)
             obj.write({"state": "draft"})
             obj.delete_credit_invoices()
             if obj.move_id:
@@ -235,7 +241,7 @@ class Payment(Model):
                     if obj.tax_type == "tax_in":
                         subtotal += amt
                     total+=amt
-                elif line.type in ("direct", "prepay", "overpay"):
+                elif line.type in ("direct", "prepay", "overpay", "deposit"):
                     tax=line.tax_id
                     amt=line.amount or 0
                     if tax:
@@ -317,6 +323,12 @@ class Payment(Model):
             vals["amount_total"] = subtotal + vat
             vals["amount_wht"] = wht
             vals["amount_payment"] = vals["amount_total"] - wht
+            if line.type == "deposit": # calculate remaining deposit
+                deposit_amt = 0
+                for alloc in obj.deposit_alloc:
+                    deposit_amt += alloc.total_amount or 0
+                vals["amount_deposit_remain"] = vals["amount_total"] - deposit_amt
+                vals["amount_deposit_remain_cur"] = get_model("currency").convert(vals["amount_deposit_remain"], obj.currency_id.id, settings.currency_id.id, round=True, rate=obj.currency_rate)
             res[obj.id] = vals
         return res
 
@@ -422,6 +434,28 @@ class Payment(Model):
                     subtotal += amt
                 vat += line_vat
                 wht += line_wht
+        elif pay_type == "deposit":
+            for line in data["deposit_lines"]:
+                if not line:
+                    continue
+                if line.get("unit_price") is not None:
+                    amt = line.get("qty", 0) * line.get("unit_price", 0)
+                    line["amount"] = amt
+                else:
+                    amt = line.get("amount", 0)
+                tax_id = line.get("tax_id")
+                if tax_id:
+                    line_vat = get_model("account.tax.rate").compute_tax(tax_id, amt, tax_type=tax_type)
+                    line_wht = get_model("account.tax.rate").compute_tax(tax_id, amt, tax_type=tax_type, wht=True)
+                else:
+                    line_vat = 0
+                    line_wht = 0
+                if tax_type == "tax_in":
+                    subtotal += amt - line_vat
+                else:
+                    subtotal += amt
+                vat += line_vat
+                wht += line_wht
         vat = get_model("currency").round(currency_id, vat)
         wht = get_model("currency").round(currency_id, wht)
         data["amount_subtotal"] = subtotal
@@ -429,6 +463,7 @@ class Payment(Model):
         data["amount_total"] = subtotal + vat
         data["amount_wht"] = wht
         data["amount_payment"] = data["amount_total"] - wht
+        data["amount_deposit_remain"] = data["amount_subtotal"]
         return data
 
     def post_check_overpay(self, ids, context={}):
@@ -509,6 +544,8 @@ class Payment(Model):
             desc = "Expense claim payment"
         elif obj.pay_type == "adjust":
             desc = "Adjustment"
+        elif obj.pay_type == "deposit":
+            desc = "Deposit"
         else:
             desc = "Payment: %s" % obj.contact_id.name
         if obj.type == "in":
@@ -544,7 +581,7 @@ class Payment(Model):
         reconcile_ids = []
         total_over = 0
         for line in obj.lines:
-            if line.type in ("direct", "prepay"):
+            if line.type in ("direct", "prepay", "deposit"):
                 cur_amt = get_model("currency").convert(
                     line.amount, obj.currency_id.id, settings.currency_id.id, rate=currency_rate)
                 tax = line.tax_id
@@ -579,7 +616,7 @@ class Payment(Model):
                     "track2_id": line.track2_id.id,
                     "amount_cur": line.amount if line.account_id.currency_id.id != settings.currency_id.id else None,
                 }
-                if line.type=="prepay" or line.account_id.type not in ["cost_sales","expense","other_expense","revenue","other_income","view","other"]:
+                if line.type in ("prepay","deposit") or line.account_id.type not in ["cost_sales","expense","other_expense","revenue","other_income","view","other"]:
                     # For case 'Contact A loan from other Contacts and he/she wants to pay that amount by using direct payment'.
                     # need to put a contact for account group 1 and 2 so that all account move lines can be classified by contact in Report General Ledger.
                     # also, they can trace, reconcile, clear all amount for each contact easily.
@@ -1341,5 +1378,9 @@ class Payment(Model):
             exp=get_model('hr.expense').browse(exp_id)
             line['amount']=exp.amount_due
         return data
+
+    def delete_alloc(self, context={}):
+        alloc_id = context["alloc_id"]
+        get_model("account.deposit.alloc").delete([alloc_id])
 
 Payment.register()
