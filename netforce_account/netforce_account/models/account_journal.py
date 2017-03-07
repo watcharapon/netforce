@@ -19,7 +19,7 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 from netforce.model import Model, fields
-
+from netforce.access import get_active_company
 
 class Journal(Model):
     _name = "account.journal"
@@ -31,9 +31,11 @@ class Journal(Model):
         "comments": fields.One2Many("message", "related_id", "Comments"),
         "active": fields.Boolean("Active"),
         "code": fields.Char("Code", search=True),
+        "company_id": fields.Many2One("company","Company"),
     }
     _defaults = {
         "active": True,
+        "company_id": lambda *a: get_active_company(),
     }
 
 Journal.register()

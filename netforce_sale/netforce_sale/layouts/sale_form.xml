@@ -106,11 +106,9 @@
                     <field name="currency_id"/>
                 </list>
             </field>
-            <group form_layout="stacked">
-                <field name="est_cost_amount" span="4"/>
-                <field name="est_profit_amount" span="4"/>
-                <field name="est_margin_percent" span="4"/>
-            </group>
+            <field name="est_cost_amount" span="4"/>
+            <field name="est_profit_amount" span="4"/>
+            <field name="est_margin_percent" span="4"/>
             <separator string="Actual Costs"/>
             <field name="track_id"/>
             <field name="track_balance"/>
@@ -126,11 +124,9 @@
                     <field name="amount"/>
                 </list>
             </field>
-            <group form_layout="stacked">
-                <field name="act_cost_amount" span="4"/>
-                <field name="act_profit_amount" span="4"/>
-                <field name="act_margin_percent" span="4"/>
-            </group>
+            <field name="act_cost_amount" span="4"/>
+            <field name="act_profit_amount" span="4"/>
+            <field name="act_margin_percent" span="4"/>
         </tab>
         <tab string="Currencies">
             <field name="currency_rates" nolabel="1">
