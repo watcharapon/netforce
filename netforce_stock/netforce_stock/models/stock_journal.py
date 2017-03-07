@@ -34,7 +34,7 @@ class StockJournal(Model):
         "location_from_id": fields.Many2One("stock.location", "Location From", search=True, multi_company=True),
         "location_to_id": fields.Many2One("stock.location", "Location To", search=True, multi_company=True),
         "comments": fields.One2Many("message", "related_id", "Comments"),
-        "company_id": fields.Many2One("company","Company",required=True),
+        "company_id": fields.Many2One("company","Company"),
     }
     _order = "name"
 
