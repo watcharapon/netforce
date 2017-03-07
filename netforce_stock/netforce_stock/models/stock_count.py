@@ -248,7 +248,7 @@ class StockCount(Model):
                 "location_to_id": loc_to_id,
                 "qty": qty_diff,
                 "uom_id": line.uom_id.id,
-                "cost_price": price_diff,
+                "cost_price": price_diff if qty_diff else amount_diff,
                 "cost_amount": amount_diff,
                 "related_id": "stock.count,%d" % obj.id,
             }
