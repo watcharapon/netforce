@@ -25,7 +25,7 @@ from decimal import Decimal
 from netforce import config
 from netforce import database
 from netforce.access import get_active_company, set_active_user, set_active_company
-from netforce.utils import get_file_path
+from netforce.utils import get_file_path, roundup
 
 
 class Invoice(Model):
@@ -648,6 +648,7 @@ class Invoice(Model):
                     amt -= disc
                 if line.get("discount_amount"):
                     amt -= line["discount_amount"]
+                amt=roundup(amt)
                 line["amount"] = amt
             else:
                 amt = line.get("amount") or 0

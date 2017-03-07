@@ -11,7 +11,7 @@
     <br/>
 </center>
 <table class="table">
-    <thead>
+    <thead class="scroll-header">
         <tr>
             <th>
                 Name
@@ -91,14 +91,13 @@
                 </tr>
             {{/each}}
             <tr>
-                <th colspan="2">
-                </th>
-                <th colspan="2">
+                <th colspan="4" style="text-align:right">
                     Total {{type_name}}
                 </th>
                 <th style="text-align:right">
                     {{currency total_purchase_price}}
                 </th>
+                <th colspan="2"></th>
                 <th style="text-align:right">
                     {{currency total_book_val_from}}
                 </th>
@@ -113,7 +112,7 @@
     </tbody>
     <tfoot>
         <tr>
-            <th colspan="4">
+            <th colspan="4" style="text-align:right">
                 Total
             </th>
             <th style="text-align:right">
