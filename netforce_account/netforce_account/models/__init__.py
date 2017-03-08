@@ -36,10 +36,13 @@ from . import account_tax_component
 from . import account_transfer
 from . import import_statement
 from . import account_credit_alloc
+from . import account_deposit_alloc
 from . import account_alloc_wizard
 from . import alloc_wizard_line
 from . import account_credit_wizard
 from . import credit_wizard_line
+from . import account_deposit_wizard
+from . import deposit_wizard_line
 from . import currency
 from . import currency_rate
 from . import account_expense

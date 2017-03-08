@@ -28,6 +28,7 @@ class Sequence(Model):
     _name = "sequence"
     _string = "Sequence"
     _audit_log = True
+    _multi_company = True
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "type": fields.Selection([
