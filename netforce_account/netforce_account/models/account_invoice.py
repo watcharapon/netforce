@@ -52,6 +52,7 @@ class Invoice(Model):
         "lines": fields.One2Many("account.invoice.line", "invoice_id", "Lines"),
         "deposit_lines": fields.One2Many("account.deposit.wizard.line", "invoice_id", "Lines"),
         "amount_subtotal": fields.Decimal("Subtotal", function="get_amount", function_multi=True, store=True),
+        "amount_tax_base": fields.Decimal("Tax Base", function="get_amount", function_multi=True, store=True),
         "amount_tax": fields.Decimal("Tax Amount", function="get_amount", function_multi=True, store=True),
         "amount_total": fields.Decimal("Total", function="get_amount", function_multi=True, store=True),
         "amount_paid": fields.Decimal("Paid Amount", function="get_amount", function_multi=True, store=True),
@@ -760,6 +761,7 @@ class Invoice(Model):
             subtotal=get_model("currency").round(inv.currency_id.id,subtotal)
             tax=get_model("currency").round(inv.currency_id.id,tax)
             vals["amount_subtotal"] = subtotal
+            vals["amount_tax_base"] = subtotal
             if inv.taxes and inv.state!='voided':
                 tax=sum(t.tax_amount for t in inv.taxes)
             vals["amount_tax"] = tax
@@ -794,13 +796,16 @@ class Invoice(Model):
                 #else:
                     #vals["amount_tax"] -= depo_tax
                     #vals["amount_total"] -= depo_tax + Decimal(depo_amt)
+                vals["amount_tax_base"] -= (cred_amt + depo_amt)
                 vals["amount_due"] = vals["amount_total"] - paid - cred_amt
                 vals["amount_paid"] = paid + cred_amt  # TODO: check this doesn't break anything...
                 if inv.taxes:
                     vals["amount_due"] -= depo_amt
+                    vals["amount_total"] -= depo_amt
                 else:
                     vals["amount_tax"] -= depo_tax
                     vals["amount_due"] -= depo_tax + Decimal(depo_amt)
+                    vals["amount_total"] -= (depo_tax + Decimal(depo_amt))
             elif inv.inv_type in ("credit", "prepay", "overpay"):
                 cred_amt = 0
                 for alloc in inv.credit_alloc:
@@ -896,13 +901,11 @@ class Invoice(Model):
                 for alloc in data['deposit_notes']:
                     depo_amt += alloc['amount'] or 0.0
                     depo = get_model('account.payment').browse(alloc['deposit_id'])
-                    depo_tax += round(depo.amount_tax*depo_amt/depo.amount_total,2)
-            if "taxes" in data and data["taxes"]:
-                data["amount_total"] -= depo_amt
-            else:
+                    depo_tax += round(depo.amount_tax*depo_amt/depo.amount_subtotal,2)
                 data["amount_tax"] -= depo_tax
-                data["amount_total"] -= depo_tax + depo_amt
-            data["amount_due"] = data["amount_total"] - paid - cred_amt - depo_amt
+                data["amount_total"] -= (depo_tax + depo_amt)
+            data["amount_tax_base"] = data["amount_subtotal"] - depo_amt
+            data["amount_due"] = data["amount_total"] - paid - cred_amt
             data["amount_paid"] = paid + cred_amt
         elif data['inv_type'] in ("credit", "prepay", "overpay"):
             cred_amt = 0
