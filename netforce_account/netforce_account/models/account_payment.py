@@ -1363,7 +1363,10 @@ class Payment(Model):
                 continue
             inv = get_model("account.invoice").browse(line["invoice_id"])
             if "currency_rate" in data and data["currency_rate"]:
-                line["amount"] = inv.amount_due/data["currency_rate"]
+                if inv.currency_id.id != data["currency_id"]:
+                    line["amount"] = inv.amount_due/data["currency_rate"]
+                elif inv.currency_rate:
+                    line["amount"] = get_model("currency").convert(inv.amount_due, inv.currency_id.id, data["currency_id"], from_rate=inv.currency_rate, to_rate=data["currency_rate"], date=data["date"], rate_type=rate_type)
             else:
                 line["amount"] = get_model("currency").convert(inv.amount_due, inv.currency_id.id, data["currency_id"], date=data["date"], rate_type=rate_type)
         data = self.update_amounts(context)

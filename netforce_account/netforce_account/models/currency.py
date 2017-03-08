@@ -118,7 +118,7 @@ class Currency(Model):
         return res
 
     def convert(self, amt, cur_from_id, cur_to_id, from_rate=None, to_rate=None, rate=None, round=False, date=None, rate_type="buy", context={}):
-        if cur_from_id == cur_to_id:
+        if cur_from_id == cur_to_id and (not from_rate or not to_rate):
             return amt
         if not from_rate and not rate:
             if cur_from_id:
