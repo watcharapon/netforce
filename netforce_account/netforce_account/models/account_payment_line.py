@@ -26,7 +26,7 @@ class PaymentLine(Model):
     _string = "Payment Line"
     _fields = {
         "payment_id": fields.Many2One("account.payment", "Payment", required=True, on_delete="cascade"),
-        "type": fields.Selection([["direct", "Direct Payment"], ["invoice", "Invoice Payment"], ["refund", "Refund"], ["prepay", "Prepayment"], ["overpay", "Overpayment"], ["claim", "Expense Claim Payment"]], "Type", required=True),
+        "type": fields.Selection([["direct", "Direct Payment"], ["invoice", "Invoice Payment"], ["refund", "Refund"], ["prepay", "Prepayment"], ["overpay", "Overpayment"], ["claim", "Expense Claim Payment"], ["deposit", "Deposit"]], "Type", required=True),
         "description": fields.Text("Description"),
         "qty": fields.Decimal("Qty"),
         "unit_price": fields.Decimal("Unit Price"),
@@ -59,6 +59,8 @@ class PaymentLine(Model):
                 vals["type"] = "adjust"
         elif pmt.pay_type == "claim":
             vals["type"] = "claim"
+        elif pmt.pay_type == "deposit":
+            vals["type"] = "deposit"
         new_id = super().create(vals, context=context)
         return new_id
 

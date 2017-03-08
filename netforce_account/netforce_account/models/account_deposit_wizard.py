@@ -18,45 +18,41 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-import time
 from netforce.model import Model, fields, get_model
-import time
 
-class CreditWizard(Model):
-    _name = "account.credit.wizard"
+class DepositWizard(Model):
+    _name = "account.deposit.wizard"
     _transient = True
     _fields = {
         "invoice_id": fields.Many2One("account.invoice", "Invoice", required=True, on_delete="cascade"),
-        "date": fields.Date("Date Allocate"),
         "type": fields.Char("Type"),
-        "lines": fields.One2Many("account.credit.wizard.line", "wiz_id", "Lines"),
+        "lines": fields.One2Many("account.deposit.wizard.line", "wiz_id", "Lines"),
         "amount_due": fields.Decimal("Amount Due on Invoice", readonly=True),
-        "amount_alloc": fields.Decimal("Total Amount to Credit", readonly=True),
+        "amount_alloc": fields.Decimal("Total Amount to Deposit", readonly=True),
         "amount_remain": fields.Decimal("Remaining Due", readonly=True),
     }
 
     def default_get(self, field_names={}, context={}, **kw):
-        if "invoice_id" not in context:
+        if "refer_id" not in context:
             return {}
-        inv_id = int(context["invoice_id"])
+        inv_id = int(context["refer_id"])
         inv = get_model("account.invoice").browse(inv_id)
         contact_id = inv.contact_id.id
         lines = []
-        for cred in get_model("account.invoice").search_browse([["type", "=", inv.type], ["inv_type", "in", ("credit", "prepay", "overpay")], ["contact_id", "=", contact_id], ["state", "=", "waiting_payment"], ["currency_id", "=", inv.currency_id.id]]):
+        payment_type = "in" if inv.type == "out" else "out"
+        for deposit in get_model("account.payment").search_browse([["type", "=", payment_type], ["pay_type", "=", "deposit"], ["contact_id", "=", contact_id], ["state", "=", "posted"], ["currency_id", "=", inv.currency_id.id], ["amount_deposit_remain",">",0]]):
             lines.append({
-                "credit_id": [cred.id, cred.name_get()[0][1]],
-                "date": cred.date,
-                "amount_credit_remain": cred.amount_credit_remain,
+                "deposit_id": [deposit.id, deposit.name_get()[0][1]],
+                "date": deposit.date,
+                "amount_deposit_remain": deposit.amount_deposit_remain,
             })
         vals = {
             "invoice_id": [inv.id, inv.name_get()[0][1]],
             "lines": lines,
             "type": inv.type,
-            "date": time.strftime("%Y-%m-%d"),
             "amount_due": inv.amount_due,
             "amount_alloc": 0,
             "amount_remain": inv.amount_due,
-            "date": time.strftime("%Y-%m-%d"),
         }
         return vals
 
@@ -68,11 +64,10 @@ class CreditWizard(Model):
                 continue
             vals = {
                 "invoice_id": obj.invoice_id.id,
-                "credit_id": line.credit_id.id,
-                "amount": line.amount,
-                "date": obj.date,
+                "deposit_id": line.deposit_id.id,
+                "total_amount": line.amount,
             }
-            get_model("account.credit.alloc").create(vals)
+            get_model("account.deposit.alloc").create(vals)
         return {
             "next": {
                 "name": "view_invoice",
@@ -90,4 +85,4 @@ class CreditWizard(Model):
         data["amount_remain"] = data["amount_due"] - amt
         return data
 
-CreditWizard.register()
+DepositWizard.register()
