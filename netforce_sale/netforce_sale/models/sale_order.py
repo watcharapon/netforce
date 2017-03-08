@@ -864,7 +864,7 @@ class SaleOrder(Model):
                 prod = get_model("product").browse(prod_id)
                 price = prod.purchase_price
                 if supplier.purchase_price_list_id:
-                    price = get_model("price.list").get_price(supplier.purchase_price_list_id.id, prod.id, 1)
+                    price = get_model("price.list").get_price(supplier.purchase_price_list_id.id, prod.id, qty=qty)
                 if supplier.currency_id and currency_id and supplier.currency_id.id != currency_id:
                     price = get_model("currency").convert(price, supplier.currency_id.id, currency_id)
                 line_vals = {
