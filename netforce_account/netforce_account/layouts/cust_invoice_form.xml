@@ -73,9 +73,6 @@
                         {{/each}}
                     </template>
                 </field>
-                <field name="amount_tax"/>
-                <field name="amount_rounding" attrs='{"invisible":[["amount_rounding","=",0]]}'/>
-                <field name="amount_total"/>
                 <field name="credit_notes">
                     <fields>
                         <field name="credit_id"/>
@@ -103,6 +100,10 @@
                         {{/each}}
                     </template>
                 </field>
+                <field name="amount_tax_base"/>
+                <field name="amount_tax"/>
+                <field name="amount_rounding" attrs='{"invisible":[["amount_rounding","=",0]]}'/>
+                <field name="amount_total"/>
                 <field name="payments">
                     <fields>
                         <field name="payment_id"/>
