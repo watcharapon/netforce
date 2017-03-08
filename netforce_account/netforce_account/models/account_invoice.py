@@ -846,12 +846,9 @@ class Invoice(Model):
 
     def update_amounts(self, context):
         data = context["data"]
-        settings=get_model("settings").browse(1)
-        currency_id = data["currency_id"]
         data["amount_subtotal"] = 0
         data["amount_tax"] = 0
         tax_type = data["tax_type"]
-        tax_in_total = 0
         for line in data["lines"]:
             if not line:
                 continue
@@ -863,9 +860,9 @@ class Invoice(Model):
                 if line.get("discount_amount"):
                     amt -= line["discount_amount"]
                 amt=roundup(amt)
-                line["amount"] = amt
             else:
                 amt = line.get("amount") or 0
+            line["amount"] = amt
             tax_id = line.get("tax_id")
             if tax_id and tax_type != "no_tax":
                 base_amt = get_model("account.tax.rate").compute_base(tax_id, amt, tax_type=tax_type)
