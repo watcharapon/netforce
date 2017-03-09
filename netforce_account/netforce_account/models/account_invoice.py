@@ -56,7 +56,11 @@ class Invoice(Model):
         "amount_tax": fields.Decimal("Tax Amount", function="get_amount", function_multi=True, store=True),
         "amount_total": fields.Decimal("Total", function="get_amount", function_multi=True, store=True),
         "amount_paid": fields.Decimal("Paid Amount", function="get_amount", function_multi=True, store=True),
-        "amount_deposit": fields.Decimal("Deposit Amount", function="get_amount", function_multi=True, store=True),
+        "amount_total_deposit_vat": fields.Decimal("Total Deposit(VAT)", function="get_amount", function_multi=True, store=True),
+        "amount_total_deposit": fields.Decimal("Total Deposit(Non VAT)", function="get_amount", function_multi=True, store=True),
+        "amount_subtotal_deposit": fields.Decimal("Subtotal Deposit", function="get_amount", function_multi=True, store=True),
+        "amount_tax_deposit": fields.Decimal("Tax Amount Deposit", function="get_amount", function_multi=True, store=True),
+        "amount_deposit": fields.Decimal("Total Deposit", function="get_amount", function_multi=True, store=True),
         "amount_due": fields.Decimal("Due Amount", function="get_amount", function_multi=True, store=True),
         "amount_credit_total": fields.Decimal("Total Credit", function="get_amount", function_multi=True, store=True),
         "amount_credit_remain": fields.Decimal("Remaining Credit", function="get_amount", function_multi=True, store=True),
@@ -619,7 +623,7 @@ class Invoice(Model):
                 else:
                     for line in group_lines:
                         if "tax_base" in line and line["tax_base"]:
-                            base_amt = line["tax_base"] - depo_amt
+                            base_amt = line["tax_base"] - (obj.amount_total_deposit_vat or 0)
                             if base_amt > 0: # avoid case deposit full amount
                                 line["tax_base"] = base_amt
                             break
@@ -786,17 +790,26 @@ class Invoice(Model):
                 cred_amt = 0
                 depo_amt = 0
                 depo_tax = 0
+                total_depo = 0
+                total_depo_vat = 0
                 for alloc in inv.credit_notes:
                     cred_amt += alloc.amount
                 for alloc in inv.deposit_notes:
-                    depo_amt += alloc.amount or 0.0
-                    depo_tax += round(alloc.deposit_id.amount_tax*alloc.total_amount/alloc.deposit_id.amount_total,2)
-                #if inv.taxes:
-                    #vals["amount_total"] -= depo_amt
-                #else:
-                    #vals["amount_tax"] -= depo_tax
-                    #vals["amount_total"] -= depo_tax + Decimal(depo_amt)
-                vals["amount_tax_base"] -= (cred_amt + depo_amt)
+                    depo_line_amt = alloc.amount or 0.0
+                    depo_line_tax = round(alloc.deposit_id.amount_tax*alloc.total_amount/alloc.deposit_id.amount_total,2)
+                    depo_amt += depo_line_amt or 0
+                    depo_tax += depo_line_tax or 0
+                    if depo_line_tax:
+                        vals["amount_tax_base"] -= depo_line_amt
+                        total_depo_vat += depo_line_amt
+                    else:
+                        total_depo += depo_line_amt
+                vals["amount_subtotal_deposit"] = total_depo + total_depo_vat
+                vals["amount_tax_deposit"] = depo_tax
+                vals["amount_deposit"] = (total_depo + total_depo_vat) + depo_tax
+                vals["amount_total_deposit_vat"] = total_depo_vat
+                vals["amount_total_deposit"] = total_depo
+                vals["amount_tax_base"] -= cred_amt
                 vals["amount_due"] = vals["amount_total"] - paid - cred_amt
                 vals["amount_paid"] = paid + cred_amt  # TODO: check this doesn't break anything...
                 if inv.taxes:
@@ -821,7 +834,7 @@ class Invoice(Model):
             for line in inv.deposit_lines:
                 amt += line.amount or 0
             vals["amount_deposit_alloc"] = amt
-            vals["amount_deposit_remain"] = vals["amount_total"] - amt
+            vals["amount_deposit_remain"] = vals["amount_subtotal"] - amt
             
             vals["amount_due_cur"] = get_model("currency").convert(
                 vals["amount_due"], inv.currency_id.id, settings.currency_id.id, round=True, rate=inv.currency_rate)
@@ -850,6 +863,8 @@ class Invoice(Model):
         currency_id = data["currency_id"]
         data["amount_subtotal"] = 0
         data["amount_tax"] = 0
+        data["amount_total_deposit_vat"] = 0
+        data["amount_total_deposit"] = 0
         tax_type = data["tax_type"]
         tax_in_total = 0
         for line in data["lines"]:
@@ -897,14 +912,25 @@ class Invoice(Model):
             depo_tax = 0
             for alloc in data['credit_notes']:
                 cred_amt += alloc['amount']
-            if 'deposit_notes' in data:
-                for alloc in data['deposit_notes']:
-                    depo_amt += alloc['amount'] or 0.0
+            if 'deposit_lines' in data:
+                total_depo = 0
+                total_depo_vat = 0
+                for alloc in data['deposit_lines']:
+                    depo_amt += alloc['tax_base'] or 0.0
                     depo = get_model('account.payment').browse(alloc['deposit_id'])
                     depo_tax += round(depo.amount_tax*depo_amt/depo.amount_subtotal,2)
+                if depo_tax:
+                    total_depo_vat += depo_amt
+                else:
+                    total_depo += depo_amt
+                data["amount_total_deposit_vat"] = total_depo_vat
+                data["amount_total_deposit"] = total_depo
+                data["amount_subtotal_deposit"] = (total_depo + total_depo_vat)
+                data["amount_tax_deposit"] = depo_tax
+                data["amount_deposit"] = (total_depo + total_depo_vat) + depo_tax
                 data["amount_tax"] -= depo_tax
                 data["amount_total"] -= (depo_tax + depo_amt)
-            data["amount_tax_base"] = data["amount_subtotal"] - depo_amt
+            data["amount_tax_base"] = data["amount_subtotal"] - data["amount_total_deposit_vat"]
             data["amount_due"] = data["amount_total"] - paid - cred_amt
             data["amount_paid"] = paid + cred_amt
         elif data['inv_type'] in ("credit", "prepay", "overpay"):
@@ -1439,8 +1465,11 @@ class Invoice(Model):
         line = get_data_path(data, path, parent=True)
         deposit = get_model("account.payment").browse(line["deposit_id"])
         line["date"] = deposit.date
+        line["tax_base"] = deposit.amount_subtotal
+        line["tax_amount"] = deposit.amount_tax
         line["amount_deposit_remain"] = deposit.amount_deposit_remain
         line["amount"] = deposit.amount_deposit_remain
+        self.update_amounts(context)
         return data
 
     def update_deposit_amounts(self, context={}):
