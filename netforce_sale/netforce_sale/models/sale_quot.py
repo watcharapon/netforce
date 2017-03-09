@@ -463,7 +463,7 @@ class SaleQuot(Model):
         id=ids[0]
         obj=self.browse(id)
         sale_vals={
-            "ref": obj.number,
+            #"ref": obj.number,
             "quot_id": obj.id,
             "contact_id": obj.contact_id.id,
             "currency_id": obj.currency_id.id,

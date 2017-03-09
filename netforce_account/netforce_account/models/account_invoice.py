@@ -913,6 +913,7 @@ class Invoice(Model):
                 total_depo = 0
                 total_depo_vat = 0
                 for alloc in data['deposit_lines']:
+                    if not alloc: continue
                     depo_amt += alloc['tax_base'] or 0.0
                     depo = get_model('account.payment').browse(alloc['deposit_id'])
                     depo_tax += round(depo.amount_tax*depo_amt/depo.amount_subtotal,2)
@@ -973,6 +974,9 @@ class Invoice(Model):
                 line["tax_id"] = prod.sale_tax_id.id
             elif prod.categ_id and prod.categ_id.sale_tax_id:
                 line["tax_id"] = prod.categ_id.sale_tax_id.id
+
+            if prod.sale_invoice_uom_id:
+                line["uom_id"] = prod.sale_invoice_uom_id.id
         elif type == "in":
             if prod.purchase_price:
                 line["unit_price"] = prod.purchase_price
@@ -986,6 +990,8 @@ class Invoice(Model):
                 line["tax_id"] = prod.purchase_tax_id.id
             elif prod.categ_id and prod.categ_id.purchase_tax_id:
                 line["tax_id"] = prod.categ_id.purchase_tax_id.id
+            if prod.purchase_invoice_uom_id:
+                line["uom_id"] = prod.purchase_invoice_uom_id.id
         data = self.update_amounts(context)
         return data
 
