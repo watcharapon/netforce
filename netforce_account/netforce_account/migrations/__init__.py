@@ -16,3 +16,4 @@ from . import tax_date
 from . import credit_remain_cur
 from . import account_currency
 from . import account_track_categ
+from . import invoice_store

@@ -2,5 +2,4 @@
     <field name="type">method</field>
     <field name="model">account.invoice</field>
     <field name="method">view_deposit</field>
-    <field name="priority">1</field>
 </action>
