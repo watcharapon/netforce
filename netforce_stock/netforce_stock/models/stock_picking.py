@@ -353,7 +353,7 @@ class Picking(Model):
                 "ref": obj.number,
                 "number": number,
                 "contact_id": obj.contact_id.id,
-                "currency_id": obj.currency_id.id,
+                "currency_id": obj.currency_id.id if obj.currency_id else None,
                 "currency_rate": obj.currency_rate,
                 "related_id": "%s,%s"%(obj.related_id._model,obj.related_id.id) if obj.related_id else None,
                 "lines": [],

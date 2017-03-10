@@ -229,8 +229,7 @@ class PurchaseOrder(Model):
         prod = get_model("product").browse(prod_id)
         line["description"] = prod.description
         line["qty"] = 1
-        if prod.uom_id is not None:
-            line["uom_id"] = prod.uom_id.id
+        line["uom_id"] = prod.purchase_uom_id.id or prod.uom_id.id
         pricelist_id = data["price_list_id"]
         price = None
         if pricelist_id:

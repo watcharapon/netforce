@@ -68,7 +68,7 @@ class ReportSaleProfit(Model):
                 "est_cost_total": sale.est_cost_total,
                 "est_profit": sale.est_profit,
                 "est_profit_percent": sale.est_profit_percent,
-                "act_cost_total": sale.act_cost_total,
+                "act_cost_total": sale.act_cost_amount,
                 "act_profit": sale.act_profit,
                 "act_profit_percent": sale.act_profit_percent,
             }
