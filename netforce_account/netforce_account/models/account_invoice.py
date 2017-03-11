@@ -208,7 +208,7 @@ class Invoice(Model):
 
     def create(self, vals, context={}):
         # create default deposit
-        if "contact_id" in vals:
+        if "contact_id" in vals and "currency_id" in vals:
             payment_type = "in" if vals["type"] == "out" else "out"
             vals["deposit_lines"] = []
             for deposit in get_model("account.payment").search_browse([["type", "=", payment_type], ["pay_type", "=", "deposit"], ["contact_id", "=", vals["contact_id"]], ["state", "=", "posted"], ["currency_id", "=", vals["currency_id"]], ["amount_deposit_remain",">",0]]):
