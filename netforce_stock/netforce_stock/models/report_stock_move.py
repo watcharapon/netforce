@@ -129,7 +129,7 @@ class ReportStockMove(Model):
             "number": obj.picking_id.number,
             "date": obj.date,
             "related": obj.related_id.number,
-            "contact": obj.contact_id.name,
+            "contact": obj.picking_id.contact_id.name if obj.picking_id.contact_id else None,
             "product_code": obj.product_id.code,
             "product_name": obj.product_id.name,
             "location_from": obj.location_from_id.name,
