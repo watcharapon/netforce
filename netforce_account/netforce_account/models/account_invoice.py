@@ -914,9 +914,9 @@ class Invoice(Model):
                 total_depo_vat = 0
                 for alloc in data['deposit_lines']:
                     if not alloc: continue
-                    depo_amt += alloc['tax_base'] or 0.0
+                    depo_amt += alloc['tax_base'] or 0
                     depo = get_model('account.payment').browse(alloc['deposit_id'])
-                    depo_tax += round(depo.amount_tax*depo_amt/depo.amount_subtotal,2)
+                    depo_tax += round(Decimal(depo.amount_tax)*Decimal(depo_amt/depo.amount_subtotal),2)
                 if depo_tax:
                     total_depo_vat += depo_amt
                 else:

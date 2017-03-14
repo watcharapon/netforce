@@ -146,6 +146,14 @@ var FieldDecimal=NFView.extend({
                     clause_v=v!=cons;
                 } else if (op=="in") {
                     clause_v=_.contains(cons,v);
+                } else if (op==">") {
+                    clause_v=v>cons;
+                } else if (op==">=") {
+                    clause_v=v>=cons;
+                } else if (op=="<=") {
+                    clause_v=v<=cons;
+                } else if (op=="<") {
+                    clause_v=v<cons;
                 } else {
                     throw "Invalid operator: "+op;
                 }
