@@ -60,10 +60,7 @@ class Contact(Model):
         "receivables_overdue": fields.Decimal("Receivables Overdue"),
         "payable_credit": fields.Decimal("Payable Credit", function="get_credit", function_multi=True),
         "receivable_credit": fields.Decimal("Receivable Credit", function="get_credit", function_multi=True),
-        "payable_deposit": fields.Decimal("Payable Deposit", function="get_deposit", function_multi=True),
-        "receivable_deposit": fields.Decimal("Receivable Deposit", function="get_deposit", function_multi=True),
         "invoices": fields.One2Many("account.invoice", "contact_id", "Invoices"),
-        "deposits": fields.One2Many("account.payment", "contact_id", "Deposits"),
         "sale_price_list_id": fields.Many2One("price.list", "Sales Price List", condition=[["type", "=", "sale"]]),
         "purchase_price_list_id": fields.Many2One("price.list", "Purchasing Price List", condition=[["type", "=", "purchase"]]),
         "categ_id": fields.Many2One("contact.categ", "Contact Category"),
@@ -214,35 +211,6 @@ class Contact(Model):
             vals[obj.id] = {
                 "receivable_credit": out_credit,
                 "payable_credit": in_credit,
-            }
-        return vals
-
-    def get_deposit(self, ids, context={}):
-        print("contact.get_deposit", ids)
-        currency_id = context.get("currency_id")
-        print("currency_id", currency_id)
-        vals = {}
-        for obj in self.browse(ids):
-            out_deposit = 0
-            in_deposit = 0
-            for deposit in obj.deposits:
-                if deposit.pay_type != "deposit":
-                    continue
-                if currency_id and deposit.currency_id.id != currency_id:
-                    continue
-                if deposit.type == "out":
-                    if currency_id:
-                        out_deposit += deposit.amount_deposit_remain or 0
-                    else:
-                        out_deposit += deposit.amount_deposit_remain_cur or 0
-                elif deposit.type == "in":
-                    if currency_id:
-                        in_deposit += deposit.amount_deposit_remain or 0
-                    else:
-                        in_deposit += deposit.amount_deposit_remain_cur or 0
-            vals[obj.id] = {
-                "receivable_deposit": in_deposit,
-                "payable_deposit": out_deposit,
             }
         return vals
 

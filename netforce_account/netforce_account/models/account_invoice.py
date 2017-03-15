@@ -42,7 +42,6 @@ class Invoice(Model):
         "memo": fields.Char("Memo", size=1024, search=True),
         "contact_id": fields.Many2One("contact", "Contact", required=True, search=True),
         "contact_credit": fields.Decimal("Outstanding Credit", function="get_contact_credit"),
-        "contact_deposit": fields.Decimal("Outstanding Deposit", function="get_contact_deposit"),
         "account_id": fields.Many2One("account.account", "Account"),
         "date": fields.Date("Date", required=True, search=True),
         "due_date": fields.Date("Due Date", search=True),
@@ -50,28 +49,19 @@ class Invoice(Model):
         "tax_type": fields.Selection([["tax_ex", "Tax Exclusive"], ["tax_in", "Tax Inclusive"], ["no_tax", "No Tax"]], "Tax Type", required=True),
         "state": fields.Selection([("draft", "Draft"), ("waiting_approval", "Waiting Approval"), ("waiting_payment", "Waiting Payment"), ("paid", "Paid"), ("voided", "Voided")], "Status", function="get_state", store=True, function_order=20, search=True),
         "lines": fields.One2Many("account.invoice.line", "invoice_id", "Lines"),
-        "deposit_lines": fields.One2Many("account.deposit.wizard.line", "invoice_id", "Lines"),
         "amount_subtotal": fields.Decimal("Subtotal", function="get_amount", function_multi=True, store=True),
         "amount_tax_base": fields.Decimal("Tax Base", function="get_amount", function_multi=True, store=True),
         "amount_tax": fields.Decimal("Tax Amount", function="get_amount", function_multi=True, store=True),
         "amount_total": fields.Decimal("Total", function="get_amount", function_multi=True, store=True),
         "amount_paid": fields.Decimal("Paid Amount", function="get_amount", function_multi=True, store=True),
-        "amount_total_deposit_vat": fields.Decimal("Total Deposit(VAT)", function="get_amount", function_multi=True, store=True),
-        "amount_total_deposit": fields.Decimal("Total Deposit(Non VAT)", function="get_amount", function_multi=True, store=True),
-        "amount_subtotal_deposit": fields.Decimal("Subtotal Deposit", function="get_amount", function_multi=True, store=True),
-        "amount_tax_deposit": fields.Decimal("Tax Amount Deposit", function="get_amount", function_multi=True, store=True),
-        "amount_deposit": fields.Decimal("Total Deposit", function="get_amount", function_multi=True, store=True),
         "amount_due": fields.Decimal("Due Amount", function="get_amount", function_multi=True, store=True),
         "amount_credit_total": fields.Decimal("Total Credit", function="get_amount", function_multi=True, store=True),
         "amount_credit_remain": fields.Decimal("Remaining Credit", function="get_amount", function_multi=True, store=True),
         "amount_total_cur": fields.Decimal("Total Amount", function="get_amount", function_multi=True, store=True),
         "amount_due_cur": fields.Decimal("Due Amount", function="get_amount", function_multi=True, store=True),
         "amount_paid_cur": fields.Decimal("Paid Amount", function="get_amount", function_multi=True, store=True),
-        "amount_deposit_cur": fields.Decimal("Deposit Amount", function="get_amount", function_multi=True, store=True),
         "amount_credit_remain_cur": fields.Decimal("Remaining Credit", function="get_amount", function_multi=True, store=True),
         "amount_rounding": fields.Decimal("Rounding", function="get_amount", function_multi=True, store=True),
-        "amount_deposit_alloc": fields.Decimal("Total Amount to Deposit", function="get_amount", function_multi=True, store=True, readonly=True), # deposit
-        "amount_deposit_remain": fields.Decimal("Remaining Due", function="get_amount", function_multi=True, store=True, readonly=True), # deposit
         "qty_total": fields.Decimal("Total Quantity", function="get_qty_total"),
         "attachment": fields.File("Attachment"),
         "payments": fields.One2Many("account.payment.line", "invoice_id", "Payments", condition=[["payment_id.state", "=", "posted"]]),
@@ -79,8 +69,6 @@ class Invoice(Model):
         "reconcile_move_line_id": fields.Many2One("account.move.line", "Reconcile Item"),
         "credit_alloc": fields.One2Many("account.credit.alloc", "credit_id", "Credit Allocation"),
         "credit_notes": fields.One2Many("account.credit.alloc", "invoice_id", "Credit Notes"),
-        "deposit_alloc": fields.One2Many("account.deposit.alloc", "deposit_id", "Deposit Allocation"),
-        "deposit_notes": fields.One2Many("account.deposit.alloc", "invoice_id", "Deposit Notes"),
         "currency_rate": fields.Decimal("Currency Rate", scale=6),
         "payment_id": fields.Many2One("account.payment", "Payment"),
         "related_id": fields.Reference([["sale.order", "Sales Order"], ["purchase.order", "Purchase Order"], ["production.order","Production Order"], ["project", "Project"], ["job", "Service Order"], ["service.contract", "Service Contract"]], "Related To"),
@@ -156,8 +144,6 @@ class Invoice(Model):
         "number": _get_number,
         "date": lambda *a: time.strftime("%Y-%m-%d"),
         "company_id": lambda *a: get_active_company(),
-        "amount_deposit_alloc": 0,
-        "amount_deposit_remain": 0,
     }
     _constraints = ["check_fields"]
 
@@ -207,17 +193,6 @@ class Invoice(Model):
         return vals
 
     def create(self, vals, context={}):
-        # create default deposit
-        if "contact_id" in vals and "currency_id" in vals:
-            payment_type = "in" if vals["type"] == "out" else "out"
-            vals["deposit_lines"] = []
-            for deposit in get_model("account.payment").search_browse([["type", "=", payment_type], ["pay_type", "=", "deposit"], ["contact_id", "=", vals["contact_id"]], ["state", "=", "posted"], ["currency_id", "=", vals["currency_id"]], ["amount_deposit_remain",">",0]]):
-                vals["deposit_lines"].append(["create", {
-                    "deposit_id": deposit.id,
-                    "date": deposit.date,
-                    "amount_deposit_remain": deposit.amount_deposit_remain,
-                }])
-        # standard code
         id = super(Invoice, self).create(vals, context=context)
         self.function_store([id])
         return id
@@ -287,11 +262,6 @@ class Invoice(Model):
         obj = self.browse(ids)[0]
         if obj.state not in ("draft", "waiting_approval"):
             raise Exception("Invalid state")
-        depo_amt = 0
-        for depo in obj.deposit_notes:
-            depo_amt += depo.total_amount
-        if obj.amount_deposit_alloc and depo_amt != obj.amount_deposit_alloc:
-            raise Exception("Allocated deposit is not equal to deposit amoount in tab 'Allocate Deposit'")
         obj.post()
         if obj.inv_type == "invoice":
             msg = "Invoice approved."
@@ -345,7 +315,6 @@ class Invoice(Model):
             else:
                 base_amt = line.amount
         deduct_tax = True
-        depo_tax = context['depo_tax'] if 'depo_tax' in context else 0
         for comp_id, tax_vals in taxes.items():
             comp = get_model("account.tax.component").browse(comp_id)
             acc_id = comp.account_id.id
@@ -353,7 +322,6 @@ class Invoice(Model):
                 raise Exception("Missing account for tax component %s" % comp.name)
             if deduct_tax: # check for better way
                 deduct_tax = False
-                tax_vals["tax_amt"] -= depo_tax
             vals = {
                 "invoice_id": obj.id,
                 "tax_comp_id": comp_id,
@@ -382,37 +350,12 @@ class Invoice(Model):
         if not settings.currency_loss_id:
             raise Exception("Missing currency loss account")
         for obj in self.browse(ids):
-            # calcualte deposit amt
-            depo_amt = 0
-            depo_tax = 0
-            depo_base = 0 # use to calculate currency gain/loss
-            depo_track = {}
-            for alloc in obj.deposit_notes:
-                # convert to default currency
-                amt = get_model("currency").convert(alloc.total_amount or 0, alloc.deposit_id.currency_id.id, settings.currency_id.id, rate=alloc.deposit_id.currency_rate)
-                tax = get_model("currency").convert(alloc.total_amount - alloc.amount, alloc.deposit_id.currency_id.id, settings.currency_id.id, rate=alloc.deposit_id.currency_rate)
-
-                # group deposit amt by tracking code if there are more than one tracking code
-                for line in alloc.deposit_id.lines:
-                    amt_ratio = alloc.amount * (line.amount/alloc.deposit_id.amount_subtotal) # ratio according to different tracking
-                    amt_cur = get_model("currency").convert(amt_ratio, alloc.deposit_id.currency_id.id, settings.currency_id.id, rate=alloc.deposit_id.currency_rate)
-                    if (line.track_id.id, line.track2_id.id) in depo_track:
-                        depo_track[(line.track_id.id, line.track2_id.id)] += amt_cur
-                    else:
-                        depo_track[(line.track_id.id, line.track2_id.id)] = amt_cur
-
-                depo_amt += amt
-                depo_tax += tax
-                depo_base += alloc.total_amount + (alloc.total_amount - alloc.amount)
-            depo_amt -= depo_tax # exclude tax
-
             obj.check_related()
             if obj.amount_total == 0:
                 raise Exception("Invoice total is zero")
             if obj.amount_total < 0:
                 raise Exception("Invoice total is negative")
             if not obj.taxes:
-                context['depo_tax'] = depo_tax # check for better way
                 obj.calc_taxes(context)
                 obj=obj.browse()[0]
             contact = obj.contact_id
@@ -549,85 +492,6 @@ class Invoice(Model):
                 "due_date": obj.due_date,
                 "contact_id": contact.id,
             }
-            # Improve this logic
-            depo_line_vals = None
-            depo_account = None
-            depo_net_cur = 0
-            if depo_amt:
-                # check gain / loss after deposit
-                # deposit all inv amount
-                if obj.amount_due == 0:
-                    if line_vals["credit"]:
-                        line_vals["account_id"] = settings.currency_gain_id.id
-                    else:
-                        line_vals["account_id"] = settings.currency_loss_id.id
-                else: # deposit partial inv amount
-                    if alloc.deposit_id.currency_id.id != settings.currency_id.id or (alloc.deposit_id.currency_id.id == settings.currency_id.id and obj.currency_rate != alloc.deposit_id.currency_rate):
-                        inv_depo_amt = get_model("currency").convert(depo_base, alloc.deposit_id.currency_id.id, settings.currency_id.id, rate=obj.currency_rate)
-                        depo_net_cur = inv_depo_amt - depo_amt
-                        if obj.type == "out": # AR
-                            # if inv currency rate > deposit currency rate, (-) goes to account currency loss
-                            # elif inv currency rate < deposit currency rate, (+) goes to account currency gain
-                            depo_net_line_vals = {
-                                "description": "Difference between Invoice Currency Rate and Deposit Currency Rate",
-                                "account_id": settings.currency_loss_id.id if depo_net_cur < 0 else settings.currency_gain_id.id,
-                                "credit": depo_net_cur > 0 and depo_net_cur or 0,
-                                "debit": depo_net_cur < 0 and -depo_net_cur or 0,
-                                "contact_id": contact.id,
-                            }
-                        else:
-                            # if inv currency rate > deposit currency rate, (-) goes to account currency gain
-                            # elif inv currency rate < deposit currency rate, (+) goes to account currency loss
-                            depo_net_line_vals = {
-                                "description": "Difference between Invoice Currency Rate and Deposit Currency Rate",
-                                "account_id": settings.currency_loss_id.id if depo_net_cur > 0 else settings.currency_gain_id.id,
-                                "credit": depo_net_cur < 0 and -depo_net_cur or 0,
-                                "debit": depo_net_cur > 0 and depo_net_cur or 0,
-                                "contact_id": contact.id,
-                            }
-                        group_lines.insert(0,depo_net_line_vals)
-
-                # check deposit side
-                on_credit = False
-                depo_line_vals = []
-                if line_vals["debit"]:
-                    line_vals["debit"] -= depo_amt - depo_net_cur
-                    if line_vals["debit"] < 0: # switch side if debit is negative
-                        line_vals["credit"] = abs(line_vals["debit"])
-                        line_vals["debit"] = 0
-                else:
-                    on_credit = True
-                    line_vals["credit"] -= depo_amt - depo_net_cur
-                    if line_vals["credit"] < 0:
-                        line_vals["debit"] = abs(line_vals["credit"])
-                        line_vals["credit"] = 0
-                # get deposit_account
-                for depo_note in obj.deposit_notes:
-                    for depo_note_line in depo_note.deposit_id.lines:
-                        depo_account = depo_note_line.account_id
-                for (track_id, track2_id) in depo_track:
-                    depo_line = {
-                        "description": "Reverse Deposit",
-                        "account_id": depo_account.id,
-                        "debit": depo_track[(track_id, track2_id)] if not on_credit else 0,
-                        "credit": depo_track[(track_id, track2_id)] if on_credit else 0,
-                        "due_date": obj.due_date,
-                        "track_id": (track_id, track2_id)[0],
-                        "track2_id": (track_id, track2_id)[1],
-                        "contact_id": contact.id,
-                    }
-                    depo_line_vals.append(depo_line)
-                # deduct from base amt
-                if line_vals["account_id"] in [settings.currency_gain_id.id, settings.currency_loss_id.id]:
-                    pass
-                else:
-                    for line in group_lines:
-                        if "tax_base" in line and line["tax_base"]:
-                            base_amt = line["tax_base"] - (obj.amount_total_deposit_vat or 0)
-                            if base_amt > 0: # avoid case deposit full amount
-                                line["tax_base"] = base_amt
-                            break
-
             acc = get_model("account.account").browse(account_id)
             if acc.currency_id.id != settings.currency_id.id:
                 if acc.currency_id.id != obj.currency_id.id:
@@ -638,12 +502,7 @@ class Invoice(Model):
                 move_vals["lines"] = [("create", line_vals)]
             else:
                 move_vals["lines"] = [] # set to empty list to be supported by += operation
-            if depo_line_vals:
-                move_vals["lines"] += [("create", vals) for vals in depo_line_vals]
             move_vals["lines"] += [("create", vals) for vals in group_lines]
-
-            for line in move_vals["lines"]:
-                print(line)
             t03 = time.time()
             dt02 = (t03 - t02) * 1000
             print("post dt02", dt02)
@@ -699,50 +558,11 @@ class Invoice(Model):
             raise Exception("Invalid status")
         if obj.credit_notes:
             raise Exception("There are still payment entries for this invoice")
-        if obj.deposit_notes:
-            raise Exception("There are still deposit entries for this invoice")
         if obj.move_id:
             obj.move_id.void()
             obj.move_id.delete()
         obj.taxes.delete()
         obj.write({"state": "draft"})
-
-    def clear_deposit(self, ids, context={}):
-        for obj in self.browse(ids):
-            for line in obj.deposit_lines:
-                line.delete()
-        obj.write({
-            "amount_deposit_alloc": 0,
-            "amount_deposit_remain": 0,
-        })
-        return { "flash": "Clear deposit" }
-
-    def allocate_deposit(self, ids, context={}):
-        obj = self.browse(ids)[0]
-        allocated_objs = []
-        if obj.amount_deposit_remain < 0:
-            raise Exception("Cannot allocate more than invoice amount")
-        assert obj.inv_type == "invoice"
-        for line in obj.deposit_notes: # clear allocated deposit
-            line.delete()
-        for line in obj.deposit_lines: # allocate deposit
-            if not line.amount:
-                continue
-            if line.amount > line.amount_deposit_remain:
-                raise Exception("Cannot allocate more than remaining amount %s"%line.deposit_id.number)
-            vals = {
-                "invoice_id": obj.id,
-                "deposit_id": line.deposit_id.id,
-                "total_amount": line.amount,
-            }
-            get_model("account.deposit.alloc").create(vals)
-        return {
-            "next": {
-                "name": "view_invoice",
-                "active_id": obj.id,
-            },
-            "flash": "Invoice updated.",
-        }
 
     def get_amount(self, ids, context={}):
         t0 = time.time()
@@ -788,37 +608,11 @@ class Invoice(Model):
             vals["amount_paid"] = paid
             if inv.inv_type in ("invoice", "debit"):
                 cred_amt = 0
-                depo_amt = 0
-                depo_tax = 0
-                total_depo = 0
-                total_depo_vat = 0
                 for alloc in inv.credit_notes:
                     cred_amt += alloc.amount
-                for alloc in inv.deposit_notes:
-                    depo_line_amt = alloc.amount or 0.0
-                    depo_line_tax = round(alloc.deposit_id.amount_tax*alloc.total_amount/alloc.deposit_id.amount_total,2)
-                    depo_amt += depo_line_amt or 0
-                    depo_tax += depo_line_tax or 0
-                    if depo_line_tax:
-                        vals["amount_tax_base"] -= depo_line_amt
-                        total_depo_vat += depo_line_amt
-                    else:
-                        total_depo += depo_line_amt
-                vals["amount_subtotal_deposit"] = total_depo + total_depo_vat
-                vals["amount_tax_deposit"] = depo_tax
-                vals["amount_deposit"] = (total_depo + total_depo_vat) + depo_tax
-                vals["amount_total_deposit_vat"] = total_depo_vat
-                vals["amount_total_deposit"] = total_depo
                 vals["amount_tax_base"] -= cred_amt
                 vals["amount_due"] = vals["amount_total"] - paid - cred_amt
                 vals["amount_paid"] = paid + cred_amt  # TODO: check this doesn't break anything...
-                if inv.taxes:
-                    vals["amount_due"] -= depo_amt
-                    vals["amount_total"] -= depo_amt
-                else:
-                    vals["amount_tax"] -= depo_tax
-                    vals["amount_due"] -= depo_tax + Decimal(depo_amt)
-                    vals["amount_total"] -= (depo_tax + Decimal(depo_amt))
             elif inv.inv_type in ("credit", "prepay", "overpay"):
                 cred_amt = 0
                 for alloc in inv.credit_alloc:
@@ -830,20 +624,12 @@ class Invoice(Model):
                         cred_amt -= pmt.amount  # XXX: check this
                 vals["amount_credit_remain"] = vals["amount_total"] - cred_amt
                 vals["amount_due"] = -vals["amount_credit_remain"]
-            amt = 0
-            for line in inv.deposit_lines:
-                amt += line.amount or 0
-            vals["amount_deposit_alloc"] = amt
-            vals["amount_deposit_remain"] = vals["amount_subtotal"] - amt
-            
             vals["amount_due_cur"] = get_model("currency").convert(
                 vals["amount_due"], inv.currency_id.id, settings.currency_id.id, round=True, rate=inv.currency_rate)
             vals["amount_paid_cur"] = get_model("currency").convert(
                 vals["amount_paid"], inv.currency_id.id, settings.currency_id.id, round=True, rate=inv.currency_rate)
             vals["amount_credit_remain_cur"] = get_model("currency").convert(
                 vals.get("amount_credit_remain", 0), inv.currency_id.id, settings.currency_id.id, round=True, rate=inv.currency_rate)
-            vals["amount_deposit_cur"] = get_model("currency").convert(
-                vals.get("amount_deposit", 0), inv.currency_id.id, settings.currency_id.id, round=True, rate=inv.currency_rate)
             res[inv.id] = vals
         t1 = time.time()
         dt = (t1 - t0) * 1000
@@ -861,8 +647,6 @@ class Invoice(Model):
         data = context["data"]
         data["amount_subtotal"] = 0
         data["amount_tax"] = 0
-        data["amount_total_deposit_vat"] = 0
-        data["amount_total_deposit"] = 0
         tax_type = data["tax_type"]
         for line in data["lines"]:
             if not line:
@@ -905,30 +689,9 @@ class Invoice(Model):
                 paid += pmt['amount_currency']
         if data['inv_type'] in ("invoice", "debit"):
             cred_amt = 0
-            depo_amt = 0
-            depo_tax = 0
             for alloc in data['credit_notes']:
                 cred_amt += alloc['amount']
-            if 'deposit_lines' in data:
-                total_depo = 0
-                total_depo_vat = 0
-                for alloc in data['deposit_lines']:
-                    if not alloc: continue
-                    depo_amt += alloc['tax_base'] or 0
-                    depo = get_model('account.payment').browse(alloc['deposit_id'])
-                    depo_tax += round(Decimal(depo.amount_tax)*Decimal(depo_amt/depo.amount_subtotal),2)
-                if depo_tax:
-                    total_depo_vat += depo_amt
-                else:
-                    total_depo += depo_amt
-                data["amount_total_deposit_vat"] = total_depo_vat
-                data["amount_total_deposit"] = total_depo
-                data["amount_subtotal_deposit"] = (total_depo + total_depo_vat)
-                data["amount_tax_deposit"] = depo_tax
-                data["amount_deposit"] = (total_depo + total_depo_vat) + depo_tax
-                data["amount_tax"] -= depo_tax
-                data["amount_total"] -= (depo_tax + depo_amt)
-            data["amount_tax_base"] = data["amount_subtotal"] - data["amount_total_deposit_vat"]
+            data["amount_tax_base"] = data["amount_subtotal"]
             data["amount_due"] = data["amount_total"] - paid - cred_amt
             data["amount_paid"] = paid + cred_amt
         elif data['inv_type'] in ("credit", "prepay", "overpay"):
@@ -1061,23 +824,6 @@ class Invoice(Model):
             }
         }
 
-    def view_deposit(self, ids, context={}):
-        obj = self.browse(ids[0])
-        #if obj.type == "out":
-            #action = "customer_payment"
-        #elif obj.type == "in":
-            #action = "supplier_payment"
-        action = "payment"
-        layout = "payment_form"
-        return {
-            "next": {
-                "name": action,
-                "mode": "form",
-                "form_view_xml": layout,
-                "active_id": obj.id,
-            }
-        }
-
     def get_contact_credit(self, ids, context={}):
         obj = self.browse(ids[0])
         amt=0
@@ -1088,19 +834,6 @@ class Invoice(Model):
                 amt = contact.receivable_credit
             elif obj.type == "in":
                 amt = contact.payable_credit
-        vals[obj.id] = amt
-        return vals
-
-    def get_contact_deposit(self, ids, context={}):
-        obj = self.browse(ids[0])
-        amt=0
-        vals = {}
-        if obj.contact_id:
-            contact = get_model("contact").browse(obj.contact_id.id, context={"currency_id": obj.currency_id.id})
-            if obj.type == "out":
-                amt = contact.receivable_deposit
-            elif obj.type == "in":
-                amt = contact.payable_deposit
         vals[obj.id] = amt
         return vals
 
@@ -1460,28 +1193,6 @@ class Invoice(Model):
         seq_id = data["sequence_id"]
         num = self._get_number(context={"type": data["type"], "inv_type": data["inv_type"], "date": data["date"], "sequence_id": seq_id})
         data["number"] = num
-        return data
-
-    def onchange_deposit(self, context={}):
-        data = context["data"]
-        path = context["path"]
-        line = get_data_path(data, path, parent=True)
-        deposit = get_model("account.payment").browse(line["deposit_id"])
-        line["date"] = deposit.date
-        line["tax_base"] = deposit.amount_subtotal
-        line["tax_amount"] = deposit.amount_tax
-        line["amount_deposit_remain"] = deposit.amount_deposit_remain
-        line["amount"] = deposit.amount_deposit_remain
-        self.update_amounts(context)
-        return data
-
-    def update_deposit_amounts(self, context={}):
-        data = context["data"]
-        amt = 0
-        for line in data["deposit_lines"]:
-            amt += line["amount"] or 0
-        data["amount_deposit_alloc"] = amt
-        data["amount_deposit_remain"] = data["amount_total"] - amt
         return data
 
 Invoice.register()
