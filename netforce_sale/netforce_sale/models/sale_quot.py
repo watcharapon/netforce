@@ -468,6 +468,7 @@ class SaleQuot(Model):
             "contact_id": obj.contact_id.id,
             "currency_id": obj.currency_id.id,
             "tax_type": obj.tax_type,
+            "ref": obj.ref,
             "lines": [],
             "user_id": obj.user_id.id,
             "other_info": obj.other_info,
