@@ -327,7 +327,8 @@ class Picking(Model):
                 else:
                     so_line = None
                 if so_line:
-                    line_vals["unit_price"] = so_line.unit_price
+                    unit_price = so_line.amount/so_line.qty if so_line.qty else 0
+                    line_vals["unit_price"] = unit_price
                     line_vals["tax_id"] = so_line.tax_id.id
                 else:
                     line_vals["unit_price"] = prod.sale_price or 0

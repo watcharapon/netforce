@@ -7,9 +7,8 @@
         <field name="contact_id" span="2"/>
         <field name="account_id" span="2"/>
         <newline/>
-        <field name="group_track_categ" span="3"/>
+        <field name="group_account" span="3"/>
         <field name="hide_period" span="3"/>
         <field name="hide_ytd" span="3"/>
-        <field name="show_net" span="3"/>
     </group>
 </form>

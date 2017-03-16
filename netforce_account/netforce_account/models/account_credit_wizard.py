@@ -20,6 +20,7 @@
 
 import time
 from netforce.model import Model, fields, get_model
+from netforce.utils import get_data_path
 import time
 
 class CreditWizard(Model):
@@ -27,6 +28,8 @@ class CreditWizard(Model):
     _transient = True
     _fields = {
         "invoice_id": fields.Many2One("account.invoice", "Invoice", required=True, on_delete="cascade"),
+        "contact_id": fields.Many2One("contact", "Contact", required=True, on_delete="cascade"),
+        "currency_id": fields.Many2One("currency", "Currency", required=True, on_delete="cascade"),
         "date": fields.Date("Date Allocate"),
         "type": fields.Char("Type"),
         "lines": fields.One2Many("account.credit.wizard.line", "wiz_id", "Lines"),
@@ -52,6 +55,8 @@ class CreditWizard(Model):
             "invoice_id": [inv.id, inv.name_get()[0][1]],
             "lines": lines,
             "type": inv.type,
+            "contact_id": inv.contact_id.id,
+            "currency_id": inv.currency_id.id,
             "date": time.strftime("%Y-%m-%d"),
             "amount_due": inv.amount_due,
             "amount_alloc": 0,
@@ -85,9 +90,21 @@ class CreditWizard(Model):
         data = context["data"]
         amt = 0
         for line in data["lines"]:
-            amt += line.get("amount", 0)
+            amt += line.get("amount") or 0
         data["amount_alloc"] = amt
         data["amount_remain"] = data["amount_due"] - amt
+        return data
+
+    def onchange_credit(self,context={}):
+        data = context['data']
+        path = context['path']
+        line = get_data_path(data,path,parent=True)
+        if line.get("credit_id"):
+            credit_id = int(line["credit_id"])
+            cred = get_model("account.invoice").browse(credit_id)
+            line["date"] = cred.date
+            line["amount_credit_remain"] = cred.amount_credit_remain
+        self.update_amounts(context=context)
         return data
 
 CreditWizard.register()

@@ -26,7 +26,7 @@ class CreditWizardLine(Model):
     _transient = True
     _fields = {
         "wiz_id": fields.Many2One("account.credit.wizard", "Wizard", required=True, on_delete="cascade"),
-        "credit_id": fields.Many2One("account.invoice", "Credit", required=True, readonly=True, on_delete="cascade"),
+        "credit_id": fields.Many2One("account.invoice", "Credit", required=True, on_delete="cascade"),
         "date": fields.Date("Date", readonly=True),
         "amount_credit_remain": fields.Decimal("Outstanding Credit", readonly=True),
         "amount": fields.Decimal("Amount"),

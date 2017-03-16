@@ -77,7 +77,6 @@
                         {{/each}}
                     </template>
                 </field>
-                <field name="amount_tax_base"/>
                 <field name="amount_tax"/>
                 <field name="amount_total"/>
                 <field name="payments">
