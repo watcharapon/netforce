@@ -24,7 +24,6 @@ from dateutil.relativedelta import *
 from netforce.access import get_active_company
 from netforce.database import get_connection
 
-
 def get_totals(date_from=None, date_to=None, excl_date_to=False, track_categ_ids=None, track_id=None, track2_id=None, contact_id=None, account_id=None, acc_type=None):
     pl_types = ("revenue", "other_income", "cost_sales", "expense", "other_expense")
     db = get_connection()
@@ -74,7 +73,6 @@ def get_totals(date_from=None, date_to=None, excl_date_to=False, track_categ_ids
         })
     return totals
 
-
 class ReportTBDetails(Model):
     _name = "report.tb.details"
     _transient = True
@@ -85,18 +83,16 @@ class ReportTBDetails(Model):
         "track2_id": fields.Many2One("account.track.categ", "Tracking-2", condition=[["type", "=", "2"]]),
         "contact_id": fields.Many2One("contact", "Contact"),
         "account_id": fields.Many2One("account.account", "Account"),
-        "group_track_categ": fields.Boolean("Group by Tracking Category"),
+        "group_account": fields.Boolean("Group by Account"),
         "hide_period": fields.Boolean("Hide zero period"),
         "hide_ytd": fields.Boolean("Hide zero YTD"),
-        "show_net": fields.Boolean("Show Net"),
     }
 
     _defaults = {
         "date": lambda *a: date.today().strftime("%Y-%m-%d"),
-        "group_track_categ": False,
+        "group_account": False,
         "hide_period": False,
         "hide_ytd": False,
-        "show_net": False,
     }
 
     def get_report_data(self, ids, context={}):
@@ -127,10 +123,9 @@ class ReportTBDetails(Model):
             track_categ = get_model("account.track.categ").browse(int(track_categ_id))
         account_id = params.get("account_id")
         contact_id = params.get("contact_id")
-        group_track_categ = params.get("group_track_categ")
+        group_account = params.get("group_account")
         hide_period = params.get("hide_period")
         hide_ytd = params.get("hide_ytd")
-        show_net = params.get("show_net")
         month_date_from = datetime.strptime(date_to, "%Y-%m-%d").strftime("%Y-%m-01")
         month_begin_date_to = (
             datetime.strptime(date_to, "%Y-%m-%d") + relativedelta(day=1) - timedelta(days=1)).strftime("%Y-%m-%d")
@@ -199,8 +194,6 @@ class ReportTBDetails(Model):
         for (account_id, contact_id, track_id, track2_id), vals in totals.items():
             if hide_period and not vals.get("period_debit") and not vals.get("period_credit"): continue
             if hide_ytd and not vals.get("ytd_debit") and not vals.get("ytd_credit"): continue
-            if show_net:
-                vals = self.calc_net(vals=vals)
             lines.append({
                 "account_id": account_id,
                 "contact_id": contact_id,
@@ -239,7 +232,7 @@ class ReportTBDetails(Model):
             line["contact_name"] = contact.name if contact else None
             line["track_code"] = track.code if track else None
             line["track2_code"] = track2.code if track2 else None
-            if group_track_categ:
+            if group_account:
                 if account.id not in categ_lines:
                     categ_lines[account.id] = line
                     categ_lines[account.id]["no_link"] = True
@@ -256,10 +249,9 @@ class ReportTBDetails(Model):
                     categ_lines[account.id]["period_credit"] += line["period_credit"]
                     categ_lines[account.id]["ytd_debit"] += line["ytd_debit"]
                     categ_lines[account.id]["ytd_credit"] += line["ytd_credit"]
-        if group_track_categ:
+        if group_account:
             lines = []
             for acc_id,l in categ_lines.items():
-                l = self.calc_net(vals=l)
                 lines.append(l)
         lines.sort(
             key=lambda l: (l["account_code"], l["contact_name"] or "", l["track_code"] or "", l["track2_code"] or ""))
@@ -282,38 +274,12 @@ class ReportTBDetails(Model):
             "track2_code": p_track2.code if p_track2 else None,
             "lines": lines,
             "totals": totals,
+            "hide_period":hide_period,
+            "hide_ytd":hide_ytd,
         }
         return data
 
     def get_report_data_custom(self, ids, context={}):
         return self.get_report_data(ids, context=context)
-
-    def calc_net(self,vals={}):
-        if not vals: raise Exception("Missing Data")
-        b_debit = vals.get('begin_debit') or 0
-        b_credit = vals.get('begin_credit') or 0
-        p_debit = vals.get('period_debit') or 0
-        p_credit = vals.get('period_credit') or 0
-        ytd_debit = vals.get('ytd_debit') or 0
-        ytd_credit = vals.get('ytd_credit') or 0
-        if (b_debit - b_credit) >= 0:
-            vals["begin_debit"] = (b_debit - b_credit)
-            vals["begin_credit"] = 0
-        else:
-            vals["begin_credit"] = (b_credit - b_debit)
-            vals["begin_debit"] = 0
-        if (p_debit - p_credit) >= 0:
-            vals["period_debit"] = (p_debit - p_credit)
-            vals["period_credit"] = 0
-        else:
-            vals["period_credit"] = (p_credit - p_debit)
-            vals["period_debit"] = 0
-        if (ytd_debit - ytd_credit) >= 0:
-            vals["ytd_debit"] = (ytd_debit - ytd_credit)
-            vals["ytd_credit"] = 0
-        else:
-            vals["ytd_credit"] = (ytd_credit - ytd_debit)
-            vals["ytd_debit"] = 0
-        return vals
 
 ReportTBDetails.register()
