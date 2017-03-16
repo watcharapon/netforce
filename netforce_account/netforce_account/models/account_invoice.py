@@ -50,7 +50,6 @@ class Invoice(Model):
         "state": fields.Selection([("draft", "Draft"), ("waiting_approval", "Waiting Approval"), ("waiting_payment", "Waiting Payment"), ("paid", "Paid"), ("voided", "Voided")], "Status", function="get_state", store=True, function_order=20, search=True),
         "lines": fields.One2Many("account.invoice.line", "invoice_id", "Lines"),
         "amount_subtotal": fields.Decimal("Subtotal", function="get_amount", function_multi=True, store=True),
-        "amount_tax_base": fields.Decimal("Tax Base", function="get_amount", function_multi=True, store=True),
         "amount_tax": fields.Decimal("Tax Amount", function="get_amount", function_multi=True, store=True),
         "amount_total": fields.Decimal("Total", function="get_amount", function_multi=True, store=True),
         "amount_paid": fields.Decimal("Paid Amount", function="get_amount", function_multi=True, store=True),
@@ -587,7 +586,6 @@ class Invoice(Model):
             subtotal=get_model("currency").round(inv.currency_id.id,subtotal)
             tax=get_model("currency").round(inv.currency_id.id,tax)
             tax_base=get_model("currency").round(inv.currency_id.id,tax_base)
-            vals["amount_tax_base"] = tax_base
             vals["amount_subtotal"] = subtotal
             if inv.taxes and inv.state!='voided':
                 tax=sum(t.tax_amount for t in inv.taxes)
@@ -648,7 +646,6 @@ class Invoice(Model):
     def update_amounts(self, context):
         data = context["data"]
         data["amount_subtotal"] = 0
-        data["amount_tax_base"] = 0
         data["amount_tax"] = 0
         tax_type = data["tax_type"]
         for line in data["lines"]:
@@ -671,7 +668,6 @@ class Invoice(Model):
                 tax_comps = get_model("account.tax.rate").compute_taxes(tax_id, base_amt, when="invoice")
                 for comp_id, tax_amt in tax_comps.items():
                     data["amount_tax"] += tax_amt
-                data["amount_tax_base"] += base_amt
             else:
                 base_amt = amt
             data["amount_subtotal"] += Decimal(base_amt)
