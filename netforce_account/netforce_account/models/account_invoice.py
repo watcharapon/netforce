@@ -572,6 +572,7 @@ class Invoice(Model):
             vals = {}
             subtotal = 0
             tax = 0
+            tax_base = 0
             for line in inv.lines:
                 tax_id = line.tax_id
                 if tax_id and inv.tax_type != "no_tax":
@@ -579,13 +580,15 @@ class Invoice(Model):
                     tax_comps = get_model("account.tax.rate").compute_taxes(tax_id, base_amt, when="invoice")
                     for comp_id, tax_amt in tax_comps.items():
                         tax += tax_amt
+                    tax_base += base_amt
                 else:
                     base_amt = line.amount
                 subtotal += base_amt
             subtotal=get_model("currency").round(inv.currency_id.id,subtotal)
             tax=get_model("currency").round(inv.currency_id.id,tax)
+            tax_base=get_model("currency").round(inv.currency_id.id,tax_base)
+            vals["amount_tax_base"] = tax_base
             vals["amount_subtotal"] = subtotal
-            vals["amount_tax_base"] = subtotal
             if inv.taxes and inv.state!='voided':
                 tax=sum(t.tax_amount for t in inv.taxes)
             vals["amount_tax"] = tax
@@ -610,7 +613,6 @@ class Invoice(Model):
                 cred_amt = 0
                 for alloc in inv.credit_notes:
                     cred_amt += alloc.amount
-                vals["amount_tax_base"] -= cred_amt
                 vals["amount_due"] = vals["amount_total"] - paid - cred_amt
                 vals["amount_paid"] = paid + cred_amt  # TODO: check this doesn't break anything...
             elif inv.inv_type in ("credit", "prepay", "overpay"):
@@ -646,6 +648,7 @@ class Invoice(Model):
     def update_amounts(self, context):
         data = context["data"]
         data["amount_subtotal"] = 0
+        data["amount_tax_base"] = 0
         data["amount_tax"] = 0
         tax_type = data["tax_type"]
         for line in data["lines"]:
@@ -668,6 +671,7 @@ class Invoice(Model):
                 tax_comps = get_model("account.tax.rate").compute_taxes(tax_id, base_amt, when="invoice")
                 for comp_id, tax_amt in tax_comps.items():
                     data["amount_tax"] += tax_amt
+                data["amount_tax_base"] += base_amt
             else:
                 base_amt = amt
             data["amount_subtotal"] += Decimal(base_amt)
@@ -691,7 +695,6 @@ class Invoice(Model):
             cred_amt = 0
             for alloc in data['credit_notes']:
                 cred_amt += alloc['amount']
-            data["amount_tax_base"] = data["amount_subtotal"]
             data["amount_due"] = data["amount_total"] - paid - cred_amt
             data["amount_paid"] = paid + cred_amt
         elif data['inv_type'] in ("credit", "prepay", "overpay"):
