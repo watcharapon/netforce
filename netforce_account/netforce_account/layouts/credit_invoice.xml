@@ -10,7 +10,7 @@
     </group>
     <field name="lines" nolabel="1">
         <list>
-            <field name="credit_id" action="view_invoice"/>
+            <field name="credit_id" action="view_invoice" condition='[["type","=",parent.type],["inv_type","in",["credit","prepay","overpay"]],["contact_id","=",parent.contact_id],["currency_id","=",parent.currency_id],["state","=","waiting_payment"],["id","not in",parent.lines.nf_pluck("credit_id")]]' onchange="onchange_credit"/>
             <field name="date"/>
             <field name="amount_credit_remain"/>
             <field name="amount" onchange="update_amounts"/>
@@ -21,6 +21,9 @@
         <field name="amount_alloc"/>
         <field name="amount_remain"/>
     </group>
+    <field name="type" invisible="1"/>
+    <field name="contact_id" invisible="1"/>
+    <field name="currency_id" invisible="1"/>
     <foot replace="1">
         <button string="Allocate Credit" method="allocate" size="large" type="success"/>
     </foot>
