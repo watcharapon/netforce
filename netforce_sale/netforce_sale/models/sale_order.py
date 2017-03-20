@@ -812,12 +812,7 @@ class SaleOrder(Model):
         contact = get_model("contact").browse(contact_id) if contact_id else None
         data["payment_terms"] = contact.payment_terms if contact else None
         data["price_list_id"] = contact.sale_price_list_id.id if contact else None
-        settings = get_model("settings").browse(1)
-        bill_add_id = None
-        for add in settings.addresses:
-            if add.type == "billing": continue
-            bill_add_id = add.id
-        data["bill_address_id"] = bill_add_id
+        data["bill_address_id"] = contact.get_address(pref_type="billing") if contact else None
         data["ship_address_id"] = contact.get_address(pref_type="shipping") if contact else None
         if contact.currency_id:
             data["currency_id"] = contact.currency_id.id
