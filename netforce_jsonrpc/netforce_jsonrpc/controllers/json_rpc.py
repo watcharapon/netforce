@@ -31,6 +31,9 @@ from netforce.utils import timeout, json_dumps
 from netforce.log import rpc_log
 import traceback
 from netforce.locale import set_active_locale
+from netforce.access import get_active_company, set_active_user, set_active_company, get_active_user
+from netforce import utils
+from netforce.database import get_active_db
 
 
 class JsonRpc(Controller):
@@ -62,6 +65,19 @@ class JsonRpc(Controller):
                     cookies = {}
                 if "locale" in cookies:
                     set_active_locale(cookies["locale"])
+                if "user_id" in cookies:
+                    user_id = cookies["user_id"]
+                    token = cookies ["token"]
+                    dbname = get_active_db()
+                    if user_id and dbname:
+                        user_id = int(user_id)
+                        token = utils.url_unescape(token)
+                    if utils.check_token(dbname, user_id, token):
+                        access.set_active_user(user_id)
+                    else:
+                        print("WARNING: wrong token! (dbname=%s user_id=%s token=%s)" % (dbname, user_id, token))
+                        self.clear_cookie("user_id")
+                        raise Exception("Invalid token")
                 user_id = access.get_active_user()
                 rpc_log.info("EXECUTE db=%s model=%s method=%s user=%s" %
                              (database.get_active_db(), model, method, user_id))
