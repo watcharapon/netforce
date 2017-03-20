@@ -87,7 +87,7 @@ class Transfer(Model):
             journal_id = settings.general_journal_id.id
             if not journal_id:
                 raise Exception("General journal not found")
-            amt = get_model("currency").convert(obj.amount, obj.account_from_id.currency_id.id, settings.currency_id.id)
+            amt = get_model("currency").convert(obj.amount, obj.account_from_id.currency_id.id, settings.currency_id.id, date=obj.date)
             move_vals = {
                 "journal_id": journal_id,
                 "number": obj.number,
@@ -180,7 +180,7 @@ class Transfer(Model):
         acc_to = get_model("account.account").browse(acc_to_id)
         if not data["amount_received"]:
             data["amount_received"] = get_model("currency").convert(
-                data["amount"], acc_from.currency_id.id, acc_to.currency_id.id)
+                data["amount"], acc_from.currency_id.id, acc_to.currency_id.id, date=data['date'])
         return data
 
     def onchange_amount_received(self, context={}):
@@ -191,7 +191,7 @@ class Transfer(Model):
         acc_to = get_model("account.account").browse(acc_to_id)
         if not data["amount"]:
             data["amount"] = get_model("currency").convert(
-                data["amount_received"], acc_to.currency_id.id, acc_from.currency_id.id)
+                data["amount_received"], acc_to.currency_id.id, acc_from.currency_id.id, date=data['date'])
         return data
 
 Transfer.register()
