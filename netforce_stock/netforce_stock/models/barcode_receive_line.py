@@ -26,7 +26,7 @@ class BarcodeReceiveLine(Model):
     _transient = True
     _fields = {
         "wizard_id": fields.Many2One("barcode.receive", "Wizard", required=True, on_delete="cascade"),
-        "product_id": fields.Many2One("product", "Product", required=True),
+        "product_id": fields.Many2One("product", "Product", required=True, on_delete="cascade"),
         "qty": fields.Decimal("Qty", required=True),
         "uom_id": fields.Many2One("uom", "UoM", required=True),
         "qty2": fields.Decimal("Secondary Qty"),

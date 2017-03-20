@@ -571,7 +571,6 @@ class Invoice(Model):
             vals = {}
             subtotal = 0
             tax = 0
-            tax_base = 0
             for line in inv.lines:
                 tax_id = line.tax_id
                 if tax_id and inv.tax_type != "no_tax":
@@ -579,13 +578,11 @@ class Invoice(Model):
                     tax_comps = get_model("account.tax.rate").compute_taxes(tax_id, base_amt, when="invoice")
                     for comp_id, tax_amt in tax_comps.items():
                         tax += tax_amt
-                    tax_base += base_amt
                 else:
                     base_amt = line.amount
                 subtotal += base_amt
             subtotal=get_model("currency").round(inv.currency_id.id,subtotal)
             tax=get_model("currency").round(inv.currency_id.id,tax)
-            tax_base=get_model("currency").round(inv.currency_id.id,tax_base)
             vals["amount_subtotal"] = subtotal
             if inv.taxes and inv.state!='voided':
                 tax=sum(t.tax_amount for t in inv.taxes)
