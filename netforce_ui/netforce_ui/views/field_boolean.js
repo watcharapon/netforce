@@ -59,6 +59,10 @@ var FieldBoolean=NFView.extend({
         this.data.horizontal=form_layout=="horizontal";
         NFView.prototype.render.call(this);
         var attrs=this.eval_attrs();
+        var perms=get_field_permissions(model.name,name);
+        if (!perms.perm_write){
+            readonly = true
+        }
         if (readonly) {
             this.$el.find("input").attr("disabled","disabled");
         }
