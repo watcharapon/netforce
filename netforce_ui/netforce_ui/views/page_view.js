@@ -625,9 +625,11 @@ var PageView=NFView.extend({
                         var model=that.model;
                         var f=model.get_field(name);
                         var cond=[];
+                        var field_cond = $el.attr("condition");
                         if (f.relfield) {
                             cond.push([f.relfield,"=",model.id]);
                         }
+                        cond = that.eval_condition(cond,field_cond)
                         if (f.condition) {
                             if (_.isString(f.condition)) {
                                 var data=that.model.toJSON();
@@ -684,13 +686,23 @@ var PageView=NFView.extend({
         return content.html();
     },
 
+    eval_condition: function(condition,field_cond) {
+        if (!field_cond) return condition;
+        var expr=JSON.parse(field_cond);
+        for (var attr in expr) {
+            var conds=expr[attr];
+            condition.push(conds);
+        }
+        return condition;
+    },
+
     click_bread: function(e) {
         log("page_view.click_bread");
         e.preventDefault();
         var action={
             name: this.options.action_name,
             mode: this.options.prev_mode || "list", // XXX: change this, use event
-            active_id: this.active_id
+            active_id: this.active_id,
         }
         if (this.options.search_condition) {
             action.search_condition=this.options.search_condition;

@@ -30,7 +30,7 @@
                 <field name="balance_end"/>
             </list>
         </field>
-        <field name="move_lines" string="Account Transactions">
+        <field name="move_lines" string="Account Transactions" condition='[["move_id.state","!=","voided"]]'>
             <list action="view_transaction" colors='{"#cfc":[["state","=","reconciled"]]}'>
                 <head>
                     <button string="Unreconcile" method="unreconcile" type="primary"/>
