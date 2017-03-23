@@ -970,7 +970,7 @@ def report_render_odt(tmpl_name, data):
                 continue
             if textel.text.find("{{") == -1:
                 continue
-            t = re.sub("{{\s*(\w+)\s*}}", _repl, textel.text)
+            t = re.sub("{{\s*(\S+)\s*}}", _repl, textel.text)
             if t != textel.text:
                 textel.text = t
 
