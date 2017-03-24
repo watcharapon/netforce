@@ -79,7 +79,7 @@ var ReportView=NFView.extend({
                 if ($el.attr("noselect")) {
                     search_field={type:"char",string:orig_field.string};
                 } else {
-                    search_field={type:"many2one",relation:orig_field.relation,string:orig_field.string};
+                    search_field={type:"many2one",relation:orig_field.relation,string:orig_field.string,condition:orig_field.condition};
                 }
             } else if (orig_field.type=="text") search_field={type:"char",string:orig_field.string};
             else if (orig_field.type=="reference") search_field={type:"char",string:orig_field.string};
