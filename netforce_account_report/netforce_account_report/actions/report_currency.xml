@@ -3,5 +3,6 @@
     <field name="view_cls">report</field>
     <field name="model">report.currency</field>
     <field name="report_template">report_currency</field>
+    <field name="report_template_xls">currency</field>
     <field name="menu">account_menu</field>
 </action>
