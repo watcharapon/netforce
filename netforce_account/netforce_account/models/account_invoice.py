@@ -294,7 +294,7 @@ class Invoice(Model):
                 if not rate_to:
                     raise Exception("Missing currency rate for %s" % settings.currency_id.code)
                 currency_rate = rate_from / rate_to
-                obj.write({"currency_rate":currency_rate})
+            obj.write({"currency_rate":currency_rate})
         taxes = {}
         tax_nos = []
         total_amt = 0
