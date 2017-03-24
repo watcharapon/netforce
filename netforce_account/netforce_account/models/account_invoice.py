@@ -278,23 +278,7 @@ class Invoice(Model):
         obj=self.browse(ids[0])
         obj.taxes.delete()
         settings = get_model("settings").browse(1)
-        if obj.currency_rate:
-            currency_rate = obj.currency_rate
-        else:
-            if obj.currency_id.id == settings.currency_id.id:
-                currency_rate = 1
-            else:
-                rate_type=obj.type=="out" and "sell" or "buy"
-                rate_from = obj.currency_id.get_rate(date=obj.date,rate_type=rate_type)
-                if not rate_from:
-                    raise Exception("Missing currency rate for %s" % obj.currency_id.code)
-                if not settings.currency_id:
-                    raise Exception("Missing default currency in Financial Settings")
-                rate_to = settings.currency_id.get_rate(date=obj.date)
-                if not rate_to:
-                    raise Exception("Missing currency rate for %s" % settings.currency_id.code)
-                currency_rate = rate_from / rate_to
-            obj.write({"currency_rate": currency_rate})
+        currency_rate = obj.get_currency_rate()
         taxes = {}
         tax_nos = []
         total_amt = 0
@@ -1190,5 +1174,26 @@ class Invoice(Model):
         num = self._get_number(context={"type": data["type"], "inv_type": data["inv_type"], "date": data["date"], "sequence_id": seq_id})
         data["number"] = num
         return data
+
+    def get_currency_rate(self,ids,cotnext={}):
+        settings = get_model("settings").browse(1)
+        obj=self.browse(ids)[0]
+        if obj.currency_rate:
+            currency_rate = obj.currency_rate
+        else:
+            if obj.currency_id.id == settings.currency_id.id:
+                currency_rate = 1
+            else:
+                rate_type=obj.type=="out" and "sell" or "buy"
+                rate_from = obj.currency_id.get_rate(date=obj.date,rate_type=rate_type)
+                if not rate_from:
+                    raise Exception("Missing currency rate for %s" % obj.currency_id.code)
+                if not settings.currency_id:
+                    raise Exception("Missing default currency in Financial Settings")
+                rate_to = settings.currency_id.get_rate(date=obj.date)
+                if not rate_to:
+                    raise Exception("Missing currency rate for %s" % settings.currency_id.code)
+                currency_rate = rate_from / rate_to
+        return currency_rate
 
 Invoice.register()
