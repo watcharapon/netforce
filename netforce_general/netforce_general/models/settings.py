@@ -143,7 +143,7 @@ class Settings(Model):
         "act_ship_account_id": fields.Many2One("account.account","Actual Shipping Account",multi_company=True),
         "act_duty_account_id": fields.Many2One("account.account","Actual Duty Account",multi_company=True),
         "menu_icon": fields.File("Menu Icon"),
-        "stock_cost_auto_compute": fields.Boolean("Auto Compute Cost"),
+        "stock_cost_auto_compute": fields.Boolean("Auto Compute Cost", multi_company=True),
         "purchase_copy_picking": fields.Boolean("Auto-copy purchase orders to goods receipt"),
         "purchase_copy_invoice": fields.Boolean("Auto-copy purchase orders to supplier invoice"),
         "lot_expiry_journal_id": fields.Many2One("stock.journal", "Lot Expiry Journal", multi_company=True),
