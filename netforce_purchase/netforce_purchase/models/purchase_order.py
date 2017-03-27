@@ -24,6 +24,7 @@ import time
 from netforce.access import get_active_company, get_active_user, set_active_user
 from . import utils
 from decimal import Decimal
+from datetime import datetime
 
 
 class PurchaseOrder(Model):
@@ -294,7 +295,7 @@ class PurchaseOrder(Model):
             "lines": [],
         }
         if obj.delivery_date:
-            pick_vals["date"]=obj.delivery_date
+            pick_vals["date"]=obj.delivery_date+datetime.strftime(datetime.now()," %H:%M:%S")
         if contact and contact.pick_in_journal_id:
             pick_vals["journal_id"] = contact.pick_in_journal_id.id
         res = get_model("stock.location").search([["type", "=", "supplier"]],order="id")
