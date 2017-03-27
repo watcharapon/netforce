@@ -25,6 +25,7 @@ class Journal(Model):
     _name = "account.journal"
     _string = "Journal"
     _key = ["code"]
+    _multi_company = True
     _fields = {
         "name": fields.Char("Name", required=True, search=True),
         "sequence_id": fields.Many2One("sequence", "Sequence", multi_company=True),
