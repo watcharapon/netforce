@@ -546,7 +546,7 @@ class SaleOrder(Model):
                 "state": "draft",
                 "ship_method_id": obj_line.ship_method_id.id or obj.ship_method_id.id,
                 "company_id": obj.company_id.id,
-                "date": obj.due_date++datetime.strftime(datetime.now()," %H:%M:%S"),
+                "date": obj.due_date+datetime.strftime(datetime.now()," %H:%M:%S"),
             }
             if contact and contact.pick_out_journal_id:
                 pick_vals[picking_key]["journal_id"] = contact.pick_out_journal_id.id
