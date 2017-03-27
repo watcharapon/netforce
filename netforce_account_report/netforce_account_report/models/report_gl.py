@@ -118,7 +118,6 @@ class ReportGL(Model):
         }
         accounts = get_model("account.account").search_read(
             condition, ["name", "code", "debit", "credit", "balance" ,"type"], order="code", context=ctx)
-        #accounts = [acc for acc in accounts if acc["debit"] or acc["credit"]]
         data_accounts = []
         for acc in accounts:
             if acc["type"] in balance_sheet:
