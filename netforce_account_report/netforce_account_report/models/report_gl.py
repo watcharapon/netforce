@@ -120,9 +120,7 @@ class ReportGL(Model):
             condition, ["name", "code", "debit", "credit", "balance" ,"type"], order="code", context=ctx)
         data_accounts = []
         for acc in accounts:
-            if acc["type"] in balance_sheet:
-                data_accounts.append(acc)
-            elif acc["debit"] or acc["credit"]:
+            if acc["debit"] or acc["credit"]:
                 data_accounts.append(acc)
         data["lines"] = data_accounts
         data["total_debit"] = sum(acc["debit"] for acc in accounts)
