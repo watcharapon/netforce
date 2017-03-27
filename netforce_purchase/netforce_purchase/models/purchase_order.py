@@ -132,7 +132,7 @@ class PurchaseOrder(Model):
                 prod = line.product_id
                 if prod and prod.type in ("stock", "consumable", "bundle") and not line.location_id:
                     raise Exception("Missing location for product %s" % prod.code)
-                if line.qty < prod.purchase_min_qty:
+                if prod.purchase_min_qty and line.qty < prod.purchase_min_qty:
                     raise Exception("Minimum Sales Qty for [%s] %s is %s"%(prod.code,prod.name,prod.purchase_min_qty))
             obj.write({"state": "confirmed"})
             if settings.purchase_copy_picking:
@@ -267,7 +267,7 @@ class PurchaseOrder(Model):
         pricelist_id = data["price_list_id"]
         qty = line["qty"]
         price = None
-        if qty < prod.purchase_min_qty:
+        if prod.purchase_min_qty and qty < prod.purchase_min_qty:
             raise Exception("Minimum Sales Qty for [%s] %s is %s"%(prod.code,prod.name,prod.purchase_min_qty))
         if pricelist_id:
             price = get_model("price.list").get_price(pricelist_id, prod.id, qty)
