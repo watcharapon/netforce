@@ -44,7 +44,7 @@ class InvoiceLine(Model):
         "amount_discount": fields.Decimal("Discount", function="get_discount"),
     }
 
-    _order = "id desc"
+    _order = "id"
 
     def create(self, vals, **kw):
         id = super(InvoiceLine, self).create(vals, **kw)
