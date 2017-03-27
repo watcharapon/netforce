@@ -25,6 +25,7 @@ class Migration(Migration):
             "product_borrow_journal_id",
             "lot_expiry_journal_id",
             "stock_cost_mode",
+            "stock_cost_auto_compute",
             "prevent_validate_neg_stock",
             # financial settings
             "sale_journal_id",
