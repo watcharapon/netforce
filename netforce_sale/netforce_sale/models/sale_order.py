@@ -293,7 +293,7 @@ class SaleOrder(Model):
             prod = line.product_id
             if prod and prod.type in ("stock", "consumable", "bundle") and not line.location_id:
                 raise Exception("Missing location for product %s" % prod.code)
-            if line.qty < prod.min_sale_qty:
+            if prod.min_sale_qty and line.qty < prod.min_sale_qty:
                 raise Exception("Minimum Sales Qty for [%s] %s is %s"%(prod.code,prod.name,prod.min_sale_qty))
         obj.write({"state": "confirmed"})
         settings = get_model("settings").browse(1)
@@ -429,7 +429,7 @@ class SaleOrder(Model):
         prod = get_model("product").browse(prod_id)
         pricelist_id = data["price_list_id"]
         qty = line["qty"]
-        if qty < prod.min_sale_qty:
+        if prod.min_sale_qty and qty < prod.min_sale_qty:
             raise Exception("Minimum Sales Qty for [%s] %s is %s"%(prod.code,prod.name,prod.min_sale_qty))
         price = None
         if pricelist_id:
