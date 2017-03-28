@@ -785,6 +785,7 @@ class Invoice(Model):
         else:
             settings = get_model("settings").browse(1)
             data["currency_id"] = settings.currency_id.id
+        self.update_currency_rate(context=context)
         return data
 
     def view_invoice(self, ids, context={}):
@@ -1067,6 +1068,7 @@ class Invoice(Model):
         }
         number = self._get_number(context=ctx)
         data["number"] = number
+        self.update_currency_rate(context=context)
         return data
 
     def check_related(self, ids, context={}):
@@ -1193,4 +1195,22 @@ class Invoice(Model):
         data["number"] = num
         return data
 
+    def update_currency_rate(self,context={}):
+        data = context['data']
+        date = data.get('date')
+        currency_id = data.get('currency_id')
+        inv_type = data.get('type')        
+        setting = get_model("settings").browse(1)
+        if not date or not currency_id or not inv_type or not setting.currency_id: return data
+        currency = get_model("currency").browse(int(currency_id))
+        if currency.id == setting.currency_id.id:
+            currency_rate = 1
+        else:
+            rate_type=inv_type == "out" and "sell" or "buy"
+            rate_from = currency.get_rate(date=date,rate_type=rate_type)
+            rate_to = setting.currency_id.get_rate(date=date)
+            if not rate_from or not rate_to: return data
+            currency_rate = rate_from / rate_to
+        data["currency_rate"] = currency_rate
+        return data
 Invoice.register()
