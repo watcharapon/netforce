@@ -34,7 +34,7 @@ class Lead(Model):
         "user_id": fields.Many2One("base.user", "Lead Owner", required=True),
         "first_name": fields.Char("First Name", search=True),
         "last_name": fields.Char("Last Name", required=True, search=True),
-        "name": fields.Char("Name", function="get_name"),
+        "name": fields.Char("Name", function="get_name", store=True),
         "company": fields.Char("Company", search=True),
         "title": fields.Char("Title"),
         "state": fields.Selection([["open", "Open"], ["contacted", "Contacted"], ["qualified", "Qualified"], ["unqualified", "Unqualified"], ["recycled", "Recycled"]], "Status", required=True),
@@ -71,6 +71,15 @@ class Lead(Model):
         "user_id": lambda self, context: int(context["user_id"]),
         "company_id": lambda *a: get_active_company(),
     }
+
+    def create(self, vals, **kw):
+        id = super().create(vals,**kw)
+        self.function_store([id])
+        return id
+
+    def write(self, ids, vals, **kw):
+        super().write(ids,vals,**kw)
+        self.function_store(ids)
 
     def get_name(self, ids, context={}):
         vals = {}

@@ -462,15 +462,19 @@ var FieldMany2One=NFView.extend({
             log("m2o create",val_str);
             this.hide_menu();
             rpc_execute(this.relation,"name_create",[val_str],{},function(err,data) {
-                if (err) throw "Failed to create model";
-                var val_id=data;
-                var model=that.context.model;
-                var name=that.options.name;
-                model.set(name,[val_id,val_str]);
-                var form=that.context.form;
-                if (that.options.onchange) {
-                    var path=model.get_path(name);
-                    form.do_onchange(that.options.onchange,path);
+                if(err){
+                     set_flash("error","Failed to create model: "+err.message);
+                     render_flash();
+                }else{
+                    var val_id=data;
+                    var model=that.context.model;
+                    var name=that.options.name;
+                    model.set(name,[val_id,val_str]);
+                    var form=that.context.form;
+                    if (that.options.onchange) {
+                        var path=model.get_path(name);
+                        form.do_onchange(that.options.onchange,path);
+                    }
                 }
             });
         } else if (val=="_search") {

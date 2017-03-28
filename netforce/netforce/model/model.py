@@ -989,7 +989,12 @@ class Model(object):
                 elif isinstance(f, fields.Text):
                     pass
                 elif isinstance(f, fields.Boolean):
-                    pass
+                    for r in res:
+                        k = (r["id"], n)
+                        val=vals.get(k)
+                        r[n]=False
+                        if val and val.lower()=='true':
+                            r[n]=True
                 elif isinstance(f, fields.Date):
                     pass
                 elif isinstance(f, fields.Selection):

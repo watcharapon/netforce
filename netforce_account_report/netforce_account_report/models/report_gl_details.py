@@ -26,7 +26,9 @@ from dateutil.relativedelta import *
 from netforce.access import get_active_company
 from decimal import Decimal
 
-
+balance_sheet = ["cash","cheque","bank","receivable","cur_asset","fixed_asset","noncur_asset",
+                 "payable","cust_deposit","cur_liability","noncur_liability",
+                 "equity"]
 class ReportGLDetails(Model):
     _name = "report.gl.details"
     _transient = True
@@ -177,7 +179,9 @@ class ReportGLDetails(Model):
             acc_vals['lines'].sort(key = itemgetter("date","number"))
             acc_vals["debit_total"] = debit_total
             acc_vals["credit_total"] = credit_total
-            if acc_vals["lines"]:
+            if acc.type in balance_sheet:
+                data["accounts"].append(acc_vals)
+            elif acc_vals["lines"]:
                 data["accounts"].append(acc_vals)
         return data
 

@@ -550,6 +550,10 @@ class SaleOrder(Model):
             }
             if contact and contact.pick_out_journal_id:
                 pick_vals[picking_key]["journal_id"] = contact.pick_out_journal_id.id
+
+        obj.create_track()
+        tracks = get_model("account.track.categ").search_browse([["parent_id.code", "=", obj.number]])
+
         for line in obj.lines:
             picking_key = line.ship_method_id and line.ship_method_id.id or 0
             prod = line.product_id
@@ -562,6 +566,10 @@ class SaleOrder(Model):
             qty_remain = line.qty - line.qty_delivered
             if qty_remain <= 0:
                 continue
+
+            track_code="%s / %s"%(obj.number, line.sequence or "")
+            track_ids=[track.id for  track in tracks if track.code==track_code]
+
             line_vals = {
                 "product_id": prod.id,
                 "qty": qty_remain,
@@ -569,8 +577,10 @@ class SaleOrder(Model):
                 "location_from_id": line.location_id.id or wh_loc_id,
                 "location_to_id": cust_loc_id,
                 "related_id": "sale.order,%s" % obj.id,
+                'track_id': track_ids and track_ids[0] or None,
             }
             pick_vals[picking_key]["lines"].append(("create", line_vals))
+
         for picking_key, picking_value in pick_vals.items():
             if not picking_value["lines"]: Exception("Nothing left to deliver")
             pick_id = get_model("stock.picking").create(picking_value, context={"pick_type": "out"})

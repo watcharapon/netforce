@@ -95,7 +95,7 @@
         <separator string="Email Information"/>
         <field name="date"/>
         <field name="user_id"/>
-        <field name="name_id" required="1"/>
+        <field name="name_id"/>
         <field name="related_id"/>
         <field name="subject" size="xlarge"/>
         <field name="state" invisible="1"/>
