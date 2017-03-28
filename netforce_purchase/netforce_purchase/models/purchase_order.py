@@ -24,6 +24,7 @@ import time
 from netforce.access import get_active_company, get_active_user, set_active_user
 from . import utils
 from decimal import Decimal
+from datetime import datetime
 
 
 class PurchaseOrder(Model):
@@ -132,6 +133,8 @@ class PurchaseOrder(Model):
                 prod = line.product_id
                 if prod and prod.type in ("stock", "consumable", "bundle") and not line.location_id:
                     raise Exception("Missing location for product %s" % prod.code)
+                if prod.purchase_min_qty and line.qty < prod.purchase_min_qty:
+                    raise Exception("Minimum Sales Qty for [%s] %s is %s"%(prod.code,prod.name,prod.purchase_min_qty))
             obj.write({"state": "confirmed"})
             if settings.purchase_copy_picking:
                 res=obj.copy_to_picking()
@@ -228,7 +231,7 @@ class PurchaseOrder(Model):
             return {}
         prod = get_model("product").browse(prod_id)
         line["description"] = prod.description
-        line["qty"] = 1
+        line["qty"] = prod.purchase_min_qty or 1
         line["uom_id"] = prod.purchase_uom_id.id or prod.uom_id.id
         pricelist_id = data["price_list_id"]
         price = None
@@ -265,6 +268,8 @@ class PurchaseOrder(Model):
         pricelist_id = data["price_list_id"]
         qty = line["qty"]
         price = None
+        if prod.purchase_min_qty and qty < prod.purchase_min_qty:
+            raise Exception("Minimum Sales Qty for [%s] %s is %s"%(prod.code,prod.name,prod.purchase_min_qty))
         if pricelist_id:
             price = get_model("price.list").get_price(pricelist_id, prod.id, qty)
             price_list = get_model("price.list").browse(pricelist_id)
@@ -294,7 +299,7 @@ class PurchaseOrder(Model):
             "lines": [],
         }
         if obj.delivery_date:
-            pick_vals["date"]=obj.delivery_date
+            pick_vals["date"]=obj.delivery_date+datetime.strftime(datetime.now()," %H:%M:%S")
         if contact and contact.pick_in_journal_id:
             pick_vals["journal_id"] = contact.pick_in_journal_id.id
         res = get_model("stock.location").search([["type", "=", "supplier"]],order="id")
