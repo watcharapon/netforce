@@ -497,10 +497,14 @@ class Payment(Model):
                     raise Exception("Missing currency rate for %s" % settings.currency_id.code)
                 currency_rate = rate_from / (rate_to or 1)
             obj.write({"currency_rate": currency_rate})
+        if obj.type == "out":
+            pay_desc = "Payment"
+        else:
+            pay_desc = "Received"
         if obj.pay_type == "direct":
             desc = obj.memo or obj.ref or obj.contact_id.name or obj.number  # XXX: as in myob?
         elif obj.pay_type == "invoice":
-            desc = obj.memo or "Payment; %s" % obj.contact_id.name  # XXX: as in myob?
+            desc = obj.memo or "%s; %s" %(pay_desc, obj.contact_id.name)  # XXX: as in myob?
         elif obj.pay_type == "prepay":
             desc = "Prepayment: %s" % obj.contact_id.name
         elif obj.pay_type == "overpay":
@@ -510,7 +514,7 @@ class Payment(Model):
         elif obj.pay_type == "adjust":
             desc = "Adjustment"
         else:
-            desc = "Payment: %s" % obj.contact_id.name
+            desc = "%s: %s" %(pay_desc, obj.contact_id.name)
         if obj.type == "in":
             journal_id = obj.journal_id.id or settings.pay_in_journal_id.id
             if not journal_id:
