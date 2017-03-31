@@ -72,8 +72,11 @@ class PaymentLine(Model):
                 rate_type = "buy"
             inv = obj.invoice_id
             if inv:
-                amt = get_model("currency").convert(
-                    obj.amount, pmt.currency_id.id, inv.currency_id.id, date=pmt.date, rate_type=rate_type)
+                if obj.payment_id.currency_rate:
+                    amt = obj.amount * obj.payment_id.currency_rate
+                else:
+                    amt = get_model("currency").convert(
+                        obj.amount, pmt.currency_id.id, inv.currency_id.id, date=pmt.date, rate_type=rate_type)
             else:
                 amt = None
             vals[obj.id] = amt
