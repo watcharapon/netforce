@@ -82,7 +82,7 @@ class ReportPurchase(Model):
         db = get_connection()
         company_id=get_active_company()
         res = db.query(
-            "SELECT c.name,SUM(l.amount_cur) as amount FROM purchase_order_line l,purchase_order o,product p,product_categ c,m2m_product_product_categ r WHERE r.product_categ_id=c.id and r.product_id=p.id AND p.id=l.product_id AND o.id=l.order_id AND o.state in ('confirmed','done') and o.company_id=%s GROUP BY c.name ORDER BY amount DESC",company_id)
+            "SELECT c.name,SUM(l.amount_cur) as amount FROM purchase_order_line l,purchase_order o,product p,product_categ c WHERE p.categ_id=c.id AND p.id=l.product_id AND o.id=l.order_id AND o.state in ('confirmed','done') and o.company_id=%s GROUP BY c.name ORDER BY amount DESC",company_id)
         data = []
         for r in res[:5]:
             data.append((r.name, r.amount))
