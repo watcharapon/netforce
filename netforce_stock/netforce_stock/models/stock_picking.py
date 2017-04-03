@@ -320,6 +320,7 @@ class Picking(Model):
                     "qty": line.qty,
                     "uom_id": line.uom_id.id,
                     "account_id": prod.sale_account_id.id,
+                    'track_id': line.track_id and line.track_id.id or None,
                 }
                 if obj.related_id and obj.related_id._model == "sale.order":
                     so_line_id = obj.related_id.find_sale_line(prod.id)
@@ -382,6 +383,7 @@ class Picking(Model):
                     "tax_id": prod.purchase_tax_id.id,
                     "account_id": purch_acc_id,
                     "amount": line.qty * line.cost_price_cur,
+                    'track_id': line.track_id and line.track_id.id or None,
                 }
                 inv_vals["lines"].append(("create", line_vals))
             inv_id = get_model("account.invoice").create(inv_vals, context=context)

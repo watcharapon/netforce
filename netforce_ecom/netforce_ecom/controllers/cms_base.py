@@ -58,7 +58,7 @@ class BaseController(Controller):
             user_id=int(user_id)
             user=get_model("base.user").browse(user_id)
             contact = user.contact_id
-            if contact.sale_price_list_id.id:
+            if contact and contact.sale_price_list_id:
                 browse_ctx["pricelist_id"] =contact.sale_price_list_id.id 
             ctx["customer"]=contact
         ctx["website"]=website

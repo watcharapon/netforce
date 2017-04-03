@@ -23,7 +23,7 @@
                 <field name="number" required="1" span="2"/>
                 <field name="ref" span="2"/>
                 <newline/>
-                <field name="currency_id" span="2"/>
+                <field name="currency_id" span="2" onchange="update_currency_rate"/>
                 <field name="tax_type" span="2" onchange="update_amounts"/>
                 <field name="tax_no" span="2"/>
                 <field name="related_id" span="2"/>

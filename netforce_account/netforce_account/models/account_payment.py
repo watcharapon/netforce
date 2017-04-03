@@ -949,6 +949,8 @@ class Payment(Model):
                 "state": "waiting_payment",
                 "payment_id": obj.id,
                 "currency_id": obj.currency_id.id,
+                "memo":obj.memo,
+                "tax_no":obj.tax_no,
             }
             for line in obj.lines:
                 line_vals = {

@@ -23,7 +23,9 @@ from datetime import *
 from dateutil.relativedelta import *
 from netforce.access import get_active_company
 
-
+balance_sheet = ["cash","cheque","bank","receivable","cur_asset","fixed_asset","noncur_asset",
+                 "payable","cust_deposit","cur_liability","noncur_liability",
+                  "equity"]
 class ReportGL(Model):
     _name = "report.gl"
     _transient = True
@@ -115,9 +117,12 @@ class ReportGL(Model):
             "journal_id": journal_id,
         }
         accounts = get_model("account.account").search_read(
-            condition, ["name", "code", "debit", "credit", "balance"], order="code", context=ctx)
-        accounts = [acc for acc in accounts if acc["debit"] or acc["credit"]]
-        data["lines"] = accounts
+            condition, ["name", "code", "debit", "credit", "balance" ,"type"], order="code", context=ctx)
+        data_accounts = []
+        for acc in accounts:
+            if acc["debit"] or acc["credit"]:
+                data_accounts.append(acc)
+        data["lines"] = data_accounts
         data["total_debit"] = sum(acc["debit"] for acc in accounts)
         data["total_credit"] = sum(acc["credit"] for acc in accounts)
         data["total_balance"] = sum(acc["balance"] for acc in accounts)
