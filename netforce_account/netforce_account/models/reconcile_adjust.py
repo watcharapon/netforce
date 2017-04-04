@@ -32,6 +32,7 @@ class ReconcileAdjust(Model):
         "account_id": fields.Many2One("account.account", "Adjustment Account", required=True, on_delete="cascade"),
         "date": fields.Date("Adjustment Date", required=True),
         "warning": fields.Boolean("Warning", readonly=True),
+        "memo": fields.Char("Memo"),
     }
 
     def default_get(self, field_names=None, context={}, **kw):
@@ -73,6 +74,7 @@ class ReconcileAdjust(Model):
             "pay_type": "adjust",
             "date": obj.date,
             "account_id": account_id,
+            "memo": obj.memo,
             "lines": [("create", {
                 "type": "adjust",
                 "description": "Adjustment",

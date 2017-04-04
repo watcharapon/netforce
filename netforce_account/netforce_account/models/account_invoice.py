@@ -226,6 +226,9 @@ class Invoice(Model):
                     sale_ids.append(line.sale_id.id)
                 if line.purch_id:
                     purch_ids.append(line.purch_id.id)
+            if inv.move_id:
+                inv.move_id.void()
+                inv.move_id.delete()
         super(Invoice, self).delete(ids, context=context)
         if sale_ids:
             get_model("sale.order").function_store(sale_ids)
@@ -619,6 +622,7 @@ class Invoice(Model):
                         cred_amt += pmt.amount
                     else:
                         cred_amt -= pmt.amount  # XXX: check this
+                vals["amount_paid"] = -cred_amt
                 vals["amount_credit_remain"] = vals["amount_total"] - cred_amt
                 vals["amount_due"] = -vals["amount_credit_remain"]
             vals["amount_due_cur"] = get_model("currency").convert(
@@ -1211,4 +1215,5 @@ class Invoice(Model):
             currency_rate = rate_from / rate_to
         data["currency_rate"] = currency_rate
         return data
+
 Invoice.register()

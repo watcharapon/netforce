@@ -21,6 +21,8 @@
             <field name="unit_price" onchange="update_amounts"/>
             <field name="account_id" condition='[["type","!=","view"]]'/>
             <field name="tax_id" onchange="update_amounts"/>
+            <field name="track_id"/>
+            <field name="track2_id"/>
             <field name="amount"/>
         </list>
     </field>

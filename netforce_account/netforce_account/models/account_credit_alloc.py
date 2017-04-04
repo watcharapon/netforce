@@ -119,6 +119,7 @@ class CreditAlloc(Model):
                 "journal_id": journal_id,
                 "date": obj.date,
                 "narration": desc,
+                "ref": "%s,%s"%(cred.number,inv.number),
             }
             lines = []
             use_ratio = obj.amount / cred.amount_total

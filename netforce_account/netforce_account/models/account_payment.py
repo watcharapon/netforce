@@ -238,14 +238,16 @@ class Payment(Model):
                 elif line.type in ("direct", "prepay", "overpay"):
                     tax=line.tax_id
                     amt=line.amount or 0
+                    vat_amt = 0
                     if tax:
                         for tax_comp in tax.components:
                             if tax_comp.type in ('vat'):
-                                vat += get_model("account.tax.rate").compute_tax(tax.id, amt, tax_type=obj.tax_type)
+                                vat_amt = get_model("account.tax.rate").compute_tax(tax.id, amt, tax_type=obj.tax_type)
+                                vat += vat_amt
                             elif tax_comp.type in ('wht'):
                                 wht += get_model("account.tax.rate").compute_tax(tax.id, amt, tax_type=obj.tax_type, wht=True)
                     if obj.tax_type=='tax_in':
-                        amt -= vat
+                        amt -= vat_amt
                     subtotal += amt
                 elif line.type=="invoice":
                     inv = line.invoice_id
@@ -278,7 +280,7 @@ class Payment(Model):
                                             inv_wht -= tax_amt
                                 else:
                                     base_amt = invline_amt
-                                subtotal += base_amt
+                                subtotal += round(base_amt,2)
                             for alloc in inv.credit_notes:
                                 cred = alloc.credit_id
                                 cred_ratio = alloc.amount / cred.amount_total
@@ -512,7 +514,7 @@ class Payment(Model):
         elif obj.pay_type == "claim":
             desc = "Expense claim payment"
         elif obj.pay_type == "adjust":
-            desc = "Adjustment"
+            desc = obj.memo or "Adjustment"
         else:
             desc = "%s: %s" %(pay_desc, obj.contact_id.name)
         if obj.type == "in":
@@ -963,6 +965,8 @@ class Payment(Model):
                     "unit_price": line.unit_price,
                     "account_id": line.account_id.id,
                     "tax_id": line.tax_id.id,
+                    "track_id": line.track_id.id,
+                    "track2_id": line.track2_id.id,
                     "amount": line.amount,
                 }
                 vals["lines"].append(("create", line_vals))
