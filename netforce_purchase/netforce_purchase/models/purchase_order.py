@@ -134,7 +134,7 @@ class PurchaseOrder(Model):
                 if prod and prod.type in ("stock", "consumable", "bundle") and not line.location_id:
                     raise Exception("Missing location for product %s" % prod.code)
                 if prod.purchase_min_qty and line.qty < prod.purchase_min_qty:
-                    raise Exception("Minimum Sales Qty for [%s] %s is %s"%(prod.code,prod.name,prod.purchase_min_qty))
+                    raise Exception("Minimum Purchases Qty for [%s] %s is %s"%(prod.code,prod.name,prod.purchase_min_qty))
             obj.write({"state": "confirmed"})
             if settings.purchase_copy_picking:
                 res=obj.copy_to_picking()

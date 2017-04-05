@@ -20,9 +20,11 @@
 
 from netforce import database
 from netforce import access
+from netforce import config
 from . import fields
 import csv
 from io import StringIO
+import json
 import netforce
 import os
 import shutil
@@ -250,6 +252,20 @@ class Model(object):
             if len(ids) > 1:
                 raise Exception("Duplicate keys: model=%s, %s" % (self._name, ", ".join(["%s='%s'"%(k,r[k]) for k in self._key])))
 
+    def _check_pkg(self,context={}):
+        dbname = database.get_active_db()
+        if not dbname:
+            return None
+        path = os.path.join(os.getcwd(), "static", "db", dbname, "package.json")
+        json_data = open(path).read()
+        data = json.loads(json_data)
+        if data.get(self._table):
+            db = database.get_connection()
+            q = "SELECT count(*) FROM " + self._table 
+            res = db.get(q).count
+            if data.get(self._table) < res:
+                raise Exception("Can't create %s is over limit in package"%self._string)
+
     def check_permission_company(self,context={}):
         """
             System should not allow to create any transaction on a Group Company except reports
@@ -260,6 +276,8 @@ class Model(object):
             raise Exception("This company not allow to create transaction!")
 
     def create(self, vals, context={}):
+        if config.get('check_pkg'):
+            self._check_pkg()
         self.check_permission_company()
         if not access.check_permission(self._name, "create"):
             raise Exception("Permission denied (create %s, user_id=%s)" % (self._name, access.get_active_user()))

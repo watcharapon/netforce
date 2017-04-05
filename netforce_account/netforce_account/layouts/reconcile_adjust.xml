@@ -10,6 +10,7 @@
     <field name="amount"/>
     <field name="date"/>
     <field name="account_id"/>
+    <field name="memo"/>
     <template>
         {{#if context.data.warning}}
             <div class="alert alert-error">

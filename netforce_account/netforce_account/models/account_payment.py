@@ -238,14 +238,16 @@ class Payment(Model):
                 elif line.type in ("direct", "prepay", "overpay"):
                     tax=line.tax_id
                     amt=line.amount or 0
+                    vat_amt = 0
                     if tax:
                         for tax_comp in tax.components:
                             if tax_comp.type in ('vat'):
-                                vat += get_model("account.tax.rate").compute_tax(tax.id, amt, tax_type=obj.tax_type)
+                                vat_amt = get_model("account.tax.rate").compute_tax(tax.id, amt, tax_type=obj.tax_type)
+                                vat += vat_amt
                             elif tax_comp.type in ('wht'):
                                 wht += get_model("account.tax.rate").compute_tax(tax.id, amt, tax_type=obj.tax_type, wht=True)
                     if obj.tax_type=='tax_in':
-                        amt -= vat
+                        amt -= vat_amt
                     subtotal += amt
                 elif line.type=="invoice":
                     inv = line.invoice_id
@@ -278,7 +280,7 @@ class Payment(Model):
                                             inv_wht -= tax_amt
                                 else:
                                     base_amt = invline_amt
-                                subtotal += base_amt
+                                subtotal += round(base_amt,2)
                             for alloc in inv.credit_notes:
                                 cred = alloc.credit_id
                                 cred_ratio = alloc.amount / cred.amount_total
@@ -497,10 +499,14 @@ class Payment(Model):
                     raise Exception("Missing currency rate for %s" % settings.currency_id.code)
                 currency_rate = rate_from / (rate_to or 1)
             obj.write({"currency_rate": currency_rate})
+        if obj.type == "out":
+            pay_desc = "Payment"
+        else:
+            pay_desc = "Received"
         if obj.pay_type == "direct":
             desc = obj.memo or obj.ref or obj.contact_id.name or obj.number  # XXX: as in myob?
         elif obj.pay_type == "invoice":
-            desc = obj.memo or "Payment; %s" % obj.contact_id.name  # XXX: as in myob?
+            desc = obj.memo or "%s; %s" %(pay_desc, obj.contact_id.name)  # XXX: as in myob?
         elif obj.pay_type == "prepay":
             desc = "Prepayment: %s" % obj.contact_id.name
         elif obj.pay_type == "overpay":
@@ -508,9 +514,9 @@ class Payment(Model):
         elif obj.pay_type == "claim":
             desc = "Expense claim payment"
         elif obj.pay_type == "adjust":
-            desc = "Adjustment"
+            desc = obj.memo or "Adjustment"
         else:
-            desc = "Payment: %s" % obj.contact_id.name
+            desc = "%s: %s" %(pay_desc, obj.contact_id.name)
         if obj.type == "in":
             journal_id = obj.journal_id.id or settings.pay_in_journal_id.id
             if not journal_id:
@@ -959,6 +965,8 @@ class Payment(Model):
                     "unit_price": line.unit_price,
                     "account_id": line.account_id.id,
                     "tax_id": line.tax_id.id,
+                    "track_id": line.track_id.id,
+                    "track2_id": line.track2_id.id,
                     "amount": line.amount,
                 }
                 vals["lines"].append(("create", line_vals))

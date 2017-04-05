@@ -121,6 +121,7 @@ class SaleOrder(Model):
         "product_id": fields.Many2One("product","Product",store=False,function_search="search_product",search=True),
         "currency_rates": fields.One2Many("custom.currency.rate","related_id","Currency Rates"),
         "delivery_slot_id": fields.Many2One("delivery.slot","Delivery Slot"),
+        "invoices_amount_total": fields.Decimal("Invoice amount",function="get_invoices_total")
     }
 
     def _get_number(self, context={}):
@@ -168,6 +169,17 @@ class SaleOrder(Model):
         "currency_rates": _get_currency_rates,
     }
     _order = "date desc,number desc"
+
+    def get_invoices_total(self,ids,context={}): # checks the i
+        res = {}
+        for obj in self.browse(ids):
+            inv_total = 0
+            for inv in obj.invoices:
+                if inv.state !='paid': # only take from paid ?
+                    continue
+                inv_total+=inv.amount_paid # take amount paid or amount total ?
+            res[obj.id] = inv_total 
+        return res
 
     def search_product(self, clause, context={}):
         product_id = clause[2]
@@ -634,16 +646,25 @@ class SaleOrder(Model):
                     inv_vals["journal_id"] = contact.sale_journal_id.id
                     if contact.sale_journal_id.sequence_id:
                         inv_vals["sequence_id"] = contact.sale_journal_id.sequence_id.id
+                service = True # need to check if all the lines in SO are of type Service to use the new logic
+                for line in obj.lines:
+                    if line.product_id:
+                        service = False 
                 for line in obj.lines:
                     if line.unit_price is None:
                         continue
                     if line.ship_method_id.id!=ship_method_id:
                         continue
-                    prod = line.product_id
+                    prod = line.product_id # if their is type product use the following logic
                     remain_qty = line.qty - line.qty_invoiced
-                    if remain_qty <= 0:
-                        continue
-
+                    if not service: # use for both normal product and service product.
+                        if remain_qty <= 0: 
+                            continue
+                    elif service: # use only if all the prodcut in lines are of type service.
+                        remain_amount = obj.amount_total - obj.invoices_amount_total
+                        remain_qty = line.qty
+                        if remain_amount <= 0:
+                            continue
                     # TODO: this get account should call from product.get_account()["sale_account_id"]
 
                     sale_acc_id=None
@@ -711,7 +732,7 @@ class SaleOrder(Model):
                 inv_id = get_model("account.invoice").create(inv_vals, {"type": "out", "inv_type": "invoice"})
                 inv_ids.append(inv_id)
             if not inv_ids:
-                raise Exception("Nothing to invoice")
+                raise Exception("Nothing to invoice") 
             print("inv_ids",inv_ids)
             return {
                 "next": {
