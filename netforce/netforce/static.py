@@ -288,6 +288,31 @@ def check_ui_params_db():
     if not res:
         make_ui_params_db()
 
+def check_pkg():
+    dbname = database.get_active_db()
+    if not dbname:
+        return ""
+    res = glob.glob("static/db/%s/package.json" % dbname)
+    if not res:
+        make_pkg()
+
+def make_pkg():
+    print("building ui_params_db...")
+    user_id = get_active_user()
+    set_active_user(1)
+    try:
+        data = {}
+        data["company"] = 1
+        data["user"] = 20
+        data["product"] = 100
+        dbname = database.get_active_db()
+        if not os.path.exists("static/db/%s" % dbname):
+            os.makedirs("static/db/%s" % dbname)
+        s = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
+        print("  => static/db/%s/ui_params_db.json" % dbname)
+        open("static/db/%s/package.json" % dbname, "w").write(s)
+    finally:
+        set_active_user(user_id)
 
 def make_ui_params_db():
     print("building ui_params_db...")
