@@ -176,6 +176,7 @@ def run_server():
     static.make_js(minify=args.minify)
     static.make_css(minify=args.minify)
     static.make_ui_params()
+    static.make_pkg()
     if config.DEV_MODE:
         reloader.start_reloader()
     if config.DEV_MODE or platform.system() == "Windows":  # XXX

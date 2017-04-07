@@ -280,7 +280,7 @@ class Payment(Model):
                                             inv_wht -= tax_amt
                                 else:
                                     base_amt = invline_amt
-                                subtotal += round(base_amt,2)
+                                subtotal += base_amt
                             for alloc in inv.credit_notes:
                                 cred = alloc.credit_id
                                 cred_ratio = alloc.amount / cred.amount_total

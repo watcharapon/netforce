@@ -28,6 +28,7 @@ import hashlib
 from . import locale
 from io import StringIO
 from . import database
+from urllib.request import urlopen
 import json
 from netforce.model import get_model, models_to_json
 import glob
@@ -194,7 +195,6 @@ def clear_js():
     global js_hash
     js_hash = None
 
-
 def make_js(minify=False):
     print("building js...")
     global _js_file
@@ -263,7 +263,6 @@ def make_css(minify=False):
             _css_file="netforce-%s.css"%h
         print("  => static/css/%s" % _css_file)
 
-
 def make_ui_params():
     print("building ui_params...")
     data = {}
@@ -278,7 +277,6 @@ def make_ui_params():
         print("  => static/ui_params.json")
         s = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
         open("static/ui_params.json", "w").write(s)
-
 
 def check_ui_params_db():
     dbname = database.get_active_db()
@@ -302,10 +300,13 @@ def make_pkg():
     set_active_user(1)
     try:
         data = {}
-        data["company"] = 1
-        data["user"] = 20
-        data["product"] = 100
         dbname = database.get_active_db()
+        url = "http://mgt.netforce.co.th/get_pkg_detail?dbname=%s"%(dbname)
+        data_mgt = eval(urlopen(url).read().decode('utf8'))
+        if data_mgt:
+            data["company"] = data_mgt.get('limit_company') or 0
+            data["base.user"] = data_mgt.get('limit_user') or 0
+            data["product"] = data_mgt.get('limit_product') or 0
         if not os.path.exists("static/db/%s" % dbname):
             os.makedirs("static/db/%s" % dbname)
         s = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))

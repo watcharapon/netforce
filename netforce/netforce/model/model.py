@@ -251,7 +251,7 @@ class Model(object):
         path = os.path.join(os.getcwd(), "static", "db", dbname, "package.json")
         json_data = open(path).read()
         data = json.loads(json_data)
-        if data.get(self._table):
+        if data.get(self._table) and data.get(self._table) != 0:
             db = database.get_connection()
             q = "SELECT count(*) FROM " + self._table 
             res = db.get(q).count
