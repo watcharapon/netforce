@@ -59,6 +59,10 @@ var ModelView=NFView.extend({
                     that.render_error(err);
                     return;
                 }
+                if(data.next && data.next.type=='url'){
+                    window.location.href=data.next.url;
+                    return;
+                }
                 that.data.context.data=data;
                 that.data.context.model=new NFModel(data,{name:that.options.model});
                 that.data.context.model.on("reload",that.reload,that);
@@ -94,6 +98,10 @@ var ModelView=NFView.extend({
                 rpc_execute(this.options.model,"default_get",[],{field_names: fields, context: ctx},function(err,data) {
                     if (err) {
                         that.render_error(err);
+                        return;
+                    }
+                    if(data.next && data.next.type=='url'){
+                        window.location.href=data.next.url;
                         return;
                     }
                     that.data.context.data=data;
