@@ -970,7 +970,12 @@ def report_render_odt(tmpl_name, data):
                 continue
             if textel.text.find("{{") == -1:
                 continue
-            t = re.sub("{{\s*(\S+)\s*}}", _repl, textel.text)
+            t = re.sub("{{\s*(\W+)\s*}}", _repl, textel.text)
+            if textel.text.find("{{break_line") != -1:
+                def _rebl(m):
+                    var = m.group(1)
+                    return "{{{odt_linebreak %s}}}" % var
+                t = re.sub("{{break_line (.*?)}}", _rebl, textel.text)
             if t != textel.text:
                 textel.text = t
 
