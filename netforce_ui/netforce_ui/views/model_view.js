@@ -59,7 +59,7 @@ var ModelView=NFView.extend({
                     that.render_error(err);
                     return;
                 }
-                if(data.next && data.next.type=='url'){
+                if(data && data.next && data.next.type=='url'){
                     window.location.href=data.next.url;
                     return;
                 }
@@ -100,7 +100,7 @@ var ModelView=NFView.extend({
                         that.render_error(err);
                         return;
                     }
-                    if(data.next && data.next.type=='url'){
+                    if(data && data.next && data.next.type=='url'){
                         window.location.href=data.next.url;
                         return;
                     }
