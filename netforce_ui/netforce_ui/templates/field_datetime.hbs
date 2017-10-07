@@ -6,9 +6,9 @@
 <div class="{{#if horizontal}}col-sm-8{{/if}}">
     {{#if readonly}}
         <span{{#if input}} class="uneditable-input {{#if options.size}}input-{{options.size}}{{/if}}"{{/if}}>
-            {{value}}
+            {{fmt_datetime value}}
         </span>
     {{else}}
-        <input type="text" value="{{value}}" class="form-control datetime-inp {{#if options.span}}span{{options.span}}{{/if}} {{#if options.size}}input-{{options.size}}{{/if}}"/>
+        <input type="text" value="{{fmt_datetime value}}" class="form-control datetime-inp {{#if options.span}}span{{options.span}}{{/if}} {{#if options.size}}input-{{options.size}}{{/if}}"/>
     {{/if}}
 </div>

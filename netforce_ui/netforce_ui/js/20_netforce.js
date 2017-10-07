@@ -289,6 +289,10 @@ Handlebars.registerHelper("fmt_date",function(v,options) {
     return format_date(v,options);
 });
 
+Handlebars.registerHelper("fmt_datetime",function(v,options) {
+    return format_datetime(v,options);
+});
+
 Handlebars.registerHelper("time_ago",function(v) {
     var d=new Date(v);
     var m=moment(d);
@@ -462,6 +466,7 @@ function format_date(val,options) {
             var fmt="YYYY-MM-DD";
         }
     }
+    // FIXME
     var val2=moment(val,"YYYY-MM-DD").format(fmt);
     return val2;
 }
